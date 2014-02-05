@@ -32,6 +32,7 @@ import com.liferay.portal.service.permission.PortletPermissionUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * @author Brian Wing Shun Chan
@@ -210,6 +211,11 @@ public class UpgradePortletId extends UpgradeProcess {
 
 			ps.executeUpdate();
 		}
+		catch (SQLException sqle) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(sqle, sqle);
+			}
+		}
 		finally {
 			DataAccess.cleanUp(con, ps);
 		}
@@ -240,6 +246,11 @@ public class UpgradePortletId extends UpgradeProcess {
 				updateLayout(plid, newTypeSettings);
 			}
 		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
+		}
 		finally {
 			DataAccess.cleanUp(con, ps, rs);
 		}
@@ -262,9 +273,13 @@ public class UpgradePortletId extends UpgradeProcess {
 			sb.append("select plid, typeSettings from Layout where ");
 			sb.append("typeSettings like '%=");
 			sb.append(oldRootPortletId);
+			sb.append(",%' OR typeSettings like '%=");
+			sb.append(oldRootPortletId);
+			sb.append("\n%' OR typeSettings like '%,");
+			sb.append(oldRootPortletId);
 			sb.append(",%' OR typeSettings like '%,");
 			sb.append(oldRootPortletId);
-			sb.append(",%' OR typeSettings like '%=");
+			sb.append("\n%' OR typeSettings like '%=");
 			sb.append(oldRootPortletId);
 			sb.append("_INSTANCE_%' OR typeSettings like '%,");
 			sb.append(oldRootPortletId);
@@ -298,18 +313,25 @@ public class UpgradePortletId extends UpgradeProcess {
 			String oldRootPortletId, String newRootPortletId)
 		throws Exception {
 
-		runSQL(
-			"update Portlet set portletId = '" + newRootPortletId +
-				"' where portletId = '" + oldRootPortletId + "'");
+		try {
+			runSQL(
+				"update Portlet set portletId = '" + newRootPortletId +
+					"' where portletId = '" + oldRootPortletId + "'");
 
-		runSQL(
-			"update ResourceAction set name = '" + newRootPortletId +
-				"' where name = '" + oldRootPortletId + "'");
+			runSQL(
+				"update ResourceAction set name = '" + newRootPortletId +
+					"' where name = '" + oldRootPortletId + "'");
 
-		updateResourcePermission(oldRootPortletId, newRootPortletId, true);
+			updateResourcePermission(oldRootPortletId, newRootPortletId, true);
 
-		updateInstanceablePortletPreferences(
-			oldRootPortletId, newRootPortletId);
+			updateInstanceablePortletPreferences(
+				oldRootPortletId, newRootPortletId);
+		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
+		}
 	}
 
 	protected void updatePortletPreference(
@@ -329,6 +351,11 @@ public class UpgradePortletId extends UpgradeProcess {
 			ps.setString(1, portletId);
 
 			ps.executeUpdate();
+		}
+		catch (SQLException sqle) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(sqle, sqle);
+			}
 		}
 		finally {
 			DataAccess.cleanUp(con, ps);
@@ -353,6 +380,11 @@ public class UpgradePortletId extends UpgradeProcess {
 			ps.setString(2, primKey);
 
 			ps.executeUpdate();
+		}
+		catch (SQLException sqle) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(sqle, sqle);
+			}
 		}
 		finally {
 			DataAccess.cleanUp(con, ps);
@@ -412,6 +444,11 @@ public class UpgradePortletId extends UpgradeProcess {
 
 				updateResourcePermission(
 					resourcePermissionId, newName, primKey);
+			}
+		}
+		catch (SQLException sqle) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(sqle, sqle);
 			}
 		}
 		finally {

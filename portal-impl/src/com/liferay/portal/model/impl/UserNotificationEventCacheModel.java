@@ -35,9 +35,11 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", userNotificationEventId=");
 		sb.append(userNotificationEventId);
@@ -51,6 +53,8 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		sb.append(timestamp);
 		sb.append(", deliverBy=");
 		sb.append(deliverBy);
+		sb.append(", delivered=");
+		sb.append(delivered);
 		sb.append(", payload=");
 		sb.append(payload);
 		sb.append(", archived=");
@@ -63,6 +67,8 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 	@Override
 	public UserNotificationEvent toEntityModel() {
 		UserNotificationEventImpl userNotificationEventImpl = new UserNotificationEventImpl();
+
+		userNotificationEventImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			userNotificationEventImpl.setUuid(StringPool.BLANK);
@@ -84,6 +90,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 
 		userNotificationEventImpl.setTimestamp(timestamp);
 		userNotificationEventImpl.setDeliverBy(deliverBy);
+		userNotificationEventImpl.setDelivered(delivered);
 
 		if (payload == null) {
 			userNotificationEventImpl.setPayload(StringPool.BLANK);
@@ -101,6 +108,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		userNotificationEventId = objectInput.readLong();
 		companyId = objectInput.readLong();
@@ -108,6 +116,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		type = objectInput.readUTF();
 		timestamp = objectInput.readLong();
 		deliverBy = objectInput.readLong();
+		delivered = objectInput.readBoolean();
 		payload = objectInput.readUTF();
 		archived = objectInput.readBoolean();
 	}
@@ -115,6 +124,8 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -135,6 +146,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 
 		objectOutput.writeLong(timestamp);
 		objectOutput.writeLong(deliverBy);
+		objectOutput.writeBoolean(delivered);
 
 		if (payload == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
@@ -146,6 +158,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 		objectOutput.writeBoolean(archived);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long userNotificationEventId;
 	public long companyId;
@@ -153,6 +166,7 @@ public class UserNotificationEventCacheModel implements CacheModel<UserNotificat
 	public String type;
 	public long timestamp;
 	public long deliverBy;
+	public boolean delivered;
 	public String payload;
 	public boolean archived;
 }

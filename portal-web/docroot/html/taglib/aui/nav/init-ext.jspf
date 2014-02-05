@@ -13,9 +13,3 @@
  * details.
  */
 --%>
-
-<%
-if (Validator.isNotNull(id)) {
-	id = portletResponse.getNamespace() + id;
-}
-%>

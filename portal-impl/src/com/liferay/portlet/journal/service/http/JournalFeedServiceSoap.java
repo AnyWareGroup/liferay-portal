@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalFeedServiceHttp
- * @see       com.liferay.portlet.journal.model.JournalFeedSoap
- * @see       com.liferay.portlet.journal.service.JournalFeedServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see JournalFeedServiceHttp
+ * @see com.liferay.portlet.journal.model.JournalFeedSoap
+ * @see com.liferay.portlet.journal.service.JournalFeedServiceUtil
  * @generated
  */
+@ProviderType
 public class JournalFeedServiceSoap {
 	public static com.liferay.portlet.journal.model.JournalFeedSoap addFeed(
 		long groupId, java.lang.String feedId, boolean autoFeedId,
@@ -89,6 +92,21 @@ public class JournalFeedServiceSoap {
 		}
 	}
 
+	public static void deleteFeed(long feedId) throws RemoteException {
+		try {
+			JournalFeedServiceUtil.deleteFeed(feedId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #deleteFeed(long, String)}
+	*/
+	@Deprecated
 	public static void deleteFeed(long groupId, long feedId)
 		throws RemoteException {
 		try {
@@ -113,6 +131,24 @@ public class JournalFeedServiceSoap {
 		}
 	}
 
+	public static com.liferay.portlet.journal.model.JournalFeedSoap getFeed(
+		long feedId) throws RemoteException {
+		try {
+			com.liferay.portlet.journal.model.JournalFeed returnValue = JournalFeedServiceUtil.getFeed(feedId);
+
+			return com.liferay.portlet.journal.model.JournalFeedSoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getFeed(long, String)}
+	*/
+	@Deprecated
 	public static com.liferay.portlet.journal.model.JournalFeedSoap getFeed(
 		long groupId, long feedId) throws RemoteException {
 		try {

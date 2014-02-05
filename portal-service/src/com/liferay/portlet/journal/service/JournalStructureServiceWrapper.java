@@ -14,15 +14,21 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link JournalStructureService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalStructureService
+ * @author Brian Wing Shun Chan
+ * @see JournalStructureService
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalStructureServiceWrapper implements JournalStructureService,
 	ServiceWrapper<JournalStructureService> {
 	public JournalStructureServiceWrapper(
@@ -168,6 +174,7 @@ public class JournalStructureServiceWrapper implements JournalStructureService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalStructureService getWrappedJournalStructureService() {
 		return _journalStructureService;
 	}
@@ -175,6 +182,7 @@ public class JournalStructureServiceWrapper implements JournalStructureService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalStructureService(
 		JournalStructureService journalStructureService) {
 		_journalStructureService = journalStructureService;

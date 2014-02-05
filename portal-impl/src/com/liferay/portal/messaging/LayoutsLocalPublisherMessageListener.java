@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.messaging.MessageStatus;
 import com.liferay.portal.kernel.messaging.sender.MessageSender;
 import com.liferay.portal.kernel.messaging.sender.SingleDestinationMessageSender;
 import com.liferay.portal.kernel.staging.StagingUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Time;
@@ -54,6 +55,7 @@ public class LayoutsLocalPublisherMessageListener
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public LayoutsLocalPublisherMessageListener(
 		SingleDestinationMessageSender statusSender,
 		MessageSender responseSender) {
@@ -102,6 +104,10 @@ public class LayoutsLocalPublisherMessageListener
 				Date scheduledFireTime =
 					publisherRequest.getScheduledFireTime();
 
+				if (scheduledFireTime == null) {
+					scheduledFireTime = new Date();
+				}
+
 				startDate = new Date(
 					scheduledFireTime.getTime() - (last * Time.HOUR));
 
@@ -132,7 +138,7 @@ public class LayoutsLocalPublisherMessageListener
 			String param = entry.getKey();
 			String[] values = entry.getValue();
 
-			if ((values != null) && (values.length > 0)) {
+			if (ArrayUtil.isNotEmpty(values)) {
 				if (values.length == 1) {
 					attributes.put(param, values[0]);
 				}

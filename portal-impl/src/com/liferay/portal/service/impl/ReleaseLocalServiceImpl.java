@@ -18,19 +18,18 @@ import com.liferay.portal.NoSuchReleaseException;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.dao.shard.ShardUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Release;
 import com.liferay.portal.model.ReleaseConstants;
 import com.liferay.portal.service.base.ReleaseLocalServiceBaseImpl;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.portal.util.PropsValues;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -90,11 +89,6 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 			db.runSQLTemplate("portal-tables.sql", false);
 			db.runSQLTemplate("portal-data-common.sql", false);
 			db.runSQLTemplate("portal-data-counter.sql", false);
-
-			if (!PropsValues.SCHEMA_RUN_MINIMAL && !ShardUtil.isEnabled()) {
-				db.runSQLTemplate("portal-data-sample.vm", false);
-			}
-
 			db.runSQLTemplate("portal-data-release.sql", false);
 			db.runSQLTemplate("indexes.sql", false);
 			db.runSQLTemplate("sequences.sql", false);
@@ -258,7 +252,7 @@ public class ReleaseLocalServiceImpl extends ReleaseLocalServiceBaseImpl {
 		}
 
 		count = testSupportsStringCaseSensitiveQuery(
-			ReleaseConstants.TEST_STRING.toUpperCase());
+			StringUtil.toUpperCase(ReleaseConstants.TEST_STRING));
 
 		if (count == 0) {
 			db.setSupportsStringCaseSensitiveQuery(true);

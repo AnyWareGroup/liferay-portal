@@ -322,6 +322,10 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 	private static final String _FINDER_COLUMN_VALUE_VALUE_2 = "className.value = ?";
 	private static final String _FINDER_COLUMN_VALUE_VALUE_3 = "(className.value IS NULL OR className.value = '')";
 
+	public ClassNamePersistenceImpl() {
+		setModelClass(ClassName.class);
+	}
+
 	/**
 	 * Caches the class name in the entity cache if it is enabled.
 	 *
@@ -588,10 +592,12 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 		}
 
 		EntityCacheUtil.putResult(ClassNameModelImpl.ENTITY_CACHE_ENABLED,
-			ClassNameImpl.class, className.getPrimaryKey(), className);
+			ClassNameImpl.class, className.getPrimaryKey(), className, false);
 
 		clearUniqueFindersCache(className);
 		cacheUniqueFindersCache(className);
+
+		className.resetOriginalValues();
 
 		return className;
 	}
@@ -606,6 +612,7 @@ public class ClassNamePersistenceImpl extends BasePersistenceImpl<ClassName>
 		classNameImpl.setNew(className.isNew());
 		classNameImpl.setPrimaryKey(className.getPrimaryKey());
 
+		classNameImpl.setMvccVersion(className.getMvccVersion());
 		classNameImpl.setClassNameId(className.getClassNameId());
 		classNameImpl.setValue(className.getValue());
 

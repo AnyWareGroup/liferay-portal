@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.messageboards.model.impl.MBMessageModelImpl
  * @generated
  */
+@ProviderType
 public interface MBMessage extends MBMessageModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -82,19 +85,11 @@ public interface MBMessage extends MBMessageModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
-	public com.liferay.portal.model.ContainerModel getTrashContainer()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
-
 	public java.lang.String getWorkflowClassName();
 
 	public boolean isDiscussion();
 
 	public boolean isFormatBBCode();
-
-	public boolean isInTrashThread()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
 
 	public boolean isReply();
 

@@ -15,16 +15,25 @@
 --%>
 
 <%
-SearchContainer mainSearchSearchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, LanguageUtil.format(pageContext, "no-results-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
+SearchContainer mainSearchSearchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, null);
 
 SearchContext searchContext = SearchContextFactory.getInstance(request);
+
+mainSearchSearchContainer.setEmptyResultsMessage(LanguageUtil.format(pageContext, "no-results-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(searchContext.getKeywords()) + "</strong>", false));
 
 searchContext.setAttribute("paginationType", "more");
 searchContext.setEnd(mainSearchSearchContainer.getEnd());
 
 QueryConfig queryConfig = new QueryConfig();
 
+queryConfig.setCollatedSpellCheckResultEnabled(collatedSpellCheckResultEnabled);
+queryConfig.setCollatedSpellCheckResultScoresThreshold(collatedSpellCheckResultDisplayThreshold);
 queryConfig.setHighlightEnabled(true);
+queryConfig.setQueryIndexingEnabled(queryIndexingEnabled);
+queryConfig.setQueryIndexingThreshold(queryIndexingThreshold);
+queryConfig.setQuerySuggestionEnabled(querySuggestionsEnabled);
+queryConfig.setQuerySuggestionScoresThreshold(querySuggestionsDisplayThreshold);
+queryConfig.setQuerySuggestionsMax(querySuggestionsMax);
 
 searchContext.setQueryConfig(queryConfig);
 
@@ -100,12 +109,12 @@ boolean showMenu = advancedConfiguration || displayScopeFacet || displayAssetTyp
 							var facetValue = term.ancestor('.facet-value');
 
 							if (facetValue) {
-								var currentTerm = facetValue.hasClass('current-term');
+								var currentTerm = facetValue.hasClass('active');
 
-								facetValue.radioClass('current-term');
+								facetValue.radioClass('active');
 
 								if (!currentTerm) {
-									facetValue.radioClass('current-term');
+									facetValue.radioClass('active');
 
 									var searchFacet = facetValue.ancestor('.search-facet');
 
@@ -133,12 +142,14 @@ boolean showMenu = advancedConfiguration || displayScopeFacet || displayAssetTyp
 	</c:if>
 
 	<aui:col cssClass="result" first="<%= !showMenu %>" span="10">
+		<%@ include file="/html/portlet/search/main_search_suggest.jspf" %>
+
 		<liferay-ui:search-container
 			searchContainer="<%= mainSearchSearchContainer %>"
+			total="<%= hits.getLength() %>"
 		>
 			<liferay-ui:search-container-results
 				results="<%= hits.toList() %>"
-				total="<%= hits.getLength() %>"
 			/>
 
 			<liferay-ui:search-container-row

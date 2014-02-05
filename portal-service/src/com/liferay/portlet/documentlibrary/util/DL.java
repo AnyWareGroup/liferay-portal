@@ -103,7 +103,11 @@ public interface DL {
 
 	public String getDividedPath(long id);
 
-	public String getDLControlPanelLink(
+	public String getDLFileEntryControlPanelLink(
+			PortletRequest portletRequest, long fileEntryId)
+		throws PortalException, SystemException;
+
+	public String getDLFolderControlPanelLink(
 			PortletRequest portletRequest, long folderId)
 		throws PortalException, SystemException;
 
@@ -165,6 +169,7 @@ public interface DL {
 	 * @deprecated As of 6.2.0, replaced by {@link #getPreviewURL(FileEntry,
 	 *             FileVersion, ThemeDisplay, String, boolean, boolean)}
 	 */
+	@Deprecated
 	public String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
 		String queryString, boolean appendToken);
@@ -234,5 +239,7 @@ public interface DL {
 			long companyId, long groupId, long userId, long folderId,
 			boolean recursive)
 		throws PortalException, SystemException;
+
+	public boolean isValidVersion(String version);
 
 }

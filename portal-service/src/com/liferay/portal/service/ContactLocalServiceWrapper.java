@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ContactLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ContactLocalService
+ * @author Brian Wing Shun Chan
+ * @see ContactLocalService
  * @generated
  */
+@ProviderType
 public class ContactLocalServiceWrapper implements ContactLocalService,
 	ServiceWrapper<ContactLocalService> {
 	public ContactLocalServiceWrapper(ContactLocalService contactLocalService) {
@@ -159,6 +162,22 @@ public class ContactLocalServiceWrapper implements ContactLocalService,
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _contactLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _contactLocalService.dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	@Override
@@ -314,6 +333,7 @@ public class ContactLocalServiceWrapper implements ContactLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ContactLocalService getWrappedContactLocalService() {
 		return _contactLocalService;
 	}
@@ -321,6 +341,7 @@ public class ContactLocalServiceWrapper implements ContactLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedContactLocalService(
 		ContactLocalService contactLocalService) {
 		_contactLocalService = contactLocalService;

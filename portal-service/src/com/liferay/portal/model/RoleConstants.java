@@ -35,9 +35,14 @@ public class RoleConstants {
 
 	public static final String OWNER = "Owner";
 
+	public static final String PORTAL_CONTENT_REVIEWER =
+		"Portal Content Reviewer";
+
 	public static final String POWER_USER = "Power User";
 
 	public static final String SITE_ADMINISTRATOR = "Site Administrator";
+
+	public static final String SITE_CONTENT_REVIEWER = "Site Content Reviewer";
 
 	public static final String SITE_MEMBER = "Site Member";
 
@@ -68,6 +73,18 @@ public class RoleConstants {
 	public static final int TYPE_SITE = 2;
 
 	public static final String TYPE_SITE_LABEL = "site";
+
+	public static final int[] TYPES_ORGANIZATION_AND_REGULAR =
+		{TYPE_REGULAR, TYPE_ORGANIZATION};
+
+	public static final int[] TYPES_ORGANIZATION_AND_REGULAR_AND_SITE = {
+		TYPE_REGULAR, TYPE_ORGANIZATION, TYPE_SITE
+	};
+
+	public static final int[] TYPES_REGULAR = {TYPE_REGULAR};
+
+	public static final int[] TYPES_REGULAR_AND_SITE =
+		{TYPE_REGULAR, TYPE_SITE};
 
 	public static final String USER = "User";
 

@@ -14,7 +14,6 @@
 
 package com.liferay.portal.webserver;
 
-import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.image.ImageBag;
@@ -36,9 +35,11 @@ import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.template.URLTemplateResource;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -46,6 +47,7 @@ import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.Validator_IW;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
@@ -56,6 +58,7 @@ import com.liferay.portal.model.Image;
 import com.liferay.portal.model.ImageConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.model.impl.ImageImpl;
+import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileEntry;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.security.auth.PrincipalException;
@@ -70,7 +73,6 @@ import com.liferay.portal.service.ImageServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
@@ -78,13 +80,10 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
 import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
-import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
-import com.liferay.portlet.documentlibrary.model.DLFileVersion;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFileEntryMetadataLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryServiceUtil;
 import com.liferay.portlet.documentlibrary.util.AudioProcessorUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
@@ -94,12 +93,7 @@ import com.liferay.portlet.documentlibrary.util.PDFProcessor;
 import com.liferay.portlet.documentlibrary.util.PDFProcessorUtil;
 import com.liferay.portlet.documentlibrary.util.VideoProcessor;
 import com.liferay.portlet.documentlibrary.util.VideoProcessorUtil;
-import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
-import com.liferay.portlet.dynamicdatalists.service.DDLRecordLocalServiceUtil;
-import com.liferay.portlet.dynamicdatamapping.storage.Field;
-import com.liferay.portlet.dynamicdatamapping.storage.Fields;
-import com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.awt.image.RenderedImage;
 
@@ -130,6 +124,8 @@ import javax.servlet.http.HttpSession;
  */
 public class WebServerServlet extends HttpServlet {
 
+	public static final String PATH_PORTLET_FILE_ENTRY = "portlet_file_entry";
+
 	/**
 	 * @see com.liferay.portal.servlet.filters.virtualhost.VirtualHostFilter
 	 */
@@ -148,11 +144,15 @@ public class WebServerServlet extends HttpServlet {
 			if (pathArray.length == 0) {
 				return true;
 			}
-			else if (_PATH_DDM.equals(pathArray[0])) {
-				_checkDDMRecord(pathArray);
-			}
 			else if (Validator.isNumber(pathArray[0])) {
 				_checkFileEntry(pathArray);
+			}
+			else if (PATH_PORTLET_FILE_ENTRY.equals(pathArray[0])) {
+				FileEntry fileEntry = getPortletFileEntry(request, pathArray);
+
+				if (fileEntry != null) {
+					return true;
+				}
 			}
 			else {
 				long groupId = _getGroupId(user.getCompanyId(), pathArray[0]);
@@ -256,11 +256,11 @@ public class WebServerServlet extends HttpServlet {
 					request.getServletPath() + StringPool.SLASH + path);
 			}
 			else {
-				if (_PATH_DDM.equals(pathArray[0])) {
-					sendDDMRecordFile(request, response, pathArray);
-				}
-				else if (Validator.isNumber(pathArray[0])) {
+				if (Validator.isNumber(pathArray[0])) {
 					sendFile(request, response, user, pathArray);
+				}
+				else if (PATH_PORTLET_FILE_ENTRY.equals(pathArray[0])) {
+					sendPortletFileEntry(request, response, pathArray);
 				}
 				else {
 					if (isLegacyImageGalleryImageId(request, response)) {
@@ -285,12 +285,40 @@ public class WebServerServlet extends HttpServlet {
 			PortalUtil.sendError(
 				HttpServletResponse.SC_NOT_FOUND, nsfee, request, response);
 		}
+		catch (NoSuchFolderException nsfe) {
+			PortalUtil.sendError(
+				HttpServletResponse.SC_NOT_FOUND, nsfe, request, response);
+		}
 		catch (PrincipalException pe) {
 			processPrincipalException(pe, user, request, response);
 		}
 		catch (Exception e) {
 			PortalUtil.sendError(e, request, response);
 		}
+	}
+
+	protected static FileEntry getPortletFileEntry(
+			HttpServletRequest request, String[] pathArray)
+		throws Exception {
+
+		long groupId = GetterUtil.getLong(pathArray[1]);
+		String uuid = pathArray[3];
+
+		FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+			uuid, groupId);
+
+		DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
+
+		int status = ParamUtil.getInteger(
+			request, "status", WorkflowConstants.STATUS_APPROVED);
+
+		if ((status != WorkflowConstants.STATUS_IN_TRASH) &&
+			dlFileEntry.isInTrash()) {
+
+			return null;
+		}
+
+		return fileEntry;
 	}
 
 	protected Image convertFileEntry(boolean smallImage, FileEntry fileEntry)
@@ -487,7 +515,8 @@ public class WebServerServlet extends HttpServlet {
 		return image.getTextObj();
 	}
 
-	protected long getImageId(HttpServletRequest request) {
+	protected long getImageId(HttpServletRequest request)
+		throws SystemException {
 
 		// The image id may be passed in as image_id, img_id, or i_id
 
@@ -501,19 +530,33 @@ public class WebServerServlet extends HttpServlet {
 			imageId = ParamUtil.getLong(request, "i_id");
 		}
 
+		User user = null;
+
 		if (imageId <= 0) {
 			long companyId = ParamUtil.getLong(request, "companyId");
 			String screenName = ParamUtil.getString(request, "screenName");
 
-			try {
-				if ((companyId > 0) && Validator.isNotNull(screenName)) {
-					User user = UserLocalServiceUtil.getUserByScreenName(
-						companyId, screenName);
+			if ((companyId > 0) && Validator.isNotNull(screenName)) {
+				user = UserLocalServiceUtil.fetchUserByScreenName(
+					companyId, screenName);
 
+				if (user != null) {
 					imageId = user.getPortraitId();
 				}
 			}
-			catch (Exception e) {
+		}
+
+		if (PropsValues.USERS_IMAGE_CHECK_TOKEN && (imageId > 0)) {
+			String imageIdToken = ParamUtil.getString(request, "img_id_token");
+
+			if (user == null) {
+				user = UserLocalServiceUtil.fetchUserByPortraitId(imageId);
+			}
+
+			if ((user != null) &&
+				!imageIdToken.equals(DigesterUtil.digest(user.getUserUuid()))) {
+
+				return 0;
 			}
 		}
 
@@ -554,18 +597,16 @@ public class WebServerServlet extends HttpServlet {
 				if (fileEntry == null) {
 					return -1;
 				}
+
+				String version = ParamUtil.getString(request, "version");
+
+				if (Validator.isNotNull(version)) {
+					FileVersion fileVersion = fileEntry.getFileVersion(version);
+
+					modifiedDate = fileVersion.getModifiedDate();
+				}
 				else {
-					String version = ParamUtil.getString(request, "version");
-
-					if (Validator.isNotNull(version)) {
-						FileVersion fileVersion = fileEntry.getFileVersion(
-							version);
-
-						modifiedDate = fileVersion.getModifiedDate();
-					}
-					else {
-						modifiedDate = fileEntry.getModifiedDate();
-					}
+					modifiedDate = fileEntry.getModifiedDate();
 				}
 			}
 
@@ -644,10 +685,19 @@ public class WebServerServlet extends HttpServlet {
 				queryString = "&imageThumbnail=3";
 			}
 
+			FileEntry fileEntry = new LiferayFileEntry(dlFileEntry);
+
+			FileVersion fileVersion = new LiferayFileVersion(
+				dlFileEntry.getFileVersion());
+
+			if (PropsValues.DL_FILE_ENTRY_IG_THUMBNAIL_GENERATION &&
+				Validator.isNotNull(queryString)) {
+
+				ImageProcessorUtil.hasImages(fileVersion);
+			}
+
 			String url = DLUtil.getPreviewURL(
-				new LiferayFileEntry(dlFileEntry),
-				new LiferayFileVersion(dlFileEntry.getFileVersion()),
-				themeDisplay, queryString);
+				fileEntry, fileVersion, themeDisplay, queryString);
 
 			response.setHeader(HttpHeaders.LOCATION, url);
 			response.setStatus(HttpServletResponse.SC_MOVED_PERMANENTLY);
@@ -677,8 +727,7 @@ public class WebServerServlet extends HttpServlet {
 			return;
 		}
 
-		String redirect =
-			request.getContextPath() + Portal.PATH_MAIN + "/portal/login";
+		String redirect = PortalUtil.getPathMain() + "/portal/login";
 
 		String currentURL = PortalUtil.getCurrentURL(request);
 
@@ -687,53 +736,26 @@ public class WebServerServlet extends HttpServlet {
 		response.sendRedirect(redirect);
 	}
 
-	protected void sendDDMRecordFile(
-			HttpServletRequest request, HttpServletResponse response,
-			String[] pathArray)
-		throws Exception {
-
-		if (pathArray.length != 5) {
-			return;
-		}
-
-		String className = GetterUtil.getString(pathArray[1]);
-		long classPK = GetterUtil.getLong(pathArray[2]);
-		String fieldName = GetterUtil.getString(pathArray[3]);
-		int valueIndex = GetterUtil.getInteger(pathArray[4]);
-
-		Field field = null;
-
-		if (className.equals(DDLRecord.class.getName())) {
-			DDLRecord ddlRecord = DDLRecordLocalServiceUtil.getRecord(classPK);
-
-			field = ddlRecord.getField(fieldName);
-		}
-		else if (className.equals(DLFileEntryMetadata.class.getName())) {
-			DLFileEntryMetadata fileEntryMetadata =
-				DLFileEntryMetadataLocalServiceUtil.getDLFileEntryMetadata(
-					classPK);
-
-			Fields fields = StorageEngineUtil.getFields(
-				fileEntryMetadata.getDDMStorageId());
-
-			field = fields.get(fieldName);
-		}
-
-		DDMUtil.sendFieldFile(request, response, field, valueIndex);
-	}
-
 	protected void sendDocumentLibrary(
 			HttpServletRequest request, HttpServletResponse response, User user,
 			String path, String[] pathArray)
 		throws Exception {
 
-		if (!PropsValues.WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED) {
-			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		long groupId = _getGroupId(user.getCompanyId(), pathArray[0]);
 
-			return;
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		UnicodeProperties typeSettingsProperties =
+			group.getTypeSettingsProperties();
+
+		boolean directoryIndexingEnabled = GetterUtil.getBoolean(
+			typeSettingsProperties.getProperty("directoryIndexingEnabled"),
+			PropsValues.WEB_SERVER_SERVLET_DIRECTORY_INDEXING_ENABLED);
+
+		if (!directoryIndexingEnabled) {
+			throw new NoSuchFolderException();
 		}
 
-		long groupId = _getGroupId(user.getCompanyId(), pathArray[0]);
 		long folderId = DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
 
 		for (int i = 1; i < pathArray.length; i++) {
@@ -836,15 +858,10 @@ public class WebServerServlet extends HttpServlet {
 		String tempFileId = DLUtil.getTempFileId(
 			fileEntry.getFileEntryId(), version);
 
-		FileVersion fileVersion = fileEntry.getFileVersion(version);
+		if (fileEntry.getModel() instanceof DLFileEntry) {
+			LiferayFileEntry liferayFileEntry = (LiferayFileEntry)fileEntry;
 
-		if (fileVersion.getModel() instanceof DLFileVersion) {
-			LiferayFileVersion liferayFileVersion =
-				(LiferayFileVersion)fileVersion;
-
-			if (liferayFileVersion.isInTrash() ||
-				liferayFileVersion.isInTrashContainer()) {
-
+			if (liferayFileEntry.isInTrash()) {
 				int status = ParamUtil.getInteger(
 					request, "status", WorkflowConstants.STATUS_APPROVED);
 
@@ -863,6 +880,8 @@ public class WebServerServlet extends HttpServlet {
 				}
 			}
 		}
+
+		FileVersion fileVersion = fileEntry.getFileVersion(version);
 
 		if ((ParamUtil.getInteger(request, "height") > 0) ||
 			(ParamUtil.getInteger(request, "width") > 0)) {
@@ -1159,6 +1178,29 @@ public class WebServerServlet extends HttpServlet {
 		template.processTemplate(response.getWriter());
 	}
 
+	protected void sendPortletFileEntry(
+			HttpServletRequest request, HttpServletResponse response,
+			String[] pathArray)
+		throws Exception {
+
+		FileEntry fileEntry = getPortletFileEntry(request, pathArray);
+
+		if (fileEntry == null) {
+			return;
+		}
+
+		String fileName = HttpUtil.decodeURL(
+			HtmlUtil.escape(pathArray[2]), true);
+
+		if (fileEntry.isInTrash()) {
+			fileName = TrashUtil.getOriginalTitle(fileName);
+		}
+
+		ServletResponseUtil.sendFile(
+			request, response, fileName, fileEntry.getContentStream(),
+			fileEntry.getSize(), fileEntry.getMimeType());
+	}
+
 	protected void writeImage(
 		Image image, HttpServletRequest request, HttpServletResponse response) {
 
@@ -1192,21 +1234,6 @@ public class WebServerServlet extends HttpServlet {
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(e, e);
-			}
-		}
-	}
-
-	private static void _checkDDMRecord(String[] pathArray) throws Exception {
-		if (pathArray.length == 3) {
-			String className = GetterUtil.getString(pathArray[1]);
-			long classPK = GetterUtil.getLong(pathArray[2]);
-
-			if (className.equals(DDLRecord.class.getName())) {
-				DDLRecordLocalServiceUtil.getRecord(classPK);
-			}
-			else if (className.equals(DLFileEntryMetadata.class.getName())) {
-				DLFileEntryMetadataLocalServiceUtil.getDLFileEntryMetadata(
-					classPK);
 			}
 		}
 	}
@@ -1254,18 +1281,16 @@ public class WebServerServlet extends HttpServlet {
 	private static long _getGroupId(long companyId, String name)
 		throws Exception {
 
-		try {
-			Group group = GroupLocalServiceUtil.getFriendlyURLGroup(
-				companyId, StringPool.SLASH + name);
+		Group group = GroupLocalServiceUtil.fetchFriendlyURLGroup(
+			companyId, StringPool.SLASH + name);
 
+		if (group != null) {
 			return group.getGroupId();
-		}
-		catch (NoSuchGroupException nsge) {
 		}
 
 		User user = UserLocalServiceUtil.getUserByScreenName(companyId, name);
 
-		Group group = user.getGroup();
+		group = user.getGroup();
 
 		return group.getGroupId();
 	}
@@ -1302,25 +1327,21 @@ public class WebServerServlet extends HttpServlet {
 		return user;
 	}
 
-	private static final String _DATE_FORMAT_PATTERN = "d MMM yyyy HH:mm z";
-
-	private static final String _PATH_DDM = "ddm";
-
 	private static final boolean _WEB_SERVER_SERVLET_VERSION_VERBOSITY_DEFAULT =
-		PropsValues.WEB_SERVER_SERVLET_VERSION_VERBOSITY.equalsIgnoreCase(
+		StringUtil.equalsIgnoreCase(
+			PropsValues.WEB_SERVER_SERVLET_VERSION_VERBOSITY,
 			ReleaseInfo.getName());
 
 	private static final boolean _WEB_SERVER_SERVLET_VERSION_VERBOSITY_PARTIAL =
-		PropsValues.WEB_SERVER_SERVLET_VERSION_VERBOSITY.equalsIgnoreCase(
-			"partial");
+		StringUtil.equalsIgnoreCase(
+			PropsValues.WEB_SERVER_SERVLET_VERSION_VERBOSITY, "partial");
 
 	private static Log _log = LogFactoryUtil.getLog(WebServerServlet.class);
 
 	private static Set<String> _acceptRangesMimeTypes = SetUtil.fromArray(
 		PropsValues.WEB_SERVER_SERVLET_ACCEPT_RANGES_MIME_TYPES);
-
 	private static Format _dateFormat =
-		FastDateFormatFactoryUtil.getSimpleDateFormat(_DATE_FORMAT_PATTERN);
+		FastDateFormatFactoryUtil.getSimpleDateFormat("d MMM yyyy HH:mm z");
 
 	private boolean _lastModified = true;
 	private TemplateResource _templateResource;

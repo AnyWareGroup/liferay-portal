@@ -17,10 +17,12 @@ package com.liferay.portlet.dynamicdatamapping.action;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
@@ -33,7 +35,6 @@ import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletURLImpl;
 import com.liferay.portlet.dynamicdatamapping.NoSuchTemplateException;
 import com.liferay.portlet.dynamicdatamapping.RequiredTemplateException;
@@ -71,8 +72,9 @@ public class EditTemplateAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -90,6 +92,19 @@ public class EditTemplateAction extends PortletAction {
 			if (Validator.isNotNull(cmd)) {
 				String redirect = ParamUtil.getString(
 					actionRequest, "redirect");
+				String closeRedirect = ParamUtil.getString(
+					actionRequest, "closeRedirect");
+
+				if (Validator.isNotNull(closeRedirect)) {
+					redirect = HttpUtil.setParameter(
+						redirect, "closeRedirect", closeRedirect);
+
+					SessionMessages.add(
+						actionRequest,
+						PortalUtil.getPortletId(actionRequest) +
+							SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
+						closeRedirect);
+				}
 
 				if (template != null) {
 					boolean saveAndContinue = ParamUtil.getBoolean(
@@ -137,8 +152,9 @@ public class EditTemplateAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -151,7 +167,7 @@ public class EditTemplateAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward(
+				return actionMapping.findForward(
 					"portlet.dynamic_data_mapping.error");
 			}
 			else {
@@ -159,7 +175,7 @@ public class EditTemplateAction extends PortletAction {
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest, "portlet.dynamic_data_mapping.edit_template"));
 	}
@@ -194,8 +210,8 @@ public class EditTemplateAction extends PortletAction {
 
 		long classNameId = ParamUtil.getLong(actionRequest, "classNameId");
 		long classPK = ParamUtil.getLong(actionRequest, "classPK");
-		String availableFields = ParamUtil.getString(
-			actionRequest, "availableFields");
+		String structureAvailableFields = ParamUtil.getString(
+			actionRequest, "structureAvailableFields");
 
 		PortletURLImpl portletURL = new PortletURLImpl(
 			actionRequest, portletConfig.getPortletName(),
@@ -213,7 +229,8 @@ public class EditTemplateAction extends PortletAction {
 			"classNameId", String.valueOf(classNameId), false);
 		portletURL.setParameter("classPK", String.valueOf(classPK), false);
 		portletURL.setParameter("type", template.getType(), false);
-		portletURL.setParameter("availableFields", availableFields, false);
+		portletURL.setParameter(
+			"structureAvailableFields", structureAvailableFields, false);
 		portletURL.setWindowState(actionRequest.getWindowState());
 
 		return portletURL.toString();
@@ -254,9 +271,10 @@ public class EditTemplateAction extends PortletAction {
 			uploadPortletRequest, "classNameId");
 		long classPK = ParamUtil.getLong(uploadPortletRequest, "classPK");
 		Map<Locale, String> nameMap = LocalizationUtil.getLocalizationMap(
-			actionRequest, "name");
+			uploadPortletRequest, "name");
 		Map<Locale, String> descriptionMap =
-			LocalizationUtil.getLocalizationMap(actionRequest, "description");
+			LocalizationUtil.getLocalizationMap(
+				uploadPortletRequest, "description");
 		String type = ParamUtil.getString(uploadPortletRequest, "type");
 		String mode = ParamUtil.getString(uploadPortletRequest, "mode");
 		String language = ParamUtil.getString(
@@ -279,7 +297,7 @@ public class EditTemplateAction extends PortletAction {
 		File smallImageFile = uploadPortletRequest.getFile("smallImageFile");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			DDMTemplate.class.getName(), actionRequest);
+			DDMTemplate.class.getName(), uploadPortletRequest);
 
 		DDMTemplate template = null;
 
@@ -291,31 +309,27 @@ public class EditTemplateAction extends PortletAction {
 		}
 		else {
 			template = DDMTemplateServiceUtil.updateTemplate(
-				templateId, nameMap, descriptionMap, type, mode, language,
-				script, cacheable, smallImage, smallImageURL, smallImageFile,
-				serviceContext);
+				templateId, classPK, nameMap, descriptionMap, type, mode,
+				language, script, cacheable, smallImage, smallImageURL,
+				smallImageFile, serviceContext);
 		}
 
-		String portletResource = ParamUtil.getString(
-			actionRequest, "portletResource");
+		PortletPreferences portletPreferences = getStrictPortletSetup(
+			actionRequest);
 
-		if (Validator.isNotNull(portletResource)) {
-			PortletPreferences preferences =
-				PortletPreferencesFactoryUtil.getPortletSetup(
-					actionRequest, portletResource);
-
+		if (portletPreferences != null) {
 			if (type.equals(DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY)) {
-				preferences.setValue(
+				portletPreferences.setValue(
 					"displayDDMTemplateId",
 					String.valueOf(template.getTemplateId()));
 			}
 			else {
-				preferences.setValue(
+				portletPreferences.setValue(
 					"formDDMTemplateId",
 					String.valueOf(template.getTemplateId()));
 			}
 
-			preferences.store();
+			portletPreferences.store();
 		}
 
 		return template;

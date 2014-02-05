@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ClusterGroup}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ClusterGroup
+ * @author Brian Wing Shun Chan
+ * @see ClusterGroup
  * @generated
  */
+@ProviderType
 public class ClusterGroupWrapper implements ClusterGroup,
 	ModelWrapper<ClusterGroup> {
 	public ClusterGroupWrapper(ClusterGroup clusterGroup) {
@@ -46,6 +51,7 @@ public class ClusterGroupWrapper implements ClusterGroup,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("clusterGroupId", getClusterGroupId());
 		attributes.put("name", getName());
 		attributes.put("clusterNodeIds", getClusterNodeIds());
@@ -56,6 +62,12 @@ public class ClusterGroupWrapper implements ClusterGroup,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long clusterGroupId = (Long)attributes.get("clusterGroupId");
 
 		if (clusterGroupId != null) {
@@ -99,6 +111,26 @@ public class ClusterGroupWrapper implements ClusterGroup,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_clusterGroup.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this cluster group.
+	*
+	* @return the mvcc version of this cluster group
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _clusterGroup.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this cluster group.
+	*
+	* @param mvccVersion the mvcc version of this cluster group
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_clusterGroup.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -300,9 +332,29 @@ public class ClusterGroupWrapper implements ClusterGroup,
 		return _clusterGroup.getClusterNodeIdsArray();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ClusterGroupWrapper)) {
+			return false;
+		}
+
+		ClusterGroupWrapper clusterGroupWrapper = (ClusterGroupWrapper)obj;
+
+		if (Validator.equals(_clusterGroup, clusterGroupWrapper._clusterGroup)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ClusterGroup getWrappedClusterGroup() {
 		return _clusterGroup;
 	}
@@ -310,6 +362,16 @@ public class ClusterGroupWrapper implements ClusterGroup,
 	@Override
 	public ClusterGroup getWrappedModel() {
 		return _clusterGroup;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _clusterGroup.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _clusterGroup.isFinderCacheEnabled();
 	}
 
 	@Override

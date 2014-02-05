@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.mobiledevicerules.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -59,12 +61,13 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Edward C. Han
- * @see       MDRRuleGroupServiceHttp
- * @see       com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupSoap
- * @see       com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupServiceUtil
+ * @author Edward C. Han
+ * @see MDRRuleGroupServiceHttp
+ * @see com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupSoap
+ * @see com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupServiceUtil
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupServiceSoap {
 	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupSoap addRuleGroup(
 		long groupId, java.lang.String[] nameMapLanguageIds,

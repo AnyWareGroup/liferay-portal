@@ -23,7 +23,6 @@ import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.messaging.MessageBusException;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
@@ -36,6 +35,7 @@ import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.SystemProperties;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.CompanyConstants;
 import com.liferay.portal.util.PortalUtil;
@@ -160,6 +160,10 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	@Override
 	public boolean isSupported(FileVersion fileVersion) {
 		if (fileVersion == null) {
+			return false;
+		}
+
+		if (!DLProcessorRegistryUtil.isPreviewableSize(fileVersion)) {
 			return false;
 		}
 
@@ -352,10 +356,27 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	protected void deletePreviews(
 		long companyId, long groupId, long fileEntryId, long fileVersionId) {
 
+		for (String type : getPreviewTypes()) {
+			String path = getPreviewFilePath(
+				groupId, fileEntryId, fileVersionId, type);
+
+			try {
+				DLStoreUtil.deleteFile(companyId, REPOSITORY_ID, path);
+			}
+			catch (Exception e) {
+			}
+		}
+	}
+
+	protected void deleteThumbnail(
+		long companyId, long groupId, long fileEntryId, long fileVersionId,
+		String thumbnailType, int index) {
+
 		try {
-			DLStoreUtil.deleteDirectory(
-				companyId, REPOSITORY_ID,
-				getPathSegment(groupId, fileEntryId, fileVersionId, true));
+			String dirName = getThumbnailFilePath(
+				groupId, fileEntryId, fileVersionId, thumbnailType, index);
+
+			DLStoreUtil.deleteFile(companyId, REPOSITORY_ID, dirName);
 		}
 		catch (Exception e) {
 		}
@@ -365,19 +386,17 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 		long companyId, long groupId, long fileEntryId, long fileVersionId,
 		String thumbnailType) {
 
-		try {
-			String dirName = getPathSegment(
-				groupId, fileEntryId, fileVersionId, false);
+		deleteThumbnail(
+			companyId, groupId, fileEntryId, fileVersionId, thumbnailType,
+			THUMBNAIL_INDEX_DEFAULT);
 
-			if (fileVersionId > 0) {
-				dirName = dirName.concat(StringPool.PERIOD);
-				dirName = dirName.concat(thumbnailType);
-			}
+		deleteThumbnail(
+			companyId, groupId, fileEntryId, fileVersionId, thumbnailType,
+			THUMBNAIL_INDEX_CUSTOM_1);
 
-			DLStoreUtil.deleteDirectory(companyId, REPOSITORY_ID, dirName);
-		}
-		catch (Exception e) {
-		}
+		deleteThumbnail(
+			companyId, groupId, fileEntryId, fileVersionId, thumbnailType,
+			THUMBNAIL_INDEX_CUSTOM_2);
 	}
 
 	protected void destroyProcess(String processIdentity) {
@@ -523,6 +542,18 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 			return;
 		}
 
+		FileVersion fileVersion = fileEntry.getFileVersion();
+
+		if (!hasPreview(fileVersion, previewType)) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No preview found for file entry " +
+						fileEntry.getFileEntryId());
+			}
+
+			return;
+		}
+
 		String binPathSegment = null;
 
 		if (fileIndex < 0) {
@@ -545,8 +576,6 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 		String binPathName = sb.toString();
 
 		fileEntryElement.addAttribute(binPathName, binPath);
-
-		FileVersion fileVersion = fileEntry.getFileVersion();
 
 		InputStream is = null;
 
@@ -576,6 +605,12 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
 		if (!hasThumbnail(fileVersion, index)) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"No thumbnail found for file entry " +
+						fileEntry.getFileEntryId());
+			}
+
 			return;
 		}
 
@@ -678,6 +713,19 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	protected String getPreviewFilePath(
 		FileVersion fileVersion, int index, String type) {
 
+		return getPreviewFilePath(
+			fileVersion.getGroupId(), fileVersion.getFileEntryId(),
+			fileVersion.getFileVersionId(), index, type);
+	}
+
+	protected String getPreviewFilePath(FileVersion fileVersion, String type) {
+		return getPreviewFilePath(fileVersion, 0, type);
+	}
+
+	protected String getPreviewFilePath(
+		long groupId, long fileEntryId, long fileVersionId, int index,
+		String type) {
+
 		StringBundler sb = null;
 
 		if (index > 0) {
@@ -687,21 +735,25 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 			sb = new StringBundler(3);
 		}
 
-		sb.append(getPathSegment(fileVersion, true));
+		sb.append(getPathSegment(groupId, fileEntryId, fileVersionId, true));
 
 		if (index > 0) {
 			sb.append(StringPool.SLASH);
 			sb.append(index - 1);
 		}
 
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+		if (Validator.isNotNull(type)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(type);
+		}
 
 		return sb.toString();
 	}
 
-	protected String getPreviewFilePath(FileVersion fileVersion, String type) {
-		return getPreviewFilePath(fileVersion, 0, type);
+	protected String getPreviewFilePath(
+		long groupId, long fileEntryId, long fileVersionId, String type) {
+
+		return getPreviewFilePath(groupId, fileEntryId, fileVersionId, 0, type);
 	}
 
 	protected File getPreviewTempFile(String id) {
@@ -737,8 +789,11 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 		sb.append(tempFileId);
 		sb.append(StringPool.DASH);
 		sb.append("(.*)");
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+
+		if (Validator.isNotNull(type)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(type);
+		}
 
 		File dir = new File(PREVIEW_TMP_PATH);
 
@@ -782,8 +837,10 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 			sb.append("-%d");
 		}
 
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+		if (Validator.isNotNull(type)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(type);
+		}
 
 		return sb.toString();
 	}
@@ -820,17 +877,28 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	protected String getThumbnailFilePath(
 		FileVersion fileVersion, String type, int index) {
 
+		return getThumbnailFilePath(
+			fileVersion.getGroupId(), fileVersion.getFileEntryId(),
+			fileVersion.getFileVersionId(), type, index);
+	}
+
+	protected String getThumbnailFilePath(
+		long groupId, long fileEntryId, long fileVersionId,
+		String thumbnailType, int index) {
+
 		StringBundler sb = new StringBundler(5);
 
-		sb.append(getPathSegment(fileVersion, false));
+		sb.append(getPathSegment(groupId, fileEntryId, fileVersionId, false));
 
 		if (index != THUMBNAIL_INDEX_DEFAULT) {
 			sb.append(StringPool.DASH);
 			sb.append(index);
 		}
 
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+		if ((fileVersionId > 0) && Validator.isNotNull(thumbnailType)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(thumbnailType);
+		}
 
 		return sb.toString();
 	}
@@ -854,8 +922,11 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 
 		sb.append(THUMBNAIL_TMP_PATH);
 		sb.append(id);
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+
+		if (Validator.isNotNull(type)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(type);
+		}
 
 		return sb.toString();
 	}
@@ -972,6 +1043,10 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 				importedFileVersion, previewType);
 
 			FileVersion fileVersion = fileEntry.getFileVersion();
+
+			if (!hasPreview(fileVersion, previewType)) {
+				return;
+			}
 
 			InputStream is = null;
 
@@ -1178,24 +1253,12 @@ public abstract class DLPreviewableProcessor implements DLProcessor {
 	}
 
 	protected void sendGenerationMessage(
-		String destinationName, boolean synchronous,
-		FileVersion sourceFileVersion, FileVersion destinationFileVersion) {
+		String destinationName, FileVersion sourceFileVersion,
+		FileVersion destinationFileVersion) {
 
 		Object[] payload = {sourceFileVersion, destinationFileVersion};
 
-		if (synchronous) {
-			try {
-				MessageBusUtil.sendSynchronousMessage(destinationName, payload);
-			}
-			catch (MessageBusException mbe) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(mbe, mbe);
-				}
-			}
-		}
-		else {
-			MessageBusUtil.sendMessage(destinationName, payload);
-		}
+		MessageBusUtil.sendMessage(destinationName, payload);
 	}
 
 	protected void storeThumbnailImages(FileVersion fileVersion, File file)

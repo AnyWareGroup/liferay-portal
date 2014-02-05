@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.PortletItemModelImpl
  * @generated
  */
-public interface PortletItemModel extends BaseModel<PortletItem>, GroupedModel {
+@ProviderType
+public interface PortletItemModel extends BaseModel<PortletItem>, GroupedModel,
+	MVCCModel, TypedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +61,22 @@ public interface PortletItemModel extends BaseModel<PortletItem>, GroupedModel {
 	 * @param primaryKey the primary key of this portlet item
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this portlet item.
+	 *
+	 * @return the mvcc version of this portlet item
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this portlet item.
+	 *
+	 * @param mvccVersion the mvcc version of this portlet item
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the portlet item ID of this portlet item.
@@ -221,6 +241,7 @@ public interface PortletItemModel extends BaseModel<PortletItem>, GroupedModel {
 	 *
 	 * @return the fully qualified class name of this portlet item
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -230,6 +251,7 @@ public interface PortletItemModel extends BaseModel<PortletItem>, GroupedModel {
 	 *
 	 * @return the class name ID of this portlet item
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -237,6 +259,7 @@ public interface PortletItemModel extends BaseModel<PortletItem>, GroupedModel {
 	 *
 	 * @param classNameId the class name ID of this portlet item
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	@Override

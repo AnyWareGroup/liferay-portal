@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
@@ -37,6 +39,7 @@ import java.io.Serializable;
  * @see com.liferay.portlet.social.model.impl.SocialActivitySetModelImpl
  * @generated
  */
+@ProviderType
 public interface SocialActivitySetModel extends AttachedModel,
 	BaseModel<SocialActivitySet> {
 	/*
@@ -213,6 +216,20 @@ public interface SocialActivitySetModel extends AttachedModel,
 	 * @param type the type of this social activity set
 	 */
 	public void setType(int type);
+
+	/**
+	 * Returns the extra data of this social activity set.
+	 *
+	 * @return the extra data of this social activity set
+	 */
+	public String getExtraData();
+
+	/**
+	 * Sets the extra data of this social activity set.
+	 *
+	 * @param extraData the extra data of this social activity set
+	 */
+	public void setExtraData(String extraData);
 
 	/**
 	 * Returns the activity count of this social activity set.

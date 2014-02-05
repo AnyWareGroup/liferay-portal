@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.PasswordPolicyServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PasswordPolicyServiceHttp
- * @see       com.liferay.portal.model.PasswordPolicySoap
- * @see       com.liferay.portal.service.PasswordPolicyServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PasswordPolicyServiceHttp
+ * @see com.liferay.portal.model.PasswordPolicySoap
+ * @see com.liferay.portal.service.PasswordPolicyServiceUtil
  * @generated
  */
+@ProviderType
 public class PasswordPolicyServiceSoap {
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link #addPasswordPolicy(String,
@@ -67,6 +70,7 @@ public class PasswordPolicyServiceSoap {
 	int, int, int, int, String, boolean, int, boolean, long,
 	long, int, boolean, int, long, long, long, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.PasswordPolicySoap addPasswordPolicy(
 		java.lang.String name, java.lang.String description,
 		boolean changeable, boolean changeRequired, long minAge,
@@ -144,6 +148,7 @@ public class PasswordPolicyServiceSoap {
 	long, long, int, boolean, int, long, long, long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.PasswordPolicySoap updatePasswordPolicy(
 		long passwordPolicyId, java.lang.String name,
 		java.lang.String description, boolean changeable,

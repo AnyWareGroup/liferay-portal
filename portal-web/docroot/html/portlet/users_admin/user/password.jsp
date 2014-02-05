@@ -105,6 +105,13 @@ else {
 </liferay-ui:error>
 
 <aui:fieldset>
+
+	<!-- LPS-38289 -->
+
+	<input class="hide" />
+
+	<!-- /LPS-38289 -->
+
 	<c:if test="<%= portletName.equals(PortletKeys.MY_ACCOUNT) %>">
 		<aui:input autocomplete="off" label="current-password" name="password0" size="30" type="password" />
 	</c:if>
@@ -138,7 +145,7 @@ else {
 			</div>
 		</c:if>
 
-		<aui:input label="answer" name="reminderQueryAnswer" size="50" value="<%= selUser.getReminderQueryAnswer() %>" />
+		<aui:input label="answer" maxlength="75" name="reminderQueryAnswer" size="50" value="<%= selUser.getReminderQueryAnswer() %>" />
 	</aui:fieldset>
 
 	<aui:script use="aui-base">

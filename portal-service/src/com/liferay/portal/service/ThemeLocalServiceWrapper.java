@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ThemeLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ThemeLocalService
+ * @author Brian Wing Shun Chan
+ * @see ThemeLocalService
  * @generated
  */
+@ProviderType
 public class ThemeLocalServiceWrapper implements ThemeLocalService,
 	ServiceWrapper<ThemeLocalService> {
 	public ThemeLocalServiceWrapper(ThemeLocalService themeLocalService) {
@@ -70,6 +73,22 @@ public class ThemeLocalServiceWrapper implements ThemeLocalService,
 	}
 
 	@Override
+	public java.util.List<com.liferay.portal.model.Theme> getControlPanelThemes(
+		long companyId, long userId, boolean wapTheme)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _themeLocalService.getControlPanelThemes(companyId, userId,
+			wapTheme);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Theme> getPageThemes(
+		long companyId, long groupId, long userId, boolean wapTheme)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _themeLocalService.getPageThemes(companyId, groupId, userId,
+			wapTheme);
+	}
+
+	@Override
 	public com.liferay.portal.model.Theme getTheme(long companyId,
 		java.lang.String themeId, boolean wapTheme)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -82,6 +101,10 @@ public class ThemeLocalServiceWrapper implements ThemeLocalService,
 		return _themeLocalService.getThemes(companyId);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getPageThemes}
+	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portal.model.Theme> getThemes(
 		long companyId, long groupId, long userId, boolean wapTheme)
@@ -95,7 +118,7 @@ public class ThemeLocalServiceWrapper implements ThemeLocalService,
 	}
 
 	@Override
-	public java.util.List<java.lang.String> init(
+	public java.util.List<com.liferay.portal.model.Theme> init(
 		javax.servlet.ServletContext servletContext,
 		java.lang.String themesPath, boolean loadFromServletContext,
 		java.lang.String[] xmls,
@@ -105,7 +128,7 @@ public class ThemeLocalServiceWrapper implements ThemeLocalService,
 	}
 
 	@Override
-	public java.util.List<java.lang.String> init(
+	public java.util.List<com.liferay.portal.model.Theme> init(
 		java.lang.String servletContextName,
 		javax.servlet.ServletContext servletContext,
 		java.lang.String themesPath, boolean loadFromServletContext,
@@ -116,13 +139,15 @@ public class ThemeLocalServiceWrapper implements ThemeLocalService,
 	}
 
 	@Override
-	public void uninstallThemes(java.util.List<java.lang.String> themeIds) {
-		_themeLocalService.uninstallThemes(themeIds);
+	public void uninstallThemes(
+		java.util.List<com.liferay.portal.model.Theme> themes) {
+		_themeLocalService.uninstallThemes(themes);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ThemeLocalService getWrappedThemeLocalService() {
 		return _themeLocalService;
 	}
@@ -130,6 +155,7 @@ public class ThemeLocalServiceWrapper implements ThemeLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedThemeLocalService(ThemeLocalService themeLocalService) {
 		_themeLocalService = themeLocalService;
 	}

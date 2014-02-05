@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.dynamicdatalists.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DDLRecord}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDLRecord
+ * @author Brian Wing Shun Chan
+ * @see DDLRecord
  * @generated
  */
+@ProviderType
 public class DDLRecordWrapper implements DDLRecord, ModelWrapper<DDLRecord> {
 	public DDLRecordWrapper(DDLRecord ddlRecord) {
 		_ddlRecord = ddlRecord;
@@ -635,6 +640,20 @@ public class DDLRecordWrapper implements DDLRecord, ModelWrapper<DDLRecord> {
 	}
 
 	@Override
+	public java.io.Serializable getFieldValue(java.lang.String fieldName,
+		java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _ddlRecord.getFieldValue(fieldName, locale);
+	}
+
+	@Override
+	public java.util.List<java.io.Serializable> getFieldValues(
+		java.lang.String fieldName, java.util.Locale locale)
+		throws com.liferay.portal.kernel.exception.PortalException {
+		return _ddlRecord.getFieldValues(fieldName, locale);
+	}
+
+	@Override
 	public com.liferay.portlet.dynamicdatalists.model.DDLRecordVersion getLatestRecordVersion()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -670,9 +689,34 @@ public class DDLRecordWrapper implements DDLRecord, ModelWrapper<DDLRecord> {
 		return _ddlRecord.getStatus();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDLRecordWrapper)) {
+			return false;
+		}
+
+		DDLRecordWrapper ddlRecordWrapper = (DDLRecordWrapper)obj;
+
+		if (Validator.equals(_ddlRecord, ddlRecordWrapper._ddlRecord)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _ddlRecord.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDLRecord getWrappedDDLRecord() {
 		return _ddlRecord;
 	}
@@ -680,6 +724,16 @@ public class DDLRecordWrapper implements DDLRecord, ModelWrapper<DDLRecord> {
 	@Override
 	public DDLRecord getWrappedModel() {
 		return _ddlRecord;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddlRecord.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddlRecord.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -20,9 +20,9 @@
 Folder folder = (Folder)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDER);
 
 long folderId = BeanParamUtil.getLong(folder, request, "folderId", DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
-String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFileEntry");
 
 long groupId = BeanParamUtil.getLong(folder, request, "groupId");
+String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFileEntry_" + groupId);
 
 if (folder != null) {
 	DLUtil.addPortletBreadcrumbEntries(folder, request, renderResponse);
@@ -112,7 +112,6 @@ if (folder != null) {
 				name="num-of-documents"
 				value="<%= String.valueOf(fileEntriesCount) %>"
 			/>
-
 		</liferay-ui:search-container-row>
 
 		<liferay-ui:search-iterator />
@@ -150,7 +149,7 @@ if (folder != null) {
 
 				<c:if test="<%= Validator.isNotNull(curFile.getDescription()) %>">
 					<br />
-					<%= curFile.getDescription() %>
+					<%= HtmlUtil.escape(curFile.getDescription()) %>
 				</c:if>
 			</liferay-ui:search-container-column-text>
 

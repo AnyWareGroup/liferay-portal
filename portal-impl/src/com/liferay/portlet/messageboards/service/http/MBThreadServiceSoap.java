@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBThreadServiceHttp
- * @see       com.liferay.portlet.messageboards.model.MBThreadSoap
- * @see       com.liferay.portlet.messageboards.service.MBThreadServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see MBThreadServiceHttp
+ * @see com.liferay.portlet.messageboards.model.MBThreadSoap
+ * @see com.liferay.portlet.messageboards.service.MBThreadServiceUtil
  * @generated
  */
+@ProviderType
 public class MBThreadServiceSoap {
 	public static void deleteThread(long threadId) throws RemoteException {
 		try {

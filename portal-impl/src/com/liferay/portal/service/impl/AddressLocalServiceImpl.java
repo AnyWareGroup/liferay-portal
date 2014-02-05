@@ -19,6 +19,7 @@ import com.liferay.portal.AddressStreetException;
 import com.liferay.portal.AddressZipException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Account;
 import com.liferay.portal.model.Address;
@@ -26,10 +27,10 @@ import com.liferay.portal.model.Contact;
 import com.liferay.portal.model.Country;
 import com.liferay.portal.model.ListTypeConstants;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.AddressLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -45,6 +46,7 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 	 *             long, String, String, String, String, String, long, long,
 	 *             int, boolean, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Address addAddress(
 			long userId, String className, long classPK, String street1,
@@ -68,7 +70,7 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 		throws PortalException, SystemException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		Date now = new Date();
 
 		validate(
@@ -104,24 +106,36 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
+	public Address deleteAddress(Address address) throws SystemException {
+		addressPersistence.remove(address);
+
+		return address;
+	}
+
+	@Override
+	public Address deleteAddress(long addressId)
+		throws PortalException, SystemException {
+
+		Address address = addressPersistence.findByPrimaryKey(addressId);
+
+		return addressLocalService.deleteAddress(address);
+	}
+
+	@Override
 	public void deleteAddresses(long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		List<Address> addresses = addressPersistence.findByC_C_C(
 			companyId, classNameId, classPK);
 
 		for (Address address : addresses) {
-			deleteAddress(address);
+			addressLocalService.deleteAddress(address);
 		}
-	}
-
-	@Override
-	public Address fetchAddressByUuidAndCompanyId(String uuid, long companyId)
-		throws SystemException {
-
-		return addressPersistence.fetchByUuid_C_First(uuid, companyId, null);
 	}
 
 	@Override
@@ -134,7 +148,7 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 			long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return addressPersistence.findByC_C_C(companyId, classNameId, classPK);
 	}
@@ -235,9 +249,12 @@ public class AddressLocalServiceImpl extends AddressLocalServiceBaseImpl {
 			classPK = address.getClassPK();
 		}
 
-		if ((classNameId == PortalUtil.getClassNameId(Account.class)) ||
-			(classNameId == PortalUtil.getClassNameId(Contact.class)) ||
-			(classNameId == PortalUtil.getClassNameId(Organization.class))) {
+		if ((classNameId ==
+				classNameLocalService.getClassNameId(Account.class)) ||
+			(classNameId ==
+				classNameLocalService.getClassNameId(Contact.class)) ||
+			(classNameId ==
+				classNameLocalService.getClassNameId(Organization.class))) {
 
 			listTypeService.validate(
 				typeId, classNameId, ListTypeConstants.ADDRESS);

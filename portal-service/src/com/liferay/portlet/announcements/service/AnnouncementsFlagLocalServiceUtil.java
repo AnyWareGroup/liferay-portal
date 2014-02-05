@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.announcements.service.impl.AnnouncementsFlagLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class AnnouncementsFlagLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,6 +168,21 @@ public class AnnouncementsFlagLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.announcements.model.AnnouncementsFlag fetchAnnouncementsFlag(
 		long flagId) throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchAnnouncementsFlag(flagId);
@@ -296,6 +314,7 @@ public class AnnouncementsFlagLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AnnouncementsFlagLocalService service) {
 	}
 

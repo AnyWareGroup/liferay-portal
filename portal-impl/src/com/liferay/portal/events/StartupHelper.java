@@ -20,12 +20,12 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
+import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ReleaseInfo;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.upgrade.UpgradeProcessUtil;
 import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.verify.VerifyException;
@@ -40,6 +40,10 @@ import java.sql.Connection;
  */
 public class StartupHelper {
 
+	public boolean isStartupFinished() {
+		return _startupFinished;
+	}
+
 	public boolean isUpgraded() {
 		return _upgraded;
 	}
@@ -50,6 +54,10 @@ public class StartupHelper {
 
 	public void setDropIndexes(boolean dropIndexes) {
 		_dropIndexes = dropIndexes;
+	}
+
+	public void setStartupFinished(boolean startupFinished) {
+		_startupFinished = startupFinished;
 	}
 
 	public void updateIndexes() {
@@ -90,13 +98,7 @@ public class StartupHelper {
 				classLoader,
 				"com/liferay/portal/tools/sql/dependencies/indexes.sql");
 
-			String indexesProperties = StringUtil.read(
-				classLoader,
-				"com/liferay/portal/tools/sql/dependencies/indexes.properties");
-
-			db.updateIndexes(
-				connection, tablesSQL, indexesSQL, indexesProperties,
-				dropIndexes);
+			db.updateIndexes(connection, tablesSQL, indexesSQL, dropIndexes);
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
@@ -140,8 +142,11 @@ public class StartupHelper {
 			ClassLoaderUtil.getPortalClassLoader());
 	}
 
-	public void verifyProcess(boolean verified) throws VerifyException {
-		_verified = VerifyProcessUtil.verifyProcess(_upgraded, verified);
+	public void verifyProcess(boolean newBuildNumber, boolean verified)
+		throws VerifyException {
+
+		_verified = VerifyProcessUtil.verifyProcess(
+			_upgraded, newBuildNumber, verified);
 	}
 
 	protected String[] getUpgradeProcessClassNames(String key) {
@@ -161,6 +166,7 @@ public class StartupHelper {
 	private static Log _log = LogFactoryUtil.getLog(StartupHelper.class);
 
 	private boolean _dropIndexes;
+	private boolean _startupFinished;
 	private boolean _upgraded;
 	private boolean _verified;
 

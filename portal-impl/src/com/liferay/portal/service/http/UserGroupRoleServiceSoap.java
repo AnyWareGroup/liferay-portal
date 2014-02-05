@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.UserGroupRoleServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroupRoleServiceHttp
- * @see       com.liferay.portal.model.UserGroupRoleSoap
- * @see       com.liferay.portal.service.UserGroupRoleServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see UserGroupRoleServiceHttp
+ * @see com.liferay.portal.model.UserGroupRoleSoap
+ * @see com.liferay.portal.service.UserGroupRoleServiceUtil
  * @generated
  */
+@ProviderType
 public class UserGroupRoleServiceSoap {
 	public static void addUserGroupRoles(long userId, long groupId,
 		long[] roleIds) throws RemoteException {

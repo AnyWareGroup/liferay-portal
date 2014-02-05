@@ -23,14 +23,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.LayoutPrototypeServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.LayoutPrototypeServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.LayoutPrototypeServiceSoap
  * @generated
  */
 public class LayoutPrototypeSoap implements Serializable {
 	public static LayoutPrototypeSoap toSoapModel(LayoutPrototype model) {
 		LayoutPrototypeSoap soapModel = new LayoutPrototypeSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setLayoutPrototypeId(model.getLayoutPrototypeId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -94,6 +95,14 @@ public class LayoutPrototypeSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setLayoutPrototypeId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -188,6 +197,7 @@ public class LayoutPrototypeSoap implements Serializable {
 		_active = active;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _layoutPrototypeId;
 	private long _companyId;

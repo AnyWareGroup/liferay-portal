@@ -14,7 +14,10 @@
 
 package com.liferay.portlet.bookmarks.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PermissionedModel;
+import com.liferay.portal.model.TreeModel;
 
 /**
  * The extended model interface for the BookmarksEntry service. Represents a row in the &quot;BookmarksEntry&quot; database table, with each column mapped to a property of this class.
@@ -25,15 +28,20 @@ import com.liferay.portal.model.PermissionedModel;
  * @see com.liferay.portlet.bookmarks.model.impl.BookmarksEntryModelImpl
  * @generated
  */
-public interface BookmarksEntry extends BookmarksEntryModel, PermissionedModel {
+@ProviderType
+public interface BookmarksEntry extends BookmarksEntryModel, PermissionedModel,
+	TreeModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.bookmarks.model.impl.BookmarksEntryImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public com.liferay.portlet.bookmarks.model.BookmarksFolder getFolder();
+	@Override
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
 
-	public com.liferay.portlet.bookmarks.model.BookmarksFolder getTrashContainer();
-
-	public boolean isInTrashContainer();
+	public com.liferay.portlet.bookmarks.model.BookmarksFolder getFolder()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
 }

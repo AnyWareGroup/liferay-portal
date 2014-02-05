@@ -23,6 +23,7 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portlet.ActionResponseImpl;
+import com.liferay.portlet.messageboards.LockedThreadException;
 import com.liferay.portlet.messageboards.MessageBodyException;
 import com.liferay.portlet.messageboards.MessageSubjectException;
 import com.liferay.portlet.messageboards.NoSuchMessageException;
@@ -59,15 +60,17 @@ public class MoveThreadAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
 			moveThread(actionRequest, actionResponse);
 		}
 		catch (Exception e) {
-			if (e instanceof PrincipalException ||
+			if (e instanceof LockedThreadException ||
+				e instanceof PrincipalException ||
 				e instanceof RequiredMessageException) {
 
 				SessionErrors.add(actionRequest, e.getClass());
@@ -88,8 +91,9 @@ public class MoveThreadAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -101,14 +105,15 @@ public class MoveThreadAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.message_boards.error");
+				return actionMapping.findForward(
+					"portlet.message_boards.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.message_boards.move_thread"));
 	}
 
@@ -116,7 +121,7 @@ public class MoveThreadAction extends PortletAction {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		PortletPreferences preferences = actionRequest.getPreferences();
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		long categoryId = ParamUtil.getLong(actionRequest, "mbCategoryId");
 		long threadId = ParamUtil.getLong(actionRequest, "threadId");
@@ -133,7 +138,7 @@ public class MoveThreadAction extends PortletAction {
 			String body = ParamUtil.getString(actionRequest, "body");
 
 			String format = GetterUtil.getString(
-				preferences.getValue("messageFormat", null),
+				portletPreferences.getValue("messageFormat", null),
 				MBMessageConstants.DEFAULT_FORMAT);
 
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(

@@ -64,7 +64,7 @@ if (!dlFileEntries.isEmpty()) {
 	<c:otherwise>
 		<c:if test="<%= (expandoBridgeAttributeNames != null) && !expandoBridgeAttributeNames.isEmpty() %>">
 			<div class="alert alert-error">
-				<%= LanguageUtil.format(pageContext, "custom-fields-already-exist-for-these-extra-settings-x", StringUtil.merge(expandoBridgeAttributeNames)) %>
+				<%= LanguageUtil.format(pageContext, "custom-fields-already-exist-for-these-extra-settings-x", StringUtil.merge(expandoBridgeAttributeNames), false) %>
 			</div>
 		</c:if>
 
@@ -82,7 +82,7 @@ if (!dlFileEntries.isEmpty()) {
 			%>
 
 				<aui:fieldset>
-					<%= LanguageUtil.format(pageContext, "convert-extra-settings-key-from-x-to", key) %>
+					<%= LanguageUtil.format(pageContext, "convert-extra-settings-key-from-x-to", key, false) %>
 
 					<br />
 
@@ -129,6 +129,7 @@ if (!dlFileEntries.isEmpty()) {
 <aui:script>
 	function <portlet:namespace />convertDocumentLibraryExtraSettings(options) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "convert";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>

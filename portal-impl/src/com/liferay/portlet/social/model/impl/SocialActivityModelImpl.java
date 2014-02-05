@@ -16,6 +16,7 @@ package com.liferay.portlet.social.model.impl;
 
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.json.JSON;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -30,12 +31,15 @@ import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portlet.social.model.SocialActivity;
 import com.liferay.portlet.social.model.SocialActivityModel;
+import com.liferay.portlet.social.model.SocialActivitySoap;
 
 import java.io.Serializable;
 
 import java.sql.Types;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,6 +55,7 @@ import java.util.Map;
  * @see com.liferay.portlet.social.model.SocialActivityModel
  * @generated
  */
+@JSON(strict = true)
 public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	implements SocialActivityModel {
 	/*
@@ -69,11 +74,13 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 			{ "mirrorActivityId", Types.BIGINT },
 			{ "classNameId", Types.BIGINT },
 			{ "classPK", Types.BIGINT },
+			{ "parentClassNameId", Types.BIGINT },
+			{ "parentClassPK", Types.BIGINT },
 			{ "type_", Types.INTEGER },
 			{ "extraData", Types.VARCHAR },
 			{ "receiverUserId", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table SocialActivity (activityId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,createDate LONG,activitySetId LONG,mirrorActivityId LONG,classNameId LONG,classPK LONG,type_ INTEGER,extraData STRING null,receiverUserId LONG)";
+	public static final String TABLE_SQL_CREATE = "create table SocialActivity (activityId LONG not null primary key,groupId LONG,companyId LONG,userId LONG,createDate LONG,activitySetId LONG,mirrorActivityId LONG,classNameId LONG,classPK LONG,parentClassNameId LONG,parentClassPK LONG,type_ INTEGER,extraData STRING null,receiverUserId LONG)";
 	public static final String TABLE_SQL_DROP = "drop table SocialActivity";
 	public static final String ORDER_BY_JPQL = " ORDER BY socialActivity.createDate DESC";
 	public static final String ORDER_BY_SQL = " ORDER BY SocialActivity.createDate DESC";
@@ -99,6 +106,58 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	public static long RECEIVERUSERID_COLUMN_BITMASK = 128L;
 	public static long TYPE_COLUMN_BITMASK = 256L;
 	public static long USERID_COLUMN_BITMASK = 512L;
+
+	/**
+	 * Converts the soap model instance into a normal model instance.
+	 *
+	 * @param soapModel the soap model instance to convert
+	 * @return the normal model instance
+	 */
+	public static SocialActivity toModel(SocialActivitySoap soapModel) {
+		if (soapModel == null) {
+			return null;
+		}
+
+		SocialActivity model = new SocialActivityImpl();
+
+		model.setActivityId(soapModel.getActivityId());
+		model.setGroupId(soapModel.getGroupId());
+		model.setCompanyId(soapModel.getCompanyId());
+		model.setUserId(soapModel.getUserId());
+		model.setCreateDate(soapModel.getCreateDate());
+		model.setActivitySetId(soapModel.getActivitySetId());
+		model.setMirrorActivityId(soapModel.getMirrorActivityId());
+		model.setClassNameId(soapModel.getClassNameId());
+		model.setClassPK(soapModel.getClassPK());
+		model.setParentClassNameId(soapModel.getParentClassNameId());
+		model.setParentClassPK(soapModel.getParentClassPK());
+		model.setType(soapModel.getType());
+		model.setExtraData(soapModel.getExtraData());
+		model.setReceiverUserId(soapModel.getReceiverUserId());
+
+		return model;
+	}
+
+	/**
+	 * Converts the soap model instances into normal model instances.
+	 *
+	 * @param soapModels the soap model instances to convert
+	 * @return the normal model instances
+	 */
+	public static List<SocialActivity> toModels(SocialActivitySoap[] soapModels) {
+		if (soapModels == null) {
+			return null;
+		}
+
+		List<SocialActivity> models = new ArrayList<SocialActivity>(soapModels.length);
+
+		for (SocialActivitySoap soapModel : soapModels) {
+			models.add(toModel(soapModel));
+		}
+
+		return models;
+	}
+
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
 				"lock.expiration.time.com.liferay.portlet.social.model.SocialActivity"));
 
@@ -148,9 +207,14 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		attributes.put("mirrorActivityId", getMirrorActivityId());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
+		attributes.put("parentClassNameId", getParentClassNameId());
+		attributes.put("parentClassPK", getParentClassPK());
 		attributes.put("type", getType());
 		attributes.put("extraData", getExtraData());
 		attributes.put("receiverUserId", getReceiverUserId());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
@@ -211,6 +275,18 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 			setClassPK(classPK);
 		}
 
+		Long parentClassNameId = (Long)attributes.get("parentClassNameId");
+
+		if (parentClassNameId != null) {
+			setParentClassNameId(parentClassNameId);
+		}
+
+		Long parentClassPK = (Long)attributes.get("parentClassPK");
+
+		if (parentClassPK != null) {
+			setParentClassPK(parentClassPK);
+		}
+
 		Integer type = (Integer)attributes.get("type");
 
 		if (type != null) {
@@ -230,6 +306,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		}
 	}
 
+	@JSON
 	@Override
 	public long getActivityId() {
 		return _activityId;
@@ -240,6 +317,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		_activityId = activityId;
 	}
 
+	@JSON
 	@Override
 	public long getGroupId() {
 		return _groupId;
@@ -262,6 +340,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalGroupId;
 	}
 
+	@JSON
 	@Override
 	public long getCompanyId() {
 		return _companyId;
@@ -284,6 +363,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalCompanyId;
 	}
 
+	@JSON
 	@Override
 	public long getUserId() {
 		return _userId;
@@ -316,6 +396,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalUserId;
 	}
 
+	@JSON
 	@Override
 	public long getCreateDate() {
 		return _createDate;
@@ -338,6 +419,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalCreateDate;
 	}
 
+	@JSON
 	@Override
 	public long getActivitySetId() {
 		return _activitySetId;
@@ -360,6 +442,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalActivitySetId;
 	}
 
+	@JSON
 	@Override
 	public long getMirrorActivityId() {
 		return _mirrorActivityId;
@@ -402,6 +485,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		setClassNameId(classNameId);
 	}
 
+	@JSON
 	@Override
 	public long getClassNameId() {
 		return _classNameId;
@@ -424,6 +508,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalClassNameId;
 	}
 
+	@JSON
 	@Override
 	public long getClassPK() {
 		return _classPK;
@@ -446,6 +531,29 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalClassPK;
 	}
 
+	@JSON
+	@Override
+	public long getParentClassNameId() {
+		return _parentClassNameId;
+	}
+
+	@Override
+	public void setParentClassNameId(long parentClassNameId) {
+		_parentClassNameId = parentClassNameId;
+	}
+
+	@JSON
+	@Override
+	public long getParentClassPK() {
+		return _parentClassPK;
+	}
+
+	@Override
+	public void setParentClassPK(long parentClassPK) {
+		_parentClassPK = parentClassPK;
+	}
+
+	@JSON
 	@Override
 	public int getType() {
 		return _type;
@@ -468,6 +576,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		return _originalType;
 	}
 
+	@JSON
 	@Override
 	public String getExtraData() {
 		if (_extraData == null) {
@@ -483,6 +592,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		_extraData = extraData;
 	}
 
+	@JSON
 	@Override
 	public long getReceiverUserId() {
 		return _receiverUserId;
@@ -556,6 +666,8 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		socialActivityImpl.setMirrorActivityId(getMirrorActivityId());
 		socialActivityImpl.setClassNameId(getClassNameId());
 		socialActivityImpl.setClassPK(getClassPK());
+		socialActivityImpl.setParentClassNameId(getParentClassNameId());
+		socialActivityImpl.setParentClassPK(getParentClassPK());
 		socialActivityImpl.setType(getType());
 		socialActivityImpl.setExtraData(getExtraData());
 		socialActivityImpl.setReceiverUserId(getReceiverUserId());
@@ -613,6 +725,16 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override
@@ -684,6 +806,10 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 
 		socialActivityCacheModel.classPK = getClassPK();
 
+		socialActivityCacheModel.parentClassNameId = getParentClassNameId();
+
+		socialActivityCacheModel.parentClassPK = getParentClassPK();
+
 		socialActivityCacheModel.type = getType();
 
 		socialActivityCacheModel.extraData = getExtraData();
@@ -701,7 +827,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(29);
 
 		sb.append("{activityId=");
 		sb.append(getActivityId());
@@ -721,6 +847,10 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		sb.append(getClassNameId());
 		sb.append(", classPK=");
 		sb.append(getClassPK());
+		sb.append(", parentClassNameId=");
+		sb.append(getParentClassNameId());
+		sb.append(", parentClassPK=");
+		sb.append(getParentClassPK());
 		sb.append(", type=");
 		sb.append(getType());
 		sb.append(", extraData=");
@@ -734,7 +864,7 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(40);
+		StringBundler sb = new StringBundler(46);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portlet.social.model.SocialActivity");
@@ -775,6 +905,14 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 		sb.append(
 			"<column><column-name>classPK</column-name><column-value><![CDATA[");
 		sb.append(getClassPK());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>parentClassNameId</column-name><column-value><![CDATA[");
+		sb.append(getParentClassNameId());
+		sb.append("]]></column-value></column>");
+		sb.append(
+			"<column><column-name>parentClassPK</column-name><column-value><![CDATA[");
+		sb.append(getParentClassPK());
 		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>type</column-name><column-value><![CDATA[");
@@ -824,6 +962,8 @@ public class SocialActivityModelImpl extends BaseModelImpl<SocialActivity>
 	private long _classPK;
 	private long _originalClassPK;
 	private boolean _setOriginalClassPK;
+	private long _parentClassNameId;
+	private long _parentClassPK;
 	private int _type;
 	private int _originalType;
 	private boolean _setOriginalType;

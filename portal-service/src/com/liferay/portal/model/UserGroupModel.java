@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.UserGroupModelImpl
  * @generated
  */
-public interface UserGroupModel extends BaseModel<UserGroup>, StagedModel {
+@ProviderType
+public interface UserGroupModel extends BaseModel<UserGroup>, MVCCModel,
+	StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +61,22 @@ public interface UserGroupModel extends BaseModel<UserGroup>, StagedModel {
 	 * @param primaryKey the primary key of this user group
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this user group.
+	 *
+	 * @return the mvcc version of this user group
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user group.
+	 *
+	 * @param mvccVersion the mvcc version of this user group
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this user group.

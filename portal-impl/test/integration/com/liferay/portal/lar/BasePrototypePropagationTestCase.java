@@ -15,6 +15,7 @@
 package com.liferay.portal.lar;
 
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
+import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
@@ -40,12 +41,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Eduardo Garcia
  */
-public abstract class BasePrototypePropagationTestCase extends PowerMockito {
+public abstract class BasePrototypePropagationTestCase {
 
 	@Before
 	public void setUp() throws Exception {
@@ -62,7 +61,7 @@ public abstract class BasePrototypePropagationTestCase extends PowerMockito {
 
 		Company company = CompanyUtil.fetchByPrimaryKey(group.getCompanyId());
 
-		globalGroupId = company.getGroup().getGroupId();
+		globalGroupId = company.getGroupId();
 
 		globalJournalArticle = JournalTestUtil.addArticle(
 			globalGroupId, "Global Article", "Global Content");
@@ -197,6 +196,8 @@ public abstract class BasePrototypePropagationTestCase extends PowerMockito {
 			LayoutTestUtil.getPortletPreferences(
 				prototypeLayout, journalContentPortletId);
 
+		MergeLayoutPrototypesThreadLocal.clearMergeComplete();
+
 		layoutSetPrototypePortletPreferences.setValue(
 			"articleId", StringPool.BLANK);
 
@@ -210,9 +211,9 @@ public abstract class BasePrototypePropagationTestCase extends PowerMockito {
 				"lfrScopeType", "company");
 		}
 
-		LayoutTestUtil.updatePortletPreferences(
-			prototypeLayout.getPlid(), journalContentPortletId,
-			layoutSetPrototypePortletPreferences);
+		layoutSetPrototypePortletPreferences.store();
+
+		layout = propagateChanges(layout);
 
 		PortletPreferences portletPreferences =
 			LayoutTestUtil.getPortletPreferences(
@@ -246,6 +247,8 @@ public abstract class BasePrototypePropagationTestCase extends PowerMockito {
 	}
 
 	protected Layout propagateChanges(Layout layout) throws Exception {
+		MergeLayoutPrototypesThreadLocal.clearMergeComplete();
+
 		return LayoutLocalServiceUtil.getLayout(layout.getPlid());
 	}
 

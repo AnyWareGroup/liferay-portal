@@ -27,6 +27,10 @@ Set<Long> categorySubscriptionClassPKs = (Set<Long>)request.getAttribute("view.j
 Set<Long> threadSubscriptionClassPKs = (Set<Long>)request.getAttribute("view.jsp-threadSubscriptionClassPKs");
 
 PortletURL portletURL = (PortletURL)request.getAttribute("view.jsp-portletURL");
+
+if ((category != null) && layout.isTypeControlPanel()) {
+	MBUtil.addPortletBreadcrumbEntries(category, request, renderResponse);
+}
 %>
 
 <liferay-ui:panel-container cssClass="message-boards-panels" extended="<%= false %>" id="messageBoardsPanelContainer" persistState="<%= true %>">
@@ -36,11 +40,11 @@ PortletURL portletURL = (PortletURL)request.getAttribute("view.jsp-portletURL");
 	%>
 
 	<c:if test="<%= categoriesCount > 0 %>">
-		<liferay-ui:panel collapsible="<%= categoriesPanelCollapsible %>" extended="<%= categoriesPanelExtended %>" id="messageBoardsCategoriesPanel" persistState="<%= true %>" title='<%= LanguageUtil.get(pageContext, (category != null) ? "subcategories" : "categories") %>'>
+		<liferay-ui:panel collapsible="<%= categoriesPanelCollapsible %>" extended="<%= categoriesPanelExtended %>" id="messageBoardsCategoriesPanel" persistState="<%= true %>" title='<%= LanguageUtil.get(pageContext, (category != null) ? "subcategories[message-board]" : "categories[message-board]") %>'>
 			<liferay-ui:search-container
 				curParam="cur1"
 				deltaConfigurable="<%= false %>"
-				headerNames="category,categories,threads,posts"
+				headerNames="category[message-board],categories[message-board],threads,posts"
 				iteratorURL="<%= portletURL %>"
 				total="<%= categoriesCount %>"
 			>

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.expando.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoColumnServiceHttp
- * @see       com.liferay.portlet.expando.model.ExpandoColumnSoap
- * @see       com.liferay.portlet.expando.service.ExpandoColumnServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ExpandoColumnServiceHttp
+ * @see com.liferay.portlet.expando.model.ExpandoColumnSoap
+ * @see com.liferay.portlet.expando.service.ExpandoColumnServiceUtil
  * @generated
  */
+@ProviderType
 public class ExpandoColumnServiceSoap {
 	public static com.liferay.portlet.expando.model.ExpandoColumnSoap addColumn(
 		long tableId, java.lang.String name, int type)

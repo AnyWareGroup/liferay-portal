@@ -29,7 +29,7 @@ if (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
 int status = WorkflowConstants.STATUS_APPROVED;
 
-if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 	status = WorkflowConstants.STATUS_ANY;
 }
 
@@ -40,10 +40,10 @@ PortletURL portletURL = (PortletURL)request.getAttribute("view.jsp-portletURL");
 	curParam="cur1"
 	headerNames="folder,num-of-folders,num-of-images"
 	iteratorURL="<%= portletURL %>"
+	total="<%= DLAppServiceUtil.getFoldersCount(repositoryId, folderId) %>"
 >
 	<liferay-ui:search-container-results
 		results="<%= DLAppServiceUtil.getFolders(repositoryId, folderId, searchContainer.getStart(), searchContainer.getEnd()) %>"
-		total="<%= DLAppServiceUtil.getFoldersCount(repositoryId, folderId) %>"
 	/>
 
 	<liferay-ui:search-container-row

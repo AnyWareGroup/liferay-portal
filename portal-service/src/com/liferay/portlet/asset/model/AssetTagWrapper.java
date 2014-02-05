@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetTag}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTag
+ * @author Brian Wing Shun Chan
+ * @see AssetTag
  * @generated
  */
+@ProviderType
 public class AssetTagWrapper implements AssetTag, ModelWrapper<AssetTag> {
 	public AssetTagWrapper(AssetTag assetTag) {
 		_assetTag = assetTag;
@@ -444,9 +448,29 @@ public class AssetTagWrapper implements AssetTag, ModelWrapper<AssetTag> {
 		_assetTag.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetTagWrapper)) {
+			return false;
+		}
+
+		AssetTagWrapper assetTagWrapper = (AssetTagWrapper)obj;
+
+		if (Validator.equals(_assetTag, assetTagWrapper._assetTag)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetTag getWrappedAssetTag() {
 		return _assetTag;
 	}
@@ -454,6 +478,16 @@ public class AssetTagWrapper implements AssetTag, ModelWrapper<AssetTag> {
 	@Override
 	public AssetTag getWrappedModel() {
 		return _assetTag;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetTag.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetTag.isFinderCacheEnabled();
 	}
 
 	@Override

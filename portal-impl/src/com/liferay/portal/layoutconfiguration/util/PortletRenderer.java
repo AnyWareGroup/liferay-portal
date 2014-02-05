@@ -111,6 +111,11 @@ public class PortletRenderer {
 		BufferCacheServletResponse bufferCacheServletResponse =
 			new BufferCacheServletResponse(response);
 
+		Object lock = request.getAttribute(
+			WebKeys.PARALLEL_RENDERING_MERGE_LOCK);
+
+		request.setAttribute(WebKeys.PARALLEL_RENDERING_MERGE_LOCK, null);
+
 		Object portletParallelRender = request.getAttribute(
 			WebKeys.PORTLET_PARALLEL_RENDER);
 
@@ -126,10 +131,10 @@ public class PortletRenderer {
 			throw new PortletContainerException(ioe);
 		}
 		finally {
+			request.setAttribute(WebKeys.PARALLEL_RENDERING_MERGE_LOCK, lock);
 			request.setAttribute(
 				WebKeys.PORTLET_PARALLEL_RENDER, portletParallelRender);
 		}
-
 	}
 
 	private static final String _RENDER_PATH =
@@ -151,7 +156,7 @@ public class PortletRenderer {
 				ParallelRenderThreadLocalBinderUtil.getThreadLocalBinder(),
 				false, true);
 
-			_request= request;
+			_request = request;
 			_response = response;
 		}
 

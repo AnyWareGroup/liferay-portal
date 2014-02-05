@@ -361,6 +361,10 @@ public class RepositoryEntryPersistenceImpl extends BasePersistenceImpl<Reposito
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<RepositoryEntry> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1182,6 +1186,10 @@ public class RepositoryEntryPersistenceImpl extends BasePersistenceImpl<Reposito
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<RepositoryEntry> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1721,6 +1729,10 @@ public class RepositoryEntryPersistenceImpl extends BasePersistenceImpl<Reposito
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRepositoryId(repositoryId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<RepositoryEntry> list = findByRepositoryId(repositoryId,
 				count - 1, count, orderByComparator);
 
@@ -2211,6 +2223,10 @@ public class RepositoryEntryPersistenceImpl extends BasePersistenceImpl<Reposito
 	private static final String _FINDER_COLUMN_R_M_MAPPEDID_2 = "repositoryEntry.mappedId = ?";
 	private static final String _FINDER_COLUMN_R_M_MAPPEDID_3 = "(repositoryEntry.mappedId IS NULL OR repositoryEntry.mappedId = '')";
 
+	public RepositoryEntryPersistenceImpl() {
+		setModelClass(RepositoryEntry.class);
+	}
+
 	/**
 	 * Caches the repository entry in the entity cache if it is enabled.
 	 *
@@ -2608,10 +2624,12 @@ public class RepositoryEntryPersistenceImpl extends BasePersistenceImpl<Reposito
 
 		EntityCacheUtil.putResult(RepositoryEntryModelImpl.ENTITY_CACHE_ENABLED,
 			RepositoryEntryImpl.class, repositoryEntry.getPrimaryKey(),
-			repositoryEntry);
+			repositoryEntry, false);
 
 		clearUniqueFindersCache(repositoryEntry);
 		cacheUniqueFindersCache(repositoryEntry);
+
+		repositoryEntry.resetOriginalValues();
 
 		return repositoryEntry;
 	}
@@ -2626,6 +2644,7 @@ public class RepositoryEntryPersistenceImpl extends BasePersistenceImpl<Reposito
 		repositoryEntryImpl.setNew(repositoryEntry.isNew());
 		repositoryEntryImpl.setPrimaryKey(repositoryEntry.getPrimaryKey());
 
+		repositoryEntryImpl.setMvccVersion(repositoryEntry.getMvccVersion());
 		repositoryEntryImpl.setUuid(repositoryEntry.getUuid());
 		repositoryEntryImpl.setRepositoryEntryId(repositoryEntry.getRepositoryEntryId());
 		repositoryEntryImpl.setGroupId(repositoryEntry.getGroupId());

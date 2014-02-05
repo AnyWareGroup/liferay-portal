@@ -17,11 +17,8 @@ package com.liferay.portlet.wiki.action;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.servlet.ServletResponseConstants;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.upload.UploadException;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.Constants;
@@ -32,17 +29,19 @@ import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.documentlibrary.DuplicateFileException;
-import com.liferay.portlet.documentlibrary.FileExtensionException;
-import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
 import com.liferay.portlet.documentlibrary.action.EditFileEntryAction;
+import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 import com.liferay.portlet.wiki.NoSuchNodeException;
 import com.liferay.portlet.wiki.NoSuchPageException;
 import com.liferay.portlet.wiki.model.WikiPage;
@@ -52,17 +51,13 @@ import com.liferay.portlet.wiki.util.WikiPageAttachmentsUtil;
 import java.io.InputStream;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
 import javax.portlet.PortletConfig;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -75,8 +70,9 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -99,14 +95,14 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 				addAttachment(actionRequest);
 			}
 			else if (cmd.equals(Constants.ADD_MULTIPLE)) {
-				addMultipleFileEntries(actionRequest, actionResponse);
+				addMultipleFileEntries(
+					portletConfig, actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.ADD_TEMP)) {
 				addTempAttachment(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteAttachment(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteAttachment(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.DELETE_TEMP)) {
 				deleteTempAttachment(actionRequest, actionResponse);
@@ -118,8 +114,7 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 				restoreAttachmentFromTrash(actionRequest, actionResponse);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteAttachment(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
+				deleteAttachment(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.RESTORE)) {
 				restoreAttachment(actionRequest);
@@ -143,38 +138,18 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 
 				setForward(actionRequest, "portlet.wiki.error");
 			}
-			else if (e instanceof DuplicateFileException ||
-					 e instanceof FileNameException) {
-
-				SessionErrors.add(actionRequest, e.getClass());
-
-				HttpServletResponse response =
-					PortalUtil.getHttpServletResponse(actionResponse);
-
-				if (e instanceof DuplicateFileException) {
-					response.setStatus(
-						ServletResponseConstants.SC_DUPLICATE_FILE_EXCEPTION);
-				}
-				else {
-					response.setStatus(
-						ServletResponseConstants.SC_FILE_NAME_EXCEPTION);
-				}
-			}
-			else if (e instanceof FileExtensionException ||
-					 e instanceof FileSizeException) {
-
-				SessionErrors.add(actionRequest, e.getClass());
-			}
 			else {
-				throw e;
+				handleUploadException(
+					portletConfig, actionRequest, actionResponse, cmd, e);
 			}
 		}
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -188,14 +163,14 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.wiki.error");
+				return actionMapping.findForward("portlet.wiki.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.wiki.edit_page_attachment"));
 	}
 
@@ -260,10 +235,13 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 
 	@Override
 	protected void addMultipleFileEntries(
-			ActionRequest actionRequest, ActionResponse actionResponse,
-			String selectedFileName, List<String> validFileNames,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse, String selectedFileName,
+			List<KeyValuePair> validFileNameKVPs,
 			List<KeyValuePair> invalidFileNameKVPs)
 		throws Exception {
+
+		String originalSelectedFileName = selectedFileName;
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -284,11 +262,12 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 			WikiPageServiceUtil.addPageAttachment(
 				nodeId, title, selectedFileName, inputStream, mimeType);
 
-			validFileNames.add(selectedFileName);
+			validFileNameKVPs.add(
+				new KeyValuePair(selectedFileName, originalSelectedFileName));
 		}
 		catch (Exception e) {
 			String errorMessage = getAddMultipleFileEntriesErrorMessage(
-				themeDisplay, e);
+				portletConfig, actionRequest, actionResponse, e);
 
 			KeyValuePair invalidFileNameKVP = new KeyValuePair(
 				selectedFileName, errorMessage);
@@ -328,7 +307,6 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 	}
 
 	protected void deleteAttachment(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -336,32 +314,25 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 		String title = ParamUtil.getString(actionRequest, "title");
 		String attachment = ParamUtil.getString(actionRequest, "fileName");
 
-		long dlFileEntryId = 0;
+		TrashedModel trashedModel = null;
 
 		if (moveToTrash) {
-			dlFileEntryId = WikiPageServiceUtil.movePageAttachmentToTrash(
+			FileEntry fileEntry = WikiPageServiceUtil.movePageAttachmentToTrash(
 				nodeId, title, attachment);
+
+			if (fileEntry.getModel() instanceof DLFileEntry) {
+				trashedModel = (DLFileEntry)fileEntry.getModel();
+			}
 		}
 		else {
 			WikiPageServiceUtil.deletePageAttachment(nodeId, title, attachment);
 		}
 
-		if (moveToTrash && (dlFileEntryId > 0)) {
-			Map<String, String[]> data = new HashMap<String, String[]>();
+		if (moveToTrash && (trashedModel != null)) {
+			TrashUtil.addTrashSessionMessages(
+				actionRequest, trashedModel, Constants.REMOVE);
 
-			data.put(
-				"restoreEntryIds",
-				new String[] {String.valueOf(dlFileEntryId)});
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -405,11 +376,14 @@ public class EditPageAttachmentsAction extends EditFileEntryAction {
 		throws Exception {
 
 		long[] restoreEntryIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreEntryIds"), 0L);
+			ParamUtil.getString(actionRequest, "restoreTrashEntryIds"), 0L);
 
 		for (long restoreEntryId : restoreEntryIds) {
-			FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+			TrashEntry trashEntry = TrashEntryLocalServiceUtil.getTrashEntry(
 				restoreEntryId);
+
+			FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
+				trashEntry.getClassPK());
 
 			WikiPage page = WikiPageAttachmentsUtil.getPage(
 				fileEntry.getFileEntryId());

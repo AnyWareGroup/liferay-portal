@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
 import com.liferay.portal.model.BaseModel;
@@ -37,6 +39,7 @@ import java.io.Serializable;
  * @see com.liferay.portlet.social.model.impl.SocialActivityModelImpl
  * @generated
  */
+@ProviderType
 public interface SocialActivityModel extends AttachedModel,
 	BaseModel<SocialActivity> {
 	/*
@@ -213,6 +216,34 @@ public interface SocialActivityModel extends AttachedModel,
 	 */
 	@Override
 	public void setClassPK(long classPK);
+
+	/**
+	 * Returns the parent class name ID of this social activity.
+	 *
+	 * @return the parent class name ID of this social activity
+	 */
+	public long getParentClassNameId();
+
+	/**
+	 * Sets the parent class name ID of this social activity.
+	 *
+	 * @param parentClassNameId the parent class name ID of this social activity
+	 */
+	public void setParentClassNameId(long parentClassNameId);
+
+	/**
+	 * Returns the parent class p k of this social activity.
+	 *
+	 * @return the parent class p k of this social activity
+	 */
+	public long getParentClassPK();
+
+	/**
+	 * Sets the parent class p k of this social activity.
+	 *
+	 * @param parentClassPK the parent class p k of this social activity
+	 */
+	public void setParentClassPK(long parentClassPK);
 
 	/**
 	 * Returns the type of this social activity.

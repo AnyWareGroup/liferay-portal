@@ -22,7 +22,6 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.spring.context.ArrayApplicationContext;
 import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsUtil;
-import com.liferay.portal.util.PropsValues;
 
 import java.util.List;
 
@@ -42,10 +41,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 public class SpringUtil {
 
 	public static void loadContext() {
-		List<String> configLocations = ListUtil.fromArray(
-			PropsUtil.getArray(PropsKeys.SPRING_CONFIGS));
-
-		_loadContext(configLocations);
+		_loadContext(PropsUtil.getArray(PropsKeys.SPRING_CONFIGS));
 	}
 
 	public static void loadContext(List<String> extraConfigLocations) {
@@ -56,20 +52,13 @@ public class SpringUtil {
 			configLocations.addAll(extraConfigLocations);
 		}
 
-		_loadContext(configLocations);
+		_loadContext(
+			configLocations.toArray(new String[configLocations.size()]));
 	}
 
-	private static void _loadContext(List<String> configLocations) {
-		if (PropsValues.PERSISTENCE_PROVIDER.equalsIgnoreCase("jpa")) {
-			configLocations.remove("META-INF/hibernate-spring.xml");
-		}
-		else {
-			configLocations.remove("META-INF/jpa-spring.xml");
-		}
-
+	private static void _loadContext(String[] configLocations) {
 		AbstractApplicationContext applicationContext =
-			new ArrayApplicationContext(
-				configLocations.toArray(new String[configLocations.size()]));
+			new ArrayApplicationContext(configLocations);
 
 		BeanLocator beanLocator = new BeanLocatorImpl(
 			ClassLoaderUtil.getPortalClassLoader(), applicationContext);

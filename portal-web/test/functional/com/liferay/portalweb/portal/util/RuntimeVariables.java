@@ -14,6 +14,7 @@
 
 package com.liferay.portalweb.portal.util;
 
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -21,13 +22,153 @@ import com.liferay.util.ContextReplace;
 
 import java.io.File;
 
+import java.net.InetAddress;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Brian Wing Shun Chan
  */
 public class RuntimeVariables {
+
+	public static String evaluateLocator(
+			String locator, Map<String, String> context)
+		throws Exception {
+
+		String locatorValue = locator;
+
+		if (locatorValue.contains("${") && locatorValue.contains("}")) {
+			String regex = "\\$\\{([^}]*?)\\}";
+
+			Pattern pattern = Pattern.compile(regex);
+
+			Matcher matcher = pattern.matcher(locatorValue);
+
+			while (matcher.find()) {
+				String variableKey = matcher.group(1);
+
+				if (context.containsKey(variableKey)) {
+					locatorValue = locatorValue.replaceFirst(
+						regex, context.get(variableKey));
+				}
+				else {
+					throw new Exception(
+						"Variable \"" + variableKey + "\" found in \"" +
+							locator + "\" is not set");
+				}
+			}
+		}
+
+		return locatorValue;
+	}
+
+	public static String evaluateVariable(
+		String value, Map<String, String> context) {
+
+		String varValue = value;
+
+		Pattern pattern = Pattern.compile("\\$\\{([^}]*?)\\}");
+
+		Matcher matcher = pattern.matcher(varValue);
+
+		Pattern statementPattern = Pattern.compile(
+			"(.*)\\?(.*)\\(([^\\)]*?)\\)");
+
+		while (matcher.find()) {
+			String statement = matcher.group(1);
+
+			Matcher statementMatcher = statementPattern.matcher(statement);
+
+			if (statementMatcher.find()) {
+				String operand = statementMatcher.group(1);
+
+				if (!context.containsKey(operand)) {
+					continue;
+				}
+
+				String[] arguments = StringUtil.split(
+					statementMatcher.group(3), "'");
+
+				List<String> argumentsList = new ArrayList<String>();
+
+				for (int i = 1; i < arguments.length; i++) {
+					if ((i % 2) == 1) {
+						argumentsList.add(arguments[i]);
+					}
+				}
+
+				String method = statementMatcher.group(2);
+
+				String operandValue = context.get(operand);
+
+				String replaceRegex = "\\$\\{([^}]*?)\\}";
+
+				String result = "";
+
+				if (method.startsWith("getFirstNumber")) {
+					result = operandValue.replaceFirst("\\D*(\\d*).*", "$1");
+				}
+				else if (method.startsWith("increment")) {
+					int i = GetterUtil.getInteger(operandValue) + 1;
+
+					result = String.valueOf(i);
+				}
+				else if (method.startsWith("length")) {
+					result = String.valueOf(operandValue.length());
+				}
+				else if (method.startsWith("lowercase")) {
+					result = StringUtil.toLowerCase(operandValue);
+				}
+				else if (method.startsWith("replace")) {
+					result = operandValue.replace(
+						argumentsList.get(0), argumentsList.get(1));
+				}
+				else if (method.startsWith("uppercase")) {
+					result = StringUtil.toUpperCase(operandValue);
+				}
+
+				varValue = varValue.replaceFirst(replaceRegex, result);
+			}
+			else if (statement.equals("getIPAddress()")) {
+				try {
+					InetAddress inetAddress = InetAddress.getLocalHost();
+
+					String result = inetAddress.getHostAddress();
+
+					varValue = varValue.replaceFirst(
+						"\\$\\{([^}]*?)\\}", result);
+				}
+				catch (Exception e) {
+				}
+			}
+			else {
+				String varName = statement;
+
+				if (!context.containsKey(varName)) {
+					continue;
+				}
+
+				String replaceRegex = "\\$\\{([^}]*?)\\}";
+
+				String result = context.get(varName);
+
+				result = Matcher.quoteReplacement(result);
+
+				varValue = varValue.replaceFirst(replaceRegex, result);
+			}
+		}
+
+		varValue = varValue.replace("\\$", "$");
+		varValue = varValue.replace("\\{", "{");
+		varValue = varValue.replace("\\}", "}");
+
+		return varValue;
+	}
 
 	public static String getValue(String key) {
 		return _instance._getValue(key);
@@ -39,6 +180,12 @@ public class RuntimeVariables {
 
 	public static void setValue(String key, String value) {
 		_instance._setValue(key, value);
+	}
+
+	public static boolean variableExists(
+		String name, Map<String, String> context) {
+
+		return context.containsKey(name);
 	}
 
 	private RuntimeVariables() {
@@ -97,7 +244,6 @@ public class RuntimeVariables {
 			text = StringUtil.replace(text, "Bloggs", "Test");
 			text = StringUtil.replace(text, "Joe", "Test");
 			text = StringUtil.replace(text, "joebloggs", "test");
-			text = StringUtil.replace(text, "Liferay", "liferay.com");
 		}
 
 		if (Validator.isNotNull(TestPropsValues.CLUSTER_NODE_1)) {

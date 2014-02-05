@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.social.service.impl.SocialActivityAchievementLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class SocialActivityAchievementLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -169,6 +172,21 @@ public class SocialActivityAchievementLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.social.model.SocialActivityAchievement fetchSocialActivityAchievement(
 		long activityAchievementId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -305,16 +323,15 @@ public class SocialActivityAchievementLocalServiceUtil {
 		return getService().getGroupFirstAchievementsCount(groupId);
 	}
 
-	public static int getUserAchievementCount(long userId, long groupId,
-		java.lang.String name)
+	public static java.util.List<com.liferay.portlet.social.model.SocialActivityAchievement> getUserAchievements(
+		long userId, long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getUserAchievementCount(userId, groupId, name);
+		return getService().getUserAchievements(userId, groupId);
 	}
 
-	public static java.util.List<com.liferay.portlet.social.model.SocialActivityAchievement> getUserAchievements(
-		long userId, long groupId, java.lang.String name)
+	public static int getUserAchievementsCount(long userId, long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().getUserAchievements(userId, groupId, name);
+		return getService().getUserAchievementsCount(userId, groupId);
 	}
 
 	public static SocialActivityAchievementLocalService getService() {
@@ -331,6 +348,7 @@ public class SocialActivityAchievementLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(SocialActivityAchievementLocalService service) {
 	}
 

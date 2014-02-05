@@ -16,9 +16,11 @@ package com.liferay.portlet.bookmarks.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.bookmarks.NoSuchFolderException;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
@@ -56,32 +58,44 @@ public class BookmarksEntryPermission {
 			String actionId)
 		throws PortalException, SystemException {
 
-		if (entry.getFolderId() !=
-				BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, entry.getGroupId(),
+			BookmarksEntry.class.getName(), entry.getEntryId(),
+			PortletKeys.BOOKMARKS, actionId);
 
-			try {
-				BookmarksFolder folder =
-					BookmarksFolderLocalServiceUtil.getFolder(
-						entry.getFolderId());
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
 
-				if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE &&
-					!BookmarksFolderPermission.contains(
-						permissionChecker, folder, ActionKeys.ACCESS) &&
-					!BookmarksFolderPermission.contains(
-						permissionChecker, folder, ActionKeys.VIEW)) {
+		if (actionId.equals(ActionKeys.VIEW) &&
+			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
+
+			long folderId = entry.getFolderId();
+
+			if (folderId == BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+				if (!BookmarksPermission.contains(
+						permissionChecker, entry.getGroupId(), actionId)) {
 
 					return false;
 				}
-
-				if (BookmarksFolderPermission.contains(
-						permissionChecker, folder, actionId)) {
-
-					return true;
-				}
 			}
-			catch (NoSuchFolderException nsfe) {
-				if (!entry.isInTrash()) {
-					throw nsfe;
+			else {
+				try {
+					BookmarksFolder folder =
+						BookmarksFolderLocalServiceUtil.getFolder(folderId);
+
+					if (!BookmarksFolderPermission.contains(
+							permissionChecker, folder, ActionKeys.ACCESS) &&
+						!BookmarksFolderPermission.contains(
+							permissionChecker, folder, ActionKeys.VIEW)) {
+
+						return false;
+					}
+				}
+				catch (NoSuchFolderException nsfe) {
+					if (!entry.isInTrash()) {
+						throw nsfe;
+					}
 				}
 			}
 		}

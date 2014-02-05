@@ -14,6 +14,9 @@
 
 package com.liferay.counter.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Counter}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Counter
+ * @author Brian Wing Shun Chan
+ * @see Counter
  * @generated
  */
+@ProviderType
 public class CounterWrapper implements Counter, ModelWrapper<Counter> {
 	public CounterWrapper(Counter counter) {
 		_counter = counter;
@@ -232,9 +236,29 @@ public class CounterWrapper implements Counter, ModelWrapper<Counter> {
 		_counter.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CounterWrapper)) {
+			return false;
+		}
+
+		CounterWrapper counterWrapper = (CounterWrapper)obj;
+
+		if (Validator.equals(_counter, counterWrapper._counter)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Counter getWrappedCounter() {
 		return _counter;
 	}
@@ -242,6 +266,16 @@ public class CounterWrapper implements Counter, ModelWrapper<Counter> {
 	@Override
 	public Counter getWrappedModel() {
 		return _counter;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _counter.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _counter.isFinderCacheEnabled();
 	}
 
 	@Override

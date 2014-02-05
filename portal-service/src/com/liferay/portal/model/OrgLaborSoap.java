@@ -22,14 +22,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.OrgLaborServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.OrgLaborServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.OrgLaborServiceSoap
  * @generated
  */
 public class OrgLaborSoap implements Serializable {
 	public static OrgLaborSoap toSoapModel(OrgLabor model) {
 		OrgLaborSoap soapModel = new OrgLaborSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setOrgLaborId(model.getOrgLaborId());
 		soapModel.setOrganizationId(model.getOrganizationId());
 		soapModel.setTypeId(model.getTypeId());
@@ -97,6 +98,14 @@ public class OrgLaborSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setOrgLaborId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public long getOrgLaborId() {
@@ -235,6 +244,7 @@ public class OrgLaborSoap implements Serializable {
 		_satClose = satClose;
 	}
 
+	private long _mvccVersion;
 	private long _orgLaborId;
 	private long _organizationId;
 	private int _typeId;

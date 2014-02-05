@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides the SOAP utility for the
  * {@link com.liferay.portlet.social.service.SocialRequestServiceUtil} service utility. The
@@ -48,11 +50,12 @@ package com.liferay.portlet.social.service.http;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRequestServiceHttp
- * @see       com.liferay.portlet.social.model.SocialRequestSoap
- * @see       com.liferay.portlet.social.service.SocialRequestServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see SocialRequestServiceHttp
+ * @see com.liferay.portlet.social.model.SocialRequestSoap
+ * @see com.liferay.portlet.social.service.SocialRequestServiceUtil
  * @generated
  */
+@ProviderType
 public class SocialRequestServiceSoap {
 }

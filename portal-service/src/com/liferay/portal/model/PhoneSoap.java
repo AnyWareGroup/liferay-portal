@@ -23,14 +23,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.PhoneServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.PhoneServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.PhoneServiceSoap
  * @generated
  */
 public class PhoneSoap implements Serializable {
 	public static PhoneSoap toSoapModel(Phone model) {
 		PhoneSoap soapModel = new PhoneSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setPhoneId(model.getPhoneId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -94,6 +95,14 @@ public class PhoneSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setPhoneId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -204,6 +213,7 @@ public class PhoneSoap implements Serializable {
 		_primary = primary;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _phoneId;
 	private long _companyId;

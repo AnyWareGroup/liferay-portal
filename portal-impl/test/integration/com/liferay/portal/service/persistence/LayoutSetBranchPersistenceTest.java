@@ -114,6 +114,8 @@ public class LayoutSetBranchPersistenceTest {
 
 		LayoutSetBranch newLayoutSetBranch = _persistence.create(pk);
 
+		newLayoutSetBranch.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayoutSetBranch.setGroupId(ServiceTestUtil.nextLong());
 
 		newLayoutSetBranch.setCompanyId(ServiceTestUtil.nextLong());
@@ -133,8 +135,6 @@ public class LayoutSetBranchPersistenceTest {
 		newLayoutSetBranch.setDescription(ServiceTestUtil.randomString());
 
 		newLayoutSetBranch.setMaster(ServiceTestUtil.randomBoolean());
-
-		newLayoutSetBranch.setLogo(ServiceTestUtil.randomBoolean());
 
 		newLayoutSetBranch.setLogoId(ServiceTestUtil.nextLong());
 
@@ -158,6 +158,8 @@ public class LayoutSetBranchPersistenceTest {
 
 		LayoutSetBranch existingLayoutSetBranch = _persistence.findByPrimaryKey(newLayoutSetBranch.getPrimaryKey());
 
+		Assert.assertEquals(existingLayoutSetBranch.getMvccVersion(),
+			newLayoutSetBranch.getMvccVersion());
 		Assert.assertEquals(existingLayoutSetBranch.getLayoutSetBranchId(),
 			newLayoutSetBranch.getLayoutSetBranchId());
 		Assert.assertEquals(existingLayoutSetBranch.getGroupId(),
@@ -182,8 +184,6 @@ public class LayoutSetBranchPersistenceTest {
 			newLayoutSetBranch.getDescription());
 		Assert.assertEquals(existingLayoutSetBranch.getMaster(),
 			newLayoutSetBranch.getMaster());
-		Assert.assertEquals(existingLayoutSetBranch.getLogo(),
-			newLayoutSetBranch.getLogo());
 		Assert.assertEquals(existingLayoutSetBranch.getLogoId(),
 			newLayoutSetBranch.getLogoId());
 		Assert.assertEquals(existingLayoutSetBranch.getThemeId(),
@@ -251,11 +251,11 @@ public class LayoutSetBranchPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("LayoutSetBranch",
-			"layoutSetBranchId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "privateLayout", true, "name", true,
-			"description", true, "master", true, "logo", true, "logoId", true,
-			"themeId", true, "colorSchemeId", true, "wapThemeId", true,
+			"mvccVersion", true, "layoutSetBranchId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "privateLayout", true, "name", true,
+			"description", true, "master", true, "logoId", true, "themeId",
+			true, "colorSchemeId", true, "wapThemeId", true,
 			"wapColorSchemeId", true, "css", true, "settings", true,
 			"layoutSetPrototypeUuid", true, "layoutSetPrototypeLinkEnabled",
 			true);
@@ -399,6 +399,8 @@ public class LayoutSetBranchPersistenceTest {
 
 		LayoutSetBranch layoutSetBranch = _persistence.create(pk);
 
+		layoutSetBranch.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layoutSetBranch.setGroupId(ServiceTestUtil.nextLong());
 
 		layoutSetBranch.setCompanyId(ServiceTestUtil.nextLong());
@@ -418,8 +420,6 @@ public class LayoutSetBranchPersistenceTest {
 		layoutSetBranch.setDescription(ServiceTestUtil.randomString());
 
 		layoutSetBranch.setMaster(ServiceTestUtil.randomBoolean());
-
-		layoutSetBranch.setLogo(ServiceTestUtil.randomBoolean());
 
 		layoutSetBranch.setLogoId(ServiceTestUtil.nextLong());
 

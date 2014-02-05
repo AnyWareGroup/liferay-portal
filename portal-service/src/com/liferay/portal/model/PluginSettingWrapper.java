@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link PluginSetting}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PluginSetting
+ * @author Brian Wing Shun Chan
+ * @see PluginSetting
  * @generated
  */
+@ProviderType
 public class PluginSettingWrapper implements PluginSetting,
 	ModelWrapper<PluginSetting> {
 	public PluginSettingWrapper(PluginSetting pluginSetting) {
@@ -46,6 +51,7 @@ public class PluginSettingWrapper implements PluginSetting,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("pluginSettingId", getPluginSettingId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("pluginId", getPluginId());
@@ -58,6 +64,12 @@ public class PluginSettingWrapper implements PluginSetting,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long pluginSettingId = (Long)attributes.get("pluginSettingId");
 
 		if (pluginSettingId != null) {
@@ -113,6 +125,26 @@ public class PluginSettingWrapper implements PluginSetting,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_pluginSetting.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this plugin setting.
+	*
+	* @return the mvcc version of this plugin setting
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _pluginSetting.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this plugin setting.
+	*
+	* @param mvccVersion the mvcc version of this plugin setting
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_pluginSetting.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -399,9 +431,29 @@ public class PluginSettingWrapper implements PluginSetting,
 		_pluginSetting.setRolesArray(rolesArray);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PluginSettingWrapper)) {
+			return false;
+		}
+
+		PluginSettingWrapper pluginSettingWrapper = (PluginSettingWrapper)obj;
+
+		if (Validator.equals(_pluginSetting, pluginSettingWrapper._pluginSetting)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PluginSetting getWrappedPluginSetting() {
 		return _pluginSetting;
 	}
@@ -409,6 +461,16 @@ public class PluginSettingWrapper implements PluginSetting,
 	@Override
 	public PluginSetting getWrappedModel() {
 		return _pluginSetting;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _pluginSetting.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _pluginSetting.isFinderCacheEnabled();
 	}
 
 	@Override

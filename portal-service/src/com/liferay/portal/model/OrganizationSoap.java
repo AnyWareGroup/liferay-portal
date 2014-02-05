@@ -23,14 +23,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.OrganizationServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.OrganizationServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.OrganizationServiceSoap
  * @generated
  */
 public class OrganizationSoap implements Serializable {
 	public static OrganizationSoap toSoapModel(Organization model) {
 		OrganizationSoap soapModel = new OrganizationSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setOrganizationId(model.getOrganizationId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -47,6 +48,7 @@ public class OrganizationSoap implements Serializable {
 		soapModel.setCountryId(model.getCountryId());
 		soapModel.setStatusId(model.getStatusId());
 		soapModel.setComments(model.getComments());
+		soapModel.setLogoId(model.getLogoId());
 
 		return soapModel;
 	}
@@ -97,6 +99,14 @@ public class OrganizationSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setOrganizationId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -231,6 +241,15 @@ public class OrganizationSoap implements Serializable {
 		_comments = comments;
 	}
 
+	public long getLogoId() {
+		return _logoId;
+	}
+
+	public void setLogoId(long logoId) {
+		_logoId = logoId;
+	}
+
+	private long _mvccVersion;
 	private String _uuid;
 	private long _organizationId;
 	private long _companyId;
@@ -247,4 +266,5 @@ public class OrganizationSoap implements Serializable {
 	private long _countryId;
 	private int _statusId;
 	private String _comments;
+	private long _logoId;
 }

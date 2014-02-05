@@ -21,11 +21,15 @@ String topLink = ParamUtil.getString(request, "topLink", "home");
 
 BookmarksFolder folder = (BookmarksFolder)request.getAttribute(WebKeys.BOOKMARKS_FOLDER);
 
-long defaultFolderId = GetterUtil.getLong(preferences.getValue("rootFolderId", StringPool.BLANK), BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+long folderId = BeanParamUtil.getLong(folder, request, "folderId", rootFolderId);
 
-long folderId = BeanParamUtil.getLong(folder, request, "folderId", defaultFolderId);
+boolean defaultFolderView = false;
 
-if ((folder == null) && (defaultFolderId != BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+if ((folder == null) && (folderId != BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+	defaultFolderView = true;
+}
+
+if (defaultFolderView) {
 	try {
 		folder = BookmarksFolderServiceUtil.getFolder(folderId);
 	}
@@ -55,14 +59,13 @@ request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
 request.setAttribute("view.jsp-viewFolder", Boolean.TRUE.toString());
 
 request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntryQuery));
+
+if (folder != null) {
+	BookmarksUtil.addPortletBreadcrumbEntries(folder, request, renderResponse);
+}
 %>
 
-<portlet:actionURL var="undoTrashURL">
-	<portlet:param name="struts_action" value="/bookmarks/edit_entry" />
-	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
-</portlet:actionURL>
-
-<liferay-ui:trash-undo portletURL="<%= undoTrashURL %>" />
+<liferay-ui:trash-undo />
 
 <liferay-util:include page="/html/portlet/bookmarks/top_links.jsp" />
 
@@ -79,32 +82,14 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 	<c:when test='<%= topLink.equals("home") %>'>
 		<aui:row>
 			<c:if test="<%= folder != null %>">
-
-				<%
-				long parentFolderId = folder.getParentFolderId();
-				String parentFolderName = LanguageUtil.get(pageContext, "home");
-
-				if (!folder.isRoot()) {
-					BookmarksFolder parentFolder = BookmarksFolderLocalServiceUtil.getBookmarksFolder(parentFolderId);
-
-					parentFolderId = parentFolder.getFolderId();
-					parentFolderName = parentFolder.getName();
-				}
-				%>
-
-				<portlet:renderURL var="backURL">
-					<portlet:param name="struts_action" value="/bookmarks/view" />
-					<portlet:param name="folderId" value="<%= String.valueOf(parentFolderId) %>" />
-				</portlet:renderURL>
-
 				<liferay-ui:header
-					backLabel="<%= parentFolderName %>"
-					backURL="<%= backURL.toString() %>"
 					localizeTitle="<%= false %>"
 					title="<%= folder.getName() %>"
 				/>
 			</c:if>
+		</aui:row>
 
+		<aui:row>
 			<aui:col cssClass="lfr-asset-column lfr-asset-column-details" width="<%= 75 %>">
 				<liferay-ui:panel-container extended="<%= false %>" id="bookmarksInfoPanelContainer" persistState="<%= true %>">
 					<c:if test="<%= folder != null %>">
@@ -114,7 +99,7 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 
 						<div class="lfr-asset-metadata">
 							<div class="lfr-asset-icon lfr-asset-date">
-								<%= LanguageUtil.format(pageContext, "last-updated-x", dateFormatDate.format(folder.getModifiedDate())) %>
+								<%= LanguageUtil.format(pageContext, "last-updated-x", dateFormatDate.format(folder.getModifiedDate()), false) %>
 							</div>
 
 							<div class="lfr-asset-icon lfr-asset-subfolders">
@@ -144,10 +129,10 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 								deltaConfigurable="<%= false %>"
 								headerNames="<%= StringUtil.merge(folderColumns) %>"
 								iteratorURL="<%= portletURL %>"
+								total="<%= BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folderId) %>"
 							>
 								<liferay-ui:search-container-results
 									results="<%= BookmarksFolderServiceUtil.getFolders(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd()) %>"
-									total="<%= BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folderId) %>"
 								/>
 
 								<liferay-ui:search-container-row
@@ -198,13 +183,9 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 		</aui:row>
 
 		<%
-		if (folder != null) {
-			BookmarksUtil.addPortletBreadcrumbEntries(folder, request, renderResponse);
-
-			if (portletName.equals(PortletKeys.BOOKMARKS)) {
-				PortalUtil.setPageSubtitle(folder.getName(), request);
-				PortalUtil.setPageDescription(folder.getDescription(), request);
-			}
+		if (!defaultFolderView && (folder != null) && portletName.equals(PortletKeys.BOOKMARKS)) {
+			PortalUtil.setPageSubtitle(folder.getName(), request);
+			PortalUtil.setPageDescription(folder.getDescription(), request);
 		}
 		%>
 
@@ -215,24 +196,23 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 				title="<%= topLink %>"
 			/>
 
+			<%
+			long groupEntriesUserId = 0;
+
+			if (topLink.equals("mine") && themeDisplay.isSignedIn()) {
+				groupEntriesUserId = user.getUserId();
+			}
+			%>
+
 			<liferay-ui:search-container
 				delta="<%= entriesPerPage %>"
 				deltaConfigurable="<%= false %>"
 				emptyResultsMessage="there-are-no-entries"
 				iteratorURL="<%= portletURL %>"
+				total="<%= BookmarksEntryServiceUtil.getGroupEntriesCount(scopeGroupId, groupEntriesUserId) %>"
 			>
-
-				<%
-				long groupEntriesUserId = 0;
-
-				if (topLink.equals("mine") && themeDisplay.isSignedIn()) {
-					groupEntriesUserId = user.getUserId();
-				}
-				%>
-
 				<liferay-ui:search-container-results
 					results="<%= BookmarksEntryServiceUtil.getGroupEntries(scopeGroupId, groupEntriesUserId, searchContainer.getStart(), searchContainer.getEnd()) %>"
-					total="<%= BookmarksEntryServiceUtil.getGroupEntriesCount(scopeGroupId, groupEntriesUserId) %>"
 				/>
 
 				<liferay-ui:search-container-row
@@ -264,7 +244,9 @@ request.setAttribute("view.jsp-useAssetEntryQuery", String.valueOf(useAssetEntry
 		</aui:row>
 
 		<%
-		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, topLink), currentURL);
+		if (!layout.isTypeControlPanel()) {
+			PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, topLink), currentURL);
+		}
 
 		PortalUtil.setPageSubtitle(LanguageUtil.get(pageContext, StringUtil.replace(topLink, StringPool.UNDERLINE, StringPool.DASH)), request);
 		%>

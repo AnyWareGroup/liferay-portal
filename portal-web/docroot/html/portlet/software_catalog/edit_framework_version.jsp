@@ -43,7 +43,7 @@ long frameworkVersionId = BeanParamUtil.getLong(frameworkVersion, request, "fram
 		<liferay-ui:message key="name" />
 	</td>
 	<td>
-		<liferay-ui:input-field bean="<%= frameworkVersion %>" field="name" model="<%= SCFrameworkVersion.class %>" />
+		<liferay-ui:input-field autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" bean="<%= frameworkVersion %>" field="name" model="<%= SCFrameworkVersion.class %>" />
 	</td>
 </tr>
 <tr>
@@ -83,23 +83,23 @@ long frameworkVersionId = BeanParamUtil.getLong(frameworkVersion, request, "fram
 
 </table>
 
-<br />
+<div class="btn-toolbar">
+	<aui:button cssClass="btn-primary" type="submit" value="save" />
 
-<input type="submit" value="<liferay-ui:message key="save" />" />
+	<%
+	String taglibCancel = "location.href = '" + HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) + "';";
+	%>
 
-<input onClick="location.href = '<%= HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) %>';" type="button" value="<liferay-ui:message key="cancel" />" />
-
+	<aui:button onClick="<%= taglibCancel %>" value="cancel" />
+</div>
 </form>
 
 <aui:script>
 	function <portlet:namespace />saveFrameworkVersion() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (frameworkVersion == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

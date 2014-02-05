@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagPropertyServiceHttp
- * @see       com.liferay.portlet.asset.model.AssetTagPropertySoap
- * @see       com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AssetTagPropertyServiceHttp
+ * @see com.liferay.portlet.asset.model.AssetTagPropertySoap
+ * @see com.liferay.portlet.asset.service.AssetTagPropertyServiceUtil
  * @generated
  */
+@ProviderType
 public class AssetTagPropertyServiceSoap {
 	/**
 	* Adds an asset tag property.

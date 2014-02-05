@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.PluginSettingModelImpl
  * @generated
  */
-public interface PluginSettingModel extends BaseModel<PluginSetting> {
+@ProviderType
+public interface PluginSettingModel extends BaseModel<PluginSetting>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +57,22 @@ public interface PluginSettingModel extends BaseModel<PluginSetting> {
 	 * @param primaryKey the primary key of this plugin setting
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this plugin setting.
+	 *
+	 * @return the mvcc version of this plugin setting
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this plugin setting.
+	 *
+	 * @param mvccVersion the mvcc version of this plugin setting
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the plugin setting ID of this plugin setting.

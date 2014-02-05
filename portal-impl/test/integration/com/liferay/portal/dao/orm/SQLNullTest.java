@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
 import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 
 import java.util.List;
 
@@ -436,7 +437,11 @@ import org.junit.runner.RunWith;
  *
  * @author Shuyang Zhou
  */
-@ExecutionTestListeners(listeners = {PersistenceExecutionTestListener.class})
+@ExecutionTestListeners(
+	listeners = {
+		MainServletExecutionTestListener.class,
+		PersistenceExecutionTestListener.class
+	})
 @RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class SQLNullTest {
 
@@ -451,7 +456,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -477,7 +482,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -508,7 +513,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -533,7 +538,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_LIKE_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -559,7 +565,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -584,7 +590,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_NOT_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_NOT_LIKE_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -615,7 +622,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -646,7 +653,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -672,7 +679,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -692,7 +699,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_LIKE_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -718,7 +726,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -738,7 +746,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_NOT_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_NOT_LIKE_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -763,7 +772,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_EQUALS_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_EQUALS_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -783,7 +793,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_IS_NOT_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_IS_NOT_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -803,7 +814,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_IS_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_IS_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -832,7 +844,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -852,7 +864,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_NOT_EQUALS_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_NOT_EQUALS_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -886,7 +899,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 

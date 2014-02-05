@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
@@ -57,15 +58,15 @@ public class DocumentImpl implements Document {
 
 		String languageId = LocaleUtil.toLanguageId(locale);
 
-		String localizedName = name.concat(StringPool.UNDERLINE).concat(
-			languageId);
+		return getLocalizedName(languageId, name);
+	}
 
-		return localizedName;
+	public static String getLocalizedName(String languageId, String name) {
+		return name.concat(StringPool.UNDERLINE).concat(languageId);
 	}
 
 	public static String getSortableFieldName(String name) {
-		return name.concat(StringPool.UNDERLINE).concat(
-			_SORTABLE_TEXT_FIELD_SUFFIX);
+		return name.concat(StringPool.UNDERLINE).concat(_SORTABLE_FIELD_SUFFIX);
 	}
 
 	public static boolean isSortableTextField(String name) {
@@ -83,7 +84,7 @@ public class DocumentImpl implements Document {
 			return;
 		}
 
-		addKeyword(name, _dateFormat.format(value));
+		addDate(name, new Date[] {value});
 	}
 
 	@Override
@@ -93,10 +94,21 @@ public class DocumentImpl implements Document {
 		}
 
 		String[] dates = new String[values.length];
+		String[] datesTime = new String[values.length];
 
 		for (int i = 0; i < values.length; i++) {
 			dates[i] = _dateFormat.format(values[i]);
+			datesTime[i] = String.valueOf(values[i].getTime());
 		}
+
+		String sortableFieldName = getSortableFieldName(name);
+
+		Field field = new Field(sortableFieldName, datesTime);
+
+		field.setNumeric(true);
+		field.setNumericClass(Long.class);
+
+		_fields.put(sortableFieldName, field);
 
 		addKeyword(name, dates);
 	}
@@ -298,13 +310,13 @@ public class DocumentImpl implements Document {
 	@Override
 	public void addKeyword(String name, String value, boolean lowerCase) {
 		if (lowerCase && Validator.isNotNull(value)) {
-			value = value.toLowerCase();
+			value = StringUtil.toLowerCase(value);
 		}
 
 		Field field = new Field(name, value);
 
 		for (String fieldName : Field.UNSCORED_FIELD_NAMES) {
-			if (name.equalsIgnoreCase(fieldName)) {
+			if (StringUtil.equalsIgnoreCase(name, fieldName)) {
 				field.setBoost(0);
 			}
 		}
@@ -343,7 +355,8 @@ public class DocumentImpl implements Document {
 			for (Map.Entry<Locale, String> entry : values.entrySet()) {
 				String value = GetterUtil.getString(entry.getValue());
 
-				lowerCaseValues.put(entry.getKey(), value.toLowerCase());
+				lowerCaseValues.put(
+					entry.getKey(), StringUtil.toLowerCase(value));
 			}
 
 			values = lowerCaseValues;
@@ -370,6 +383,7 @@ public class DocumentImpl implements Document {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public void addModifiedDate() {
 		addModifiedDate(new Date());
@@ -378,6 +392,7 @@ public class DocumentImpl implements Document {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public void addModifiedDate(Date modifiedDate) {
 		addDate(Field.MODIFIED, modifiedDate);
@@ -471,14 +486,11 @@ public class DocumentImpl implements Document {
 	public void addNumber(
 		String name, String value, Class<? extends Number> clazz) {
 
-		if (Validator.isNotNull(value)) {
-			Field field = new Field(name, value);
-
-			field.setNumeric(true);
-			field.setNumericClass(clazz);
-
-			_fields.put(name, field);
+		if (Validator.isNull(value)) {
+			return;
 		}
+
+		addNumber(name, new String[] {value}, clazz);
 	}
 
 	@Override
@@ -493,12 +505,16 @@ public class DocumentImpl implements Document {
 			return;
 		}
 
-		Field field = new Field(name, values);
+		String sortableFieldName = getSortableFieldName(name);
+
+		Field field = new Field(sortableFieldName, values);
 
 		field.setNumeric(true);
 		field.setNumericClass(clazz);
 
-		_fields.put(name, field);
+		_fields.put(sortableFieldName, field);
+
+		addKeyword(name, values);
 	}
 
 	@Override
@@ -751,7 +767,7 @@ public class DocumentImpl implements Document {
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(5 * _fields.size());
 
 		sb.append(StringPool.OPEN_CURLY_BRACE);
 
@@ -783,7 +799,7 @@ public class DocumentImpl implements Document {
 	private static final String _INDEX_DATE_FORMAT_PATTERN = PropsUtil.get(
 		PropsKeys.INDEX_DATE_FORMAT_PATTERN);
 
-	private static final String _SORTABLE_TEXT_FIELD_SUFFIX = "sortable";
+	private static final String _SORTABLE_FIELD_SUFFIX = "sortable";
 
 	private static final int _SORTABLE_TEXT_FIELDS_TRUNCATED_LENGTH =
 		GetterUtil.getInteger(

@@ -15,8 +15,6 @@
 --%>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
-
 List<Long> availableClassNameIds = new ArrayList<Long>();
 
 for (AssetRendererFactory assetRendererFactory : AssetRendererFactoryRegistryUtil.getAssetRendererFactories()) {
@@ -41,11 +39,11 @@ if (vocabulary != null) {
 	}
 }
 
-if ((selectedClassNameIds == null) || (selectedClassNameIds.length == 0)) {
+if (ArrayUtil.isEmpty(selectedClassNameIds)) {
 	selectedClassNameIds = new long[] {0};
 }
 
-if ((requiredClassNameIds == null) || (requiredClassNameIds.length == 0)) {
+if (ArrayUtil.isEmpty(requiredClassNameIds)) {
 	requiredClassNameIds = new long[] {0};
 }
 %>
@@ -139,7 +137,8 @@ if ((requiredClassNameIds == null) || (requiredClassNameIds.length == 0)) {
 	var autoFields = new Liferay.AutoFields(
 		{
 			contentBox: '#<portlet:namespace />extraFields',
-			fieldIndexes: '<portlet:namespace />indexes'
+			fieldIndexes: '<portlet:namespace />indexes',
+			namespace: '<portlet:namespace />'
 		}
 	).render();
 

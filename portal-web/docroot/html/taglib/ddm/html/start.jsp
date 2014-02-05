@@ -18,7 +18,12 @@
 
 <div class="lfr-ddm-container" id="<%= randomNamespace %>">
 	<c:if test="<%= Validator.isNotNull(xsd) %>">
-		<%= DDMXSDUtil.getHTML(pageContext, xsd, fields, portletResponse.getNamespace(), fieldsNamespace, readOnly, requestedLocale) %>
+
+		<%
+		pageContext.setAttribute("checkRequired", checkRequired);
+		%>
+
+		<%= DDMXSDUtil.getHTML(pageContext, xsd, fields, portletResponse.getNamespace(), fieldsNamespace, mode, readOnly, requestedLocale) %>
 
 		<aui:input name="<%= fieldsDisplayInputName %>" type="hidden" />
 
@@ -28,8 +33,10 @@
 					classNameId: <%= classNameId %>,
 					classPK: <%= classPK %>,
 					container: '#<%= randomNamespace %>',
+					doAsGroupId: <%= scopeGroupId %>,
 					fieldsDisplayInput: '#<portlet:namespace /><%= fieldsDisplayInputName %>',
 					namespace: '<%= fieldsNamespace %>',
+					p_l_id: <%= themeDisplay.getPlid() %>,
 					portletNamespace: '<portlet:namespace />',
 					repeatable: <%= repeatable %>
 				}

@@ -5,15 +5,25 @@
 
 	<#assign layoutLocalService = serviceLocator.findService("com.liferay.portal.service.LayoutLocalService")>
 
-	<#assign fieldLayout = layoutLocalService.fetchLayout(fieldLayoutJSONObject.getLong("groupId"), fieldLayoutJSONObject.getBoolean("privateLayout"), fieldLayoutJSONObject.getLong("layoutId"))!"">
+	<#if (fieldLayoutJSONObject.getLong("groupId") > 0)>
+		<#assign fieldLayoutGroupId = fieldLayoutJSONObject.getLong("groupId")>
+	<#else>
+		<#assign fieldLayoutGroupId = scopeGroupId>
+	</#if>
+
+	<#assign fieldLayout = layoutLocalService.fetchLayout(fieldLayoutGroupId, fieldLayoutJSONObject.getBoolean("privateLayout"), fieldLayoutJSONObject.getLong("layoutId"))!"">
 
 	<#if (fieldLayout?? && fieldLayout != "")>
-		<@aui["field-wrapper"] label=escape(label)>
+		<div class="field-wrapper-content lfr-forms-field-wrapper">
 			<@aui.input name=namespacedFieldName type="hidden" value=fieldValue />
 
-			<a href="${fieldLayout.getRegularURL(request)}">${fieldLayout.getName(requestedLocale)}</a>
+			<label>
+				<@liferay_ui.message key=escape(label) />
+			</label>
+
+			<a href="${fieldLayout.getRegularURL(request)}">${escape(fieldLayout.getName(requestedLocale))}</a>
 
 			${fieldStructure.children}
-		</@>
+		</div>
 	</#if>
 </#if>

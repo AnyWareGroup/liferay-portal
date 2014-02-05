@@ -14,9 +14,13 @@
 
 package com.liferay.portal.kernel.trash;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.SystemEvent;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.trash.model.TrashEntry;
@@ -83,7 +87,17 @@ import javax.portlet.PortletRequest;
  * @author Alexander Chow
  * @author Zsolt Berentey
  */
+@ProviderType
 public interface TrashHandler {
+
+	public SystemEvent addDeletionSystemEvent(
+			long userId, long groupId, long classPK, String classUuid,
+			String referrerClassName)
+		throws PortalException, SystemException;
+
+	public void checkDuplicateEntry(
+			long classPK, long containerModelId, String newName)
+		throws PortalException, SystemException;
 
 	/**
 	 * Checks if a duplicate trash entry already exists in the destination
@@ -228,10 +242,15 @@ public interface TrashHandler {
 	 *
 	 * @param  classPK the primary key of a model entity the container models
 	 *         must be able to contain
+	 * @return the parent container model of the model entity with the primary
+	 *         key
 	 * @throws PortalException if a portal exception occurred
 	 * @throws SystemException if a system exception occurred
 	 */
 	public ContainerModel getParentContainerModel(long classPK)
+		throws PortalException, SystemException;
+
+	public ContainerModel getParentContainerModel(TrashedModel trashedModel)
 		throws PortalException, SystemException;
 
 	/**
@@ -246,10 +265,15 @@ public interface TrashHandler {
 	 *
 	 * @param  classPK the primary key of a model entity the container models
 	 *         must be able to contain
+	 * @return all the matching parent container models of the model entity
 	 * @throws PortalException if a portal exception occurred
 	 * @throws SystemException if a system exception occurred
 	 */
 	public List<ContainerModel> getParentContainerModels(long classPK)
+		throws PortalException, SystemException;
+
+	public String getRestoreContainedModelLink(
+			PortletRequest portletRequest, long classPK)
 		throws PortalException, SystemException;
 
 	/**
@@ -262,7 +286,8 @@ public interface TrashHandler {
 	 *         be found
 	 * @throws SystemException if a system exception occurred
 	 */
-	public String getRestoreLink(PortletRequest portletRequest, long classPK)
+	public String getRestoreContainerModelLink(
+			PortletRequest portletRequest, long classPK)
 		throws PortalException, SystemException;
 
 	/**
@@ -293,6 +318,8 @@ public interface TrashHandler {
 	 * @return the name of the subcontainer model
 	 */
 	public String getSubcontainerModelName();
+
+	public String getSystemEventClassName();
 
 	/**
 	 * Returns the name of the contained model.
@@ -360,9 +387,6 @@ public interface TrashHandler {
 			long classPK, int start, int end)
 		throws PortalException, SystemException;
 
-	public ContainerModel getTrashContainer(long classPK)
-		throws PortalException, SystemException;
-
 	/**
 	 * Returns the name of the container model.
 	 *
@@ -416,11 +440,15 @@ public interface TrashHandler {
 	 * @param  classPK the primary key of a container model
 	 * @param  start the lower bound of the range of results
 	 * @param  end the upper bound of the range of results (not inclusive)
+	 * @return the range of matching trash renderers of model entities
 	 * @throws PortalException if a portal exception occurred
 	 * @throws SystemException if a system exception occurred
 	 */
 	public List<TrashRenderer> getTrashContainerModelTrashRenderers(
 			long classPK, int start, int end)
+		throws PortalException, SystemException;
+
+	public TrashEntry getTrashEntry(long classPK)
 		throws PortalException, SystemException;
 
 	/**

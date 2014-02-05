@@ -346,6 +346,10 @@ public class ResourceTypePermissionPersistenceImpl extends BasePersistenceImpl<R
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRoleId(roleId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ResourceTypePermission> list = findByRoleId(roleId, count - 1,
 				count, orderByComparator);
 
@@ -900,6 +904,10 @@ public class ResourceTypePermissionPersistenceImpl extends BasePersistenceImpl<R
 		String name, long roleId, OrderByComparator orderByComparator)
 		throws SystemException {
 		int count = countByC_N_R(companyId, name, roleId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<ResourceTypePermission> list = findByC_N_R(companyId, name,
 				roleId, count - 1, count, orderByComparator);
@@ -1500,6 +1508,10 @@ public class ResourceTypePermissionPersistenceImpl extends BasePersistenceImpl<R
 	private static final String _FINDER_COLUMN_C_G_N_R_NAME_3 = "(resourceTypePermission.name IS NULL OR resourceTypePermission.name = '') AND ";
 	private static final String _FINDER_COLUMN_C_G_N_R_ROLEID_2 = "resourceTypePermission.roleId = ?";
 
+	public ResourceTypePermissionPersistenceImpl() {
+		setModelClass(ResourceTypePermission.class);
+	}
+
 	/**
 	 * Caches the resource type permission in the entity cache if it is enabled.
 	 *
@@ -1845,10 +1857,13 @@ public class ResourceTypePermissionPersistenceImpl extends BasePersistenceImpl<R
 
 		EntityCacheUtil.putResult(ResourceTypePermissionModelImpl.ENTITY_CACHE_ENABLED,
 			ResourceTypePermissionImpl.class,
-			resourceTypePermission.getPrimaryKey(), resourceTypePermission);
+			resourceTypePermission.getPrimaryKey(), resourceTypePermission,
+			false);
 
 		clearUniqueFindersCache(resourceTypePermission);
 		cacheUniqueFindersCache(resourceTypePermission);
+
+		resourceTypePermission.resetOriginalValues();
 
 		return resourceTypePermission;
 	}
@@ -1864,6 +1879,7 @@ public class ResourceTypePermissionPersistenceImpl extends BasePersistenceImpl<R
 		resourceTypePermissionImpl.setNew(resourceTypePermission.isNew());
 		resourceTypePermissionImpl.setPrimaryKey(resourceTypePermission.getPrimaryKey());
 
+		resourceTypePermissionImpl.setMvccVersion(resourceTypePermission.getMvccVersion());
 		resourceTypePermissionImpl.setResourceTypePermissionId(resourceTypePermission.getResourceTypePermissionId());
 		resourceTypePermissionImpl.setCompanyId(resourceTypePermission.getCompanyId());
 		resourceTypePermissionImpl.setGroupId(resourceTypePermission.getGroupId());

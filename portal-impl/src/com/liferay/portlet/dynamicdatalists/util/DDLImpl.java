@@ -25,24 +25,19 @@ import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.xml.Document;
-import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.PortletConstants;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
+import com.liferay.portal.service.LayoutServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.templateparser.Transformer;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.dynamicdatalists.NoSuchRecordException;
 import com.liferay.portlet.dynamicdatalists.model.DDLRecord;
@@ -61,14 +56,12 @@ import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 import com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil;
 import com.liferay.portlet.dynamicdatamapping.util.DDMImpl;
 import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil;
-import com.liferay.portlet.journal.util.JournalUtil;
-import com.liferay.util.portlet.PortletRequestUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
@@ -76,36 +69,13 @@ import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 /**
- * @author Marcelllus Tavares
+ * @author Marcellus Tavares
  * @author Eduardo Lundgren
  */
 @DoPrivileged
 public class DDLImpl implements DDL {
-
-	@Override
-	public void addAllReservedEls(
-		Element rootElement, Map<String, String> tokens,
-		DDLRecordSet recordSet) {
-
-		JournalUtil.addReservedEl(
-			rootElement, tokens, DDLConstants.RESERVED_RECORD_SET_ID,
-			String.valueOf(recordSet.getRecordSetId()));
-
-		JournalUtil.addReservedEl(
-			rootElement, tokens, DDLConstants.RESERVED_RECORD_SET_NAME,
-			recordSet.getName());
-
-		JournalUtil.addReservedEl(
-			rootElement, tokens, DDLConstants.RESERVED_RECORD_SET_DESCRIPTION,
-			recordSet.getDescription());
-
-		JournalUtil.addReservedEl(
-			rootElement, tokens, DDLConstants.RESERVED_DDM_STRUCTURE_ID,
-			String.valueOf(recordSet.getDDMStructureId()));
-	}
 
 	@Override
 	public JSONObject getRecordJSONObject(DDLRecord record) throws Exception {
@@ -139,11 +109,7 @@ public class DDLImpl implements DDL {
 		Fields fields = StorageEngineUtil.getFields(
 			recordVersion.getDDMStorageId());
 
-		Iterator<Field> itr = fields.iterator();
-
-		while (itr.hasNext()) {
-			Field field = itr.next();
-
+		for (Field field : fields) {
 			String fieldName = field.getName();
 			String fieldType = field.getType();
 			Object fieldValue = field.getValue();
@@ -163,6 +129,27 @@ public class DDLImpl implements DDL {
 
 				fieldValueJSONObject.put(
 					"title", getFileEntryTitle(uuid, groupId));
+
+				jsonObject.put(fieldName, fieldValueJSONObject.toString());
+			}
+			else if (fieldType.equals(DDMImpl.TYPE_DDM_LINK_TO_PAGE) &&
+					 Validator.isNotNull(fieldValue)) {
+
+				JSONObject fieldValueJSONObject =
+					JSONFactoryUtil.createJSONObject(
+						String.valueOf(fieldValue));
+
+				long groupId = fieldValueJSONObject.getLong("groupId");
+				boolean privateLayout = fieldValueJSONObject.getBoolean(
+					"privateLayout");
+				long layoutId = fieldValueJSONObject.getLong("layoutId");
+				Locale locale = LocaleThreadLocal.getThemeDisplayLocale();
+
+				String layoutName = getLayoutName(
+					groupId, privateLayout, layoutId,
+					LanguageUtil.getLanguageId(locale));
+
+				fieldValueJSONObject.put("name", layoutName);
 
 				jsonObject.put(fieldName, fieldValueJSONObject.toString());
 			}
@@ -234,6 +221,12 @@ public class DDLImpl implements DDL {
 			ddmStructure.getFieldsMap();
 
 		for (Map<String, String> fields : fieldsMap.values()) {
+			String name = fields.get(FieldConstants.NAME);
+
+			if (ddmStructure.isFieldPrivate(name)) {
+				continue;
+			}
+
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
 
 			String dataType = fields.get(FieldConstants.DATA_TYPE);
@@ -248,8 +241,6 @@ public class DDLImpl implements DDL {
 			String label = fields.get(FieldConstants.LABEL);
 
 			jsonObject.put("label", label);
-
-			String name = fields.get(FieldConstants.NAME);
 
 			jsonObject.put("name", name);
 
@@ -319,85 +310,61 @@ public class DDLImpl implements DDL {
 			RenderResponse renderResponse)
 		throws Exception {
 
+		Map<String, Object> contextObjects = new HashMap<String, Object>();
+
+		contextObjects.put(
+			DDLConstants.RESERVED_DDM_STRUCTURE_ID,
+			recordSet.getDDMStructureId());
+		contextObjects.put(
+			DDLConstants.RESERVED_DDM_TEMPLATE_ID, ddmTemplateId);
+		contextObjects.put(
+			DDLConstants.RESERVED_RECORD_SET_DESCRIPTION,
+			recordSet.getDescription(themeDisplay.getLocale()));
+		contextObjects.put(
+			DDLConstants.RESERVED_RECORD_SET_ID, recordSet.getRecordSetId());
+		contextObjects.put(
+			DDLConstants.RESERVED_RECORD_SET_NAME,
+			recordSet.getName(themeDisplay.getLocale()));
+		contextObjects.put(TemplateConstants.TEMPLATE_ID, ddmTemplateId);
+
 		String viewMode = ParamUtil.getString(renderRequest, "viewMode");
 
-		String languageId = LanguageUtil.getLanguageId(renderRequest);
-
-		String xmlRequest = PortletRequestUtil.toXML(
-			renderRequest, renderResponse);
-
-		if (Validator.isNull(xmlRequest)) {
-			xmlRequest = "<request />";
+		if (Validator.isNull(viewMode)) {
+			viewMode = Constants.VIEW;
 		}
 
-		Map<String, String> tokens = JournalUtil.getTokens(
-			recordSet.getGroupId(), themeDisplay, xmlRequest);
+		contextObjects.put("viewMode", viewMode);
 
-		tokens.put("template_id", StringUtil.valueOf(ddmTemplateId));
-
-		String xml = StringPool.BLANK;
-
-		Document document = SAXReaderUtil.createDocument();
-
-		Element rootElement = document.addElement("root");
-
-		Document requestDocument = SAXReaderUtil.read(xmlRequest);
-
-		rootElement.add(requestDocument.getRootElement().createCopy());
-
-		addAllReservedEls(rootElement, tokens, recordSet);
-
-		xml = DDMXMLUtil.formatXML(document);
-
-		DDMTemplate template = DDMTemplateLocalServiceUtil.getTemplate(
+		DDMTemplate ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(
 			ddmTemplateId);
 
 		return _transformer.transform(
-			themeDisplay, tokens, viewMode, languageId, xml,
-			template.getScript(), template.getLanguage());
+			themeDisplay, contextObjects, ddmTemplate.getScript(),
+			ddmTemplate.getLanguage());
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public boolean isEditable(
 			HttpServletRequest request, String portletId, long groupId)
 		throws Exception {
 
-		boolean defaultValue = ParamUtil.getBoolean(request, "editable", true);
-
-		return isEditable(portletId, groupId, defaultValue);
+		return true;
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, with no direct replacement
+	 */
+	@Deprecated
 	@Override
 	public boolean isEditable(
 			PortletPreferences preferences, String portletId, long groupId)
 		throws Exception {
 
-		boolean defaultValue = GetterUtil.getBoolean(
-			preferences.getValue("editable", null), true);
-
-		return isEditable(portletId, groupId, defaultValue);
-	}
-
-	@Override
-	public void sendRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			DDLRecord record, String fieldName, int valueIndex)
-		throws Exception {
-
-		Field field = record.getField(fieldName);
-
-		DDMUtil.sendFieldFile(request, response, field, valueIndex);
-	}
-
-	@Override
-	public void sendRecordFileUpload(
-			HttpServletRequest request, HttpServletResponse response,
-			long recordId, String fieldName, int valueIndex)
-		throws Exception {
-
-		DDLRecord record = DDLRecordServiceUtil.getRecord(recordId);
-
-		sendRecordFileUpload(request, response, record, fieldName, valueIndex);
+		return true;
 	}
 
 	@Override
@@ -407,17 +374,6 @@ public class DDLImpl implements DDL {
 		throws Exception {
 
 		DDLRecord record = DDLRecordLocalServiceUtil.fetchRecord(recordId);
-
-		PortletPreferences preferences =
-			PortletPreferencesLocalServiceUtil.getPreferences(
-				serviceContext.getPortletPreferencesIds());
-
-		if (!isEditable(
-				preferences, serviceContext.getPortletId(),
-				serviceContext.getScopeGroupId())) {
-
-			return record;
-		}
 
 		boolean majorVersion = ParamUtil.getBoolean(
 			serviceContext, "majorVersion");
@@ -458,10 +414,7 @@ public class DDLImpl implements DDL {
 					DDLRecordConstants.DISPLAY_INDEX_DEFAULT, fields,
 					serviceContext);
 			}
-
 		}
-
-		uploadRecordFieldFiles(record, serviceContext);
 
 		return record;
 	}
@@ -476,22 +429,6 @@ public class DDLImpl implements DDL {
 			recordId, recordSetId, mergeFields, true, serviceContext);
 	}
 
-	@Override
-	public void uploadRecordFieldFile(
-			DDLRecord record, String fieldName, ServiceContext serviceContext)
-		throws Exception {
-
-		DDLRecordSet recordSet = record.getRecordSet();
-
-		DDMStructure ddmStructure = recordSet.getDDMStructure();
-
-		DDLRecordVersion recordVersion = record.getLatestRecordVersion();
-
-		DDMUtil.uploadFieldFile(
-			ddmStructure.getStructureId(), recordVersion.getDDMStorageId(),
-			record, fieldName, serviceContext);
-	}
-
 	protected String getFileEntryTitle(String uuid, long groupId) {
 		try {
 			FileEntry fileEntry =
@@ -502,51 +439,28 @@ public class DDLImpl implements DDL {
 		}
 		catch (Exception e) {
 			return LanguageUtil.format(
-				LocaleUtil.getDefault(), "is-temporarily-unavailable",
+				LocaleUtil.getSiteDefault(), "is-temporarily-unavailable",
 				"content");
 		}
 	}
 
-	protected boolean isEditable(
-			String portletId, long groupId, boolean defaultValue)
-		throws Exception {
+	protected String getLayoutName(
+		long groupId, boolean privateLayout, long layoutId, String languageId) {
 
-		String rootPortletId = PortletConstants.getRootPortletId(portletId);
-
-		if (rootPortletId.equals(PortletKeys.DYNAMIC_DATA_LISTS)) {
-			return true;
+		try {
+			return LayoutServiceUtil.getLayoutName(
+				groupId, privateLayout, layoutId, languageId);
 		}
-
-		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
-
-		if ((group == null) || group.isInStagingPortlet(portletId)) {
-			return false;
-		}
-
-		return defaultValue;
-	}
-
-	protected void uploadRecordFieldFiles(
-			DDLRecord record, ServiceContext serviceContext)
-		throws Exception {
-
-		DDLRecordSet recordSet = record.getRecordSet();
-
-		DDMStructure ddmStructure = recordSet.getDDMStructure();
-
-		for (String fieldName : ddmStructure.getFieldNames()) {
-			String fieldDataType = ddmStructure.getFieldDataType(fieldName);
-
-			if (fieldDataType.equals(FieldConstants.FILE_UPLOAD)) {
-				uploadRecordFieldFile(record, fieldName, serviceContext);
-			}
+		catch (Exception e) {
+			return LanguageUtil.format(
+				LocaleUtil.getSiteDefault(), "is-temporarily-unavailable",
+				"content");
 		}
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(DDLImpl.class);
 
 	private Transformer _transformer = new Transformer(
-		PropsKeys.DYNAMIC_DATA_LISTS_TRANSFORMER_LISTENER,
-		PropsKeys.DYNAMIC_DATA_LISTS_ERROR_TEMPLATE, false);
+		PropsKeys.DYNAMIC_DATA_LISTS_ERROR_TEMPLATE, true);
 
 }

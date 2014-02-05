@@ -20,7 +20,9 @@ import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.struts.PortletAction;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
@@ -46,12 +48,27 @@ public class ViewMessageAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
 			long messageId = ParamUtil.getLong(renderRequest, "messageId");
+
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)renderRequest.getAttribute(WebKeys.THEME_DISPLAY);
+
+			PermissionChecker permissionChecker =
+				themeDisplay.getPermissionChecker();
+
+			int status = WorkflowConstants.STATUS_APPROVED;
+
+			if (permissionChecker.isContentReviewer(
+					themeDisplay.getUserId(), themeDisplay.getScopeGroupId())) {
+
+				status = WorkflowConstants.STATUS_ANY;
+			}
 
 			PortalPreferences preferences =
 				PortletPreferencesFactoryUtil.getPortalPreferences(
@@ -85,15 +102,12 @@ public class ViewMessageAction extends PortletAction {
 
 			MBMessageDisplay messageDisplay =
 				MBMessageServiceUtil.getMessageDisplay(
-					messageId, WorkflowConstants.STATUS_ANY, threadView,
-					includePrevAndNext);
+					messageId, status, threadView, includePrevAndNext);
 
 			if (messageDisplay != null) {
 				MBMessage message = messageDisplay.getMessage();
 
-				if ((message != null) &&
-					(message.isInTrash() || message.isInTrashThread())) {
-
+				if ((message != null) && message.isInTrash()) {
 					throw new NoSuchMessageException();
 				}
 			}
@@ -101,7 +115,8 @@ public class ViewMessageAction extends PortletAction {
 			renderRequest.setAttribute(
 				WebKeys.MESSAGE_BOARDS_MESSAGE, messageDisplay);
 
-			return mapping.findForward("portlet.message_boards.view_message");
+			return actionMapping.findForward(
+				"portlet.message_boards.view_message");
 		}
 		catch (Exception e) {
 			if (e instanceof NoSuchMessageException ||
@@ -109,7 +124,8 @@ public class ViewMessageAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.message_boards.error");
+				return actionMapping.findForward(
+					"portlet.message_boards.error");
 			}
 			else {
 				throw e;

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.messageboards.model.impl.MBCategoryModelImpl
  * @generated
  */
+@ProviderType
 public interface MBCategory extends MBCategoryModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -42,10 +45,6 @@ public interface MBCategory extends MBCategoryModel, PersistedModel {
 	public com.liferay.portlet.messageboards.model.MBCategory getParentCategory()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
-
-	public com.liferay.portlet.messageboards.model.MBCategory getTrashContainer();
-
-	public boolean isInTrashContainer();
 
 	public boolean isRoot();
 }

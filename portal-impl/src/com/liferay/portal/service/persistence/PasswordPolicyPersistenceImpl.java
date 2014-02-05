@@ -362,6 +362,10 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PasswordPolicy> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -648,7 +652,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
@@ -838,7 +842,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 				PasswordPolicy.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -995,7 +999,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -1327,6 +1331,10 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PasswordPolicy> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1625,7 +1633,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
@@ -1821,7 +1829,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 				PasswordPolicy.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -1992,7 +2000,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2290,6 +2298,10 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PasswordPolicy> list = findByCompanyId(companyId, count - 1,
 				count, orderByComparator);
 
@@ -2552,7 +2564,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, PasswordPolicyImpl.class);
@@ -2729,7 +2741,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 				PasswordPolicy.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2858,7 +2870,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -3383,6 +3395,10 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 	private static final String _FINDER_COLUMN_C_N_NAME_2 = "passwordPolicy.name = ?";
 	private static final String _FINDER_COLUMN_C_N_NAME_3 = "(passwordPolicy.name IS NULL OR passwordPolicy.name = '')";
 
+	public PasswordPolicyPersistenceImpl() {
+		setModelClass(PasswordPolicy.class);
+	}
+
 	/**
 	 * Caches the password policy in the entity cache if it is enabled.
 	 *
@@ -3779,10 +3795,12 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 
 		EntityCacheUtil.putResult(PasswordPolicyModelImpl.ENTITY_CACHE_ENABLED,
 			PasswordPolicyImpl.class, passwordPolicy.getPrimaryKey(),
-			passwordPolicy);
+			passwordPolicy, false);
 
 		clearUniqueFindersCache(passwordPolicy);
 		cacheUniqueFindersCache(passwordPolicy);
+
+		passwordPolicy.resetOriginalValues();
 
 		return passwordPolicy;
 	}
@@ -3797,6 +3815,7 @@ public class PasswordPolicyPersistenceImpl extends BasePersistenceImpl<PasswordP
 		passwordPolicyImpl.setNew(passwordPolicy.isNew());
 		passwordPolicyImpl.setPrimaryKey(passwordPolicy.getPrimaryKey());
 
+		passwordPolicyImpl.setMvccVersion(passwordPolicy.getMvccVersion());
 		passwordPolicyImpl.setUuid(passwordPolicy.getUuid());
 		passwordPolicyImpl.setPasswordPolicyId(passwordPolicy.getPasswordPolicyId());
 		passwordPolicyImpl.setCompanyId(passwordPolicy.getCompanyId());

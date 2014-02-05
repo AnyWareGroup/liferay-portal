@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ResourceAction}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceAction
+ * @author Brian Wing Shun Chan
+ * @see ResourceAction
  * @generated
  */
+@ProviderType
 public class ResourceActionWrapper implements ResourceAction,
 	ModelWrapper<ResourceAction> {
 	public ResourceActionWrapper(ResourceAction resourceAction) {
@@ -46,6 +51,7 @@ public class ResourceActionWrapper implements ResourceAction,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("resourceActionId", getResourceActionId());
 		attributes.put("name", getName());
 		attributes.put("actionId", getActionId());
@@ -56,6 +62,12 @@ public class ResourceActionWrapper implements ResourceAction,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long resourceActionId = (Long)attributes.get("resourceActionId");
 
 		if (resourceActionId != null) {
@@ -99,6 +111,26 @@ public class ResourceActionWrapper implements ResourceAction,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_resourceAction.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this resource action.
+	*
+	* @return the mvcc version of this resource action
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _resourceAction.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this resource action.
+	*
+	* @param mvccVersion the mvcc version of this resource action
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_resourceAction.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -285,9 +317,30 @@ public class ResourceActionWrapper implements ResourceAction,
 		_resourceAction.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ResourceActionWrapper)) {
+			return false;
+		}
+
+		ResourceActionWrapper resourceActionWrapper = (ResourceActionWrapper)obj;
+
+		if (Validator.equals(_resourceAction,
+					resourceActionWrapper._resourceAction)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ResourceAction getWrappedResourceAction() {
 		return _resourceAction;
 	}
@@ -295,6 +348,16 @@ public class ResourceActionWrapper implements ResourceAction,
 	@Override
 	public ResourceAction getWrappedModel() {
 		return _resourceAction;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _resourceAction.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _resourceAction.isFinderCacheEnabled();
 	}
 
 	@Override

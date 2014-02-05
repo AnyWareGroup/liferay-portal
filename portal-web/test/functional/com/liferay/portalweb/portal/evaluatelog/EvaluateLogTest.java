@@ -18,14 +18,23 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portalweb.portal.BaseTestCase;
+import com.liferay.portalweb.portal.util.liferayselenium.LiferaySeleniumHelper;
 
 /**
  * @author Brian Wing Shun Chan
  */
 public class EvaluateLogTest extends BaseTestCase {
 
+	@Override
+	public void setUp() throws Exception {
+	}
+
 	public void testEvaluateLog() throws Exception {
 		assertTrue(evaluateLog());
+	}
+
+	@Override
+	public void tearDown() throws Exception {
 	}
 
 	private boolean evaluateLog() throws Exception {
@@ -41,84 +50,7 @@ public class EvaluateLogTest extends BaseTestCase {
 				continue;
 			}
 
-			if (line.contains("[antelope:post]")) {
-				continue;
-			}
-
-			if (line.contains("[junit]")) {
-				continue;
-			}
-
-			if (line.contains("BasicResourcePool")) {
-				continue;
-			}
-
-			if (line.contains("Caused by:")) {
-				continue;
-			}
-
-			if (line.matches(
-					".*The web application \\[.*\\] appears to have started " +
-						"a thread.*")) {
-
-				if (line.contains("[AWT-Windows]")) {
-					continue;
-				}
-
-				if (line.contains("[com.google.inject.internal.Finalizer]")) {
-					continue;
-				}
-
-				if (line.contains(
-						"[MultiThreadedHttpConnectionManager cleanup]")) {
-
-					continue;
-				}
-
-				if (line.contains(
-						"[org.python.google.common.base.internal.Finalizer]")) {
-
-					continue;
-				}
-
-				if (line.matches(".*\\[Thread-[0-9]+\\].*")) {
-					continue;
-				}
-			}
-
-			// LPS-17639
-
-			if (line.contains("Table 'lportal.lock_' doesn't exist")) {
-				continue;
-			}
-
-			// LPS-22821
-
-			if (line.contains(
-					"Exception sending context destroyed event to listener " +
-						"instance of class com.liferay.portal.spring.context." +
-							"PortalContextLoaderListener")) {
-
-				continue;
-			}
-
-			// LPS-23351
-
-			if (line.contains(
-					"user lacks privilege or object not found: LOCK_")) {
-
-				continue;
-			}
-
-			// LPS-23498
-
-			if (line.contains("JBREM00200: ")) {
-				continue;
-			}
-
-			// LPS-28734
-
-			if (line.contains("java.nio.channels.ClosedChannelException")) {
+			if (LiferaySeleniumHelper.isIgnorableErrorLine(line)) {
 				continue;
 			}
 

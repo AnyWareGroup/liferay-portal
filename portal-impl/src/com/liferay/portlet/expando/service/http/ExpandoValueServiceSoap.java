@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.expando.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoValueServiceHttp
- * @see       com.liferay.portlet.expando.model.ExpandoValueSoap
- * @see       com.liferay.portlet.expando.service.ExpandoValueServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ExpandoValueServiceHttp
+ * @see com.liferay.portlet.expando.model.ExpandoValueSoap
+ * @see com.liferay.portlet.expando.service.ExpandoValueServiceUtil
  * @generated
  */
+@ProviderType
 public class ExpandoValueServiceSoap {
 	public static com.liferay.portlet.expando.model.ExpandoValueSoap addValue(
 		long companyId, java.lang.String className, java.lang.String tableName,

@@ -568,6 +568,10 @@ public class ShardPersistenceImpl extends BasePersistenceImpl<Shard>
 	private static final String _FINDER_COLUMN_C_C_CLASSNAMEID_2 = "shard.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_CLASSPK_2 = "shard.classPK = ?";
 
+	public ShardPersistenceImpl() {
+		setModelClass(Shard.class);
+	}
+
 	/**
 	 * Caches the shard in the entity cache if it is enabled.
 	 *
@@ -865,10 +869,12 @@ public class ShardPersistenceImpl extends BasePersistenceImpl<Shard>
 		}
 
 		EntityCacheUtil.putResult(ShardModelImpl.ENTITY_CACHE_ENABLED,
-			ShardImpl.class, shard.getPrimaryKey(), shard);
+			ShardImpl.class, shard.getPrimaryKey(), shard, false);
 
 		clearUniqueFindersCache(shard);
 		cacheUniqueFindersCache(shard);
+
+		shard.resetOriginalValues();
 
 		return shard;
 	}
@@ -883,6 +889,7 @@ public class ShardPersistenceImpl extends BasePersistenceImpl<Shard>
 		shardImpl.setNew(shard.isNew());
 		shardImpl.setPrimaryKey(shard.getPrimaryKey());
 
+		shardImpl.setMvccVersion(shard.getMvccVersion());
 		shardImpl.setShardId(shard.getShardId());
 		shardImpl.setClassNameId(shard.getClassNameId());
 		shardImpl.setClassPK(shard.getClassPK());

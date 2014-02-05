@@ -38,12 +38,14 @@ Group group = (Group)request.getAttribute(WebKeys.GROUP);
 
 <liferay-ui:success key="membershipReplySent" message="your-reply-will-be-sent-to-the-user-by-email" />
 
-<liferay-ui:header
-	backURL="<%= redirect %>"
-	escapeXml="<%= false %>"
-	localizeTitle="<%= false %>"
-	title='<%= HtmlUtil.escape(group.getDescriptiveName(locale)) + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "manage-memberships") %>'
-/>
+<c:if test="<%= !layout.isTypeControlPanel() %>">
+	<liferay-ui:header
+		backURL="<%= redirect %>"
+		escapeXml="<%= false %>"
+		localizeTitle="<%= false %>"
+		title='<%= HtmlUtil.escape(group.getDescriptiveName(locale)) + StringPool.COLON + StringPool.SPACE + LanguageUtil.get(pageContext, "manage-memberships") %>'
+	/>
+</c:if>
 
 <liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_toolbar.jsp">
 	<liferay-util:param name="toolbarItem" value="view-membership-requests" />
@@ -80,11 +82,13 @@ SearchContainer searchContainer = new SearchContainer(renderRequest, null, null,
 
 searchContainer.setHeaderNames(headerNames);
 
-List results = MembershipRequestLocalServiceUtil.search(group.getGroupId(), statusId, searchContainer.getStart(), searchContainer.getEnd());
-
 int total = MembershipRequestLocalServiceUtil.searchCount(group.getGroupId(), statusId);
 
 searchContainer.setTotal(total);
+
+List results = MembershipRequestLocalServiceUtil.search(group.getGroupId(), statusId, searchContainer.getStart(), searchContainer.getEnd());
+
+searchContainer.setResults(results);
 
 List resultRows = searchContainer.getResultRows();
 
@@ -99,7 +103,7 @@ for (int i = 0; i < results.size(); i++) {
 
 	// Date
 
-	row.addText(dateFormatDate.format(membershipRequest.getCreateDate()));
+	row.addDate(membershipRequest.getCreateDate());
 
 	// User
 

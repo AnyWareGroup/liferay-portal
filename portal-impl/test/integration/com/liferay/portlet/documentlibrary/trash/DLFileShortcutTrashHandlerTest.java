@@ -17,7 +17,6 @@ package com.liferay.portlet.documentlibrary.trash;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
@@ -37,9 +36,11 @@ import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileShortcutLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -56,19 +57,22 @@ import org.junit.runner.RunWith;
 @Sync
 public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashAndDeleteDraft() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashAndRestoreDraft() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashDuplicate() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
 	@Test
@@ -77,29 +81,40 @@ public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 		trashFileEntry();
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashMyBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashRecentBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionBaseModelAndDelete() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionBaseModelAndRestore() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionParentBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
+	}
+
+	@Ignore()
+	@Override
+	@Test
+	public void testTrashVersionParentBaseModelAndRestore() throws Exception {
 	}
 
 	@Override
@@ -110,26 +125,48 @@ public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		DLFolder dlFolder = (DLFolder)parentBaseModel;
 
-		String content = "Content: Enterprise. Open Source. For Life.";
+		return addBaseModelWithWorkflow(
+			dlFolder.getGroupId(), dlFolder.getFolderId(), serviceContext);
+	}
+
+	@Override
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		return addBaseModelWithWorkflow(
+			serviceContext.getScopeGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, serviceContext);
+	}
+
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			long groupId, long folderId, ServiceContext serviceContext)
+		throws Exception {
 
 		serviceContext = (ServiceContext)serviceContext.clone();
 
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
 
-		FileEntry fileEntry = DLAppServiceUtil.addFileEntry(
-			dlFolder.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-			"Text.txt", ContentTypes.TEXT_PLAIN, getSearchKeywords(),
-			StringPool.BLANK, StringPool.BLANK, content.getBytes(),
-			serviceContext);
+		FileEntry fileEntry = DLAppTestUtil.addFileEntry(
+			groupId, DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, "Text.txt");
 
 		return DLAppServiceUtil.addFileShortcut(
-			dlFolder.getGroupId(), dlFolder.getFolderId(),
-			fileEntry.getFileEntryId(), serviceContext);
+			groupId, folderId, fileEntry.getFileEntryId(), serviceContext);
+	}
+
+	@Override
+	protected void deleteParentBaseModel(
+			BaseModel<?> parentBaseModel, boolean includeTrashedEntries)
+		throws Exception {
+
+		DLFolder dlFolder = (DLFolder)parentBaseModel;
+
+		DLFolderLocalServiceUtil.deleteFolder(dlFolder.getFolderId(), false);
 	}
 
 	@Override
 	protected BaseModel<?> getBaseModel(long primaryKey) throws Exception {
-		return DLFileShortcutLocalServiceUtil.fetchDLFileShortcut(primaryKey);
+		return DLFileShortcutLocalServiceUtil.getDLFileShortcut(primaryKey);
 	}
 
 	@Override
@@ -254,6 +291,25 @@ public class DLFileShortcutTrashHandlerTest extends BaseTrashHandlerTestCase {
 		Assert.assertEquals(
 			initialBaseModelsCount + 1,
 			getNotInTrashBaseModelsCount(parentBaseModel));
+	}
+
+	@Override
+	protected BaseModel<?> updateBaseModel(
+			long primaryKey, ServiceContext serviceContext)
+		throws Exception {
+
+		DLFileShortcut dlFileShortcut =
+			DLFileShortcutLocalServiceUtil.getFileShortcut(primaryKey);
+
+		if (serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT) {
+
+			DLFileShortcutLocalServiceUtil.updateStatus(
+				TestPropsValues.getUserId(), primaryKey,
+				WorkflowConstants.STATUS_DRAFT, serviceContext);
+		}
+
+		return dlFileShortcut;
 	}
 
 }

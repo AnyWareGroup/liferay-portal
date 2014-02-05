@@ -15,18 +15,14 @@
 package com.liferay.portlet.wiki.lar;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
-import com.liferay.portal.kernel.dao.orm.DynamicQuery;
-import com.liferay.portal.kernel.dao.orm.Property;
-import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BasePortletDataHandler;
-import com.liferay.portal.kernel.lar.ManifestSummary;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataException;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
@@ -55,18 +51,18 @@ public class WikiPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "wiki";
 
 	public WikiPortletDataHandler() {
+		setDataPortletPreferences("hiddenNodes, visibleNodes");
+		setDeletionSystemEventStagedModelTypes(
+			new StagedModelType(WikiNode.class),
+			new StagedModelType(WikiPage.class));
 		setExportControls(
-			new PortletDataHandlerBoolean(NAMESPACE, "wiki-pages"),
-			new PortletDataHandlerBoolean(NAMESPACE, "embedded-assets"));
-		setExportMetadataControls(
 			new PortletDataHandlerBoolean(
-				NAMESPACE, "wiki-pages", true,
+				NAMESPACE, "wiki-pages", true, false,
 				new PortletDataHandlerControl[] {
-					new PortletDataHandlerBoolean(NAMESPACE, "categories"),
-					new PortletDataHandlerBoolean(NAMESPACE, "comments"),
-					new PortletDataHandlerBoolean(NAMESPACE, "ratings"),
-					new PortletDataHandlerBoolean(NAMESPACE, "tags")
-				}));
+					new PortletDataHandlerBoolean(
+						NAMESPACE, "referenced-content")
+				},
+				WikiPage.class.getName()));
 		setImportControls(getExportControls());
 	}
 
@@ -117,8 +113,7 @@ public class WikiPortletDataHandler extends BasePortletDataHandler {
 			return getExportDataRootElementString(rootElement);
 		}
 
-		portletDataContext.addPermissions(
-			WikiPermission.RESOURCE_NAME, portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(WikiPermission.RESOURCE_NAME);
 
 		rootElement.addAttribute(
 			"group-id", String.valueOf(portletDataContext.getScopeGroupId()));
@@ -129,7 +124,7 @@ public class WikiPortletDataHandler extends BasePortletDataHandler {
 		nodeActionableDynamicQuery.performActions();
 
 		ActionableDynamicQuery pageActionableDynamicQuery =
-			getPageActionableDynamicQuery(portletDataContext);
+			new WikiPageExportActionableDynamicQuery(portletDataContext);
 
 		pageActionableDynamicQuery.performActions();
 
@@ -146,9 +141,8 @@ public class WikiPortletDataHandler extends BasePortletDataHandler {
 			return null;
 		}
 
-		portletDataContext.importPermissions(
-			WikiPermission.RESOURCE_NAME, portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			WikiPermission.RESOURCE_NAME);
 
 		Element nodesElement = portletDataContext.getImportDataGroupElement(
 			WikiNode.class);
@@ -183,42 +177,64 @@ public class WikiPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
-
-		ManifestSummary manifestSummary =
-			portletDataContext.getManifestSummary();
 
 		ActionableDynamicQuery nodeActionableDynamicQuery =
 			new WikiNodeExportActionableDynamicQuery(portletDataContext);
 
-		manifestSummary.addModelCount(
-			WikiNode.class, nodeActionableDynamicQuery.performCount());
+		nodeActionableDynamicQuery.performCount();
 
 		ActionableDynamicQuery pageExportActionableDynamicQuery =
-			getPageActionableDynamicQuery(portletDataContext);
+			new WikiPageExportActionableDynamicQuery(portletDataContext);
 
-		manifestSummary.addModelCount(
-			WikiPage.class, pageExportActionableDynamicQuery.performCount());
+		pageExportActionableDynamicQuery.performCount();
 	}
 
-	protected ActionableDynamicQuery getPageActionableDynamicQuery(
-			final PortletDataContext portletDataContext)
-		throws SystemException {
+	@Override
+	protected PortletPreferences doProcessExportPortletPreferences(
+			PortletDataContext portletDataContext, String portletId,
+			PortletPreferences portletPreferences)
+		throws Exception {
 
-		return new WikiPageExportActionableDynamicQuery(portletDataContext) {
+		String hiddenNodeNames = portletPreferences.getValue(
+			"hiddenNodes", null);
 
-			@Override
-			protected void addCriteria(DynamicQuery dynamicQuery) {
-				super.addCriteria(dynamicQuery);
+		for (String hiddenNodeName : StringUtil.split(hiddenNodeNames)) {
+			WikiNode wikiNode =
+				WikiNodeLocalServiceUtil.getNode(
+					portletDataContext.getScopeGroupId(), hiddenNodeName);
 
-				Property statusProperty = PropertyFactoryUtil.forName("status");
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, portletId, wikiNode);
+		}
 
-				dynamicQuery.add(
-					statusProperty.eq(WorkflowConstants.STATUS_APPROVED));
-			}
+		String visibleNodeNames = portletPreferences.getValue(
+			"visibleNodes", null);
 
-		};
+		for (String visibleNodeName : StringUtil.split(visibleNodeNames)) {
+			WikiNode wikiNode =
+				WikiNodeLocalServiceUtil.getNode(
+					portletDataContext.getScopeGroupId(), visibleNodeName);
+
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, portletId, wikiNode);
+		}
+
+		return portletPreferences;
+	}
+
+	@Override
+	protected PortletPreferences doProcessImportPortletPreferences(
+			PortletDataContext portletDataContext, String portletId,
+			PortletPreferences portletPreferences)
+		throws Exception {
+
+		StagedModelDataHandlerUtil.importReferenceStagedModels(
+			portletDataContext, WikiNode.class);
+
+		return portletPreferences;
 	}
 
 }

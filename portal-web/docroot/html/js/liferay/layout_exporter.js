@@ -111,7 +111,15 @@
 					dialog: {
 						constrain: true,
 						modal: true,
-						width: 600
+						on: {
+							visibleChange: function(event) {
+								var instance = this;
+
+								if (!event.newVal) {
+									instance.destroy();
+								}
+							}
+						}
 					},
 					title: options.title,
 					uri: options.url

@@ -18,12 +18,18 @@
 
 <%
 PortletURL portletURL = renderResponse.createRenderURL();
+
+String tabs1Names = "portlet-configuration,text-styles,background-styles,border-styles,margin-and-padding,advanced-styling";
+
+if (PropsValues.MOBILE_DEVICE_STYLING_WAP_ENABLED) {
+	tabs1Names = tabs1Names + ",wap-styling";
+}
 %>
 
 <div id="lfr-look-and-feel">
 	<div class="tabbable-content" id="portlet-set-properties">
 		<liferay-ui:tabs
-			names="portlet-configuration,text-styles,background-styles,border-styles,margin-and-padding,advanced-styling,wap-styling"
+			names="<%= tabs1Names %>"
 			url="<%= portletURL.toString() %>"
 		/>
 
@@ -33,13 +39,15 @@ PortletURL portletURL = renderResponse.createRenderURL();
 
 			<div class="tab-pane">
 				<aui:fieldset id="portlet-config">
-					<span class="field-row">
-						<aui:input inlineField="<%= true %>" label="portlet-title" name="custom-title" />
+					<aui:input name="use-custom-title" type="checkbox" />
 
-						<aui:select inlineField="<%= true %>" label="portlet-title" name="lfr-portlet-language">
+					<span class="field-row">
+						<aui:input inlineField="<%= true %>" label="" name="custom-title" />
+
+						<aui:select inlineField="<%= true %>" label="" name="lfr-portlet-language">
 
 							<%
-							Locale[] locales = LanguageUtil.getAvailableLocales();
+							Locale[] locales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
 							for (int i = 0; i < locales.length; i++) {
 							%>
@@ -52,8 +60,6 @@ PortletURL portletURL = renderResponse.createRenderURL();
 
 						</aui:select>
 					</span>
-
-					<aui:input name="use-custom-title" type="checkbox" />
 
 					<aui:select label="link-portlet-urls-to-page" name="lfr-point-links">
 						<aui:option label="current-page" value="" />
@@ -78,7 +84,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 							String[] nodeValues = StringUtil.split(layoutDesc, '|');
 
 							long objId = GetterUtil.getLong(nodeValues[3]);
-							String name = nodeValues[4];
+							String name = HtmlUtil.escape(nodeValues[4]);
 
 							int depth = 0;
 
@@ -457,17 +463,19 @@ PortletURL portletURL = renderResponse.createRenderURL();
 					<aui:input cssClass="lfr-textarea-container" label="enter-your-custom-css" name="lfr-custom-css" type="textarea" />
 				</aui:fieldset>
 
-				<aui:fieldset id="wap-styling">
-					<aui:input label="title" name="lfr-wap-title" />
+				<c:if test="<%= PropsValues.MOBILE_DEVICE_STYLING_WAP_ENABLED %>">
+					<aui:fieldset id="wap-styling">
+						<aui:input label="title" name="lfr-wap-title" />
 
-					<aui:select label="initial-window-state" name="lfr-wap-initial-window-state">
-						<aui:option label="minimized" value="MINIMIZED" />
-						<aui:option label="normal" value="NORMAL" />
-					</aui:select>
-				</aui:fieldset>
+						<aui:select label="initial-window-state" name="lfr-wap-initial-window-state">
+							<aui:option label="minimized" value="MINIMIZED" />
+							<aui:option label="normal" value="NORMAL" />
+						</aui:select>
+					</aui:fieldset>
+				</c:if>
 
 				<aui:button-row>
-					<aui:button name="lfr-lookfeel-save" value="save" />
+					<aui:button name="lfr-lookfeel-save" primary="<%= true %>" value="save" />
 
 					<aui:button name="lfr-lookfeel-reset" value="reset" />
 				</aui:button-row>

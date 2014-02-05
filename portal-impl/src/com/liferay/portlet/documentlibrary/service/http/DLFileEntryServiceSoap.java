@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -56,12 +58,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileEntryServiceHttp
- * @see       com.liferay.portlet.documentlibrary.model.DLFileEntrySoap
- * @see       com.liferay.portlet.documentlibrary.service.DLFileEntryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see DLFileEntryServiceHttp
+ * @see com.liferay.portlet.documentlibrary.model.DLFileEntrySoap
+ * @see com.liferay.portlet.documentlibrary.service.DLFileEntryServiceUtil
  * @generated
  */
+@ProviderType
 public class DLFileEntryServiceSoap {
 	public static com.liferay.portlet.documentlibrary.model.DLFileVersionSoap cancelCheckOut(
 		long fileEntryId) throws RemoteException {
@@ -96,6 +99,7 @@ public class DLFileEntryServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	String, ServiceContext)}
 	*/
+	@Deprecated
 	public static void checkInFileEntry(long fileEntryId,
 		java.lang.String lockUuid) throws RemoteException {
 		try {
@@ -127,6 +131,7 @@ public class DLFileEntryServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.documentlibrary.model.DLFileEntrySoap checkOutFileEntry(
 		long fileEntryId) throws RemoteException {
 		try {
@@ -162,6 +167,7 @@ public class DLFileEntryServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	String, long, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.documentlibrary.model.DLFileEntrySoap checkOutFileEntry(
 		long fileEntryId, java.lang.String owner, long expirationTime)
 		throws RemoteException {

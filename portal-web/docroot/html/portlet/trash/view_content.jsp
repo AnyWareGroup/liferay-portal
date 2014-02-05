@@ -50,12 +50,19 @@
 
 	PortletURL containerModelURL = renderResponse.createRenderURL();
 
-	containerModelURL.setParameter("struts_action", "/trash/view_content");
 	containerModelURL.setParameter("redirect", redirect);
 	containerModelURL.setParameter("className", trashHandler.getContainerModelClassName());
 
 	TrashUtil.addBaseModelBreadcrumbEntries(request, className, classPK, containerModelURL);
 	%>
+
+	<liferay-ui:breadcrumb
+		showCurrentGroup="<%= false %>"
+		showCurrentPortlet="<%= true %>"
+		showGuestGroup="<%= false %>"
+		showLayout="<%= false %>"
+		showParentGroups="<%= false %>"
+	/>
 
 	<liferay-ui:header
 		backURL="<%= redirect %>"
@@ -91,15 +98,15 @@
 
 			<liferay-ui:panel-container extended="<%= false %>" id="containerDisplayInfoPanelContainer" persistState="<%= true %>">
 				<c:if test="<%= containerModelsCount > 0 %>">
-					<liferay-ui:panel collapsible="<%= true %>" cssClass="view-folders" extended="<%= true %>" id="containerModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainerModelName() %>">
+					<liferay-ui:panel collapsible="<%= true %>" cssClass="view-folders" extended="<%= false %>" id="containerModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainerModelName() %>">
 						<liferay-ui:search-container
 							curParam="cur1"
 							deltaConfigurable="<%= false %>"
 							iteratorURL="<%= iteratorURL %>"
+							total="<%= containerModelsCount %>"
 						>
 							<liferay-ui:search-container-results
 								results="<%= trashHandler.getTrashContainerModelTrashRenderers(classPK, searchContainer.getStart(), searchContainer.getEnd()) %>"
-								total="<%= containerModelsCount %>"
 							/>
 
 							<liferay-ui:search-container-row
@@ -108,6 +115,11 @@
 							>
 
 								<%
+								TrashHandler curTrashHandler = TrashHandlerRegistryUtil.getTrashHandler(curTrashRenderer.getClassName());
+
+								int curContainerModelsCount = curTrashHandler.getTrashContainerModelsCount(curTrashRenderer.getClassPK());
+								int curBaseModelsCount = curTrashHandler.getTrashContainedModelsCount(curTrashRenderer.getClassPK());
+
 								PortletURL rowURL = renderResponse.createRenderURL();
 
 								rowURL.setParameter("struts_action", "/trash/view_content");
@@ -122,19 +134,20 @@
 									<liferay-ui:icon
 										label="<%= true %>"
 										message="<%= HtmlUtil.escape(curTrashRenderer.getTitle(locale)) %>"
+										method="get"
 										src="<%= curTrashRenderer.getIconPath(renderRequest) %>"
 										url="<%= rowURL.toString() %>"
 									/>
 								</liferay-ui:search-container-column-text>
 
 								<liferay-ui:search-container-column-text
-									name='<%= LanguageUtil.format(pageContext, "num-of-x", trashHandler.getTrashContainedModelName(), true) %>'
-									value="<%= String.valueOf(baseModelsCount) %>"
+									name='<%= LanguageUtil.format(pageContext, "num-of-x", curTrashHandler.getTrashContainedModelName()) %>'
+									value="<%= String.valueOf(curBaseModelsCount) %>"
 								/>
 
 								<liferay-ui:search-container-column-text
-									name='<%= LanguageUtil.format(pageContext, "num-of-x", trashHandler.getTrashContainerModelName(), true) %>'
-									value="<%= String.valueOf(containerModelsCount) %>"
+									name='<%= LanguageUtil.format(pageContext, "num-of-x", curTrashHandler.getTrashContainerModelName()) %>'
+									value="<%= String.valueOf(curContainerModelsCount) %>"
 								/>
 
 								<liferay-ui:search-container-column-jsp
@@ -149,15 +162,15 @@
 				</c:if>
 
 				<c:if test="<%= baseModelsCount > 0 %>">
-					<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="baseModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainedModelName() %>">
+					<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="baseModelsListingPanel" persistState="<%= true %>" title="<%= trashHandler.getTrashContainedModelName() %>">
 						<liferay-ui:search-container
 							curParam="cur2"
 							deltaConfigurable="<%= false %>"
 							iteratorURL="<%= iteratorURL %>"
+							total="<%= baseModelsCount %>"
 						>
 							<liferay-ui:search-container-results
 								results="<%= trashHandler.getTrashContainedModelTrashRenderers(classPK, searchContainer.getStart(), searchContainer.getEnd()) %>"
-								total="<%= baseModelsCount %>"
 							/>
 
 							<liferay-ui:search-container-row
@@ -180,6 +193,7 @@
 									<liferay-ui:icon
 										label="<%= true %>"
 										message="<%= HtmlUtil.escape(curTrashRenderer.getTitle(locale)) %>"
+										method="get"
 										src="<%= curTrashRenderer.getIconPath(renderRequest) %>"
 										url="<%= rowURL.toString() %>"
 									/>
@@ -198,7 +212,7 @@
 
 				<c:if test="<%= (containerModelsCount + baseModelsCount) == 0 %>">
 					<div class="alert alert-info">
-						<liferay-ui:message arguments="<%= new String[] {ResourceActionsUtil.getModelResource(locale, className)} %>" key="this-x-does-not-contain-an-entry" />
+						<liferay-ui:message arguments="<%= new String[] {ResourceActionsUtil.getModelResource(locale, className)} %>" key="this-x-does-not-contain-an-entry" translateArguments="<%= false %>" />
 					</div>
 				</c:if>
 			</liferay-ui:panel-container>
@@ -249,7 +263,6 @@
 						formAction="<%= discussionURL %>"
 						formName='<%= "fm" + classPK %>'
 						redirect="<%= currentURL %>"
-						subject="<%= trashRenderer.getTitle(locale) %>"
 						userId="<%= assetEntry.getUserId() %>"
 					/>
 				</div>

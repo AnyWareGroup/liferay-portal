@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.impl.OrganizationImpl;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
@@ -57,11 +58,14 @@ public class OrganizationFinderImpl
 	public static final String COUNT_BY_C_PO_N_L_S_C_Z_R_C =
 		OrganizationFinder.class.getName() + ".countByC_PO_N_L_S_C_Z_R_C";
 
-	public static final String FIND_BY_COMPANY_ID =
-		OrganizationFinder.class.getName() + ".findByCompanyId";
+	public static final String FIND_BY_NO_ASSETS =
+		OrganizationFinder.class.getName() + ".findByNoAssets";
 
 	public static final String FIND_BY_GROUP_ID =
 		OrganizationFinder.class.getName() + ".findByGroupId";
+
+	public static final String FIND_BY_C_P =
+		OrganizationFinder.class.getName() + ".findByC_P";
 
 	public static final String FIND_BY_C_PO_N_S_C_Z_R_C =
 		OrganizationFinder.class.getName() + ".findByC_PO_N_S_C_Z_R_C";
@@ -180,7 +184,7 @@ public class OrganizationFinderImpl
 		try {
 			session = openSession();
 
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(5);
 
 			boolean doUnion = false;
 
@@ -242,7 +246,7 @@ public class OrganizationFinderImpl
 				StringPool.EQUAL : StringPool.NOT_EQUAL);
 			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -296,72 +300,6 @@ public class OrganizationFinderImpl
 	}
 
 	@Override
-	public List<Organization> findByCompanyId(
-			long companyId, LinkedHashMap<String, Object> params, int start,
-			int end, OrderByComparator obc)
-		throws SystemException {
-
-		if (params == null) {
-			params = new LinkedHashMap<String, Object>();
-		}
-
-		StringBundler sb = new StringBundler();
-
-		sb.append(StringPool.OPEN_PARENTHESIS);
-
-		String sql = CustomSQLUtil.get(FIND_BY_COMPANY_ID);
-
-		sql = StringUtil.replace(sql, "[$JOIN$]", getJoin(params));
-		sql = StringUtil.replace(sql, "[$WHERE$]", getWhere(params));
-
-		sb.append(sql);
-		sb.append(StringPool.CLOSE_PARENTHESIS);
-
-		sql = sb.toString();
-
-		sql = CustomSQLUtil.replaceAndOperator(sql, true);
-		sql = CustomSQLUtil.replaceOrderBy(sql, obc);
-
-		Session session = null;
-
-		try {
-			session = openSession();
-
-			SQLQuery q = session.createSQLQuery(sql);
-
-			q.addScalar("orgId", Type.LONG);
-
-			QueryPos qPos = QueryPos.getInstance(q);
-
-			setJoin(qPos, params);
-
-			qPos.add(companyId);
-
-			List<Organization> organizations = new ArrayList<Organization>();
-
-			Iterator<Long> itr = (Iterator<Long>)QueryUtil.iterate(
-				q, getDialect(), start, end);
-
-			while (itr.hasNext()) {
-				Long organizationId = itr.next();
-
-				Organization organization = OrganizationUtil.findByPrimaryKey(
-					organizationId.longValue());
-
-				organizations.add(organization);
-			}
-
-			return organizations;
-		}
-		catch (Exception e) {
-			throw new SystemException(e);
-		}
-		finally {
-			closeSession(session);
-		}
-	}
-
-	@Override
 	public List<Organization> findByKeywords(
 			long companyId, long parentOrganizationId,
 			String parentOrganizationIdComparator, String keywords, String type,
@@ -389,6 +327,70 @@ public class OrganizationFinderImpl
 			companyId, parentOrganizationId, parentOrganizationIdComparator,
 			names, type, streets, cities, zips, regionId, countryId, params,
 			andOperator, start, end, obc);
+	}
+
+	@Override
+	public List<Organization> findByNoAssets() throws SystemException {
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_NO_ASSETS);
+
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+
+			q.addEntity("Organization_", OrganizationImpl.class);
+
+			return q.list(true);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	@Override
+	public List<Long> findByC_P(
+			long companyId, long parentOrganizationId,
+			long previousOrganizationId, int size)
+		throws SystemException {
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_C_P);
+
+			if (previousOrganizationId == 0) {
+				sql = StringUtil.replace(
+					sql, "(organizationId > ?) AND", StringPool.BLANK);
+			}
+
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+
+			q.addScalar("organizationId", Type.LONG);
+
+			QueryPos qPos = QueryPos.getInstance(q);
+
+			if (previousOrganizationId > 0) {
+				qPos.add(previousOrganizationId);
+			}
+
+			qPos.add(companyId);
+			qPos.add(parentOrganizationId);
+
+			return (List<Long>)QueryUtil.list(q, getDialect(), 0, size);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
 	}
 
 	@Override
@@ -429,7 +431,7 @@ public class OrganizationFinderImpl
 			params = new LinkedHashMap<String, Object>();
 		}
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(4);
 
 		sb.append(StringPool.OPEN_PARENTHESIS);
 
@@ -487,7 +489,7 @@ public class OrganizationFinderImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("orgId", Type.LONG);
 
@@ -551,7 +553,7 @@ public class OrganizationFinderImpl
 		sql = StringUtil.replace(sql, "[$JOIN$]", getJoin(params));
 		sql = StringUtil.replace(sql, "[$WHERE$]", getWhere(params));
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 

@@ -14,12 +14,12 @@
 
 package com.liferay.portlet.journal.asset;
 
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Tuple;
@@ -30,7 +30,6 @@ import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.asset.model.AssetRenderer;
 import com.liferay.portlet.asset.model.BaseAssetRendererFactory;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
@@ -52,6 +51,8 @@ import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
+import javax.portlet.WindowState;
+import javax.portlet.WindowStateException;
 
 /**
  * @author Julio Camarero
@@ -134,11 +135,7 @@ public class JournalArticleAssetRendererFactory
 		List<Tuple> fieldNames = getDDMStructureFieldNames(
 			ddmStructure, locale);
 
-		if ((start != QueryUtil.ALL_POS) || (end != QueryUtil.ALL_POS)) {
-			fieldNames = ListUtil.subList(fieldNames, start, end);
-		}
-
-		return fieldNames;
+		return ListUtil.subList(fieldNames, start, end);
 	}
 
 	@Override
@@ -219,13 +216,30 @@ public class JournalArticleAssetRendererFactory
 			return null;
 		}
 
-		PortletURL portletURL = PortletURLFactoryUtil.create(
-			liferayPortletRequest, PortletKeys.JOURNAL,
-			getControlPanelPlid(themeDisplay), PortletRequest.RENDER_PHASE);
+		PortletURL portletURL = liferayPortletResponse.createRenderURL(
+			PortletKeys.JOURNAL);
 
 		portletURL.setParameter("struts_action", "/journal/edit_article");
 
 		return portletURL;
+	}
+
+	@Override
+	public PortletURL getURLView(
+		LiferayPortletResponse liferayPortletResponse,
+		WindowState windowState) {
+
+		LiferayPortletURL liferayPortletURL =
+			liferayPortletResponse.createLiferayPortletURL(
+				PortletKeys.JOURNAL, PortletRequest.RENDER_PHASE);
+
+		try {
+			liferayPortletURL.setWindowState(windowState);
+		}
+		catch (WindowStateException wse) {
+		}
+
+		return liferayPortletURL;
 	}
 
 	@Override

@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Ticket}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Ticket
+ * @author Brian Wing Shun Chan
+ * @see Ticket
  * @generated
  */
+@ProviderType
 public class TicketWrapper implements Ticket, ModelWrapper<Ticket> {
 	public TicketWrapper(Ticket ticket) {
 		_ticket = ticket;
@@ -46,6 +51,7 @@ public class TicketWrapper implements Ticket, ModelWrapper<Ticket> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("ticketId", getTicketId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("createDate", getCreateDate());
@@ -61,6 +67,12 @@ public class TicketWrapper implements Ticket, ModelWrapper<Ticket> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long ticketId = (Long)attributes.get("ticketId");
 
 		if (ticketId != null) {
@@ -134,6 +146,26 @@ public class TicketWrapper implements Ticket, ModelWrapper<Ticket> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_ticket.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this ticket.
+	*
+	* @return the mvcc version of this ticket
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _ticket.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this ticket.
+	*
+	* @param mvccVersion the mvcc version of this ticket
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_ticket.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -440,9 +472,29 @@ public class TicketWrapper implements Ticket, ModelWrapper<Ticket> {
 		return _ticket.isExpired();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof TicketWrapper)) {
+			return false;
+		}
+
+		TicketWrapper ticketWrapper = (TicketWrapper)obj;
+
+		if (Validator.equals(_ticket, ticketWrapper._ticket)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Ticket getWrappedTicket() {
 		return _ticket;
 	}
@@ -450,6 +502,16 @@ public class TicketWrapper implements Ticket, ModelWrapper<Ticket> {
 	@Override
 	public Ticket getWrappedModel() {
 		return _ticket;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ticket.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ticket.isFinderCacheEnabled();
 	}
 
 	@Override

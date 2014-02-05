@@ -367,6 +367,10 @@ public class ExpandoTablePersistenceImpl extends BasePersistenceImpl<ExpandoTabl
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_C(companyId, classNameId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<ExpandoTable> list = findByC_C(companyId, classNameId, count - 1,
 				count, orderByComparator);
 
@@ -895,6 +899,10 @@ public class ExpandoTablePersistenceImpl extends BasePersistenceImpl<ExpandoTabl
 	private static final String _FINDER_COLUMN_C_C_N_NAME_2 = "expandoTable.name = ?";
 	private static final String _FINDER_COLUMN_C_C_N_NAME_3 = "(expandoTable.name IS NULL OR expandoTable.name = '')";
 
+	public ExpandoTablePersistenceImpl() {
+		setModelClass(ExpandoTable.class);
+	}
+
 	/**
 	 * Caches the expando table in the entity cache if it is enabled.
 	 *
@@ -1203,10 +1211,13 @@ public class ExpandoTablePersistenceImpl extends BasePersistenceImpl<ExpandoTabl
 		}
 
 		EntityCacheUtil.putResult(ExpandoTableModelImpl.ENTITY_CACHE_ENABLED,
-			ExpandoTableImpl.class, expandoTable.getPrimaryKey(), expandoTable);
+			ExpandoTableImpl.class, expandoTable.getPrimaryKey(), expandoTable,
+			false);
 
 		clearUniqueFindersCache(expandoTable);
 		cacheUniqueFindersCache(expandoTable);
+
+		expandoTable.resetOriginalValues();
 
 		return expandoTable;
 	}

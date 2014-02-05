@@ -45,6 +45,7 @@ import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFileRankLocalServiceUtil;
+import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 import com.liferay.portlet.trash.util.TrashUtil;
@@ -52,6 +53,7 @@ import com.liferay.portlet.trash.util.TrashUtil;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -75,6 +77,12 @@ public class DLFileEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 		trashDLFileRank();
 	}
 
+	@Ignore()
+	@Override
+	@Test
+	public void testTrashVersionParentBaseModelAndRestore() throws Exception {
+	}
+
 	@Override
 	protected BaseModel<?> addBaseModelWithWorkflow(
 			BaseModel<?> parentBaseModel, boolean approved,
@@ -83,16 +91,44 @@ public class DLFileEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		DLFolder dlFolder = (DLFolder)parentBaseModel;
 
+		return addBaseModelWithWorkflow(
+			dlFolder.getGroupId(), dlFolder.getFolderId(), approved);
+	}
+
+	@Override
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		return addBaseModelWithWorkflow(
+			serviceContext.getScopeGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID, approved);
+	}
+
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			long groupId, long folderId, boolean approved)
+		throws Exception {
+
 		String title = getSearchKeywords();
 
 		title += ServiceTestUtil.randomString(
 			_FILE_ENTRY_TITLE_MAX_LENGTH - title.length());
 
 		FileEntry fileEntry = DLAppTestUtil.addFileEntry(
-			dlFolder.getGroupId(), dlFolder.getFolderId(),
-			ServiceTestUtil.randomString() + ".txt", title, approved);
+			groupId, folderId, ServiceTestUtil.randomString() + ".txt", title,
+			approved);
 
 		return (DLFileEntry)fileEntry.getModel();
+	}
+
+	@Override
+	protected void deleteParentBaseModel(
+			BaseModel<?> parentBaseModel, boolean includeTrashedEntries)
+		throws Exception {
+
+		DLFolder dlFolder = (DLFolder)parentBaseModel;
+
+		DLFolderLocalServiceUtil.deleteFolder(dlFolder.getFolderId(), false);
 	}
 
 	protected int getActiveDLFileRanksCount(long groupId, long fileEntryId)
@@ -219,9 +255,16 @@ public class DLFileEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 	@Override
 	protected void moveParentBaseModelToTrash(long primaryKey)
-			throws Exception {
+		throws Exception {
 
 		DLAppServiceUtil.moveFolderToTrash(primaryKey);
+	}
+
+	@Override
+	protected void restoreParentBaseModelFromTrash(long primaryKey)
+		throws Exception {
+
+		DLAppServiceUtil.restoreFolderFromTrash(primaryKey);
 	}
 
 	protected void trashDLFileRank() throws Exception {

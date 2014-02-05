@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.wiki.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link WikiNode}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiNode
+ * @author Brian Wing Shun Chan
+ * @see WikiNode
  * @generated
  */
+@ProviderType
 public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 	public WikiNodeWrapper(WikiNode wikiNode) {
 		_wikiNode = wikiNode;
@@ -525,8 +530,69 @@ public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 	}
 
 	/**
+	* Returns the trash entry created when this wiki node was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this wiki node.
+	*
+	* @return the trash entry created when this wiki node was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNode.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this wiki node.
+	*
+	* @return the class primary key of the trash entry for this wiki node
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _wikiNode.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this wiki node.
+	*
+	* @return the trash handler for this wiki node
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _wikiNode.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this wiki node is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this wiki node is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _wikiNode.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this wiki node is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this wiki node is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _wikiNode.isInTrashContainer();
+	}
+
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNode.isInTrashExplicitly();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _wikiNode.getApproved();
@@ -593,16 +659,6 @@ public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 	}
 
 	/**
-	* Returns <code>true</code> if this wiki node is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this wiki node is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _wikiNode.isInTrash();
-	}
-
-	/**
 	* Returns <code>true</code> if this wiki node is pending.
 	*
 	* @return <code>true</code> if this wiki node is pending; <code>false</code> otherwise
@@ -635,7 +691,7 @@ public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 	/**
 	* Sets the container model ID of this wiki node.
 	*
-	* @param container model ID of this wiki node
+	* @param containerModelId the container model ID of this wiki node
 	*/
 	@Override
 	public void setContainerModelId(long containerModelId) {
@@ -665,7 +721,7 @@ public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 	/**
 	* Sets the parent container model ID of this wiki node.
 	*
-	* @param parent container model ID of this wiki node
+	* @param parentContainerModelId the parent container model ID of this wiki node
 	*/
 	@Override
 	public void setParentContainerModelId(long parentContainerModelId) {
@@ -795,9 +851,34 @@ public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 		return _wikiNode.getDeletedAttachmentsFiles();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof WikiNodeWrapper)) {
+			return false;
+		}
+
+		WikiNodeWrapper wikiNodeWrapper = (WikiNodeWrapper)obj;
+
+		if (Validator.equals(_wikiNode, wikiNodeWrapper._wikiNode)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _wikiNode.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WikiNode getWrappedWikiNode() {
 		return _wikiNode;
 	}
@@ -805,6 +886,16 @@ public class WikiNodeWrapper implements WikiNode, ModelWrapper<WikiNode> {
 	@Override
 	public WikiNode getWrappedModel() {
 		return _wikiNode;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _wikiNode.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _wikiNode.isFinderCacheEnabled();
 	}
 
 	@Override

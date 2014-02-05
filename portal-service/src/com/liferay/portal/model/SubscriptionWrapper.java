@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Subscription}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Subscription
+ * @author Brian Wing Shun Chan
+ * @see Subscription
  * @generated
  */
+@ProviderType
 public class SubscriptionWrapper implements Subscription,
 	ModelWrapper<Subscription> {
 	public SubscriptionWrapper(Subscription subscription) {
@@ -47,6 +52,7 @@ public class SubscriptionWrapper implements Subscription,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("subscriptionId", getSubscriptionId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -62,6 +68,12 @@ public class SubscriptionWrapper implements Subscription,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long subscriptionId = (Long)attributes.get("subscriptionId");
 
 		if (subscriptionId != null) {
@@ -135,6 +147,26 @@ public class SubscriptionWrapper implements Subscription,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_subscription.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this subscription.
+	*
+	* @return the mvcc version of this subscription
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _subscription.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this subscription.
+	*
+	* @param mvccVersion the mvcc version of this subscription
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_subscription.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -458,9 +490,29 @@ public class SubscriptionWrapper implements Subscription,
 		_subscription.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SubscriptionWrapper)) {
+			return false;
+		}
+
+		SubscriptionWrapper subscriptionWrapper = (SubscriptionWrapper)obj;
+
+		if (Validator.equals(_subscription, subscriptionWrapper._subscription)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Subscription getWrappedSubscription() {
 		return _subscription;
 	}
@@ -468,6 +520,16 @@ public class SubscriptionWrapper implements Subscription,
 	@Override
 	public Subscription getWrappedModel() {
 		return _subscription;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _subscription.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _subscription.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -36,6 +37,7 @@ import com.liferay.portal.model.ResourcePermission;
 import com.liferay.portal.model.ResourcePermissionConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.security.permission.ResourceActionsUtil;
@@ -191,7 +193,7 @@ public class ResourcePermissionLocalServiceImpl
 				sql, "[$ROLE_ID$]",
 				ListUtil.toString(roles, Role.ROLE_ID_ACCESSOR));
 
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -206,7 +208,7 @@ public class ResourcePermissionLocalServiceImpl
 
 			sql = CustomSQLUtil.get(_FIND_MISSING_RESOURCE_PERMISSIONS);
 
-			sqlQuery = session.createSQLQuery(sql);
+			sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			sqlQuery.addScalar("companyId", Type.LONG);
 			sqlQuery.addScalar("name", Type.STRING);
@@ -753,7 +755,6 @@ public class ResourcePermissionLocalServiceImpl
 					return true;
 				}
 			}
-
 		}
 
 		return false;
@@ -785,6 +786,8 @@ public class ResourcePermissionLocalServiceImpl
 				for (int i = 0; i < roleIds.length; i++) {
 					if (roleIds[i] == roleId) {
 						hasResourcePermissions[i] = true;
+
+						break;
 					}
 				}
 			}
@@ -1110,13 +1113,13 @@ public class ResourcePermissionLocalServiceImpl
 		throws PortalException, SystemException {
 
 		updateResourcePermission(
-			companyId, name, scope, primKey, 0, roleIdsToActionIds,
-			ResourcePermissionConstants.OPERATOR_SET);
+			companyId, name, scope, primKey, 0, roleIdsToActionIds);
 	}
 
 	protected void doUpdateResourcePermission(
 			long companyId, String name, int scope, String primKey,
-			long ownerId, long roleId, String[] actionIds, int operator)
+			long ownerId, long roleId, String[] actionIds, int operator,
+			boolean fetch)
 		throws PortalException, SystemException {
 
 		ResourcePermission resourcePermission = null;
@@ -1127,7 +1130,7 @@ public class ResourcePermissionLocalServiceImpl
 		if (resourcePermissionsMap != null) {
 			resourcePermission = resourcePermissionsMap.get(roleId);
 		}
-		else {
+		else if (fetch) {
 			resourcePermission = resourcePermissionPersistence.fetchByC_N_S_P_R(
 				companyId, name, scope, primKey, roleId);
 		}
@@ -1158,6 +1161,17 @@ public class ResourcePermissionLocalServiceImpl
 			resourcePermission.setOwnerId(ownerId);
 		}
 
+		List<String> unsupportedActionIds = Collections.emptyList();
+
+		if (((operator == ResourcePermissionConstants.OPERATOR_ADD) ||
+			 (operator == ResourcePermissionConstants.OPERATOR_SET)) &&
+			isGuestRoleId(companyId, roleId)) {
+
+			unsupportedActionIds =
+				ResourceActionsUtil.getResourceGuestUnsupportedActions(
+					name, name);
+		}
+
 		long actionIdsLong = resourcePermission.getActionIds();
 
 		if (operator == ResourcePermissionConstants.OPERATOR_SET) {
@@ -1167,6 +1181,11 @@ public class ResourcePermissionLocalServiceImpl
 		for (String actionId : actionIds) {
 			if (actionId == null) {
 				break;
+			}
+
+			if (unsupportedActionIds.contains(actionId)) {
+				throw new PrincipalException(
+					actionId + "is not supported by role " + roleId);
 			}
 
 			ResourceAction resourceAction =
@@ -1194,7 +1213,7 @@ public class ResourcePermissionLocalServiceImpl
 
 	protected void doUpdateResourcePermission(
 			long companyId, String name, int scope, String primKey,
-			long ownerId, Map<Long, String[]> roleIdsToActionIds, int operator)
+			long ownerId, Map<Long, String[]> roleIdsToActionIds)
 		throws PortalException, SystemException {
 
 		boolean flushEnabled = PermissionThreadLocal.isFlushEnabled();
@@ -1202,6 +1221,25 @@ public class ResourcePermissionLocalServiceImpl
 		PermissionThreadLocal.setIndexEnabled(false);
 
 		try {
+			long[] roleIds = ArrayUtil.toLongArray(roleIdsToActionIds.keySet());
+
+			List<ResourcePermission> resourcePermissions =
+				resourcePermissionPersistence.findByC_N_S_P_R(
+					companyId, name, scope, primKey, roleIds);
+
+			for (ResourcePermission resourcePermission : resourcePermissions) {
+				long roleId = resourcePermission.getRoleId();
+				String[] actionIds = roleIdsToActionIds.remove(roleId);
+
+				doUpdateResourcePermission(
+					companyId, name, scope, primKey, ownerId, roleId, actionIds,
+					ResourcePermissionConstants.OPERATOR_SET, true);
+			}
+
+			if (roleIdsToActionIds.isEmpty()) {
+				return;
+			}
+
 			for (Map.Entry<Long, String[]> entry :
 					roleIdsToActionIds.entrySet()) {
 
@@ -1210,7 +1248,7 @@ public class ResourcePermissionLocalServiceImpl
 
 				doUpdateResourcePermission(
 					companyId, name, scope, primKey, ownerId, roleId, actionIds,
-					operator);
+					ResourcePermissionConstants.OPERATOR_SET, false);
 			}
 		}
 		finally {
@@ -1220,6 +1258,19 @@ public class ResourcePermissionLocalServiceImpl
 
 			SearchEngineUtil.updatePermissionFields(name, primKey);
 		}
+	}
+
+	protected boolean isGuestRoleId(long companyId, long roleId)
+		throws PortalException, SystemException {
+
+		Role guestRole = roleLocalService.getRole(
+			companyId, RoleConstants.GUEST);
+
+		if (roleId == guestRole.getRoleId()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -1262,7 +1313,7 @@ public class ResourcePermissionLocalServiceImpl
 		if (!dbType.equals(DB.TYPE_HYPERSONIC)) {
 			doUpdateResourcePermission(
 				companyId, name, scope, primKey, ownerId, roleId, actionIds,
-				operator);
+				operator, true);
 
 			return;
 		}
@@ -1292,7 +1343,7 @@ public class ResourcePermissionLocalServiceImpl
 		try {
 			doUpdateResourcePermission(
 				companyId, name, scope, primKey, ownerId, roleId, actionIds,
-				operator);
+				operator, true);
 		}
 		finally {
 			lock.unlock();
@@ -1320,16 +1371,13 @@ public class ResourcePermissionLocalServiceImpl
 	 * @param  scope the scope
 	 * @param  primKey the primary key
 	 * @param  ownerId the primary key of the owner
-	 * @param  operator whether to add to, remove from, or set/replace the
-	 *         existing actions. Possible values can be found in {@link
-	 *         ResourcePermissionConstants}.
 	 * @throws PortalException if a role with the primary key or a resource
 	 *         action with the name and action ID could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
 	protected void updateResourcePermission(
 			long companyId, String name, int scope, String primKey,
-			long ownerId, Map<Long, String[]> roleIdsToActionIds, int operator)
+			long ownerId, Map<Long, String[]> roleIdsToActionIds)
 		throws PortalException, SystemException {
 
 		DB db = DBFactoryUtil.getDB();
@@ -1338,8 +1386,7 @@ public class ResourcePermissionLocalServiceImpl
 
 		if (!dbType.equals(DB.TYPE_HYPERSONIC)) {
 			doUpdateResourcePermission(
-				companyId, name, scope, primKey, ownerId, roleIdsToActionIds,
-				operator);
+				companyId, name, scope, primKey, ownerId, roleIdsToActionIds);
 
 			return;
 		}
@@ -1368,8 +1415,7 @@ public class ResourcePermissionLocalServiceImpl
 
 		try {
 			doUpdateResourcePermission(
-				companyId, name, scope, primKey, ownerId, roleIdsToActionIds,
-				operator);
+				companyId, name, scope, primKey, ownerId, roleIdsToActionIds);
 		}
 		finally {
 			lock.unlock();

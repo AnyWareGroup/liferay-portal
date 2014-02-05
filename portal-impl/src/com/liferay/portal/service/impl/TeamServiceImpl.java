@@ -61,15 +61,15 @@ public class TeamServiceImpl extends TeamServiceBaseImpl {
 			getPermissionChecker(), groupId, ActionKeys.MANAGE_TEAMS);
 
 		return teamLocalService.getGroupTeams(groupId);
-
 	}
 
 	@Override
 	public Team getTeam(long teamId) throws PortalException, SystemException {
-		TeamPermissionUtil.check(
-			getPermissionChecker(), teamId, ActionKeys.VIEW);
+		Team team = teamLocalService.getTeam(teamId);
 
-		return teamLocalService.getTeam(teamId);
+		TeamPermissionUtil.check(getPermissionChecker(), team, ActionKeys.VIEW);
+
+		return team;
 	}
 
 	@Override

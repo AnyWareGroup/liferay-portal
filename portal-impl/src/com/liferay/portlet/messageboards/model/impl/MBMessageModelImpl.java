@@ -14,9 +14,14 @@
 
 package com.liferay.portlet.messageboards.model.impl;
 
+import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -25,6 +30,8 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -34,6 +41,8 @@ import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBMessageModel;
 import com.liferay.portlet.messageboards.model.MBMessageSoap;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 
 import java.io.Serializable;
 
@@ -252,6 +261,9 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		attributes.put("statusByUserName", getStatusByUserName());
 		attributes.put("statusDate", getStatusDate());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -408,8 +420,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -432,8 +444,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getMessageId() {
 		return _messageId;
 	}
@@ -445,8 +457,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_messageId = messageId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -468,8 +480,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -491,8 +503,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -524,8 +536,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -540,8 +552,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -553,8 +565,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -584,8 +596,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -607,8 +619,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalClassNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
@@ -630,8 +642,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalClassPK;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCategoryId() {
 		return _categoryId;
 	}
@@ -653,8 +665,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalCategoryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getThreadId() {
 		return _threadId;
 	}
@@ -676,8 +688,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalThreadId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getRootMessageId() {
 		return _rootMessageId;
 	}
@@ -687,8 +699,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_rootMessageId = rootMessageId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getParentMessageId() {
 		return _parentMessageId;
 	}
@@ -710,8 +722,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalParentMessageId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getSubject() {
 		if (_subject == null) {
 			return StringPool.BLANK;
@@ -726,8 +738,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_subject = subject;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getBody() {
 		if (_body == null) {
 			return StringPool.BLANK;
@@ -742,8 +754,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_body = body;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getFormat() {
 		if (_format == null) {
 			return StringPool.BLANK;
@@ -758,8 +770,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_format = format;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAnonymous() {
 		return _anonymous;
 	}
@@ -774,8 +786,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_anonymous = anonymous;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public double getPriority() {
 		return _priority;
 	}
@@ -785,8 +797,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_priority = priority;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAllowPingbacks() {
 		return _allowPingbacks;
 	}
@@ -801,8 +813,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_allowPingbacks = allowPingbacks;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAnswer() {
 		return _answer;
 	}
@@ -829,8 +841,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalAnswer;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getStatus() {
 		return _status;
 	}
@@ -852,8 +864,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		return _originalStatus;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getStatusByUserId() {
 		return _statusByUserId;
 	}
@@ -874,8 +886,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_statusByUserUuid = statusByUserUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getStatusByUserName() {
 		if (_statusByUserName == null) {
 			return StringPool.BLANK;
@@ -890,8 +902,8 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_statusByUserName = statusByUserName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getStatusDate() {
 		return _statusDate;
 	}
@@ -901,9 +913,123 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 		_statusDate = statusDate;
 	}
 
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				MBMessage.class.getName()), getClassNameId());
+	}
+
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException, SystemException {
+		if (!isInTrash()) {
+			return null;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return trashEntry;
+		}
+
+		TrashHandler trashHandler = getTrashHandler();
+
+		if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
+			ContainerModel containerModel = null;
+
+			try {
+				containerModel = trashHandler.getParentContainerModel(this);
+			}
+			catch (NoSuchModelException nsme) {
+				return null;
+			}
+
+			while (containerModel != null) {
+				if (containerModel instanceof TrashedModel) {
+					TrashedModel trashedModel = (TrashedModel)containerModel;
+
+					return trashedModel.getTrashEntry();
+				}
+
+				trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashHandler.getContainerModelClassName());
+
+				if (trashHandler == null) {
+					return null;
+				}
+
+				containerModel = trashHandler.getContainerModel(containerModel.getParentContainerModelId());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public long getTrashEntryClassPK() {
+		return getPrimaryKey();
+	}
+
+	@Override
+	public TrashHandler getTrashHandler() {
+		return TrashHandlerRegistryUtil.getTrashHandler(getModelClassName());
+	}
+
+	@Override
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
+		TrashHandler trashHandler = getTrashHandler();
+
+		if ((trashHandler == null) ||
+				Validator.isNull(trashHandler.getContainerModelClassName())) {
+			return false;
+		}
+
+		try {
+			ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+			if (containerModel == null) {
+				return false;
+			}
+
+			if (containerModel instanceof TrashedModel) {
+				return ((TrashedModel)containerModel).isInTrash();
+			}
+		}
+		catch (Exception e) {
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isInTrashExplicitly() throws SystemException {
+		if (!isInTrash()) {
+			return false;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return isApproved();
@@ -962,16 +1088,6 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	@Override
 	public boolean isIncomplete() {
 		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
-	public boolean isInTrash() {
-		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
 			return true;
 		}
 		else {
@@ -1113,6 +1229,16 @@ public class MBMessageModelImpl extends BaseModelImpl<MBMessage>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

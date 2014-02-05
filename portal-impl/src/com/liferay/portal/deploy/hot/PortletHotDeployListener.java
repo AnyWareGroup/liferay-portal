@@ -28,6 +28,8 @@ import com.liferay.portal.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerRegistryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.notifications.UserNotificationHandler;
+import com.liferay.portal.kernel.notifications.UserNotificationManagerUtil;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerEntry;
@@ -45,7 +47,6 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -124,7 +125,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering portlets for ", t);
+				hotDeployEvent,
+				"Error registering portlets for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -137,7 +141,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering portlets for ", t);
+				hotDeployEvent,
+				"Error unregistering portlets for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -253,6 +260,21 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		SocialRequestInterpreterLocalServiceUtil.deleteRequestInterpreter(
 			portlet.getSocialRequestInterpreterInstance());
 
+		UserNotificationManagerUtil.deleteUserNotificationDefinitions(
+			portlet.getPortletId());
+
+		List<UserNotificationHandler> userNotificationHandlers =
+			portlet.getUserNotificationHandlerInstances();
+
+		if (userNotificationHandlers != null) {
+			for (UserNotificationHandler userNotificationHandler :
+					userNotificationHandlers) {
+
+				UserNotificationManagerUtil.deleteUserNotificationHandler(
+					userNotificationHandler);
+			}
+		}
+
 		WebDAVUtil.deleteStorage(portlet.getWebDAVStorageInstance());
 
 		XmlRpcServlet.unregisterMethod(portlet.getXmlRpcMethodInstance());
@@ -344,7 +366,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 		while (itr.hasNext()) {
 			Portlet portlet = itr.next();
 
-			PortletBag portletBag = initPortlet(portlet, portletBagFactory);
+			PortletBag portletBag = portletBagFactory.create(portlet);
 
 			if (portletBag == null) {
 				itr.remove();
@@ -366,7 +388,6 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 						PHPPortlet.class.getName())) {
 
 					phpPortlet = true;
-
 				}
 
 				if (ClassUtil.isSubclass(
@@ -460,9 +481,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		DirectServletRegistryUtil.clearServlets();
 
-		_portlets.put(
-			servletContextName,
-			new ObjectValuePair<long[], List<Portlet>>(companyIds, portlets));
+		_portlets.put(servletContextName, portlets);
+
+		servletContext.setAttribute(WebKeys.PLUGIN_PORTLETS, portlets);
 
 		if (_log.isInfoEnabled()) {
 			if (portlets.size() == 1) {
@@ -489,15 +510,11 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			_log.debug("Invoking undeploy for " + servletContextName);
 		}
 
-		ObjectValuePair<long[], List<Portlet>> ovp = _portlets.remove(
-			servletContextName);
+		List<Portlet> portlets = _portlets.remove(servletContextName);
 
-		if (ovp == null) {
+		if (portlets == null) {
 			return;
 		}
-
-		long[] companyIds = ovp.getKey();
-		List<Portlet> portlets = ovp.getValue();
 
 		Set<String> portletIds = new HashSet<String>();
 
@@ -513,7 +530,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 		ServletContextPool.remove(servletContextName);
 
-		if (portletIds.size() > 0) {
+		if (!portletIds.isEmpty()) {
+			long[] companyIds = PortalInstances.getCompanyIds();
+
 			for (long companyId : companyIds) {
 				PortletCategory portletCategory =
 					(PortletCategory)WebAppPool.get(
@@ -543,16 +562,9 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 			else {
 				_log.info(
 					portlets.size() + " portlets for " + servletContextName +
-						" was unregistered");
+						" were unregistered");
 			}
 		}
-	}
-
-	protected PortletBag initPortlet(
-			Portlet portlet, PortletBagFactory portletBagFactory)
-		throws Exception {
-
-		return portletBagFactory.create(portlet);
 	}
 
 	protected void initPortletApp(
@@ -577,9 +589,10 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 			String attrCustomClass = entry.getValue();
 
+			Class<?> clazz = classLoader.loadClass(attrCustomClass);
+
 			CustomUserAttributes customUserAttributesInstance =
-				(CustomUserAttributes)classLoader.loadClass(
-					attrCustomClass).newInstance();
+				(CustomUserAttributes)clazz.newInstance();
 
 			portletContextBag.getCustomUserAttributes().put(
 				attrCustomClass, customUserAttributesInstance);
@@ -727,8 +740,7 @@ public class PortletHotDeployListener extends BaseHotDeployListener {
 
 	private static Map<String, Boolean> _dataSourceBindStates =
 		new HashMap<String, Boolean>();
-	private static Map<String, ObjectValuePair<long[], List<Portlet>>>
-		_portlets =
-			new HashMap<String, ObjectValuePair<long[], List<Portlet>>>();
+	private static Map<String, List<Portlet>> _portlets =
+		new HashMap<String, List<Portlet>>();
 
 }

@@ -14,11 +14,19 @@ AUI.add(
 
 		var ACTION_VIEW = 2;
 
+		var ADD_PANEL = 'addPanel';
+
 		var CSS_ACTIVE_AREA = 'active-area';
+
+		var CSS_MESSAGE_ERROR = 'alert-error';
+
+		var CSS_MESSAGE_SUCCESS = 'alert-success';
 
 		var CSS_TAG_DIALOG = 'portlet-asset-tag-admin-dialog';
 
 		var DRAG_NODE = 'dragNode';
+
+		var EDIT_PANEL = 'editPanel';
 
 		var EVENT_CLICK = 'click';
 
@@ -38,7 +46,9 @@ AUI.add(
 
 		var NODE = 'node';
 
-		var TPL_PORTLET_MESSAGES = '<div class="hide lfr-message-response" id="portletMessages" />';
+		var TAG_MESSAGES = 'TagMessages';
+
+		var TPL_PORTLET_MESSAGES = '<div class="alert hide lfr-message-response" id="portletMessages" />';
 
 		var TPL_TAG_LIST_CONTAINER = '<ul class="nav nav-pills nav-stacked">';
 
@@ -94,6 +104,8 @@ AUI.add(
 
 		var TPL_TAG_MERGE_ITEM = '<option value="{value}" title="{name}" active>{name}</option>';
 
+		var TPL_TAG_PANEL_MESSAGES = '<div class="alert hide lfr-message-response" id="{namespace}{panel}TagMessages" />';
+
 		var TPL_TAGS_MESSAGES = '<div class="alert alert-info hide lfr-message-response" id="tagsMessages" />';
 
 		var AssetTagsAdmin = A.Component.create(
@@ -114,7 +126,24 @@ AUI.add(
 
 						instance._container = A.one('.tags-admin-container');
 						instance._tagViewContainer = A.one('.tag-view-container');
+						instance._stagedTagsWrapper = A.one('.selected-tags-wrapper');
 						instance._tagsList = A.one('.tags-admin-list');
+
+						instance._stagedTagsList = instance._stagedTagsWrapper.one('.token-container');
+
+						instance._tokenList = new Liferay.TokenList(
+							{
+								after: {
+									close: function(event) {
+										instance._checkTag(event.item, false);
+
+										instance._toggleStagedTagsWrapper();
+									}
+								},
+								boundingBox: '.tag-staging-area',
+								contentBox: '.token-container'
+							}
+						).render();
 
 						instance._tagsMessageContainer = Node.create(TPL_TAGS_MESSAGES);
 						instance._portletMessageContainer = Node.create(TPL_PORTLET_MESSAGES);
@@ -128,9 +157,7 @@ AUI.add(
 							points: ['tc', 'tl']
 						};
 
-						var portletMessageContainer = instance._portletMessageContainer;
-
-						instance._hideMessageTask = A.debounce('hide', 7000, portletMessageContainer);
+						instance._hideMessageTask = A.debounce(instance._hideMessage, 7000);
 
 						instance._tagsList.on(EVENT_CLICK, instance._onTagsListClick, instance);
 						instance._tagsList.on('key', instance._onTagsListClick, 'up:13', instance);
@@ -154,6 +181,8 @@ AUI.add(
 						if (tagsPermissionsButton) {
 							tagsPermissionsButton.on(EVENT_CLICK, instance._onTagChangePermissions, instance);
 						}
+
+						instance._tagsActionsButton = A.one('#' + namespace + 'tagsActionsButton');
 
 						A.one('#' + namespace + 'deleteSelectedTags').on(EVENT_CLICK, instance._deleteSelectedTags, instance);
 						A.one('#' + namespace + 'mergeSelectedTags').on(EVENT_CLICK, instance._mergeSelectedTags, instance);
@@ -197,10 +226,12 @@ AUI.add(
 					_afterDragEnter: function(event) {
 						var instance = this;
 
+						var dropNode = event.drop.get(NODE);
+
 						var target = event.target;
+
 						var proxyNode = target.get(DRAG_NODE);
 						var node = target.get(NODE);
-						var dropNode = event.drop.get(NODE);
 
 						var textDestNode = dropNode.one('a').html();
 						var textSrcNode = node.one('a').html();
@@ -223,8 +254,8 @@ AUI.add(
 
 						var drag = event.target;
 
-						var proxyNode = drag.get(DRAG_NODE);
 						var node = drag.get(NODE);
+						var proxyNode = drag.get(DRAG_NODE);
 
 						var clone = proxyNode.get('firstChild');
 
@@ -283,16 +314,51 @@ AUI.add(
 						instance._reloadData();
 					},
 
-					_bindCloseEvent: function(contextPanel) {
+					_checkAllTags: function(event) {
 						var instance = this;
 
-						contextPanel.get('boundingBox').on('key', contextPanel.hide, 'up:27', contextPanel);
-					},
-
-					_checkAllTags: function(event) {
 						var currentCheckedStatus = event.currentTarget.attr('checked');
 
-						A.all('.tag-item-check').attr('checked', currentCheckedStatus);
+						var tagItemChecks = instance._tagsList.all('.tag-item-check');
+
+						tagItemChecks.each(
+							function(item, index, collection) {
+								var checked = item.attr('checked');
+
+								if (currentCheckedStatus && !checked) {
+									instance._stageTagItem(item);
+								}
+								else if (!currentCheckedStatus && checked) {
+									instance._removeStagedTagItem(item);
+								}
+							}
+						);
+
+						tagItemChecks.attr('checked', currentCheckedStatus);
+					},
+
+					_checkStagedTags: function() {
+						var instance = this;
+
+						instance._getStagedTags().each(
+							function(item, index, collection) {
+								instance._checkTag(item, true);
+							}
+						);
+					},
+
+					_checkTag: function(node, checked) {
+						var instance = this;
+
+						var tagId = node.attr('data-fieldValues');
+
+						var tagCheck = instance._getTagCheck(tagId);
+
+						if (tagCheck) {
+							tagCheck.attr('checked', checked);
+						}
+
+						Liferay.Util.checkAllBox(instance._tagsList, 'tag-item-check', '#' + instance._prefixedPortletId + 'checkAllTagsCheckbox');
 					},
 
 					_createTagPanelAdd: function() {
@@ -309,8 +375,6 @@ AUI.add(
 						);
 
 						tagPanelAdd.hide();
-
-						instance._bindCloseEvent(tagPanelAdd);
 
 						instance._tagPanelAdd = tagPanelAdd;
 
@@ -332,8 +396,6 @@ AUI.add(
 
 						instance._tagPanelEdit.hide();
 
-						instance._bindCloseEvent(instance._tagPanelEdit);
-
 						instance._tagPanelEdit.after(
 							'visibleChange',
 							function(event) {
@@ -341,11 +403,30 @@ AUI.add(
 									var body = instance._tagPanelEdit.getStdModNode(A.WidgetStdMod.BODY);
 
 									body.empty();
+
+									var editTagMessagesNode = A.one('#' + instance._prefixedPortletId + 'editPanelTagMessages');
+
+									if (editTagMessagesNode) {
+										instance._hideMessage(editTagMessagesNode);
+									}
 								}
 							}
 						);
 
 						return instance._tagPanelEdit;
+					},
+
+					_createTagPanelMessage: function(panel) {
+						var instance = this;
+
+						var tplValues = {
+							namespace: instance._prefixedPortletId,
+							panel: panel
+						};
+
+						var tagPanelMessageTpl = Lang.sub(TPL_TAG_PANEL_MESSAGES, tplValues);
+
+						return Node.create(tagPanelMessageTpl);
 					},
 
 					_createTagPanelPermissions: function() {
@@ -385,6 +466,10 @@ AUI.add(
 							}
 						);
 
+						if (Liferay.Form.Placeholders) {
+							tagsSearch.sendRequest('');
+						}
+
 						tagsSearch.after(
 							'query',
 							function(event) {
@@ -406,11 +491,13 @@ AUI.add(
 
 						var url;
 
+						var config = instance._config;
+
 						if (lifecycle == LIFECYCLE_RENDER) {
-							url = Liferay.PortletURL.createRenderURL();
+							url = Liferay.PortletURL.createURL(config.baseRenderURL);
 						}
 						else if (lifecycle == LIFECYCLE_PROCESS) {
-							url = Liferay.PortletURL.createActionURL();
+							url = Liferay.PortletURL.createURL(config.baseActionURL);
 						}
 						else {
 							throw 'Internal error. Unimplemented lifecycle.';
@@ -451,11 +538,11 @@ AUI.add(
 					_deleteSelectedTags: function(event) {
 						var instance = this;
 
-						var tagsNodes = A.all('.tag-item-check:checked');
+						var tagsNodes = instance._getStagedTags();
 
 						if (tagsNodes.size() > 0) {
 							if (confirm(Liferay.Language.get('are-you-sure-you-want-to-delete-the-selected-tags'))) {
-								var checkedItemsIds = tagsNodes.attr('data-tagId');
+								var checkedItemsIds = tagsNodes.attr('data-fieldValues');
 
 								if (checkedItemsIds.length > 0) {
 									Liferay.Service(
@@ -485,12 +572,10 @@ AUI.add(
 						);
 					},
 
-					_displayTagData: function(tagId) {
+					_displayTagData: function() {
 						var instance = this;
 
-						tagId = tagId || instance._selectedTagId;
-
-						if (tagId) {
+						if (instance._selectedTagId) {
 							var tagURL = instance._createURL(ACTION_VIEW, LIFECYCLE_RENDER);
 
 							var ioDetails = instance._getIOTagDetails();
@@ -513,7 +598,11 @@ AUI.add(
 							function(result) {
 								loadingMask.hide();
 
-								instance._prepareTags(result.tags, callback);
+								var tags = result.tags || [];
+
+								instance._prepareTags(tags, callback);
+
+								instance._checkStagedTags();
 							}
 						);
 					},
@@ -595,13 +684,13 @@ AUI.add(
 									autoLoad: false,
 									dataType: 'json',
 									on: {
+										failure: function(event, id, obj) {
+											instance._onTagUpdateFailure(obj);
+										},
 										success: function(event, id, obj) {
 											var response = this.get('responseData');
 
 											instance._onTagUpdateSuccess(response);
-										},
-										failure: function(event, id, obj) {
-											instance._onTagUpdateFailure(obj);
 										}
 									}
 								}
@@ -643,10 +732,28 @@ AUI.add(
 						return ioTagDetails;
 					},
 
+					_getStagedTag: function(tagId) {
+						var instance = this;
+
+						return instance._stagedTagsList.one('.lfr-token[data-fieldValues="' + tagId + '"]');
+					},
+
+					_getStagedTags: function() {
+						var instance = this;
+
+						return instance._stagedTagsList.all('.lfr-token');
+					},
+
 					_getTag: function(tagId) {
 						var instance = this;
 
 						return instance._tagsList.one('li[data-tagId="' + tagId + '"]');
+					},
+
+					_getTagCheck: function(tagId) {
+						var instance = this;
+
+						return instance._tagsList.one('.tag-item-check[data-tagId="' + tagId + '"]');
 					},
 
 					_getTagId: function(expr) {
@@ -719,19 +826,20 @@ AUI.add(
 					_getTagsPaginationMap: function() {
 						var instance = this;
 
+						var namespace = instance._prefixedPortletId;
 						var paginationMap = instance._paginationMap;
 
 						if (!paginationMap) {
 							paginationMap = {
 								page: {
-									historyEntry: instance._prefixedPortletId + 'page',
 									defaultValue: 1,
-									formatter: Number
+									formatter: Number,
+									historyEntry: namespace + 'page'
 								},
 								tagsPerPage: {
-									historyEntry: instance._prefixedPortletId + 'tagsPerPage',
 									defaultValue: instance._config.tagsPerPage,
-									formatter: Number
+									formatter: Number,
+									historyEntry: namespace + 'tagsPerPage'
 								}
 							};
 
@@ -814,8 +922,6 @@ AUI.add(
 								'button'
 							);
 
-							instance._bindCloseEvent(tagPanelMerge);
-
 							var contentBox = tagPanelMerge.get('contentBox');
 
 							var targetTagsList = contentBox.one('#' + namespace + 'targetTagsList');
@@ -842,15 +948,13 @@ AUI.add(
 
 						var currentPage = 0;
 
-						var query = instance._tagsSearch.get('query');
-
 						if (!instance._restartSearch) {
 							currentPage = pagination.get('page');
 
 							if (!currentPage) {
 								var paginationMap = instance._getTagsPaginationMap();
 
-								currentPage = paginationMap['page'].defaultValue;
+								currentPage = paginationMap.page.defaultValue;
 							}
 
 							currentPage -= 1;
@@ -862,10 +966,10 @@ AUI.add(
 						Liferay.Service(
 							'/assettag/get-json-group-tags',
 							{
+								end: end,
 								groupId: themeDisplay.getSiteGroupId(),
-								name: query,
-								start: start,
-								end: end
+								name: instance._tagsSearch.get('query'),
+								start: start
 							},
 							function(result) {
 								var total = result.total;
@@ -891,6 +995,10 @@ AUI.add(
 
 						var tagFormAdd = tagPanelAdd.get('contentBox').one('form.update-tag-form');
 
+						var tagPanelMessage = instance._createTagPanelMessage(ADD_PANEL);
+
+						tagFormAdd.prepend(tagPanelMessage);
+
 						tagFormAdd.detach(EVENT_SUBMIT);
 
 						tagFormAdd.on(EVENT_SUBMIT, instance._onTagFormSubmit, instance, tagFormAdd);
@@ -915,6 +1023,12 @@ AUI.add(
 									}
 
 									instance._resetTagsProperties(event);
+
+									var addTagMessagesNode = A.one('#' + instance._prefixedPortletId + 'addPanelTagMessages');
+
+									if (addTagMessagesNode) {
+										instance._hideMessage(addTagMessagesNode);
+									}
 								}
 							}
 						);
@@ -932,6 +1046,10 @@ AUI.add(
 						var tagPanelEdit = instance._tagPanelEdit;
 
 						var tagFormEdit = tagPanelEdit.get('contentBox').one('form.update-tag-form');
+
+						var tagPanelMessage = instance._createTagPanelMessage(EDIT_PANEL);
+
+						tagFormEdit.prepend(tagPanelMessage);
 
 						tagFormEdit.detach(EVENT_SUBMIT);
 
@@ -967,6 +1085,14 @@ AUI.add(
 						var instance = this;
 
 						instance._container.all('.lfr-message-response').hide();
+					},
+
+					_hideMessage: function(container) {
+						var instance = this;
+
+						container = container || instance._portletMessageContainer;
+
+						container.hide();
 					},
 
 					_hidePanels: function() {
@@ -1037,6 +1163,10 @@ AUI.add(
 									node.remove();
 
 									instance._selectTag(toTagId);
+
+									if (instance._getStagedTag(fromTagId)) {
+										instance._removeStagedTagItem(node);
+									}
 								}
 							);
 						}
@@ -1045,11 +1175,11 @@ AUI.add(
 					_mergeSelectedTags: function(event) {
 						var instance = this;
 
-						var selectedTagsNodes = A.all('.tag-item-check:checked');
+						var selectedTagsNodes = instance._getStagedTags();
 
 						if (selectedTagsNodes.size() > 1) {
-							var checkedItemsIds = selectedTagsNodes.attr('data-tagId');
-							var checkedItemsName = selectedTagsNodes.attr('data-tagName');
+							var checkedItemsIds = selectedTagsNodes.attr('data-fieldValues');
+							var checkedItemsName = selectedTagsNodes.attr('data-clearFields');
 
 							var tagPanelMerge = instance._getTagPanelMerge();
 
@@ -1062,14 +1192,13 @@ AUI.add(
 							selectedTagsNodes.each(
 								function(item, index, collection) {
 									var name = checkedItemsName[index];
-									var value = checkedItemsIds[index];
 
 									var listItem = Lang.sub(
 										TPL_TAG_MERGE_ITEM,
 										{
 											name: name,
 											title: name,
-											value: value
+											value: checkedItemsIds[index]
 										}
 									);
 
@@ -1103,8 +1232,8 @@ AUI.add(
 							'/assettag/merge-tags',
 							{
 								fromTagIds: fromIds,
-								toTagId: toId,
-								overrideProperties: overrideProperties
+								overrideProperties: overrideProperties,
+								toTagId: toId
 							},
 							callback
 						);
@@ -1115,8 +1244,8 @@ AUI.add(
 							'/assettag/merge-tags',
 							{
 								fromTagId: fromId,
-								toTagId: toId,
-								overrideProperties: true
+								overrideProperties: true,
+								toTagId: toId
 							},
 							callback
 						);
@@ -1216,6 +1345,8 @@ AUI.add(
 
 						if (target.hasClass('tag-item-check')) {
 							Liferay.Util.checkAllBox(event.currentTarget, 'tag-item-check', '#' + instance._prefixedPortletId + 'checkAllTagsCheckbox');
+
+							instance._toggleStagedTagItem(target);
 						}
 						else if (target.hasClass('tag-item-actions-trigger')) {
 							instance._onShowTagPanel(event, ACTION_EDIT);
@@ -1233,9 +1364,8 @@ AUI.add(
 					_onTagMergeClick: function(event) {
 						var instance = this;
 
-						var selectedList = instance._selectedTagsList;
-
 						var namespace = instance._prefixedPortletId;
+						var selectedList = instance._selectedTagsList;
 
 						var mergeOnlySelected = A.one('#' + namespace + 'mergeOnlySelectedTags').get('checked');
 
@@ -1244,11 +1374,9 @@ AUI.add(
 						if (tags.size() > 0) {
 							var targetTag = instance._targetTagsList.one(':selected');
 
-							var targetTagName = targetTag.text();
-
 							var mergeText = Liferay.Language.get('are-you-sure-you-want-to-merge-the-chosen-tags-into-x');
 
-							mergeText = Lang.sub(mergeText, [targetTagName]);
+							mergeText = Lang.sub(mergeText, [targetTag.text()]);
 
 							if (confirm(mergeText)) {
 								var tagsIds = tags.val();
@@ -1272,7 +1400,9 @@ AUI.add(
 					_onTagUpdateFailure: function(response) {
 						var instance = this;
 
-						instance._sendMessage(MESSAGE_TYPE_ERROR, Liferay.Language.get('your-request-failed-to-complete'));
+						var containerSelector = '#' + instance._prefixedPortletId + instance._currentPanel + TAG_MESSAGES;
+
+						instance._sendMessage(MESSAGE_TYPE_ERROR, Liferay.Language.get('your-request-failed-to-complete'), true, containerSelector);
 					},
 
 					_onTagUpdateSuccess: function(response) {
@@ -1317,7 +1447,9 @@ AUI.add(
 								errorText = Liferay.Language.get('your-request-failed-to-complete');
 							}
 
-							instance._sendMessage(MESSAGE_TYPE_ERROR, errorText, autoHide);
+							var containerSelector = '#' + instance._prefixedPortletId + instance._currentPanel + TAG_MESSAGES;
+
+							instance._sendMessage(MESSAGE_TYPE_ERROR, errorText, autoHide, containerSelector);
 						}
 					},
 
@@ -1417,6 +1549,10 @@ AUI.add(
 							instance._sendMessage(MESSAGE_TYPE_SUCCESS, Liferay.Language.get('your-request-processed-successfully'));
 
 							instance._hidePanels();
+
+							instance._stagedTagsList.empty();
+							instance._stagedTagsWrapper.hide();
+
 							instance._loadData();
 						}
 						else {
@@ -1441,19 +1577,30 @@ AUI.add(
 						instance._displayTags();
 					},
 
+					_removeStagedTagItem: function(tagItem) {
+						var instance = this;
+
+						var tagId = instance._getTagId(tagItem);
+
+						var selectedTag = instance._getStagedTag(tagId);
+
+						selectedTag.remove();
+
+						instance._toggleStagedTagsWrapper();
+					},
+
 					_resetTagsProperties: function(event) {
 						var instance = this;
 
-						var contextPanel = event.currentTarget;
-						var boundingBox = contextPanel.get('boundingBox');
+						var boundingBox = event.currentTarget.get('boundingBox');
 
-						var namespace = instance._prefixedPortletId;
+						var propertiesTrigger = boundingBox.one('#' + instance._prefixedPortletId + 'tagProperties');
 
-						var propertiesTrigger = boundingBox.one('fieldset#' + namespace + 'tagProperties');
+						if (propertiesTrigger) {
+							var autoFieldsInstance = propertiesTrigger.getData('autoFieldsInstance');
 
-						var autoFieldsInstance = propertiesTrigger.getData('autoFieldsInstance');
-
-						autoFieldsInstance.reset();
+							autoFieldsInstance.reset();
+						}
 					},
 
 					_selectTag: function(tagId) {
@@ -1469,6 +1616,7 @@ AUI.add(
 							}
 
 							instance._hideAllMessages();
+
 							instance._selectedTagName = tagName;
 							instance._selectedTagId = tagId;
 
@@ -1482,19 +1630,23 @@ AUI.add(
 						return tag;
 					},
 
-					_sendMessage: function(type, message, autoHide) {
+					_sendMessage: function(type, message, autoHide, container) {
 						var instance = this;
 
-						var output = instance._portletMessageContainer;
+						var output = A.one(container || instance._portletMessageContainer);
 
-						output.removeClass('alert-error').removeClass('alert-success');
-						output.addClass('alert alert-' + type);
+						var typeClass = 'alert-' + type;
+
+						output.removeClass(CSS_MESSAGE_ERROR).removeClass(CSS_MESSAGE_SUCCESS);
+
+						output.addClass(typeClass);
+
 						output.html(message);
 
 						output.show();
 
 						if (autoHide !== false) {
-							instance._hideMessageTask();
+							instance._hideMessageTask(output);
 						}
 					},
 
@@ -1537,10 +1689,10 @@ AUI.add(
 							tagPanelAdd.plug(
 								A.Plugin.IO,
 								{
-									uri: tagURL.toString(),
 									after: {
 										success: afterSuccess
-									}
+									},
+									uri: tagURL.toString()
 								}
 							);
 						}
@@ -1551,6 +1703,8 @@ AUI.add(
 
 							instance._focusTagPanelAdd();
 						}
+
+						instance._currentPanel = ADD_PANEL;
 					},
 
 					_showTagPanelEdit: function() {
@@ -1586,6 +1740,51 @@ AUI.add(
 						if (forceStart) {
 							tagPanelEdit.io.start();
 						}
+
+						instance._currentPanel = EDIT_PANEL;
+					},
+
+					_stageTagItem: function(tagItem) {
+						var instance = this;
+
+						var tagId = instance._getTagId(tagItem);
+
+						var tagName = instance._getTagName(tagItem.ancestor('li'));
+
+						instance._tokenList.add(
+							{
+								clearFields: tagName,
+								fieldValues: tagId,
+								text: tagName
+							}
+						);
+
+						setTimeout(
+							function() {
+								instance._toggleStagedTagsWrapper();
+							},
+							100
+						);
+					},
+
+					_toggleStagedTagItem: function(tagItem) {
+						var instance = this;
+
+						if (tagItem.attr('checked')) {
+							instance._stageTagItem(tagItem);
+						}
+						else {
+							instance._removeStagedTagItem(tagItem);
+						}
+					},
+
+					_toggleStagedTagsWrapper: function() {
+						var instance = this;
+
+						var hasTags = !!instance._getStagedTags().size();
+
+						instance._stagedTagsWrapper.toggle(hasTags);
+						instance._tagsActionsButton.toggle(hasTags);
 					},
 
 					_updateMergeItemsTarget: function() {
@@ -1597,8 +1796,6 @@ AUI.add(
 						var selectetTargeTagIndex = targetTagsList.get('selectedIndex');
 
 						var targetTag = targetTagsList.get('options').item(selectetTargeTagIndex);
-
-						var targetTagId = targetTag.val();
 
 						var previousTagData = instance._previousTagData;
 
@@ -1620,7 +1817,7 @@ AUI.add(
 							previousTagData = null;
 						}
 
-						var selectedTag = selectedTagsList.one('[value=' + targetTagId + ']');
+						var selectedTag = selectedTagsList.one('[value=' + targetTag.val() + ']');
 
 						if (selectedTag) {
 							previousTagData = {
@@ -1675,6 +1872,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-button', 'aui-dialog-iframe-deprecated', 'aui-io-plugin-deprecated', 'aui-loading-mask-deprecated', 'aui-pagination', 'autocomplete-base', 'aui-tree-view', 'dd', 'json', 'liferay-history-manager', 'liferay-portlet-url', 'liferay-util-window']
+		requires: ['aui-button', 'aui-dialog-iframe-deprecated', 'aui-io-plugin-deprecated', 'aui-loading-mask-deprecated', 'aui-pagination', 'aui-tree-view', 'autocomplete-base', 'dd', 'json', 'liferay-form','liferay-history-manager', 'liferay-portlet-url', 'liferay-token-list', 'liferay-util-window']
 	}
 );

@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.mobiledevicerules.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MDRRuleGroup}.
  * </p>
  *
- * @author    Edward C. Han
- * @see       MDRRuleGroup
+ * @author Edward C. Han
+ * @see MDRRuleGroup
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupWrapper implements MDRRuleGroup,
 	ModelWrapper<MDRRuleGroup> {
 	public MDRRuleGroupWrapper(MDRRuleGroup mdrRuleGroup) {
@@ -669,6 +674,22 @@ public class MDRRuleGroupWrapper implements MDRRuleGroup,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _mdrRuleGroup.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _mdrRuleGroup.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_mdrRuleGroup.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -728,9 +749,34 @@ public class MDRRuleGroupWrapper implements MDRRuleGroup,
 		return _mdrRuleGroup.getRules();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MDRRuleGroupWrapper)) {
+			return false;
+		}
+
+		MDRRuleGroupWrapper mdrRuleGroupWrapper = (MDRRuleGroupWrapper)obj;
+
+		if (Validator.equals(_mdrRuleGroup, mdrRuleGroupWrapper._mdrRuleGroup)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mdrRuleGroup.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MDRRuleGroup getWrappedMDRRuleGroup() {
 		return _mdrRuleGroup;
 	}
@@ -738,6 +784,16 @@ public class MDRRuleGroupWrapper implements MDRRuleGroup,
 	@Override
 	public MDRRuleGroup getWrappedModel() {
 		return _mdrRuleGroup;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mdrRuleGroup.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mdrRuleGroup.isFinderCacheEnabled();
 	}
 
 	@Override

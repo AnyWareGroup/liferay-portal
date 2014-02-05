@@ -46,8 +46,8 @@ public class UpdateLicenseAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		// PLACEHOLDER 01
@@ -84,14 +84,12 @@ public class UpdateLicenseAction extends Action {
 				return null;
 			}
 
-			return mapping.findForward("portal.license");
+			return actionMapping.findForward("portal.license");
 		}
-		else {
-			response.sendRedirect(
-				PortalUtil.getPathContext() + "/c/portal/layout");
 
-			return null;
-		}
+		response.sendRedirect(PortalUtil.getPathContext() + "/c/portal/layout");
+
+		return null;
 	}
 
 	private String _getLicenseProperties(String clusterNodeId) {

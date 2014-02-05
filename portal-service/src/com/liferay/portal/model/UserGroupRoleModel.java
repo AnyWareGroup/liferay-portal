@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.persistence.UserGroupRolePK;
@@ -35,7 +37,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.UserGroupRoleModelImpl
  * @generated
  */
-public interface UserGroupRoleModel extends BaseModel<UserGroupRole> {
+@ProviderType
+public interface UserGroupRoleModel extends BaseModel<UserGroupRole>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -55,6 +58,22 @@ public interface UserGroupRoleModel extends BaseModel<UserGroupRole> {
 	 * @param primaryKey the primary key of this user group role
 	 */
 	public void setPrimaryKey(UserGroupRolePK primaryKey);
+
+	/**
+	 * Returns the mvcc version of this user group role.
+	 *
+	 * @return the mvcc version of this user group role
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user group role.
+	 *
+	 * @param mvccVersion the mvcc version of this user group role
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the user ID of this user group role.

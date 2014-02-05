@@ -40,18 +40,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.powermock.api.mockito.PowerMockito;
-
 /**
  * @author Shuyang Zhou
  * @author Mate Thurzo
  */
 @ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
-public class IndexAccessorImplTest extends PowerMockito {
+public class IndexAccessorImplTest {
 
 	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
+	public static void tearDownClass() throws Exception {
 		System.gc();
 
 		String indexPath = PropsValues.LUCENE_DIR.concat(
@@ -239,6 +237,8 @@ public class IndexAccessorImplTest extends PowerMockito {
 		}
 
 		indexSearcher.close();
+
+		indexReader.close();
 	}
 
 	private void _deleteDocuments(String key) throws Exception {

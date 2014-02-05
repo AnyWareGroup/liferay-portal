@@ -21,9 +21,11 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -36,6 +38,9 @@ import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
+import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
+import com.liferay.portlet.asset.model.AssetRenderer;
+import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.social.service.SocialActivityLocalServiceUtil;
 import com.liferay.portlet.social.service.SocialActivitySetLocalServiceUtil;
 import com.liferay.portlet.social.service.persistence.SocialActivityUtil;
@@ -44,6 +49,7 @@ import com.liferay.portlet.trash.util.TrashUtil;
 import java.util.List;
 
 import javax.portlet.PortletURL;
+import javax.portlet.WindowState;
 
 /**
  * @author Brian Wing Shun Chan
@@ -55,6 +61,16 @@ public abstract class BaseSocialActivityInterpreter
 	@Override
 	public String getSelector() {
 		return StringPool.BLANK;
+	}
+
+	@Override
+	public boolean hasPermission(
+			PermissionChecker permissionChecker, SocialActivity activity,
+			String actionId, ServiceContext serviceContext)
+		throws Exception {
+
+		return hasPermissions(
+			permissionChecker, activity, actionId, serviceContext);
 	}
 
 	@Override
@@ -76,15 +92,7 @@ public abstract class BaseSocialActivityInterpreter
 		SocialActivitySet activitySet, ServiceContext serviceContext) {
 
 		try {
-			List<SocialActivity> activities =
-				SocialActivityLocalServiceUtil.getActivitySetActivities(
-					activitySet.getActivitySetId(), 0, 1);
-
-			if (!activities.isEmpty()) {
-				SocialActivity activity = activities.get(0);
-
-				return doInterpret(activity, serviceContext);
-			}
+			return doInterpret(activitySet, serviceContext);
 		}
 		catch (Exception e) {
 			_log.error("Unable to interpret activity set", e);
@@ -115,6 +123,22 @@ public abstract class BaseSocialActivityInterpreter
 		}
 	}
 
+	protected String addNoSuchEntryRedirect(
+			String url, String className, long classPK,
+			ServiceContext serviceContext)
+		throws Exception {
+
+		PortletURL portletURL = getViewEntryPortletURL(
+			className, classPK, serviceContext);
+
+		if (portletURL == null) {
+			return url;
+		}
+
+		return HttpUtil.setParameter(
+			url, "noSuchEntryRedirect", portletURL.toString());
+	}
+
 	protected String buildLink(String link, String text) {
 		StringBundler sb = new StringBundler(5);
 
@@ -130,6 +154,7 @@ public abstract class BaseSocialActivityInterpreter
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	protected String cleanContent(String content) {
 		return StringUtil.shorten(HtmlUtil.extractText(content), 200);
 	}
@@ -174,11 +199,29 @@ public abstract class BaseSocialActivityInterpreter
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	protected SocialActivityFeedEntry doInterpret(
 			SocialActivity activity, ThemeDisplay themeDisplay)
 		throws Exception {
 
 		return _deprecatedMarkerSocialActivityFeedEntry;
+	}
+
+	protected SocialActivityFeedEntry doInterpret(
+			SocialActivitySet activitySet, ServiceContext serviceContext)
+		throws Exception {
+
+		List<SocialActivity> activities =
+			SocialActivityLocalServiceUtil.getActivitySetActivities(
+				activitySet.getActivitySetId(), 0, 1);
+
+		if (!activities.isEmpty()) {
+			SocialActivity activity = activities.get(0);
+
+			return doInterpret(activity, serviceContext);
+		}
+
+		return null;
 	}
 
 	protected long getActivitySetId(long activityId) {
@@ -196,7 +239,7 @@ public abstract class BaseSocialActivityInterpreter
 			SocialActivity activity, ServiceContext serviceContext)
 		throws Exception {
 
-		return StringPool.BLANK;
+		return activity.getExtraDataValue("title", serviceContext.getLocale());
 	}
 
 	protected String getGroupName(long groupId, ServiceContext serviceContext) {
@@ -242,6 +285,7 @@ public abstract class BaseSocialActivityInterpreter
 	 * @deprecated As of 6.2.0, replaced by {@link #getGroupName(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	protected String getGroupName(long groupId, ThemeDisplay themeDisplay) {
 		try {
 			if (groupId <= 0) {
@@ -313,17 +357,15 @@ public abstract class BaseSocialActivityInterpreter
 			SocialActivity activity, ServiceContext serviceContext)
 		throws Exception {
 
-		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
-			activity.getClassName());
-
+		String className = activity.getClassName();
 		long classPK = activity.getClassPK();
 
-		if ((trashHandler != null) &&
-			(trashHandler.isInTrash(classPK) ||
-			 trashHandler.isInTrashContainer(classPK))) {
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			className);
 
+		if ((trashHandler != null) && trashHandler.isInTrash(classPK)) {
 			PortletURL portletURL = TrashUtil.getViewContentURL(
-				serviceContext.getRequest(), activity.getClassName(), classPK);
+				serviceContext.getRequest(), className, classPK);
 
 			if (portletURL == null) {
 				return null;
@@ -337,6 +379,8 @@ public abstract class BaseSocialActivityInterpreter
 		if (Validator.isNull(path)) {
 			return null;
 		}
+
+		path = addNoSuchEntryRedirect(path, className, classPK, serviceContext);
 
 		if (!path.startsWith(StringPool.SLASH)) {
 			return path;
@@ -433,6 +477,7 @@ public abstract class BaseSocialActivityInterpreter
 	 * @deprecated As of 6.2.0, replaced by {@link #getUserName(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	protected String getUserName(long userId, ThemeDisplay themeDisplay) {
 		try {
 			if (userId <= 0) {
@@ -470,8 +515,44 @@ public abstract class BaseSocialActivityInterpreter
 	 * @deprecated As of 6.2.0, replaced by {@link #getJSONValue(String, String,
 	 *             String)}
 	 */
+	@Deprecated
 	protected String getValue(String json, String key, String defaultValue) {
 		return getJSONValue(json, key, defaultValue);
+	}
+
+	protected PortletURL getViewEntryPortletURL(
+			String className, long classPK, ServiceContext serviceContext)
+		throws Exception {
+
+		AssetRendererFactory assetRendererFactory =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(
+				className);
+
+		if (assetRendererFactory == null) {
+			return null;
+		}
+
+		LiferayPortletResponse liferayPortletResponse =
+			serviceContext.getLiferayPortletResponse();
+
+		if (liferayPortletResponse == null) {
+			return null;
+		}
+
+		if (classPK == 0) {
+			return assetRendererFactory.getURLView(
+				liferayPortletResponse, WindowState.MAXIMIZED);
+		}
+
+		AssetRenderer assetRenderer = assetRendererFactory.getAssetRenderer(
+			classPK);
+
+		if (assetRenderer == null) {
+			return null;
+		}
+
+		return assetRenderer.getURLView(
+			liferayPortletResponse, WindowState.MAXIMIZED);
 	}
 
 	protected boolean hasPermissions(

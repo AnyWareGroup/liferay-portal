@@ -57,6 +57,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	 */
 	public static final String TABLE_NAME = "Release_";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "releaseId", Types.BIGINT },
 			{ "createDate", Types.TIMESTAMP },
 			{ "modifiedDate", Types.TIMESTAMP },
@@ -67,7 +68,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 			{ "state_", Types.INTEGER },
 			{ "testString", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Release_ (releaseId LONG not null primary key,createDate DATE null,modifiedDate DATE null,servletContextName VARCHAR(75) null,buildNumber INTEGER,buildDate DATE null,verified BOOLEAN,state_ INTEGER,testString VARCHAR(1024) null)";
+	public static final String TABLE_SQL_CREATE = "create table Release_ (mvccVersion LONG default 0,releaseId LONG not null primary key,createDate DATE null,modifiedDate DATE null,servletContextName VARCHAR(75) null,buildNumber INTEGER,buildDate DATE null,verified BOOLEAN,state_ INTEGER,testString VARCHAR(1024) null)";
 	public static final String TABLE_SQL_DROP = "drop table Release_";
 	public static final String ORDER_BY_JPQL = " ORDER BY release.releaseId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Release_.releaseId ASC";
@@ -125,6 +126,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("releaseId", getReleaseId());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
@@ -135,11 +137,20 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		attributes.put("state", getState());
 		attributes.put("testString", getTestString());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long releaseId = (Long)attributes.get("releaseId");
 
 		if (releaseId != null) {
@@ -193,6 +204,16 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 		if (testString != null) {
 			setTestString(testString);
 		}
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -341,6 +362,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	public Object clone() {
 		ReleaseImpl releaseImpl = new ReleaseImpl();
 
+		releaseImpl.setMvccVersion(getMvccVersion());
 		releaseImpl.setReleaseId(getReleaseId());
 		releaseImpl.setCreateDate(getCreateDate());
 		releaseImpl.setModifiedDate(getModifiedDate());
@@ -399,6 +421,16 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		ReleaseModelImpl releaseModelImpl = this;
 
@@ -410,6 +442,8 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	@Override
 	public CacheModel<Release> toCacheModel() {
 		ReleaseCacheModel releaseCacheModel = new ReleaseCacheModel();
+
+		releaseCacheModel.mvccVersion = getMvccVersion();
 
 		releaseCacheModel.releaseId = getReleaseId();
 
@@ -467,9 +501,11 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{releaseId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", releaseId=");
 		sb.append(getReleaseId());
 		sb.append(", createDate=");
 		sb.append(getCreateDate());
@@ -494,12 +530,16 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(34);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Release");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>releaseId</column-name><column-value><![CDATA[");
 		sb.append(getReleaseId());
@@ -546,6 +586,7 @@ public class ReleaseModelImpl extends BaseModelImpl<Release>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Release.class
 		};
+	private long _mvccVersion;
 	private long _releaseId;
 	private Date _createDate;
 	private Date _modifiedDate;

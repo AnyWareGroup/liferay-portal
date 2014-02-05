@@ -348,6 +348,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUserId(userId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PasswordTracker> list = findByUserId(userId, count - 1, count,
 				orderByComparator);
 
@@ -572,6 +576,10 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 	}
 
 	private static final String _FINDER_COLUMN_USERID_USERID_2 = "passwordTracker.userId = ?";
+
+	public PasswordTrackerPersistenceImpl() {
+		setModelClass(PasswordTracker.class);
+	}
 
 	/**
 	 * Caches the password tracker in the entity cache if it is enabled.
@@ -816,7 +824,9 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 
 		EntityCacheUtil.putResult(PasswordTrackerModelImpl.ENTITY_CACHE_ENABLED,
 			PasswordTrackerImpl.class, passwordTracker.getPrimaryKey(),
-			passwordTracker);
+			passwordTracker, false);
+
+		passwordTracker.resetOriginalValues();
 
 		return passwordTracker;
 	}
@@ -831,6 +841,7 @@ public class PasswordTrackerPersistenceImpl extends BasePersistenceImpl<Password
 		passwordTrackerImpl.setNew(passwordTracker.isNew());
 		passwordTrackerImpl.setPrimaryKey(passwordTracker.getPrimaryKey());
 
+		passwordTrackerImpl.setMvccVersion(passwordTracker.getMvccVersion());
 		passwordTrackerImpl.setPasswordTrackerId(passwordTracker.getPasswordTrackerId());
 		passwordTrackerImpl.setUserId(passwordTracker.getUserId());
 		passwordTrackerImpl.setCreateDate(passwordTracker.getCreateDate());

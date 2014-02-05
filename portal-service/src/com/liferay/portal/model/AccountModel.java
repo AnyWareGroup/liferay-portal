@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.AccountModelImpl
  * @generated
  */
-public interface AccountModel extends AuditedModel, BaseModel<Account> {
+@ProviderType
+public interface AccountModel extends AuditedModel, BaseModel<Account>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +60,22 @@ public interface AccountModel extends AuditedModel, BaseModel<Account> {
 	 * @param primaryKey the primary key of this account
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this account.
+	 *
+	 * @return the mvcc version of this account
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this account.
+	 *
+	 * @param mvccVersion the mvcc version of this account
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the account ID of this account.

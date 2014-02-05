@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
 import com.liferay.portal.spring.hibernate.PortletHibernateConfiguration;
@@ -41,16 +42,6 @@ import org.hibernate.SessionFactory;
  */
 public class PortletSessionFactoryImpl extends SessionFactoryImpl {
 
-	public void afterPropertiesSet() {
-		if (_dataSource == InfrastructureUtil.getDataSource()) {
-
-			// Register only if the current session factory is using the portal
-			// data source
-
-			portletSessionFactories.add(this);
-		}
-	}
-
 	@Override
 	public void closeSession(Session session) throws ORMException {
 		if (session != null) {
@@ -59,24 +50,6 @@ public class PortletSessionFactoryImpl extends SessionFactoryImpl {
 			if (!PropsValues.SPRING_HIBERNATE_SESSION_DELEGATED) {
 				session.close();
 			}
-		}
-	}
-
-	@Override
-	public void destroy() {
-		portletSessionFactories.remove(this);
-	}
-
-	public DataSource getDataSource() {
-		ShardDataSourceTargetSource shardDataSourceTargetSource =
-			(ShardDataSourceTargetSource)
-				InfrastructureUtil.getShardDataSourceTargetSource();
-
-		if (shardDataSourceTargetSource != null) {
-			return shardDataSourceTargetSource.getDataSource();
-		}
-		else {
-			return _dataSource;
 		}
 	}
 
@@ -117,6 +90,19 @@ public class PortletSessionFactoryImpl extends SessionFactoryImpl {
 		_dataSource = dataSource;
 	}
 
+	protected DataSource getDataSource() {
+		ShardDataSourceTargetSource shardDataSourceTargetSource =
+			(ShardDataSourceTargetSource)
+				InfrastructureUtil.getShardDataSourceTargetSource();
+
+		if (shardDataSourceTargetSource != null) {
+			return shardDataSourceTargetSource.getDataSource();
+		}
+		else {
+			return _dataSource;
+		}
+	}
+
 	protected SessionFactory getSessionFactory() {
 		ShardDataSourceTargetSource shardDataSourceTargetSource =
 			(ShardDataSourceTargetSource)
@@ -134,12 +120,15 @@ public class PortletSessionFactoryImpl extends SessionFactoryImpl {
 			return sessionFactory;
 		}
 
-		ClassLoader classLoader = PortletClassLoaderUtil.getClassLoader();
+		String servletContextName =
+			PortletClassLoaderUtil.getServletContextName();
+
+		ClassLoader classLoader = getSessionFactoryClassLoader();
+
+		PortletClassLoaderUtil.setServletContextName(
+			ClassLoaderPool.getContextName(classLoader));
 
 		try {
-			PortletClassLoaderUtil.setClassLoader(
-				getSessionFactoryClassLoader());
-
 			PortletHibernateConfiguration portletHibernateConfiguration =
 				new PortletHibernateConfiguration();
 
@@ -160,13 +149,13 @@ public class PortletSessionFactoryImpl extends SessionFactoryImpl {
 			return sessionFactory;
 		}
 		finally {
-			PortletClassLoaderUtil.setClassLoader(classLoader);
+			PortletClassLoaderUtil.setServletContextName(servletContextName);
 		}
 	}
 
 	@Override
 	protected Session wrapSession(org.hibernate.Session session) {
-		return DoPrivilegedUtil.wrap(super.wrapSession(session), true);
+		return DoPrivilegedUtil.wrapWhenActive(super.wrapSession(session));
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(

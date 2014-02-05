@@ -49,6 +49,7 @@ AUI.add(
 					{
 						dialog: {
 							bodyContent: form,
+							height: 420,
 							toolbars: {
 								footer: [
 									{
@@ -63,14 +64,15 @@ AUI.add(
 										label: Liferay.Language.get('cancel'),
 										on: {
 											click: function() {
-												this.close();
+												dialog.hide();
 											}
 										}
 									}
 								]
-							}
+							},
+							width: 350
 						},
-						title: title
+						title: Liferay.Util.escapeHTML(title)
 					}
 				);
 			}

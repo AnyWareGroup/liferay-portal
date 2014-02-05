@@ -39,6 +39,20 @@ public class IndexWriterProxyBean extends BaseMultiDestinationProxyBean
 	}
 
 	@Override
+	public void clearQuerySuggestionDictionaryIndexes(
+		SearchContext searchContext) {
+
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void clearSpellCheckerDictionaryIndexes(
+		SearchContext searchContext) {
+
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
 	public void deleteDocument(SearchContext searchContext, String uid) {
 		throw new UnsupportedOperationException();
 	}
@@ -69,12 +83,29 @@ public class IndexWriterProxyBean extends BaseMultiDestinationProxyBean
 	}
 
 	@Override
-	public void indexDictionaries(SearchContext searchContext) {
+	public void indexKeyword(
+		SearchContext searchContext, float weight, String keywordType) {
+
 		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public void indexDictionary(SearchContext searchContext) {
+	public void indexQuerySuggestionDictionaries(SearchContext searchContext) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void indexQuerySuggestionDictionary(SearchContext searchContext) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void indexSpellCheckerDictionaries(SearchContext searchContext) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void indexSpellCheckerDictionary(SearchContext searchContext) {
 		throw new UnsupportedOperationException();
 	}
 

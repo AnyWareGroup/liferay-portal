@@ -27,6 +27,8 @@ Group group = (Group)request.getAttribute(WebKeys.GROUP);
 
 long groupId = BeanParamUtil.getLong(group, request, "groupId");
 
+long parentGroupId = ParamUtil.getLong(request, "parentGroupSearchContainerPrimaryKeys", GroupConstants.DEFAULT_PARENT_GROUP_ID);
+
 Group liveGroup = null;
 
 long liveGroupId = 0;
@@ -113,36 +115,67 @@ if ((group != null) && group.isCompany()) {
 	advancedSections = ArrayUtil.remove(advancedSections, "default-user-associations");
 	advancedSections = ArrayUtil.remove(advancedSections, "analytics");
 	advancedSections = ArrayUtil.remove(advancedSections, "content-sharing");
+
+	miscellaneousSections = new String[0];
+}
+
+if ((group != null) && group.hasLocalOrRemoteStagingGroup()) {
+	advancedSections = ArrayUtil.remove(advancedSections, "staging");
 }
 
 String[][] categorySections = {mainSections, seoSections, advancedSections, miscellaneousSections};
 %>
 
-<liferay-util:include page="/html/portlet/sites_admin/toolbar.jsp">
-	<liferay-util:param name="toolbarItem" value='<%= (group == null) ? "add" : "browse" %>' />
-</liferay-util:include>
+<c:if test="<%= !portletName.equals(PortletKeys.SITE_SETTINGS) %>">
 
-<%
-boolean localizeTitle = true;
-String title = "new-site";
+	<%
+	if (group != null) {
+		PortalUtil.addPortletBreadcrumbEntry(request, group.getDescriptiveName(locale), null);
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	}
+	else if (parentGroupId != GroupConstants.DEFAULT_PARENT_GROUP_ID) {
+		Group parentGroup = GroupLocalServiceUtil.getGroup(parentGroupId);
 
-if (group != null) {
-	localizeTitle= false;
-	title = group.getDescriptiveName(locale);
-}
-else if (layoutSetPrototype != null) {
-	localizeTitle= false;
-	title = layoutSetPrototype.getName(locale);
-}
-%>
+		PortalUtil.addPortletBreadcrumbEntry(request, parentGroup.getDescriptiveName(locale), null);
+	}
+	%>
 
-<liferay-ui:header
-	backURL="<%= backURL %>"
-	escapeXml="<%= false %>"
-	localizeTitle="<%= localizeTitle %>"
-	showBackURL="<%= showBackURL %>"
-	title="<%= HtmlUtil.escape(title) %>"
-/>
+</c:if>
+
+<c:if test="<%= (group == null) || !layout.isTypeControlPanel() %>">
+
+	<%
+	boolean localizeTitle = true;
+	String title = "new-site";
+
+	if (group != null) {
+		localizeTitle= false;
+		title = group.getDescriptiveName(locale);
+	}
+	else if (layoutSetPrototype != null) {
+		localizeTitle= false;
+		title = layoutSetPrototype.getName(locale);
+	}
+	else if (parentGroupId != GroupConstants.DEFAULT_PARENT_GROUP_ID) {
+		title = "new-child-site";
+	%>
+
+		<div id="breadcrumb">
+			<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showCurrentPortlet="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
+		</div>
+
+	<%
+	}
+	%>
+
+	<liferay-ui:header
+		backURL="<%= backURL %>"
+		escapeXml="<%= false %>"
+		localizeTitle="<%= localizeTitle %>"
+		showBackURL="<%= showBackURL %>"
+		title="<%= HtmlUtil.escape(title) %>"
+	/>
+</c:if>
 
 <portlet:actionURL var="editSiteURL">
 	<portlet:param name="struts_action" value="/sites_admin/edit_site" />
@@ -150,7 +183,7 @@ else if (layoutSetPrototype != null) {
 
 <aui:form action="<%= editSiteURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveGroup();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
-	<aui:input name="redirect" type="hidden" />
+	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
 	<aui:input name="closeRedirect" type="hidden" value="<%= closeRedirect %>" />
 	<aui:input name="backURL" type="hidden" value="<%= backURL %>" />
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
@@ -206,25 +239,25 @@ else if (layoutSetPrototype != null) {
 				ok = false;
 
 				if (0 == currentValue) {
-					ok = confirm('<%= UnicodeLanguageUtil.format(pageContext, "are-you-sure-you-want-to-deactivate-staging-for-x", liveGroup.getDescriptiveName(locale)) %>');
+					ok = confirm('<%= UnicodeLanguageUtil.format(pageContext, "are-you-sure-you-want-to-deactivate-staging-for-x", liveGroup.getDescriptiveName(locale), false) %>');
 				}
 				else if (1 == currentValue) {
-					ok = confirm('<%= UnicodeLanguageUtil.format(pageContext, "are-you-sure-you-want-to-activate-local-staging-for-x", liveGroup.getDescriptiveName(locale)) %>');
+					ok = confirm('<%= UnicodeLanguageUtil.format(pageContext, "are-you-sure-you-want-to-activate-local-staging-for-x", liveGroup.getDescriptiveName(locale), false) %>');
 				}
 				else if (2 == currentValue) {
-					ok = confirm('<%= UnicodeLanguageUtil.format(pageContext, "are-you-sure-you-want-to-activate-remote-staging-for-x", liveGroup.getDescriptiveName(locale)) %>');
+					ok = confirm('<%= UnicodeLanguageUtil.format(pageContext, "are-you-sure-you-want-to-activate-remote-staging-for-x", liveGroup.getDescriptiveName(locale), false) %>');
 				}
 			}
 		</c:if>
 
 		if (ok) {
+			<c:if test="<%= (group != null) && !group.isCompany() %>">
+				<portlet:namespace />saveLocales();
+			</c:if>
+
 			submitForm(document.<portlet:namespace />fm);
 		}
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <aui:script use="aui-base">
@@ -257,16 +290,6 @@ else if (layoutSetPrototype != null) {
 		toggleCompatibleSiteTemplates();
 	}
 </aui:script>
-
-<%
-if (group != null) {
-	PortalUtil.addPortletBreadcrumbEntry(request, group.getDescriptiveName(locale), null);
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
-}
-else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-site"), currentURL);
-}
-%>
 
 <%!
 private static final String[] _CATEGORY_NAMES = {"basic-information", "search-engine-optimization", "advanced", "miscellaneous"};

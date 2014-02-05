@@ -14,10 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portal.kernel.cal.DayAndPosition" %>
-<%@ page import="com.liferay.portlet.calendar.model.CalEvent" %>
+<%@ include file="/html/taglib/ui/input_repeat/init.jsp" %>
 
 <%
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:input-repeat:cssClass"));
@@ -394,7 +391,7 @@ boolean weeklyPosSa = _getWeeklyDayPos(request, Calendar.SATURDAY, event, recurr
 				}
 			);
 		},
-		'.field-input-choice'
+		'.field'
 	);
 </aui:script>
 

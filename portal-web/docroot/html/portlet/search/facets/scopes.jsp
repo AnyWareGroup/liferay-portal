@@ -18,6 +18,11 @@
 
 <%
 if (termCollectors.isEmpty()) {
+%>
+
+	<aui:input name="<%= HtmlUtil.escapeAttribute(facet.getFieldName()) %>" type="hidden" value="0" />
+
+<%
 	return;
 }
 
@@ -26,12 +31,12 @@ int maxTerms = dataJSONObject.getInt("maxTerms");
 boolean showAssetCount = dataJSONObject.getBoolean("showAssetCount", true);
 %>
 
-<div class="<%= cssClass %>" data-facetFieldName="<%= facet.getFieldName() %>" id="<%= randomNamespace %>facet">
-	<aui:input name="<%= facet.getFieldName() %>" type="hidden" value="<%= fieldParam %>" />
+<div class="<%= cssClass %>" data-facetFieldName="<%= HtmlUtil.escapeAttribute(facet.getFieldId()) %>" id="<%= randomNamespace %>facet">
+	<aui:input name="<%= HtmlUtil.escapeAttribute(facet.getFieldId()) %>" type="hidden" value="<%= fieldParam %>" />
 
-	<ul class="scopes unstyled">
-		<li class="facet-value default <%= fieldParam.equals("0") ? "current-term" : StringPool.BLANK %>">
-			<a data-value="0" href="javascript:;"><img alt="" src='<%= themeDisplay.getPathThemeImages() + "/common/site_icon.png" %>' /><liferay-ui:message key="any" /> <liferay-ui:message key="<%= facetConfiguration.getLabel() %>" /></a>
+	<ul class="nav nav-pills nav-stacked scopes">
+		<li class="facet-value default <%= fieldParam.equals("0") ? "active" : StringPool.BLANK %>">
+			<a data-value="0" href="javascript:;"><aui:icon image="sitemap" /> <liferay-ui:message key="any" /> <liferay-ui:message key="<%= HtmlUtil.escape(facetConfiguration.getLabel()) %>" /></a>
 		</li>
 
 		<%
@@ -42,14 +47,18 @@ boolean showAssetCount = dataJSONObject.getBoolean("showAssetCount", true);
 
 			long curGroupId = GetterUtil.getInteger(termCollector.getTerm());
 
-			Group group = GroupLocalServiceUtil.getGroup(curGroupId);
+			Group group = GroupLocalServiceUtil.fetchGroup(curGroupId);
+
+			if (group == null) {
+				continue;
+			}
 		%>
 
 			<c:if test="<%= groupId == curGroupId %>">
 				<aui:script use="liferay-token-list">
 					Liferay.Search.tokenList.add(
 						{
-							fieldValues: '<%= renderResponse.getNamespace() + facet.getFieldName() + "|0" %>',
+							fieldValues: '<%= renderResponse.getNamespace() + HtmlUtil.escapeJS(facet.getFieldId()) + "|0" %>',
 							text: '<%= HtmlUtil.escapeJS(group.getDescriptiveName(locale)) %>'
 						}
 					);
@@ -62,12 +71,14 @@ boolean showAssetCount = dataJSONObject.getBoolean("showAssetCount", true);
 			}
 			%>
 
-			<li class="facet-value <%= groupId == curGroupId ? "current-term" : StringPool.BLANK %>">
-				<a data-value="<%= curGroupId %>" href="javascript:;"><%= HtmlUtil.escape(group.getDescriptiveName(locale)) %></a>
+			<li class="facet-value <%= groupId == curGroupId ? "active" : StringPool.BLANK %>">
+				<a data-value="<%= curGroupId %>" href="javascript:;">
+					<%= HtmlUtil.escape(group.getDescriptiveName(locale)) %>
 
-				<c:if test="<%= showAssetCount %>">
-					<span class="frequency">(<%= termCollector.getFrequency() %>)</span>
-				</c:if>
+					<c:if test="<%= showAssetCount %>">
+						<span class="badge badge-info frequency"><%= termCollector.getFrequency() %></span>
+					</c:if>
+				</a>
 			</li>
 
 		<%

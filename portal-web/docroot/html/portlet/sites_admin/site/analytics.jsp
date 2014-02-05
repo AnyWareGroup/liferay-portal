@@ -31,6 +31,8 @@ else {
 
 <liferay-ui:error-marker key="errorSection" value="analytics" />
 
+<h3><liferay-ui:message key="analytics" /></h3>
+
 <%
 String[] analyticsTypes = PrefsPropsUtil.getStringArray(company.getCompanyId(), PropsKeys.ADMIN_ANALYTICS_TYPES, StringPool.NEW_LINE);
 
@@ -38,7 +40,7 @@ for (String analyticsType : analyticsTypes) {
 %>
 
 	<c:choose>
-		<c:when test='<%= analyticsType.equalsIgnoreCase("google") %>'>
+		<c:when test='<%= StringUtil.equalsIgnoreCase(analyticsType, "google") %>'>
 
 			<%
 			String googleAnalyticsId = PropertiesParamUtil.getString(groupTypeSettings, request, "googleAnalyticsId");
@@ -54,7 +56,7 @@ for (String analyticsType : analyticsTypes) {
 			String analyticsScript = PropertiesParamUtil.getString(groupTypeSettings, request, Sites.ANALYTICS_PREFIX + analyticsType);
 			%>
 
-			<aui:input cols="60" helpMessage='<%= LanguageUtil.format(pageContext, "set-the-script-for-x-that-will-be-used-for-this-set-of-pages", analyticsName) %>' label="<%= analyticsName %>" name="<%= Sites.ANALYTICS_PREFIX + analyticsType %>" rows="15" type="textarea" value="<%= analyticsScript %>" wrap="soft" />
+			<aui:input cols="60" helpMessage='<%= LanguageUtil.format(pageContext, "set-the-script-for-x-that-will-be-used-for-this-set-of-pages", analyticsName, false) %>' label="<%= analyticsName %>" name="<%= Sites.ANALYTICS_PREFIX + analyticsType %>" rows="15" type="textarea" value="<%= analyticsScript %>" wrap="soft" />
 		</c:otherwise>
 	</c:choose>
 

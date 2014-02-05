@@ -19,6 +19,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 
+import java.net.InetAddress;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -32,11 +34,22 @@ public class ClusterLinkUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             ClusterLink#CLUSTER_FORWARD_MESSAGE}
 	 */
+	@Deprecated
 	public static final String CLUSTER_FORWARD_MESSAGE =
 		ClusterLink.CLUSTER_FORWARD_MESSAGE;
 
 	public static Address getAddress(Message message) {
 		return (Address)message.get(_ADDRESS);
+	}
+
+	public static InetAddress getBindInetAddress() {
+		ClusterLink clusterLink = getClusterLink();
+
+		if (clusterLink == null) {
+			return null;
+		}
+
+		return clusterLink.getBindInetAddress();
 	}
 
 	public static ClusterLink getClusterLink() {

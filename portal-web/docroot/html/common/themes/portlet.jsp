@@ -14,7 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/common/init.jsp" %>
+<%@ include file="/html/common/themes/init.jsp" %>
 
 <portlet:defineObjects />
 
@@ -70,7 +70,7 @@ portletDisplay.setDescription(portletDescription);
 
 Group group = layout.getGroup();
 
-boolean wsrp = ParamUtil.getBoolean(request, "wsrp");
+boolean wsrp = ParamUtil.getBoolean(PortalUtil.getOriginalServletRequest(request), "wsrp");
 %>
 
 <c:choose>
@@ -119,7 +119,7 @@ boolean wsrp = ParamUtil.getBoolean(request, "wsrp");
 		if (freeformPortlet) {
 			Properties freeformStyleProps = PropertiesUtil.load(portletSetup.getValue("portlet-freeform-styles", StringPool.BLANK));
 
-			containerStyles = "style=\"height: ".concat(GetterUtil.getString(freeformStyleProps.getProperty("height"), "300px")).concat("; overflow: auto;\"");
+			containerStyles = "style=\"height: ".concat(GetterUtil.getString(HtmlUtil.escapeAttribute(freeformStyleProps.getProperty("height")), "300px")).concat("; overflow: auto;\"");
 		}
 		else {
 			containerStyles = "style=\"\"";

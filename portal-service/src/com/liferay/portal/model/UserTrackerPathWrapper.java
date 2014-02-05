@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link UserTrackerPath}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserTrackerPath
+ * @author Brian Wing Shun Chan
+ * @see UserTrackerPath
  * @generated
  */
+@ProviderType
 public class UserTrackerPathWrapper implements UserTrackerPath,
 	ModelWrapper<UserTrackerPath> {
 	public UserTrackerPathWrapper(UserTrackerPath userTrackerPath) {
@@ -47,6 +52,7 @@ public class UserTrackerPathWrapper implements UserTrackerPath,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userTrackerPathId", getUserTrackerPathId());
 		attributes.put("userTrackerId", getUserTrackerId());
 		attributes.put("path", getPath());
@@ -57,6 +63,12 @@ public class UserTrackerPathWrapper implements UserTrackerPath,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userTrackerPathId = (Long)attributes.get("userTrackerPathId");
 
 		if (userTrackerPathId != null) {
@@ -100,6 +112,26 @@ public class UserTrackerPathWrapper implements UserTrackerPath,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_userTrackerPath.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user tracker path.
+	*
+	* @return the mvcc version of this user tracker path
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userTrackerPath.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user tracker path.
+	*
+	* @param mvccVersion the mvcc version of this user tracker path
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userTrackerPath.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -287,9 +319,30 @@ public class UserTrackerPathWrapper implements UserTrackerPath,
 		_userTrackerPath.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserTrackerPathWrapper)) {
+			return false;
+		}
+
+		UserTrackerPathWrapper userTrackerPathWrapper = (UserTrackerPathWrapper)obj;
+
+		if (Validator.equals(_userTrackerPath,
+					userTrackerPathWrapper._userTrackerPath)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserTrackerPath getWrappedUserTrackerPath() {
 		return _userTrackerPath;
 	}
@@ -297,6 +350,16 @@ public class UserTrackerPathWrapper implements UserTrackerPath,
 	@Override
 	public UserTrackerPath getWrappedModel() {
 		return _userTrackerPath;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userTrackerPath.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userTrackerPath.isFinderCacheEnabled();
 	}
 
 	@Override

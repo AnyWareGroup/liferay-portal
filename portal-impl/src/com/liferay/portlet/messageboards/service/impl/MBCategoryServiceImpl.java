@@ -133,6 +133,21 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 
 	@Override
 	public List<MBCategory> getCategories(
+			long groupId, long excludedCategoryId, long parentCategoryId,
+			int status, int start, int end)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.filterFindByNotC_G_P(
+				groupId, excludedCategoryId, parentCategoryId, start, end);
+		}
+
+		return mbCategoryPersistence.filterFindByNotC_G_P_S(
+			groupId, excludedCategoryId, parentCategoryId, status, start, end);
+	}
+
+	@Override
+	public List<MBCategory> getCategories(
 			long groupId, long[] parentCategoryIds, int start, int end)
 		throws SystemException {
 
@@ -153,6 +168,22 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 
 		return mbCategoryPersistence.filterFindByG_P_S(
 			groupId, parentCategoryIds, status, start, end);
+	}
+
+	@Override
+	public List<MBCategory> getCategories(
+			long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+			int status, int start, int end)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.filterFindByNotC_G_P(
+				excludedCategoryIds, groupId, parentCategoryIds, start, end);
+		}
+
+		return mbCategoryPersistence.filterFindByNotC_G_P_S(
+			excludedCategoryIds, groupId, parentCategoryIds, status, start,
+			end);
 	}
 
 	@Override
@@ -178,6 +209,21 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 	}
 
 	@Override
+	public int getCategoriesCount(
+			long groupId, long excludedCategoryId, long parentCategoryId,
+			int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.filterCountByNotC_G_P(
+				groupId, excludedCategoryId, parentCategoryId);
+		}
+
+		return mbCategoryPersistence.filterCountByNotC_G_P_S(
+			groupId, excludedCategoryId, parentCategoryId, status);
+	}
+
+	@Override
 	public int getCategoriesCount(long groupId, long[] parentCategoryIds)
 		throws SystemException {
 
@@ -197,6 +243,21 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 
 		return mbCategoryPersistence.filterCountByG_P_S(
 			groupId, parentCategoryIds, status);
+	}
+
+	@Override
+	public int getCategoriesCount(
+			long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+			int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.filterCountByNotC_G_P(
+				excludedCategoryIds, groupId, parentCategoryIds);
+		}
+
+		return mbCategoryPersistence.filterCountByNotC_G_P_S(
+			excludedCategoryIds, groupId, parentCategoryIds, status);
 	}
 
 	@Override
@@ -235,7 +296,7 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 			groupId, categoryId);
 
 		for (MBCategory category : categories) {
-			if (category.isInTrash() || category.isInTrashContainer()) {
+			if (category.isInTrash()) {
 				continue;
 			}
 
@@ -259,13 +320,12 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 		if (categoryIds.length == 0) {
 			return Collections.emptyList();
 		}
-		else {
-			QueryDefinition queryDefinition = new QueryDefinition(
-				WorkflowConstants.STATUS_ANY, start, end, null);
 
-			return mbCategoryFinder.filterFindByS_G_U_P(
-				groupId, userId, categoryIds, queryDefinition);
-		}
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_ANY, start, end, null);
+
+		return mbCategoryFinder.filterFindByS_G_U_P(
+			groupId, userId, categoryIds, queryDefinition);
 	}
 
 	@Override
@@ -278,13 +338,12 @@ public class MBCategoryServiceImpl extends MBCategoryServiceBaseImpl {
 		if (categoryIds.length == 0) {
 			return 0;
 		}
-		else {
-			QueryDefinition queryDefinition = new QueryDefinition(
-				WorkflowConstants.STATUS_ANY);
 
-			return mbCategoryFinder.filterCountByS_G_U_P(
-				groupId, userId, categoryIds, queryDefinition);
-		}
+		QueryDefinition queryDefinition = new QueryDefinition(
+			WorkflowConstants.STATUS_ANY);
+
+		return mbCategoryFinder.filterCountByS_G_U_P(
+			groupId, userId, categoryIds, queryDefinition);
 	}
 
 	@Override

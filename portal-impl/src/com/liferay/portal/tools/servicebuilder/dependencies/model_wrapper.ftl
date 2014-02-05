@@ -1,6 +1,10 @@
 package ${packagePath}.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -17,10 +21,15 @@ import java.util.Map;
  * This class is a wrapper for {@link ${entity.name}}.
  * </p>
  *
- * @author    ${author}
- * @see       ${entity.name}
+ * @author ${author}
+ * @see ${entity.name}
  * @generated
  */
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public class ${entity.name}Wrapper implements ${entity.name}, ModelWrapper<${entity.name}> {
 
 	public ${entity.name}Wrapper(${entity.name} ${entity.varName}) {
@@ -74,10 +83,19 @@ public class ${entity.name}Wrapper implements ${entity.name}, ModelWrapper<${ent
 	}
 
 	<#list methods as method>
-		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && !serviceBuilder.isDuplicateMethod(method, tempMap)>
+		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && !serviceBuilder.isDuplicateMethod(method, tempMap) && !(method.name == "equals" && (parameters?size == 1))>
+			<#if method.name == "getStagedModelType">
+				<#assign hasGetStagedModelTypeMethod = true>
+			</#if>
+
 			<#assign parameters = method.parameters>
 
 			${serviceBuilder.getJavadocComment(method)}
+
+			<#if serviceBuilder.hasAnnotation(method, "Deprecated")>
+				@Deprecated
+			</#if>
+
 			@Override
 			public ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
 
@@ -129,9 +147,36 @@ public class ${entity.name}Wrapper implements ${entity.name}, ModelWrapper<${ent
 		</#if>
 	</#list>
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ${entity.name}Wrapper)) {
+			return false;
+		}
+
+		${entity.name}Wrapper ${entity.varName}Wrapper = (${entity.name}Wrapper)obj;
+
+		if (Validator.equals(_${entity.varName}, ${entity.varName}Wrapper._${entity.varName})) {
+			return true;
+		}
+
+		return false;
+	}
+
+	<#if entity.isStagedModel() && !hasGetStagedModelTypeMethod!false>
+		@Override
+		public StagedModelType getStagedModelType() {
+			return _${entity.varName}.getStagedModelType();
+		}
+	</#if>
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ${entity.name} getWrapped${entity.name}() {
 		return _${entity.varName};
 	}
@@ -139,6 +184,16 @@ public class ${entity.name}Wrapper implements ${entity.name}, ModelWrapper<${ent
 	@Override
 	public ${entity.name} getWrappedModel() {
 		return _${entity.varName};
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _${entity.varName}.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _${entity.varName}.isFinderCacheEnabled();
 	}
 
 	@Override

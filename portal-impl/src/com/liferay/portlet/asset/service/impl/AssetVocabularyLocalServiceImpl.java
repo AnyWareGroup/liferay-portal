@@ -27,7 +27,6 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.DuplicateVocabularyException;
 import com.liferay.portlet.asset.VocabularyNameException;
@@ -65,7 +64,7 @@ public class AssetVocabularyLocalServiceImpl
 		Map<Locale, String> titleMap = new HashMap<Locale, String>();
 
 		titleMap.put(
-			LocaleUtil.getDefault(), PropsValues.ASSET_VOCABULARY_DEFAULT);
+			LocaleUtil.getSiteDefault(), PropsValues.ASSET_VOCABULARY_DEFAULT);
 
 		ServiceContext serviceContext = new ServiceContext();
 
@@ -79,6 +78,7 @@ public class AssetVocabularyLocalServiceImpl
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public AssetVocabulary addVocabulary(
 			long userId, Map<Locale, String> titleMap,
@@ -102,7 +102,7 @@ public class AssetVocabularyLocalServiceImpl
 
 		User user = userPersistence.findByPrimaryKey(userId);
 		long groupId = serviceContext.getScopeGroupId();
-		String name = titleMap.get(LocaleUtil.getDefault());
+		String name = titleMap.get(LocaleUtil.getSiteDefault());
 
 		Date now = new Date();
 
@@ -159,7 +159,7 @@ public class AssetVocabularyLocalServiceImpl
 
 		Map<Locale, String> titleMap = new HashMap<Locale, String>();
 
-		Locale locale = LocaleUtil.getDefault();
+		Locale locale = LocaleUtil.getSiteDefault();
 
 		titleMap.put(locale, title);
 
@@ -277,7 +277,8 @@ public class AssetVocabularyLocalServiceImpl
 
 				long[] selectedClassNameIds = StringUtil.split(
 					settingsProperties.getProperty("selectedClassNameIds"), 0L);
-				long classNameId = PortalUtil.getClassNameId(className);
+				long classNameId = classNameLocalService.getClassNameId(
+					className);
 
 				if ((selectedClassNameIds.length == 0) ||
 					(selectedClassNameIds[0] == 0) ||
@@ -360,6 +361,7 @@ public class AssetVocabularyLocalServiceImpl
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public AssetVocabulary updateVocabulary(
 			long vocabularyId, Map<Locale, String> titleMap,
@@ -380,7 +382,7 @@ public class AssetVocabularyLocalServiceImpl
 		throws PortalException, SystemException {
 
 		long groupId = serviceContext.getScopeGroupId();
-		String name = titleMap.get(LocaleUtil.getDefault());
+		String name = titleMap.get(LocaleUtil.getSiteDefault());
 
 		AssetVocabulary vocabulary =
 			assetVocabularyPersistence.findByPrimaryKey(vocabularyId);

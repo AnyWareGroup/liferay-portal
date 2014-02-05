@@ -349,6 +349,10 @@ public class DDMStructureLinkPersistenceImpl extends BasePersistenceImpl<DDMStru
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByClassNameId(classNameId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDMStructureLink> list = findByClassNameId(classNameId, count - 1,
 				count, orderByComparator);
 
@@ -1052,6 +1056,10 @@ public class DDMStructureLinkPersistenceImpl extends BasePersistenceImpl<DDMStru
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByStructureId(structureId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DDMStructureLink> list = findByStructureId(structureId, count - 1,
 				count, orderByComparator);
 
@@ -1277,6 +1285,10 @@ public class DDMStructureLinkPersistenceImpl extends BasePersistenceImpl<DDMStru
 	}
 
 	private static final String _FINDER_COLUMN_STRUCTUREID_STRUCTUREID_2 = "ddmStructureLink.structureId = ?";
+
+	public DDMStructureLinkPersistenceImpl() {
+		setModelClass(DDMStructureLink.class);
+	}
 
 	/**
 	 * Caches the d d m structure link in the entity cache if it is enabled.
@@ -1590,10 +1602,12 @@ public class DDMStructureLinkPersistenceImpl extends BasePersistenceImpl<DDMStru
 
 		EntityCacheUtil.putResult(DDMStructureLinkModelImpl.ENTITY_CACHE_ENABLED,
 			DDMStructureLinkImpl.class, ddmStructureLink.getPrimaryKey(),
-			ddmStructureLink);
+			ddmStructureLink, false);
 
 		clearUniqueFindersCache(ddmStructureLink);
 		cacheUniqueFindersCache(ddmStructureLink);
+
+		ddmStructureLink.resetOriginalValues();
 
 		return ddmStructureLink;
 	}

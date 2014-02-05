@@ -14,10 +14,13 @@
 
 package com.liferay.portal.kernel.util;
 
+import com.liferay.portal.kernel.language.LanguageUtil;
+
 import java.text.Format;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 /**
@@ -154,7 +157,7 @@ public class Time {
 			}
 		}
 
-		if (x > 1) {
+		if ((x == 0) || (x > 1)) {
 			s += "s";
 		}
 
@@ -163,6 +166,48 @@ public class Time {
 
 	public static String getDuration(long milliseconds) {
 		return getSimpleDate(new Date(milliseconds), DURATION_FORMAT);
+	}
+
+	public static String getRelativeTimeDescription(
+		Date date, Locale locale, TimeZone timeZone) {
+
+		return getRelativeTimeDescription(date.getTime(), locale, timeZone);
+	}
+
+	public static String getRelativeTimeDescription(
+		long milliseconds, Locale locale, TimeZone timeZone) {
+
+		Format timeFormat = FastDateFormatFactoryUtil.getTime(locale, timeZone);
+
+		int daysBetween = DateUtil.getDaysBetween(
+			new Date(milliseconds), new Date(), timeZone);
+
+		long millisAgo = System.currentTimeMillis() - milliseconds;
+
+		if (millisAgo <= Time.MINUTE) {
+			return LanguageUtil.get(locale, "about-a-minute-ago");
+		}
+		else if (millisAgo < Time.HOUR) {
+			return LanguageUtil.format(
+				locale, "x-minutes-ago", (millisAgo / Time.MINUTE), false);
+		}
+		else if ((millisAgo / Time.HOUR) == 1) {
+			return LanguageUtil.get(locale, "about-an-hour-ago");
+		}
+		else if ((millisAgo < Time.DAY) || (daysBetween == 0)) {
+			return LanguageUtil.format(
+				locale, "x-hours-ago", (millisAgo / Time.HOUR), false);
+		}
+		else if (daysBetween == 1) {
+			return LanguageUtil.format(
+				locale, "yesterday-at-x", timeFormat.format(milliseconds),
+				false);
+		}
+
+		Format dateFormat = FastDateFormatFactoryUtil.getSimpleDateFormat(
+			"EEEE, MMMMM dd, yyyy", locale, timeZone);
+
+		return dateFormat.format(milliseconds);
 	}
 
 	public static String getRFC822() {

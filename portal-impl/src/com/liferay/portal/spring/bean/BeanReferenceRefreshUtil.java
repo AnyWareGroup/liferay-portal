@@ -56,6 +56,13 @@ public class BeanReferenceRefreshUtil {
 		refreshPoints.add(new RefreshPoint(field, referencedBeanName));
 	}
 
+	public static interface PACL {
+
+		public Object getNewReferencedBean(
+			String referencedBeanName, BeanFactory beanFactory);
+
+	}
+
 	private static void _refresh(
 			BeanFactory beanFactory, Object targetBean,
 			List<RefreshPoint> refreshPoints)
@@ -77,7 +84,8 @@ public class BeanReferenceRefreshUtil {
 
 		String referencedBeanName = refreshPoint._referencedBeanName;
 
-		Object newReferencedBean = beanFactory.getBean(referencedBeanName);
+		Object newReferencedBean = _pacl.getNewReferencedBean(
+			referencedBeanName, beanFactory);
 
 		if (oldReferenceBean == newReferencedBean) {
 			return;
@@ -96,8 +104,20 @@ public class BeanReferenceRefreshUtil {
 	private static Log _log = LogFactoryUtil.getLog(
 		BeanReferenceRefreshUtil.class);
 
+	private static PACL _pacl = new NoPACL();
 	private static Map<Object, List<RefreshPoint>> _registeredRefreshPoints =
 		new IdentityHashMap<Object, List<RefreshPoint>>();
+
+	private static class NoPACL implements PACL {
+
+		@Override
+		public Object getNewReferencedBean(
+			String referencedBeanName, BeanFactory beanFactory) {
+
+			return beanFactory.getBean(referencedBeanName);
+		}
+
+	}
 
 	private static class RefreshPoint {
 

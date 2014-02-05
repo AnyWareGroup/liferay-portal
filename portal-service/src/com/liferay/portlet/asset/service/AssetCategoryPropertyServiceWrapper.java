@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AssetCategoryPropertyService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetCategoryPropertyService
+ * @author Brian Wing Shun Chan
+ * @see AssetCategoryPropertyService
  * @generated
  */
+@ProviderType
 public class AssetCategoryPropertyServiceWrapper
 	implements AssetCategoryPropertyService,
 		ServiceWrapper<AssetCategoryPropertyService> {
@@ -84,6 +87,16 @@ public class AssetCategoryPropertyServiceWrapper
 
 	@Override
 	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
+		long userId, long categoryPropertyId, java.lang.String key,
+		java.lang.String value)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetCategoryPropertyService.updateCategoryProperty(userId,
+			categoryPropertyId, key, value);
+	}
+
+	@Override
+	public com.liferay.portlet.asset.model.AssetCategoryProperty updateCategoryProperty(
 		long categoryPropertyId, java.lang.String key, java.lang.String value)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -94,6 +107,7 @@ public class AssetCategoryPropertyServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetCategoryPropertyService getWrappedAssetCategoryPropertyService() {
 		return _assetCategoryPropertyService;
 	}
@@ -101,6 +115,7 @@ public class AssetCategoryPropertyServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetCategoryPropertyService(
 		AssetCategoryPropertyService assetCategoryPropertyService) {
 		_assetCategoryPropertyService = assetCategoryPropertyService;

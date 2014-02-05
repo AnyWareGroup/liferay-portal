@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link BrowserTracker}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       BrowserTracker
+ * @author Brian Wing Shun Chan
+ * @see BrowserTracker
  * @generated
  */
+@ProviderType
 public class BrowserTrackerWrapper implements BrowserTracker,
 	ModelWrapper<BrowserTracker> {
 	public BrowserTrackerWrapper(BrowserTracker browserTracker) {
@@ -46,6 +51,7 @@ public class BrowserTrackerWrapper implements BrowserTracker,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("browserTrackerId", getBrowserTrackerId());
 		attributes.put("userId", getUserId());
 		attributes.put("browserKey", getBrowserKey());
@@ -55,6 +61,12 @@ public class BrowserTrackerWrapper implements BrowserTracker,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long browserTrackerId = (Long)attributes.get("browserTrackerId");
 
 		if (browserTrackerId != null) {
@@ -92,6 +104,26 @@ public class BrowserTrackerWrapper implements BrowserTracker,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_browserTracker.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this browser tracker.
+	*
+	* @return the mvcc version of this browser tracker
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _browserTracker.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this browser tracker.
+	*
+	* @param mvccVersion the mvcc version of this browser tracker
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_browserTracker.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -280,9 +312,30 @@ public class BrowserTrackerWrapper implements BrowserTracker,
 		_browserTracker.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof BrowserTrackerWrapper)) {
+			return false;
+		}
+
+		BrowserTrackerWrapper browserTrackerWrapper = (BrowserTrackerWrapper)obj;
+
+		if (Validator.equals(_browserTracker,
+					browserTrackerWrapper._browserTracker)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public BrowserTracker getWrappedBrowserTracker() {
 		return _browserTracker;
 	}
@@ -290,6 +343,16 @@ public class BrowserTrackerWrapper implements BrowserTracker,
 	@Override
 	public BrowserTracker getWrappedModel() {
 		return _browserTracker;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _browserTracker.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _browserTracker.isFinderCacheEnabled();
 	}
 
 	@Override

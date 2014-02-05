@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ResourceBlock}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceBlock
+ * @author Brian Wing Shun Chan
+ * @see ResourceBlock
  * @generated
  */
+@ProviderType
 public class ResourceBlockWrapper implements ResourceBlock,
 	ModelWrapper<ResourceBlock> {
 	public ResourceBlockWrapper(ResourceBlock resourceBlock) {
@@ -46,6 +51,7 @@ public class ResourceBlockWrapper implements ResourceBlock,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("resourceBlockId", getResourceBlockId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("groupId", getGroupId());
@@ -58,6 +64,12 @@ public class ResourceBlockWrapper implements ResourceBlock,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long resourceBlockId = (Long)attributes.get("resourceBlockId");
 
 		if (resourceBlockId != null) {
@@ -113,6 +125,26 @@ public class ResourceBlockWrapper implements ResourceBlock,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_resourceBlock.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this resource block.
+	*
+	* @return the mvcc version of this resource block
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _resourceBlock.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this resource block.
+	*
+	* @param mvccVersion the mvcc version of this resource block
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_resourceBlock.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -339,9 +371,29 @@ public class ResourceBlockWrapper implements ResourceBlock,
 		_resourceBlock.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ResourceBlockWrapper)) {
+			return false;
+		}
+
+		ResourceBlockWrapper resourceBlockWrapper = (ResourceBlockWrapper)obj;
+
+		if (Validator.equals(_resourceBlock, resourceBlockWrapper._resourceBlock)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ResourceBlock getWrappedResourceBlock() {
 		return _resourceBlock;
 	}
@@ -349,6 +401,16 @@ public class ResourceBlockWrapper implements ResourceBlock,
 	@Override
 	public ResourceBlock getWrappedModel() {
 		return _resourceBlock;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _resourceBlock.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _resourceBlock.isFinderCacheEnabled();
 	}
 
 	@Override

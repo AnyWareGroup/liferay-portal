@@ -15,15 +15,17 @@
 package com.liferay.portlet.journal.template;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.template.TemplateVariableCodeHandler;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.ddm.template.BaseDDMTemplateHandler;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalService;
 import com.liferay.portlet.dynamicdatamapping.service.DDMStructureService;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateLocalService;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateService;
+import com.liferay.portlet.dynamicdatamapping.template.BaseDDMTemplateHandler;
+import com.liferay.portlet.dynamicdatamapping.template.DDMTemplateVariableCodeHandler;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.service.JournalArticleLocalService;
 import com.liferay.portlet.journal.service.JournalArticleService;
@@ -52,7 +54,7 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 
 	@Override
 	public String getResourceName() {
-		return "com.liferay.portlet.journal";
+		return "com.liferay.portlet.journal.template";
 	}
 
 	@Override
@@ -63,8 +65,11 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 		Map<String, TemplateVariableGroup> templateVariableGroups =
 			super.getTemplateVariableGroups(classPK, language, locale);
 
+		String[] restrictedVariables = getRestrictedVariables(language);
+
 		TemplateVariableGroup journalServicesTemplateVariableGroup =
-			new TemplateVariableGroup("web-content-services");
+			new TemplateVariableGroup(
+				"web-content-services", restrictedVariables);
 
 		journalServicesTemplateVariableGroup.setAutocompleteEnabled(false);
 
@@ -81,6 +86,11 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 	}
 
 	@Override
+	protected TemplateVariableCodeHandler getTemplateVariableCodeHandler() {
+		return _templateVariableCodeHandler;
+	}
+
+	@Override
 	protected TemplateVariableGroup getUtilTemplateVariableGroup() {
 		TemplateVariableGroup utilTemplateVariableGroup =
 			super.getUtilTemplateVariableGroup();
@@ -90,5 +100,9 @@ public class JournalTemplateHandler extends BaseDDMTemplateHandler {
 
 		return utilTemplateVariableGroup;
 	}
+
+	private TemplateVariableCodeHandler _templateVariableCodeHandler =
+		new DDMTemplateVariableCodeHandler(
+			"com/liferay/portlet/journal/dependencies/template/");
 
 }

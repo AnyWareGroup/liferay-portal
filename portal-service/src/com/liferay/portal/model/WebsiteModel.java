@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.WebsiteModelImpl
  * @generated
  */
+@ProviderType
 public interface WebsiteModel extends AttachedModel, BaseModel<Website>,
-	StagedModel {
+	MVCCModel, StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -58,6 +61,22 @@ public interface WebsiteModel extends AttachedModel, BaseModel<Website>,
 	 * @param primaryKey the primary key of this website
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this website.
+	 *
+	 * @return the mvcc version of this website
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this website.
+	 *
+	 * @param mvccVersion the mvcc version of this website
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this website.

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -36,7 +38,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.ReleaseModelImpl
  * @generated
  */
-public interface ReleaseModel extends BaseModel<Release> {
+@ProviderType
+public interface ReleaseModel extends BaseModel<Release>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +59,22 @@ public interface ReleaseModel extends BaseModel<Release> {
 	 * @param primaryKey the primary key of this release
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this release.
+	 *
+	 * @return the mvcc version of this release
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this release.
+	 *
+	 * @param mvccVersion the mvcc version of this release
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the release ID of this release.

@@ -109,7 +109,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !validMoveFolders.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-folders-ready-to-be-moved", validMoveFolders.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-folders-ready-to-be-moved", validMoveFolders.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -121,7 +121,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 					<li class="move-folder">
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 					</li>
 
@@ -135,7 +135,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !invalidMoveFolders.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-folders-cannot-be-moved", invalidMoveFolders.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-folders-cannot-be-moved", invalidMoveFolders.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -147,7 +147,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 					<li class="move-folder move-error">
 						<span class="folder-title">
-							<%= folder.getName() %>
+							<%= HtmlUtil.escape(folder.getName()) %>
 						</span>
 
 						<span class="error-message">
@@ -174,7 +174,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !validMoveFileEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-files-ready-to-be-moved", validMoveFileEntries.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-files-ready-to-be-moved", validMoveFileEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -185,8 +185,8 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 				%>
 
 					<li class="move-file">
-						<span class="file-title" title="<%= validMoveFileEntry.getTitle() %>">
-							<%= validMoveFileEntry.getTitle() %>
+						<span class="file-title" title="<%= HtmlUtil.escapeAttribute(validMoveFileEntry.getTitle()) %>">
+							<%= HtmlUtil.escape(validMoveFileEntry.getTitle()) %>
 						</span>
 					</li>
 
@@ -200,7 +200,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !invalidMoveFileEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-files-cannot-be-moved", invalidMoveFileEntries.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-files-cannot-be-moved", invalidMoveFileEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -212,8 +212,8 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 				%>
 
 					<li class="move-file move-error">
-						<span class="file-title" title="<%= invalidMoveFileEntry.getTitle() %>">
-							<%= invalidMoveFileEntry.getTitle() %>
+						<span class="file-title" title="<%= HtmlUtil.escapeAttribute(invalidMoveFileEntry.getTitle()) %>">
+							<%= HtmlUtil.escape(invalidMoveFileEntry.getTitle()) %>
 						</span>
 
 						<span class="error-message">
@@ -240,7 +240,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !validShortcutEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-shortcuts-ready-to-be-moved", validShortcutEntries.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-shortcuts-ready-to-be-moved", validShortcutEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -266,7 +266,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 
 	<c:if test="<%= !invalidShortcutEntries.isEmpty() %>">
 		<div class="move-list-info">
-			<h4><%= LanguageUtil.format(pageContext, "x-shortcuts-cannot-be-moved", invalidShortcutEntries.size()) %></h4>
+			<h4><%= LanguageUtil.format(pageContext, "x-shortcuts-cannot-be-moved", invalidShortcutEntries.size(), false) %></h4>
 		</div>
 
 		<div class="move-list">
@@ -313,15 +313,12 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 		}
 		%>
 
-		<portlet:renderURL var="viewFolderURL">
-			<portlet:param name="struts_action" value="/document_library/view" />
-			<portlet:param name="folderId" value="<%= String.valueOf(newFolderId) %>" />
-		</portlet:renderURL>
-
 		<aui:field-wrapper label="new-folder">
-			<aui:a href="<%= viewFolderURL %>" id="folderName"><%= folderName %></aui:a>
+			<div class="input-append">
+				<liferay-ui:input-resource id="folderName" url="<%= folderName %>" />
 
-			<aui:button name="selectFolderButton" value="select" />
+				<aui:button name="selectFolderButton" value="select" />
+			</div>
 		</aui:field-wrapper>
 
 		<aui:button-row>
@@ -346,11 +343,10 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 					dialog: {
 						constrain: true,
 						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
 						width: 680
 					},
 					id: '<portlet:namespace />selectFolder',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "folder") %>',
+					title: '<liferay-ui:message arguments="folder" key="select-x" />',
 					uri: '<%= selectFolderURL.toString() %>'
 				},
 				function(event) {
@@ -361,7 +357,7 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 						nameValue: event.foldername
 					};
 
-					Liferay.Util.selectFolder(folderData, '<portlet:renderURL><portlet:param name="struts_action" value="/document_library/view" /></portlet:renderURL>', '<portlet:namespace />');
+					Liferay.Util.selectFolder(folderData, '<portlet:namespace />');
 				}
 			);
 		}
@@ -372,10 +368,6 @@ for (DLFileShortcut curFileShortcut : fileShortcuts) {
 	function <portlet:namespace />saveFileEntry() {
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />file);
-	</c:if>
 </aui:script>
 
 <%

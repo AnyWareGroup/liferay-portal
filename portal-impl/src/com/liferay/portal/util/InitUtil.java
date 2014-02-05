@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataSourceFactoryUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.log.SanitizerLogWrapper;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaDetector;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -109,11 +110,19 @@ public class InitUtil {
 			e.printStackTrace();
 		}
 
+		// Log sanitizer
+
+		SanitizerLogWrapper.init();
+
+		// Java properties
+
+		JavaDetector.isJDK5();
+
 		// Security manager
 
 		SecurityManagerUtil.init();
 
-		if (!SecurityManagerUtil.isPACLDisabled()) {
+		if (SecurityManagerUtil.ENABLED) {
 			com.liferay.portal.kernel.util.PropsUtil.setProps(
 				DoPrivilegedUtil.wrap(
 					com.liferay.portal.kernel.util.PropsUtil.getProps()));
@@ -140,10 +149,6 @@ public class InitUtil {
 		// DB factory
 
 		DBFactoryUtil.setDBFactory(DoPrivilegedUtil.wrap(new DBFactoryImpl()));
-
-		// Java properties
-
-		JavaDetector.isJDK5();
 
 		// ROME
 

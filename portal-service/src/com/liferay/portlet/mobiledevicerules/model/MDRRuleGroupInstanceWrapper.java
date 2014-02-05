@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.mobiledevicerules.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MDRRuleGroupInstance}.
  * </p>
  *
- * @author    Edward C. Han
- * @see       MDRRuleGroupInstance
+ * @author Edward C. Han
+ * @see MDRRuleGroupInstance
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupInstanceWrapper implements MDRRuleGroupInstance,
 	ModelWrapper<MDRRuleGroupInstance> {
 	public MDRRuleGroupInstanceWrapper(
@@ -556,9 +561,35 @@ public class MDRRuleGroupInstanceWrapper implements MDRRuleGroupInstance,
 		return _mdrRuleGroupInstance.getRuleGroup();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MDRRuleGroupInstanceWrapper)) {
+			return false;
+		}
+
+		MDRRuleGroupInstanceWrapper mdrRuleGroupInstanceWrapper = (MDRRuleGroupInstanceWrapper)obj;
+
+		if (Validator.equals(_mdrRuleGroupInstance,
+					mdrRuleGroupInstanceWrapper._mdrRuleGroupInstance)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mdrRuleGroupInstance.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MDRRuleGroupInstance getWrappedMDRRuleGroupInstance() {
 		return _mdrRuleGroupInstance;
 	}
@@ -566,6 +597,16 @@ public class MDRRuleGroupInstanceWrapper implements MDRRuleGroupInstance,
 	@Override
 	public MDRRuleGroupInstance getWrappedModel() {
 		return _mdrRuleGroupInstance;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mdrRuleGroupInstance.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mdrRuleGroupInstance.isFinderCacheEnabled();
 	}
 
 	@Override

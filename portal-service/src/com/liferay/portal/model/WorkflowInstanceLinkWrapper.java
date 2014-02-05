@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link WorkflowInstanceLink}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WorkflowInstanceLink
+ * @author Brian Wing Shun Chan
+ * @see WorkflowInstanceLink
  * @generated
  */
+@ProviderType
 public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	ModelWrapper<WorkflowInstanceLink> {
 	public WorkflowInstanceLinkWrapper(
@@ -48,6 +53,7 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("workflowInstanceLinkId", getWorkflowInstanceLinkId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -64,6 +70,12 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long workflowInstanceLinkId = (Long)attributes.get(
 				"workflowInstanceLinkId");
 
@@ -144,6 +156,26 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_workflowInstanceLink.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this workflow instance link.
+	*
+	* @return the mvcc version of this workflow instance link
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _workflowInstanceLink.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this workflow instance link.
+	*
+	* @param mvccVersion the mvcc version of this workflow instance link
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_workflowInstanceLink.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -488,9 +520,30 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 		_workflowInstanceLink.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof WorkflowInstanceLinkWrapper)) {
+			return false;
+		}
+
+		WorkflowInstanceLinkWrapper workflowInstanceLinkWrapper = (WorkflowInstanceLinkWrapper)obj;
+
+		if (Validator.equals(_workflowInstanceLink,
+					workflowInstanceLinkWrapper._workflowInstanceLink)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WorkflowInstanceLink getWrappedWorkflowInstanceLink() {
 		return _workflowInstanceLink;
 	}
@@ -498,6 +551,16 @@ public class WorkflowInstanceLinkWrapper implements WorkflowInstanceLink,
 	@Override
 	public WorkflowInstanceLink getWrappedModel() {
 		return _workflowInstanceLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _workflowInstanceLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _workflowInstanceLink.isFinderCacheEnabled();
 	}
 
 	@Override

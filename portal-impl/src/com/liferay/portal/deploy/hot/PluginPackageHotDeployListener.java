@@ -62,7 +62,10 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error registering plugins for ", t);
+				hotDeployEvent,
+				"Error registering plugins for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -75,7 +78,10 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 		}
 		catch (Throwable t) {
 			throwHotDeployException(
-				hotDeployEvent, "Error unregistering plugins for ", t);
+				hotDeployEvent,
+				"Error unregistering plugins for " +
+					hotDeployEvent.getServletContextName(),
+				t);
 		}
 	}
 
@@ -144,7 +150,7 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 		String servletContextName = servletContext.getServletContextName();
 
 		if (_log.isDebugEnabled()) {
-			_log.debug("Invoking deploy for " + servletContextName);
+			_log.debug("Invoking undeploy for " + servletContextName);
 		}
 
 		PluginPackage pluginPackage =
@@ -340,7 +346,7 @@ public class PluginPackageHotDeployListener extends BaseHotDeployListener {
 		URL configurationFile = classLoader.getResource(
 			hibernateCacheConfigurationPath);
 
-		if (Validator.isNotNull(configurationFile)) {
+		if (configurationFile != null) {
 			if (_log.isInfoEnabled()) {
 				_log.info(
 					"Reconfiguring Hibernate caches using " +

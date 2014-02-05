@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.EmailAddressServiceUtil;
@@ -54,17 +56,19 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       EmailAddressServiceHttp
- * @see       com.liferay.portal.model.EmailAddressSoap
- * @see       com.liferay.portal.service.EmailAddressServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see EmailAddressServiceHttp
+ * @see com.liferay.portal.model.EmailAddressSoap
+ * @see com.liferay.portal.service.EmailAddressServiceUtil
  * @generated
  */
+@ProviderType
 public class EmailAddressServiceSoap {
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addEmailAddress( String,
+	* @deprecated As of 6.2.0, replaced by {@link #addEmailAddress(String,
 	long, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.EmailAddressSoap addEmailAddress(
 		java.lang.String className, long classPK, java.lang.String address,
 		int typeId, boolean primary) throws RemoteException {

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.softwarecatalog.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SCProductEntryServiceHttp
- * @see       com.liferay.portlet.softwarecatalog.model.SCProductEntrySoap
- * @see       com.liferay.portlet.softwarecatalog.service.SCProductEntryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see SCProductEntryServiceHttp
+ * @see com.liferay.portlet.softwarecatalog.model.SCProductEntrySoap
+ * @see com.liferay.portlet.softwarecatalog.service.SCProductEntryServiceUtil
  * @generated
  */
+@ProviderType
 public class SCProductEntryServiceSoap {
 	public static com.liferay.portlet.softwarecatalog.model.SCProductEntrySoap addProductEntry(
 		java.lang.String name, java.lang.String type, java.lang.String tags,

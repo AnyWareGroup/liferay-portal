@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatamapping.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -59,12 +61,13 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDMStructureServiceHttp
- * @see       com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap
- * @see       com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see DDMStructureServiceHttp
+ * @see com.liferay.portlet.dynamicdatamapping.model.DDMStructureSoap
+ * @see com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil
  * @generated
  */
+@ProviderType
 public class DDMStructureServiceSoap {
 	/**
 	* Adds a structure referencing a default parent structure, using the portal

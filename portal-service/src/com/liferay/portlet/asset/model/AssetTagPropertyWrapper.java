@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetTagProperty}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagProperty
+ * @author Brian Wing Shun Chan
+ * @see AssetTagProperty
  * @generated
  */
+@ProviderType
 public class AssetTagPropertyWrapper implements AssetTagProperty,
 	ModelWrapper<AssetTagProperty> {
 	public AssetTagPropertyWrapper(AssetTagProperty assetTagProperty) {
@@ -446,9 +450,30 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 		_assetTagProperty.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetTagPropertyWrapper)) {
+			return false;
+		}
+
+		AssetTagPropertyWrapper assetTagPropertyWrapper = (AssetTagPropertyWrapper)obj;
+
+		if (Validator.equals(_assetTagProperty,
+					assetTagPropertyWrapper._assetTagProperty)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetTagProperty getWrappedAssetTagProperty() {
 		return _assetTagProperty;
 	}
@@ -456,6 +481,16 @@ public class AssetTagPropertyWrapper implements AssetTagProperty,
 	@Override
 	public AssetTagProperty getWrappedModel() {
 		return _assetTagProperty;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetTagProperty.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetTagProperty.isFinderCacheEnabled();
 	}
 
 	@Override

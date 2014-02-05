@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Group}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Group
+ * @author Brian Wing Shun Chan
+ * @see Group
  * @generated
  */
+@ProviderType
 public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public GroupWrapper(Group group) {
 		_group = group;
@@ -45,6 +50,7 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -58,8 +64,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		attributes.put("description", getDescription());
 		attributes.put("type", getType());
 		attributes.put("typeSettings", getTypeSettings());
+		attributes.put("manualMembership", getManualMembership());
+		attributes.put("membershipRestriction", getMembershipRestriction());
 		attributes.put("friendlyURL", getFriendlyURL());
 		attributes.put("site", getSite());
+		attributes.put("remoteStagingGroupCount", getRemoteStagingGroupCount());
 		attributes.put("active", getActive());
 
 		return attributes;
@@ -67,6 +76,12 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -145,6 +160,19 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 			setTypeSettings(typeSettings);
 		}
 
+		Boolean manualMembership = (Boolean)attributes.get("manualMembership");
+
+		if (manualMembership != null) {
+			setManualMembership(manualMembership);
+		}
+
+		Integer membershipRestriction = (Integer)attributes.get(
+				"membershipRestriction");
+
+		if (membershipRestriction != null) {
+			setMembershipRestriction(membershipRestriction);
+		}
+
 		String friendlyURL = (String)attributes.get("friendlyURL");
 
 		if (friendlyURL != null) {
@@ -155,6 +183,13 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 
 		if (site != null) {
 			setSite(site);
+		}
+
+		Integer remoteStagingGroupCount = (Integer)attributes.get(
+				"remoteStagingGroupCount");
+
+		if (remoteStagingGroupCount != null) {
+			setRemoteStagingGroupCount(remoteStagingGroupCount);
 		}
 
 		Boolean active = (Boolean)attributes.get("active");
@@ -182,6 +217,26 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_group.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this group.
+	*
+	* @return the mvcc version of this group
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _group.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this group.
+	*
+	* @param mvccVersion the mvcc version of this group
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_group.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -482,6 +537,56 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	/**
+	* Returns the manual membership of this group.
+	*
+	* @return the manual membership of this group
+	*/
+	@Override
+	public boolean getManualMembership() {
+		return _group.getManualMembership();
+	}
+
+	/**
+	* Returns <code>true</code> if this group is manual membership.
+	*
+	* @return <code>true</code> if this group is manual membership; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isManualMembership() {
+		return _group.isManualMembership();
+	}
+
+	/**
+	* Sets whether this group is manual membership.
+	*
+	* @param manualMembership the manual membership of this group
+	*/
+	@Override
+	public void setManualMembership(boolean manualMembership) {
+		_group.setManualMembership(manualMembership);
+	}
+
+	/**
+	* Returns the membership restriction of this group.
+	*
+	* @return the membership restriction of this group
+	*/
+	@Override
+	public int getMembershipRestriction() {
+		return _group.getMembershipRestriction();
+	}
+
+	/**
+	* Sets the membership restriction of this group.
+	*
+	* @param membershipRestriction the membership restriction of this group
+	*/
+	@Override
+	public void setMembershipRestriction(int membershipRestriction) {
+		_group.setMembershipRestriction(membershipRestriction);
+	}
+
+	/**
 	* Returns the friendly u r l of this group.
 	*
 	* @return the friendly u r l of this group
@@ -529,6 +634,26 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public void setSite(boolean site) {
 		_group.setSite(site);
+	}
+
+	/**
+	* Returns the remote staging group count of this group.
+	*
+	* @return the remote staging group count of this group
+	*/
+	@Override
+	public int getRemoteStagingGroupCount() {
+		return _group.getRemoteStagingGroupCount();
+	}
+
+	/**
+	* Sets the remote staging group count of this group.
+	*
+	* @param remoteStagingGroupCount the remote staging group count of this group
+	*/
+	@Override
+	public void setRemoteStagingGroupCount(int remoteStagingGroupCount) {
+		_group.setRemoteStagingGroupCount(remoteStagingGroupCount);
 	}
 
 	/**
@@ -673,6 +798,17 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_group.updateTreePath(treePath);
+	}
+
+	@Override
+	public void clearStagingGroup() {
+		_group.clearStagingGroup();
+	}
+
+	@Override
 	public java.util.List<com.liferay.portal.model.Group> getAncestors()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -727,6 +863,12 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	public java.lang.String getIconURL(
 		com.liferay.portal.theme.ThemeDisplay themeDisplay) {
 		return _group.getIconURL(themeDisplay);
+	}
+
+	@Override
+	public java.lang.String getLayoutRootNodeName(boolean privateLayout,
+		java.util.Locale locale) {
+		return _group.getLayoutRootNodeName(privateLayout, locale);
 	}
 
 	@Override
@@ -823,6 +965,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	@Override
+	public boolean hasLocalOrRemoteStagingGroup() {
+		return _group.hasLocalOrRemoteStagingGroup();
+	}
+
+	@Override
 	public boolean hasPrivateLayouts() {
 		return _group.hasPrivateLayouts();
 	}
@@ -838,8 +985,18 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	}
 
 	/**
-	* @deprecated As of 6.1, renamed to {@link #isRegularSite}
+	* @deprecated As of 7.0.0, replaced by {@link #hasAncestor}
 	*/
+	@Deprecated
+	@Override
+	public boolean isChild(long groupId) {
+		return _group.isChild(groupId);
+	}
+
+	/**
+	* @deprecated As of 6.1.0, renamed to {@link #isRegularSite}
+	*/
+	@Deprecated
 	@Override
 	public boolean isCommunity() {
 		return _group.isCommunity();
@@ -848,6 +1005,11 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public boolean isCompany() {
 		return _group.isCompany();
+	}
+
+	@Override
+	public boolean isCompanyStagingGroup() {
+		return _group.isCompanyStagingGroup();
 	}
 
 	@Override
@@ -950,9 +1112,29 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 		_group.setTypeSettingsProperties(typeSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof GroupWrapper)) {
+			return false;
+		}
+
+		GroupWrapper groupWrapper = (GroupWrapper)obj;
+
+		if (Validator.equals(_group, groupWrapper._group)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Group getWrappedGroup() {
 		return _group;
 	}
@@ -960,6 +1142,16 @@ public class GroupWrapper implements Group, ModelWrapper<Group> {
 	@Override
 	public Group getWrappedModel() {
 		return _group;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _group.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _group.isFinderCacheEnabled();
 	}
 
 	@Override

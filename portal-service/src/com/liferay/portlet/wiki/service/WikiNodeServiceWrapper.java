@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.wiki.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link WikiNodeService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiNodeService
+ * @author Brian Wing Shun Chan
+ * @see WikiNodeService
  * @generated
  */
+@ProviderType
 public class WikiNodeServiceWrapper implements WikiNodeService,
 	ServiceWrapper<WikiNodeService> {
 	public WikiNodeServiceWrapper(WikiNodeService wikiNodeService) {
@@ -81,6 +84,48 @@ public class WikiNodeServiceWrapper implements WikiNodeService,
 	}
 
 	@Override
+	public java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeService.getNodes(groupId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeService.getNodes(groupId, status);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeService.getNodes(groupId, start, end);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeService.getNodes(groupId, status, start, end);
+	}
+
+	@Override
+	public int getNodesCount(long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeService.getNodesCount(groupId);
+	}
+
+	@Override
+	public int getNodesCount(long groupId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiNodeService.getNodesCount(groupId, status);
+	}
+
+	@Override
 	public void importPages(long nodeId, java.lang.String importer,
 		java.io.InputStream[] inputStreams,
 		java.util.Map<java.lang.String, java.lang.String[]> options)
@@ -130,6 +175,7 @@ public class WikiNodeServiceWrapper implements WikiNodeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WikiNodeService getWrappedWikiNodeService() {
 		return _wikiNodeService;
 	}
@@ -137,6 +183,7 @@ public class WikiNodeServiceWrapper implements WikiNodeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWikiNodeService(WikiNodeService wikiNodeService) {
 		_wikiNodeService = wikiNodeService;
 	}

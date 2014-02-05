@@ -17,16 +17,13 @@ package com.liferay.portlet.documentlibrary.service.impl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.service.base.DLFileEntryMetadataLocalServiceBaseImpl;
 import com.liferay.portlet.dynamicdatamapping.StorageException;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
-import com.liferay.portlet.dynamicdatamapping.storage.FieldConstants;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 import com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil;
-import com.liferay.portlet.dynamicdatamapping.util.DDMUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -99,6 +96,7 @@ public class DLFileEntryMetadataLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #getFileVersionFileEntryMetadatasCount(long)}
 	 */
+	@Deprecated
 	@Override
 	public long getFileEntryMetadataCount(long fileEntryId, long fileVersionId)
 		throws SystemException {
@@ -214,29 +212,12 @@ public class DLFileEntryMetadataLocalServiceImpl
 
 			// Dynamic data mapping structure link
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				DLFileEntryMetadata.class);
 
 			ddmStructureLinkLocalService.addStructureLink(
 				classNameId, fileEntryMetadata.getFileEntryMetadataId(),
 				ddmStructure.getStructureId(), serviceContext);
-		}
-
-		try {
-			String namespace = String.valueOf(ddmStructure.getStructureId());
-
-			for (String fieldName : ddmStructure.getFieldNames()) {
-				String fieldDataType = ddmStructure.getFieldDataType(fieldName);
-
-				if (fieldDataType.equals(FieldConstants.FILE_UPLOAD)) {
-					DDMUtil.uploadFieldFile(
-						fileEntryMetadata.getDDMStructureId(),
-						fileEntryMetadata.getDDMStorageId(), fileEntryMetadata,
-						fieldName, namespace, serviceContext);
-				}
-			}
-		}
-		catch (Exception e) {
 		}
 	}
 

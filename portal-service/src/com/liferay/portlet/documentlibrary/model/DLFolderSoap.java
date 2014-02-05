@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.documentlibrary.service.http.DLFolderServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portlet.documentlibrary.service.http.DLFolderServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.documentlibrary.service.http.DLFolderServiceSoap
  * @generated
  */
 public class DLFolderSoap implements Serializable {
@@ -42,6 +42,7 @@ public class DLFolderSoap implements Serializable {
 		soapModel.setRepositoryId(model.getRepositoryId());
 		soapModel.setMountPoint(model.getMountPoint());
 		soapModel.setParentFolderId(model.getParentFolderId());
+		soapModel.setTreePath(model.getTreePath());
 		soapModel.setName(model.getName());
 		soapModel.setDescription(model.getDescription());
 		soapModel.setLastPostDate(model.getLastPostDate());
@@ -196,6 +197,14 @@ public class DLFolderSoap implements Serializable {
 		_parentFolderId = parentFolderId;
 	}
 
+	public String getTreePath() {
+		return _treePath;
+	}
+
+	public void setTreePath(String treePath) {
+		_treePath = treePath;
+	}
+
 	public String getName() {
 		return _name;
 	}
@@ -295,6 +304,7 @@ public class DLFolderSoap implements Serializable {
 	private long _repositoryId;
 	private boolean _mountPoint;
 	private long _parentFolderId;
+	private String _treePath;
 	private String _name;
 	private String _description;
 	private Date _lastPostDate;

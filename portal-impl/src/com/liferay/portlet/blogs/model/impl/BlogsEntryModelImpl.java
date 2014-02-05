@@ -14,16 +14,24 @@
 
 package com.liferay.portlet.blogs.model.impl;
 
+import com.liferay.portal.NoSuchModelException;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.ContainerModel;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.model.impl.BaseModelImpl;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -33,6 +41,8 @@ import com.liferay.portlet.blogs.model.BlogsEntryModel;
 import com.liferay.portlet.blogs.model.BlogsEntrySoap;
 import com.liferay.portlet.expando.model.ExpandoBridge;
 import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
+import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 
 import java.io.Serializable;
 
@@ -240,6 +250,9 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		attributes.put("statusByUserName", getStatusByUserName());
 		attributes.put("statusDate", getStatusDate());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -384,8 +397,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -408,8 +421,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getEntryId() {
 		return _entryId;
 	}
@@ -419,8 +432,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_entryId = entryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -442,8 +455,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -465,8 +478,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -498,8 +511,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return _originalUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -514,8 +527,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -527,8 +540,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -538,8 +551,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getTitle() {
 		if (_title == null) {
 			return StringPool.BLANK;
@@ -554,8 +567,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_title = title;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUrlTitle() {
 		if (_urlTitle == null) {
 			return StringPool.BLANK;
@@ -580,8 +593,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return GetterUtil.getString(_originalUrlTitle);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -596,8 +609,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_description = description;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getContent() {
 		if (_content == null) {
 			return StringPool.BLANK;
@@ -612,8 +625,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_content = content;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getDisplayDate() {
 		return _displayDate;
 	}
@@ -633,8 +646,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return _originalDisplayDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAllowPingbacks() {
 		return _allowPingbacks;
 	}
@@ -649,8 +662,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_allowPingbacks = allowPingbacks;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAllowTrackbacks() {
 		return _allowTrackbacks;
 	}
@@ -665,8 +678,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_allowTrackbacks = allowTrackbacks;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getTrackbacks() {
 		if (_trackbacks == null) {
 			return StringPool.BLANK;
@@ -681,8 +694,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_trackbacks = trackbacks;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getSmallImage() {
 		return _smallImage;
 	}
@@ -697,8 +710,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_smallImage = smallImage;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getSmallImageId() {
 		return _smallImageId;
 	}
@@ -708,8 +721,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_smallImageId = smallImageId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getSmallImageURL() {
 		if (_smallImageURL == null) {
 			return StringPool.BLANK;
@@ -724,8 +737,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_smallImageURL = smallImageURL;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getStatus() {
 		return _status;
 	}
@@ -747,8 +760,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		return _originalStatus;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getStatusByUserId() {
 		return _statusByUserId;
 	}
@@ -769,8 +782,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_statusByUserUuid = statusByUserUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getStatusByUserName() {
 		if (_statusByUserName == null) {
 			return StringPool.BLANK;
@@ -785,8 +798,8 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_statusByUserName = statusByUserName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getStatusDate() {
 		return _statusDate;
 	}
@@ -796,9 +809,123 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 		_statusDate = statusDate;
 	}
 
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				BlogsEntry.class.getName()));
+	}
+
+	@Override
+	public TrashEntry getTrashEntry() throws PortalException, SystemException {
+		if (!isInTrash()) {
+			return null;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return trashEntry;
+		}
+
+		TrashHandler trashHandler = getTrashHandler();
+
+		if (!Validator.isNull(trashHandler.getContainerModelClassName())) {
+			ContainerModel containerModel = null;
+
+			try {
+				containerModel = trashHandler.getParentContainerModel(this);
+			}
+			catch (NoSuchModelException nsme) {
+				return null;
+			}
+
+			while (containerModel != null) {
+				if (containerModel instanceof TrashedModel) {
+					TrashedModel trashedModel = (TrashedModel)containerModel;
+
+					return trashedModel.getTrashEntry();
+				}
+
+				trashHandler = TrashHandlerRegistryUtil.getTrashHandler(trashHandler.getContainerModelClassName());
+
+				if (trashHandler == null) {
+					return null;
+				}
+
+				containerModel = trashHandler.getContainerModel(containerModel.getParentContainerModelId());
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public long getTrashEntryClassPK() {
+		return getPrimaryKey();
+	}
+
+	@Override
+	public TrashHandler getTrashHandler() {
+		return TrashHandlerRegistryUtil.getTrashHandler(getModelClassName());
+	}
+
+	@Override
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
+		TrashHandler trashHandler = getTrashHandler();
+
+		if ((trashHandler == null) ||
+				Validator.isNull(trashHandler.getContainerModelClassName())) {
+			return false;
+		}
+
+		try {
+			ContainerModel containerModel = trashHandler.getParentContainerModel(this);
+
+			if (containerModel == null) {
+				return false;
+			}
+
+			if (containerModel instanceof TrashedModel) {
+				return ((TrashedModel)containerModel).isInTrash();
+			}
+		}
+		catch (Exception e) {
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isInTrashExplicitly() throws SystemException {
+		if (!isInTrash()) {
+			return false;
+		}
+
+		TrashEntry trashEntry = TrashEntryLocalServiceUtil.fetchEntry(getModelClassName(),
+				getTrashEntryClassPK());
+
+		if (trashEntry != null) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return isApproved();
@@ -857,16 +984,6 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 	@Override
 	public boolean isIncomplete() {
 		if (getStatus() == WorkflowConstants.STATUS_INCOMPLETE) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
-	public boolean isInTrash() {
-		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
 			return true;
 		}
 		else {
@@ -1002,6 +1119,16 @@ public class BlogsEntryModelImpl extends BaseModelImpl<BlogsEntry>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

@@ -60,6 +60,10 @@
 			Liferay.Util.addInputType(node);
 		}
 	);
+
+	if (A.UA.mobile) {
+		Liferay.Util.addInputCancel();
+	}
 </aui:script>
 
 <%
@@ -74,7 +78,7 @@ if (layout != null) {
 }
 %>
 
-<c:if test="<%= !themeDisplay.isStatePopUp() && !group.isControlPanel() && (layout != null) && (!group.hasStagingGroup() || group.isStagingGroup()) && (GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) || LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.UPDATE) || (layoutTypePortlet.isCustomizable() && LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.CUSTOMIZE))) %>">
+<c:if test="<%= !themeDisplay.isStatePopUp() && !group.isControlPanel() && (layout != null) && (!group.hasStagingGroup() || group.isStagingGroup() || layoutTypePortlet.isCustomizable()) && (GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) || LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.UPDATE) || (layoutTypePortlet.isCustomizable() && LayoutPermissionUtil.contains(permissionChecker, layout, ActionKeys.CUSTOMIZE))) %>">
 	<c:if test="<%= layout.isTypePortlet() %>">
 		<aui:script>
 			Liferay.Data.layoutConfig = {
@@ -94,7 +98,7 @@ if (layout != null) {
 				</c:choose>
 
 				disabledDropContainerClass: 'portlet-dropzone-disabled',
-				dragNodes: '.portlet-boundary:not(.portlet-static)',
+				dragNodes: '.portlet-boundary',
 				dropContainer: '.portlet-dropzone',
 				emptyColumnClass: 'empty',
 				invalid: '.portlet-static',
@@ -109,53 +113,53 @@ if (layout != null) {
 	</c:if>
 
 	<aui:script use="liferay-navigation">
-		if (!A.UA.touch) {
-			Liferay.once(
-				'initNavigation',
-				function() {
-					new Liferay.Navigation(
-						{
-							hasAddLayoutPermission: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) %>,
-							layoutIds: [
+		Liferay.once(
+			'initNavigation',
+			function() {
+				new Liferay.Navigation(
+					{
+						hasAddLayoutPermission: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_LAYOUT) %>,
+						layoutIds: [
 
-								<%
-								for (int i = 0; (layouts != null) && (i < layouts.size()); i++) {
-									Layout curLayout = (Layout)layouts.get(i);
-								%>
+							<%
+							Group scopeGroup = GroupLocalServiceUtil.getGroup(scopeGroupId);
 
-									{
-										deletable: <%= LayoutPermissionUtil.contains(themeDisplay.getPermissionChecker(), curLayout, ActionKeys.DELETE) %>,
-										id: <%= curLayout.getLayoutId() %>,
-										sortable: <%= GroupPermissionUtil.contains(themeDisplay.getPermissionChecker(), scopeGroupId, ActionKeys.MANAGE_LAYOUTS) && SitesUtil.isLayoutSortable(curLayout) %>,
-										updateable: <%= LayoutPermissionUtil.contains(themeDisplay.getPermissionChecker(), curLayout, ActionKeys.UPDATE) %>
-									},
+							for (int i = 0; (layouts != null) && (i < layouts.size()); i++) {
+								Layout curLayout = (Layout)layouts.get(i);
+							%>
 
-								<%
-								}
-								%>
+								{
+									deletable: !A.UA.touch && <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.DELETE) %>,
+									id: <%= curLayout.getLayoutId() %>,
+									sortable: <%= GroupPermissionUtil.contains(permissionChecker, scopeGroup, ActionKeys.MANAGE_LAYOUTS) && SitesUtil.isLayoutSortable(curLayout) %>,
+									updateable: <%= LayoutPermissionUtil.contains(permissionChecker, curLayout, ActionKeys.UPDATE) %>
+								},
 
-								],
+							<%
+							}
+							%>
 
-							<c:if test="<%= layoutRevision != null %>">
-								layoutSetBranchId: '<%= layoutRevision.getLayoutSetBranchId() %>',
-							</c:if>
+							],
 
-							navBlock: navBlock
-						}
-					);
-				}
-			);
+						<c:if test="<%= layoutRevision != null %>">
+							layoutSetBranchId: '<%= layoutRevision.getLayoutSetBranchId() %>',
+						</c:if>
 
-			var navBlock = A.one('#navigation');
-
-			if (navBlock) {
-				navBlock.once(
-					'mousemove',
-					function() {
-						Liferay.fire('initNavigation');
+						navBlock: navBlock
 					}
 				);
 			}
+		);
+
+		var navBlock = A.one(Liferay.Data.NAV_SELECTOR);
+
+		if (navBlock) {
+			navBlock.once(
+				'mousemove',
+				function() {
+					Liferay.fire('initNavigation');
+				}
+			);
 		}
 	</aui:script>
 </c:if>

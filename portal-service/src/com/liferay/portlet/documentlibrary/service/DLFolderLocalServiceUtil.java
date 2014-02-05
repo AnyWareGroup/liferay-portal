@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.documentlibrary.service.impl.DLFolderLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class DLFolderLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,53 @@ public class DLFolderLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.documentlibrary.model.DLFolder fetchDLFolder(
 		long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchDLFolder(folderId);
+	}
+
+	/**
+	* Returns the document library folder with the matching UUID and company.
+	*
+	* @param uuid the document library folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching document library folder, or <code>null</code> if a matching document library folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.documentlibrary.model.DLFolder fetchDLFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchDLFolderByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the document library folder matching the UUID and group.
+	*
+	* @param uuid the document library folder's UUID
+	* @param groupId the primary key of the group
+	* @return the matching document library folder, or <code>null</code> if a matching document library folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.documentlibrary.model.DLFolder fetchDLFolderByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchDLFolderByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -191,6 +237,22 @@ public class DLFolderLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the document library folder with the matching UUID and company.
+	*
+	* @param uuid the document library folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching document library folder
+	* @throws PortalException if a matching document library folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.documentlibrary.model.DLFolder getDLFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getDLFolderByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -427,10 +489,11 @@ public class DLFolderLocalServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 6.2, replaced by more general {@link #addFolder(long,
+	* @deprecated As of 6.2.0, replaced by more general {@link #addFolder(long,
 	long, long, boolean, long, String, String, boolean,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.documentlibrary.model.DLFolder addFolder(
 		long userId, long groupId, long repositoryId, boolean mountPoint,
 		long parentFolderId, java.lang.String name,
@@ -486,6 +549,12 @@ public class DLFolderLocalServiceUtil {
 	}
 
 	public static com.liferay.portlet.documentlibrary.model.DLFolder fetchFolder(
+		long folderId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchFolder(folderId);
+	}
+
+	public static com.liferay.portlet.documentlibrary.model.DLFolder fetchFolder(
 		long groupId, long parentFolderId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchFolder(groupId, parentFolderId, name);
@@ -506,6 +575,7 @@ public class DLFolderLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link
 	#getFileEntriesAndFileShortcuts(long, long, QueryDefinition)}
 	*/
+	@Deprecated
 	public static java.util.List<java.lang.Object> getFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -528,6 +598,7 @@ public class DLFolderLocalServiceUtil {
 	#getFileEntriesAndFileShortcutsCount(long, long,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	public static int getFileEntriesAndFileShortcutsCount(long groupId,
 		long folderId, int status)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -598,6 +669,7 @@ public class DLFolderLocalServiceUtil {
 	#getFoldersAndFileEntriesAndFileShortcuts(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	public static java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, boolean includeMountFolders,
 		int start, int end, com.liferay.portal.kernel.util.OrderByComparator obc)
@@ -612,6 +684,7 @@ public class DLFolderLocalServiceUtil {
 	#getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	public static java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, java.lang.String[] mimeTypes,
 		boolean includeMountFolders, int start, int end,
@@ -637,6 +710,7 @@ public class DLFolderLocalServiceUtil {
 	#getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	public static int getFoldersAndFileEntriesAndFileShortcutsCount(
 		long groupId, long folderId, int status, boolean includeMountFolders)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -650,6 +724,7 @@ public class DLFolderLocalServiceUtil {
 	#getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	public static int getFoldersAndFileEntriesAndFileShortcutsCount(
 		long groupId, long folderId, int status, java.lang.String[] mimeTypes,
 		boolean includeMountFolders)
@@ -679,6 +754,14 @@ public class DLFolderLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .getFoldersCount(groupId, parentFolderId, includeMountfolders);
+	}
+
+	public static int getFoldersCount(long groupId, long parentFolderId,
+		int status, boolean includeMountfolders)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getFoldersCount(groupId, parentFolderId, status,
+			includeMountfolders);
 	}
 
 	public static com.liferay.portlet.documentlibrary.model.DLFolder getMountFolder(
@@ -743,6 +826,11 @@ public class DLFolderLocalServiceUtil {
 				   .moveFolder(userId, folderId, parentFolderId, serviceContext);
 	}
 
+	public static void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().rebuildTree(companyId);
+	}
+
 	public static void unlockFolder(long groupId, long parentFolderId,
 		java.lang.String name, java.lang.String lockUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -798,9 +886,6 @@ public class DLFolderLocalServiceUtil {
 			fileEntryTypeIds, overrideFileEntryTypes, serviceContext);
 	}
 
-	/**
-	* @deprecated As of 6.2.0
-	*/
 	public static void updateLastPostDate(long folderId,
 		java.util.Date lastPostDate)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -833,6 +918,7 @@ public class DLFolderLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DLFolderLocalService service) {
 	}
 

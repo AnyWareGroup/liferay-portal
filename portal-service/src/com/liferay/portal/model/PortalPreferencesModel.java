@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.PortalPreferencesModelImpl
  * @generated
  */
-public interface PortalPreferencesModel extends BaseModel<PortalPreferences> {
+@ProviderType
+public interface PortalPreferencesModel extends BaseModel<PortalPreferences>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +58,22 @@ public interface PortalPreferencesModel extends BaseModel<PortalPreferences> {
 	 * @param primaryKey the primary key of this portal preferences
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this portal preferences.
+	 *
+	 * @return the mvcc version of this portal preferences
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this portal preferences.
+	 *
+	 * @param mvccVersion the mvcc version of this portal preferences
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the portal preferences ID of this portal preferences.

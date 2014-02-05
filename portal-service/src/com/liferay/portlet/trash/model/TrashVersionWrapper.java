@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link TrashVersion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       TrashVersion
+ * @author Brian Wing Shun Chan
+ * @see TrashVersion
  * @generated
  */
+@ProviderType
 public class TrashVersionWrapper implements TrashVersion,
 	ModelWrapper<TrashVersion> {
 	public TrashVersionWrapper(TrashVersion trashVersion) {
@@ -52,6 +56,7 @@ public class TrashVersionWrapper implements TrashVersion,
 		attributes.put("entryId", getEntryId());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
+		attributes.put("typeSettings", getTypeSettings());
 		attributes.put("status", getStatus());
 
 		return attributes;
@@ -81,6 +86,12 @@ public class TrashVersionWrapper implements TrashVersion,
 
 		if (classPK != null) {
 			setClassPK(classPK);
+		}
+
+		String typeSettings = (String)attributes.get("typeSettings");
+
+		if (typeSettings != null) {
+			setTypeSettings(typeSettings);
 		}
 
 		Integer status = (Integer)attributes.get("status");
@@ -206,6 +217,26 @@ public class TrashVersionWrapper implements TrashVersion,
 	}
 
 	/**
+	* Returns the type settings of this trash version.
+	*
+	* @return the type settings of this trash version
+	*/
+	@Override
+	public java.lang.String getTypeSettings() {
+		return _trashVersion.getTypeSettings();
+	}
+
+	/**
+	* Sets the type settings of this trash version.
+	*
+	* @param typeSettings the type settings of this trash version
+	*/
+	@Override
+	public void setTypeSettings(java.lang.String typeSettings) {
+		_trashVersion.setTypeSettings(typeSettings);
+	}
+
+	/**
 	* Returns the status of this trash version.
 	*
 	* @return the status of this trash version
@@ -324,9 +355,57 @@ public class TrashVersionWrapper implements TrashVersion,
 		return _trashVersion.toXmlString();
 	}
 
+	@Override
+	public void persist()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_trashVersion.persist();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties() {
+		return _trashVersion.getTypeSettingsProperties();
+	}
+
+	@Override
+	public java.lang.String getTypeSettingsProperty(java.lang.String key) {
+		return _trashVersion.getTypeSettingsProperty(key);
+	}
+
+	@Override
+	public java.lang.String getTypeSettingsProperty(java.lang.String key,
+		java.lang.String defaultValue) {
+		return _trashVersion.getTypeSettingsProperty(key, defaultValue);
+	}
+
+	@Override
+	public void setTypeSettingsProperties(
+		com.liferay.portal.kernel.util.UnicodeProperties typeSettingsProperties) {
+		_trashVersion.setTypeSettingsProperties(typeSettingsProperties);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof TrashVersionWrapper)) {
+			return false;
+		}
+
+		TrashVersionWrapper trashVersionWrapper = (TrashVersionWrapper)obj;
+
+		if (Validator.equals(_trashVersion, trashVersionWrapper._trashVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public TrashVersion getWrappedTrashVersion() {
 		return _trashVersion;
 	}
@@ -334,6 +413,16 @@ public class TrashVersionWrapper implements TrashVersion,
 	@Override
 	public TrashVersion getWrappedModel() {
 		return _trashVersion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _trashVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _trashVersion.isFinderCacheEnabled();
 	}
 
 	@Override

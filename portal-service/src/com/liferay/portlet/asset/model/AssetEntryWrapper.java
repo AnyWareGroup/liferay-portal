@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetEntry}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetEntry
+ * @author Brian Wing Shun Chan
+ * @see AssetEntry
  * @generated
  */
+@ProviderType
 public class AssetEntryWrapper implements AssetEntry, ModelWrapper<AssetEntry> {
 	public AssetEntryWrapper(AssetEntry assetEntry) {
 		_assetEntry = assetEntry;
@@ -1246,6 +1250,22 @@ public class AssetEntryWrapper implements AssetEntry, ModelWrapper<AssetEntry> {
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _assetEntry.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _assetEntry.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_assetEntry.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -1332,9 +1352,29 @@ public class AssetEntryWrapper implements AssetEntry, ModelWrapper<AssetEntry> {
 		return _assetEntry.getTags();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetEntryWrapper)) {
+			return false;
+		}
+
+		AssetEntryWrapper assetEntryWrapper = (AssetEntryWrapper)obj;
+
+		if (Validator.equals(_assetEntry, assetEntryWrapper._assetEntry)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetEntry getWrappedAssetEntry() {
 		return _assetEntry;
 	}
@@ -1342,6 +1382,16 @@ public class AssetEntryWrapper implements AssetEntry, ModelWrapper<AssetEntry> {
 	@Override
 	public AssetEntry getWrappedModel() {
 		return _assetEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetEntry.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.polls.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link PollsQuestionLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsQuestionLocalService
+ * @author Brian Wing Shun Chan
+ * @see PollsQuestionLocalService
  * @generated
  */
+@ProviderType
 public class PollsQuestionLocalServiceWrapper
 	implements PollsQuestionLocalService,
 		ServiceWrapper<PollsQuestionLocalService> {
@@ -167,11 +170,60 @@ public class PollsQuestionLocalServiceWrapper
 		return _pollsQuestionLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _pollsQuestionLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.polls.model.PollsQuestion fetchPollsQuestion(
 		long questionId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _pollsQuestionLocalService.fetchPollsQuestion(questionId);
+	}
+
+	/**
+	* Returns the polls question with the matching UUID and company.
+	*
+	* @param uuid the polls question's UUID
+	* @param companyId the primary key of the company
+	* @return the matching polls question, or <code>null</code> if a matching polls question could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.polls.model.PollsQuestion fetchPollsQuestionByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _pollsQuestionLocalService.fetchPollsQuestionByUuidAndCompanyId(uuid,
+			companyId);
+	}
+
+	/**
+	* Returns the polls question matching the UUID and group.
+	*
+	* @param uuid the polls question's UUID
+	* @param groupId the primary key of the group
+	* @return the matching polls question, or <code>null</code> if a matching polls question could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.polls.model.PollsQuestion fetchPollsQuestionByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _pollsQuestionLocalService.fetchPollsQuestionByUuidAndGroupId(uuid,
+			groupId);
 	}
 
 	/**
@@ -196,6 +248,24 @@ public class PollsQuestionLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _pollsQuestionLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the polls question with the matching UUID and company.
+	*
+	* @param uuid the polls question's UUID
+	* @param companyId the primary key of the company
+	* @return the matching polls question
+	* @throws PortalException if a matching polls question could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.polls.model.PollsQuestion getPollsQuestionByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _pollsQuestionLocalService.getPollsQuestionByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -406,6 +476,7 @@ public class PollsQuestionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PollsQuestionLocalService getWrappedPollsQuestionLocalService() {
 		return _pollsQuestionLocalService;
 	}
@@ -413,6 +484,7 @@ public class PollsQuestionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPollsQuestionLocalService(
 		PollsQuestionLocalService pollsQuestionLocalService) {
 		_pollsQuestionLocalService = pollsQuestionLocalService;

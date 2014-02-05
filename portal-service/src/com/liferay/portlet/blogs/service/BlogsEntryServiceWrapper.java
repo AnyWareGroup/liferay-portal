@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.blogs.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link BlogsEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       BlogsEntryService
+ * @author Brian Wing Shun Chan
+ * @see BlogsEntryService
  * @generated
  */
+@ProviderType
 public class BlogsEntryServiceWrapper implements BlogsEntryService,
 	ServiceWrapper<BlogsEntryService> {
 	public BlogsEntryServiceWrapper(BlogsEntryService blogsEntryService) {
@@ -201,10 +204,11 @@ public class BlogsEntryServiceWrapper implements BlogsEntryService,
 	}
 
 	@Override
-	public void moveEntryToTrash(long entryId)
+	public com.liferay.portlet.blogs.model.BlogsEntry moveEntryToTrash(
+		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_blogsEntryService.moveEntryToTrash(entryId);
+		return _blogsEntryService.moveEntryToTrash(entryId);
 	}
 
 	@Override
@@ -250,6 +254,7 @@ public class BlogsEntryServiceWrapper implements BlogsEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public BlogsEntryService getWrappedBlogsEntryService() {
 		return _blogsEntryService;
 	}
@@ -257,6 +262,7 @@ public class BlogsEntryServiceWrapper implements BlogsEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedBlogsEntryService(BlogsEntryService blogsEntryService) {
 		_blogsEntryService = blogsEntryService;
 	}

@@ -1,12 +1,34 @@
 @import "compass";
 
 .input-localized {
+	.palette-container {
+		@include opacity(0.5);
+	}
+
+	&.input-localized-focused .palette-container {
+		@include opacity(1);
+	}
+
+	.input-localized-content {
+		margin-left: 6px;
+	}
+
+	&.input-localized-editor .input-localized-content {
+		margin-top: 0;
+	}
+
+	.lfr-input-localized-default a {
+		margin-right: 14px;
+	}
+
 	.palette-item {
 		border-width: 0;
+		padding: 0;
 	}
 
 	.palette-item-inner {
-		height: 11px;
+		border: 1px solid #666;
+		margin-right: 4px;
 		width: 16px;
 
 		img {
@@ -18,15 +40,44 @@
 		border-color: transparent;
 	}
 
-	.lfr-input-localized-flag {
-		@include opacity(0.15);
+	.lfr-input-localized-state {
+		height: 4px;
+		margin: 3px 5px;
+		width: 4px;
+		@include border-radius(3px);
 	}
 
-	.palette-item-selected .lfr-input-localized-flag, .palette-item-hover .lfr-input-localized-flag {
-		@include opacity(1);
+	.lfr-input-localized .lfr-input-localized-state {
+		background: #DDD;
+		@include box-shadow(0 0 3px #DDD);
+
+		&.lfr-input-localized-state-error {
+			@include box-shadow(0 0 3px #FF0047);
+			background: #FF0047;
+		}
 	}
 
-	.palette-container {
-		margin-bottom: 12px;
+	.palette-item-selected .lfr-input-localized-state {
+		@include box-shadow(0 0 3px #27C1F2);
+		background: #27C1F2;
+	}
+
+	&.input-localized-focused {
+		.palette-item-selected .lfr-input-localized-state {
+			height: 6px;
+			width: 6px;
+		}
+	}
+
+	.palette-item-inner {
+		display: block;
+		height: 16px;
+		width: 16px;
+	}
+}
+
+.input-prepend, .input-append {
+	.input-localized .input-localized-content {
+		margin-top: 3px;
 	}
 }

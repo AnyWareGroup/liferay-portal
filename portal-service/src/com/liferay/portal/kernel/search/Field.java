@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.search;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
+
 import java.io.Serializable;
 
 import java.util.Locale;
@@ -32,6 +34,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #ASSET_CATEGORY_TITLES}
 	 */
+	@Deprecated
 	public static final String ASSET_CATEGORY_NAMES = "assetCategoryNames";
 
 	public static final String ASSET_CATEGORY_TITLES = "assetCategoryTitles";
@@ -80,11 +83,14 @@ public class Field implements Serializable {
 		Field.URL, Field.USER_NAME
 	};
 
+	public static final String LANGUAGE_ID = "languageId";
+
 	public static final String LAYOUT_UUID = "layoutUuid";
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #MODIFIED_DATE}
 	 */
+	@Deprecated
 	public static final String MODIFIED = "modified";
 
 	public static final String MODIFIED_DATE = "modified";
@@ -121,11 +127,15 @@ public class Field implements Serializable {
 
 	public static final String SNIPPET = "snippet";
 
+	public static final String SPELL_CHECK_WORD = "spellCheckWord";
+
 	public static final String STAGING_GROUP = "stagingGroup";
 
 	public static final String STATUS = "status";
 
 	public static final String TITLE = "title";
+
+	public static final String TREE_PATH = "treePath";
 
 	public static final String TYPE = "type";
 
@@ -162,6 +172,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String value, boolean tokenized) {
 		this(name, value);
 
@@ -176,6 +187,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized) {
 		this(name, values);
 
@@ -185,6 +197,7 @@ public class Field implements Serializable {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public Field(String name, String[] values, boolean tokenized, float boost) {
 		this(name, values);
 
@@ -209,7 +222,7 @@ public class Field implements Serializable {
 	}
 
 	public String getValue() {
-		if ((_values != null) && (_values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(_values)) {
 			return _values[0];
 		}
 		else {

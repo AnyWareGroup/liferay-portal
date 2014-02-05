@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -59,12 +61,13 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetCategoryServiceHttp
- * @see       com.liferay.portlet.asset.model.AssetCategorySoap
- * @see       com.liferay.portlet.asset.service.AssetCategoryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AssetCategoryServiceHttp
+ * @see com.liferay.portlet.asset.model.AssetCategorySoap
+ * @see com.liferay.portlet.asset.service.AssetCategoryServiceUtil
  * @generated
  */
+@ProviderType
 public class AssetCategoryServiceSoap {
 	public static com.liferay.portlet.asset.model.AssetCategorySoap addCategory(
 		long parentCategoryId, java.lang.String[] titleMapLanguageIds,
@@ -102,6 +105,23 @@ public class AssetCategoryServiceSoap {
 					vocabularyId, serviceContext);
 
 			return com.liferay.portlet.asset.model.AssetCategorySoap.toSoapModel(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	/**
+	* @deprecated As of 6.2.0, Replaced by {@link #deleteCategories(long[],
+	ServiceContext)}
+	*/
+	@Deprecated
+	public static void deleteCategories(long[] categoryIds)
+		throws RemoteException {
+		try {
+			AssetCategoryServiceUtil.deleteCategories(categoryIds);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -206,6 +226,7 @@ public class AssetCategoryServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #search(long[], String,
 	long[], int, int)}
 	*/
+	@Deprecated
 	public static java.lang.String getJSONSearch(long groupId,
 		java.lang.String name, long[] vocabularyIds, int start, int end)
 		throws RemoteException {
@@ -227,6 +248,7 @@ public class AssetCategoryServiceSoap {
 	#getVocabularyCategoriesDisplay(long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	public static java.lang.String getJSONVocabularyCategories(
 		long vocabularyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
@@ -249,6 +271,7 @@ public class AssetCategoryServiceSoap {
 	#getVocabularyCategoriesDisplay(long, String, long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	public static java.lang.String getJSONVocabularyCategories(long groupId,
 		java.lang.String name, long vocabularyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
@@ -385,10 +408,11 @@ public class AssetCategoryServiceSoap {
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #
-	getVocabularyRootCategories(long, long, int, int,
+	* @deprecated As of 6.2.0, replaced by {@link
+	#getVocabularyRootCategories(long, long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetCategorySoap[] getVocabularyRootCategories(
 		long vocabularyId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)

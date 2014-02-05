@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.ThemeLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class ThemeLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -74,6 +77,18 @@ public class ThemeLocalServiceUtil {
 				   .getColorScheme(companyId, themeId, colorSchemeId, wapTheme);
 	}
 
+	public static java.util.List<com.liferay.portal.model.Theme> getControlPanelThemes(
+		long companyId, long userId, boolean wapTheme)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getControlPanelThemes(companyId, userId, wapTheme);
+	}
+
+	public static java.util.List<com.liferay.portal.model.Theme> getPageThemes(
+		long companyId, long groupId, long userId, boolean wapTheme)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getPageThemes(companyId, groupId, userId, wapTheme);
+	}
+
 	public static com.liferay.portal.model.Theme getTheme(long companyId,
 		java.lang.String themeId, boolean wapTheme)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -85,6 +100,10 @@ public class ThemeLocalServiceUtil {
 		return getService().getThemes(companyId);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getPageThemes}
+	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portal.model.Theme> getThemes(
 		long companyId, long groupId, long userId, boolean wapTheme)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -95,7 +114,7 @@ public class ThemeLocalServiceUtil {
 		return getService().getWARThemes();
 	}
 
-	public static java.util.List<java.lang.String> init(
+	public static java.util.List<com.liferay.portal.model.Theme> init(
 		javax.servlet.ServletContext servletContext,
 		java.lang.String themesPath, boolean loadFromServletContext,
 		java.lang.String[] xmls,
@@ -105,7 +124,7 @@ public class ThemeLocalServiceUtil {
 			xmls, pluginPackage);
 	}
 
-	public static java.util.List<java.lang.String> init(
+	public static java.util.List<com.liferay.portal.model.Theme> init(
 		java.lang.String servletContextName,
 		javax.servlet.ServletContext servletContext,
 		java.lang.String themesPath, boolean loadFromServletContext,
@@ -117,8 +136,8 @@ public class ThemeLocalServiceUtil {
 	}
 
 	public static void uninstallThemes(
-		java.util.List<java.lang.String> themeIds) {
-		getService().uninstallThemes(themeIds);
+		java.util.List<com.liferay.portal.model.Theme> themes) {
+		getService().uninstallThemes(themes);
 	}
 
 	public static ThemeLocalService getService() {
@@ -135,6 +154,7 @@ public class ThemeLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(ThemeLocalService service) {
 	}
 

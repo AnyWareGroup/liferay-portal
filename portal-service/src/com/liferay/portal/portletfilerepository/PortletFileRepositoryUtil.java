@@ -14,6 +14,8 @@
 
 package com.liferay.portal.portletfilerepository;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -23,6 +25,7 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portal.theme.ThemeDisplay;
 
 import java.io.File;
 import java.io.InputStream;
@@ -33,6 +36,7 @@ import java.util.List;
  * @author Eudaldo Alonso
  * @author Alexander Chow
  */
+@ProviderType
 public class PortletFileRepositoryUtil {
 
 	public static void addPortletFileEntries(
@@ -49,23 +53,23 @@ public class PortletFileRepositoryUtil {
 	public static FileEntry addPortletFileEntry(
 			long groupId, long userId, String className, long classPK,
 			String portletId, long folderId, File file, String fileName,
-			String mimeType)
+			String mimeType, boolean indexingEnabled)
 		throws PortalException, SystemException {
 
 		return getPortletFileRepository().addPortletFileEntry(
 			groupId, userId, className, classPK, portletId, folderId, file,
-			fileName, mimeType);
+			fileName, mimeType, indexingEnabled);
 	}
 
 	public static FileEntry addPortletFileEntry(
 			long groupId, long userId, String className, long classPK,
 			String portletId, long folderId, InputStream inputStream,
-			String fileName, String mimeType)
+			String fileName, String mimeType, boolean indexingEnabled)
 		throws PortalException, SystemException {
 
 		return getPortletFileRepository().addPortletFileEntry(
 			groupId, userId, className, classPK, portletId, folderId,
-			inputStream, fileName, mimeType);
+			inputStream, fileName, mimeType, indexingEnabled);
 	}
 
 	public static Folder addPortletFolder(
@@ -85,6 +89,10 @@ public class PortletFileRepositoryUtil {
 			groupId, portletId, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #deletePortletFolder}
+	 */
+	@Deprecated
 	public static void deleteFolder(long folderId)
 		throws PortalException, SystemException {
 
@@ -117,6 +125,12 @@ public class PortletFileRepositoryUtil {
 
 		getPortletFileRepository().deletePortletFileEntry(
 			groupId, folderId, fileName);
+	}
+
+	public static void deletePortletFolder(long folderId)
+		throws PortalException, SystemException {
+
+		getPortletFileRepository().deletePortletFolder(folderId);
 	}
 
 	public static void deletePortletRepository(long groupId, String portletId)
@@ -187,6 +201,27 @@ public class PortletFileRepositoryUtil {
 			groupId, folderId, fileName);
 	}
 
+	public static FileEntry getPortletFileEntry(String uuid, long groupId)
+		throws PortalException, SystemException {
+
+		return getPortletFileRepository().getPortletFileEntry(uuid, groupId);
+	}
+
+	public static String getPortletFileEntryURL(
+		ThemeDisplay themeDisplay, FileEntry fileEntry, String queryString) {
+
+		return getPortletFileRepository().getPortletFileEntryURL(
+			themeDisplay, fileEntry, queryString);
+	}
+
+	public static String getPortletFileEntryURL(
+		ThemeDisplay themeDisplay, FileEntry fileEntry, String queryString,
+		boolean absoluteURL) {
+
+		return getPortletFileRepository().getPortletFileEntryURL(
+			themeDisplay, fileEntry, queryString, absoluteURL);
+	}
+
 	public static PortletFileRepository getPortletFileRepository() {
 		PortalRuntimePermission.checkGetBeanProperty(
 			PortletFileRepositoryUtil.class);
@@ -217,19 +252,19 @@ public class PortletFileRepositoryUtil {
 			groupId, portletId);
 	}
 
-	public static void movePortletFileEntryToTrash(
+	public static FileEntry movePortletFileEntryToTrash(
 			long userId, long fileEntryId)
 		throws PortalException, SystemException {
 
-		getPortletFileRepository().movePortletFileEntryToTrash(
+		return getPortletFileRepository().movePortletFileEntryToTrash(
 			userId, fileEntryId);
 	}
 
-	public static void movePortletFileEntryToTrash(
+	public static FileEntry movePortletFileEntryToTrash(
 			long groupId, long userId, long folderId, String fileName)
 		throws PortalException, SystemException {
 
-		getPortletFileRepository().movePortletFileEntryToTrash(
+		return getPortletFileRepository().movePortletFileEntryToTrash(
 			groupId, userId, folderId, fileName);
 	}
 

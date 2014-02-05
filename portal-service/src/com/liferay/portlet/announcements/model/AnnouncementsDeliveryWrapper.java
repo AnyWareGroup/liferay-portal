@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.announcements.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AnnouncementsDelivery}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsDelivery
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsDelivery
  * @generated
  */
+@ProviderType
 public class AnnouncementsDeliveryWrapper implements AnnouncementsDelivery,
 	ModelWrapper<AnnouncementsDelivery> {
 	public AnnouncementsDeliveryWrapper(
@@ -422,9 +426,30 @@ public class AnnouncementsDeliveryWrapper implements AnnouncementsDelivery,
 		_announcementsDelivery.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AnnouncementsDeliveryWrapper)) {
+			return false;
+		}
+
+		AnnouncementsDeliveryWrapper announcementsDeliveryWrapper = (AnnouncementsDeliveryWrapper)obj;
+
+		if (Validator.equals(_announcementsDelivery,
+					announcementsDeliveryWrapper._announcementsDelivery)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AnnouncementsDelivery getWrappedAnnouncementsDelivery() {
 		return _announcementsDelivery;
 	}
@@ -432,6 +457,16 @@ public class AnnouncementsDeliveryWrapper implements AnnouncementsDelivery,
 	@Override
 	public AnnouncementsDelivery getWrappedModel() {
 		return _announcementsDelivery;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _announcementsDelivery.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _announcementsDelivery.isFinderCacheEnabled();
 	}
 
 	@Override

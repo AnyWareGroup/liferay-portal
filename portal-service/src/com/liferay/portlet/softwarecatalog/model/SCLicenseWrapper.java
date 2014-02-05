@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.softwarecatalog.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SCLicense}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SCLicense
+ * @author Brian Wing Shun Chan
+ * @see SCLicense
  * @generated
  */
+@ProviderType
 public class SCLicenseWrapper implements SCLicense, ModelWrapper<SCLicense> {
 	public SCLicenseWrapper(SCLicense scLicense) {
 		_scLicense = scLicense;
@@ -371,9 +375,29 @@ public class SCLicenseWrapper implements SCLicense, ModelWrapper<SCLicense> {
 		_scLicense.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SCLicenseWrapper)) {
+			return false;
+		}
+
+		SCLicenseWrapper scLicenseWrapper = (SCLicenseWrapper)obj;
+
+		if (Validator.equals(_scLicense, scLicenseWrapper._scLicense)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SCLicense getWrappedSCLicense() {
 		return _scLicense;
 	}
@@ -381,6 +405,16 @@ public class SCLicenseWrapper implements SCLicense, ModelWrapper<SCLicense> {
 	@Override
 	public SCLicense getWrappedModel() {
 		return _scLicense;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _scLicense.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _scLicense.isFinderCacheEnabled();
 	}
 
 	@Override

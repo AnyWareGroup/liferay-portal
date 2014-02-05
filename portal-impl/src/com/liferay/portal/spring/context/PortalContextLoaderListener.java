@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.CharBufferPool;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.ClearThreadLocalUtil;
 import com.liferay.portal.kernel.util.ClearTimerThreadUtil;
 import com.liferay.portal.kernel.util.InstancePool;
@@ -42,6 +43,9 @@ import com.liferay.portal.kernel.util.MethodCache;
 import com.liferay.portal.kernel.util.PortalLifecycleUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.kernel.util.ServerDetector;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
 import com.liferay.portal.module.framework.ModuleFrameworkUtilAdapter;
 import com.liferay.portal.security.lang.SecurityManagerUtil;
@@ -79,6 +83,14 @@ import org.springframework.web.context.ContextLoaderListener;
  * @author Raymond Augé
  */
 public class PortalContextLoaderListener extends ContextLoaderListener {
+
+	public static String getPortalServlerContextName() {
+		return _portalServlerContextName;
+	}
+
+	public static String getPortalServletContextPath() {
+		return _portalServletContextPath;
+	}
 
 	@Override
 	public void contextDestroyed(ServletContextEvent servletContextEvent) {
@@ -147,11 +159,15 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		}
 		finally {
 			PortalContextLoaderLifecycleThreadLocal.setDestroying(false);
+
+			SecurityManagerUtil.destroy();
 		}
 	}
 
 	@Override
 	public void contextInitialized(ServletContextEvent servletContextEvent) {
+		SystemProperties.reload();
+
 		DBFactoryUtil.reset();
 		DeployManagerUtil.reset();
 		InstancePool.reset();
@@ -164,6 +180,26 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		InitUtil.init();
 
 		ServletContext servletContext = servletContextEvent.getServletContext();
+
+		_portalServlerContextName = servletContext.getServletContextName();
+
+		if (_portalServlerContextName == null) {
+			_portalServlerContextName = StringPool.BLANK;
+		}
+
+		if (ServerDetector.isJetty() &&
+			_portalServlerContextName.equals(StringPool.SLASH)) {
+
+			_portalServlerContextName = StringPool.BLANK;
+		}
+
+		_portalServletContextPath = servletContext.getContextPath();
+
+		if (ServerDetector.isWebSphere() &&
+			_portalServletContextPath.isEmpty()) {
+
+			_portalServlerContextName = StringPool.BLANK;
+		}
 
 		ClassPathUtil.initializeClassPaths(servletContext);
 
@@ -184,8 +220,6 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-
-		SecurityManagerUtil.applySmartStrategy();
 
 		PortalContextLoaderLifecycleThreadLocal.setInitializing(true);
 
@@ -223,6 +257,10 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		WebCachePoolUtil.clear();
 
 		ClassLoader portalClassLoader = ClassLoaderUtil.getPortalClassLoader();
+
+		ClassLoaderPool.register(_portalServlerContextName, portalClassLoader);
+
+		ServletContextPool.put(_portalServlerContextName, servletContext);
 
 		BeanLocatorImpl beanLocatorImpl = new BeanLocatorImpl(
 			portalClassLoader, applicationContext);
@@ -274,6 +312,8 @@ public class PortalContextLoaderListener extends ContextLoaderListener {
 		PortalContextLoaderListener.class);
 
 	private static Field _filteredPropertyDescriptorsCacheField;
+	private static String _portalServlerContextName = StringPool.BLANK;
+	private static String _portalServletContextPath = StringPool.SLASH;
 
 	static {
 		try {

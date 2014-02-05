@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.model.impl;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -21,7 +23,6 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
 import com.liferay.portal.service.RepositoryLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
@@ -35,29 +36,26 @@ public class DLFileShortcutImpl extends DLFileShortcutBaseImpl {
 	}
 
 	@Override
-	public Folder getFolder() {
-		Folder folder = new LiferayFolder(new DLFolderImpl());
+	public String buildTreePath() throws PortalException, SystemException {
+		DLFolder dlFolder = getDLFolder();
 
-		if (getFolderId() > 0) {
-			try {
-				folder = DLAppLocalServiceUtil.getFolder(getFolderId());
-			}
-			catch (NoSuchFolderException nsfe) {
-				try {
-					if (!isInTrash()) {
-						_log.error(nsfe, nsfe);
-					}
-				}
-				catch (Exception e) {
-					_log.error(e, e);
-				}
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+		return dlFolder.buildTreePath();
+	}
+
+	@Override
+	public DLFolder getDLFolder() throws PortalException, SystemException {
+		Folder folder = getFolder();
+
+		return (DLFolder)folder.getModel();
+	}
+
+	@Override
+	public Folder getFolder() throws PortalException, SystemException {
+		if (getFolderId() <= 0) {
+			return new LiferayFolder(new DLFolderImpl());
 		}
 
-		return folder;
+		return DLAppLocalServiceUtil.getFolder(getFolderId());
 	}
 
 	@Override
@@ -78,19 +76,6 @@ public class DLFileShortcutImpl extends DLFileShortcutBaseImpl {
 	}
 
 	@Override
-	public DLFolder getTrashContainer() {
-		Folder folder = getFolder();
-
-		DLFolder dlFolder = (DLFolder)folder.getModel();
-
-		if (dlFolder.isInTrash()) {
-			return dlFolder;
-		}
-
-		return dlFolder.getTrashContainer();
-	}
-
-	@Override
 	public boolean isInHiddenFolder() {
 		try {
 			long repositoryId = getRepositoryId();
@@ -108,16 +93,6 @@ public class DLFileShortcutImpl extends DLFileShortcutBaseImpl {
 		}
 
 		return false;
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(DLFileShortcutImpl.class);

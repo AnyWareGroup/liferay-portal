@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.LayoutSetBranchServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetBranchServiceHttp
- * @see       com.liferay.portal.model.LayoutSetBranchSoap
- * @see       com.liferay.portal.service.LayoutSetBranchServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetBranchServiceHttp
+ * @see com.liferay.portal.model.LayoutSetBranchSoap
+ * @see com.liferay.portal.service.LayoutSetBranchServiceUtil
  * @generated
  */
+@ProviderType
 public class LayoutSetBranchServiceSoap {
 	public static com.liferay.portal.model.LayoutSetBranchSoap addLayoutSetBranch(
 		long groupId, boolean privateLayout, java.lang.String name,

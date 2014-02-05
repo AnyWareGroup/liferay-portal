@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link UserGroupLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroupLocalService
+ * @author Brian Wing Shun Chan
+ * @see UserGroupLocalService
  * @generated
  */
+@ProviderType
 public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	ServiceWrapper<UserGroupLocalService> {
 	public UserGroupLocalServiceWrapper(
@@ -164,10 +167,42 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 		return _userGroupLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.UserGroup fetchUserGroup(long userGroupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _userGroupLocalService.fetchUserGroup(userGroupId);
+	}
+
+	/**
+	* Returns the user group with the matching UUID and company.
+	*
+	* @param uuid the user group's UUID
+	* @param companyId the primary key of the company
+	* @return the matching user group, or <code>null</code> if a matching user group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.UserGroup fetchUserGroupByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.fetchUserGroupByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -191,6 +226,24 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _userGroupLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the user group with the matching UUID and company.
+	*
+	* @param uuid the user group's UUID
+	* @param companyId the primary key of the company
+	* @return the matching user group
+	* @throws PortalException if a matching user group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.UserGroup getUserGroupByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.getUserGroupByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -737,6 +790,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addUserGroup(long, long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.UserGroup addUserGroup(long userId,
 		long companyId, java.lang.String name, java.lang.String description)
@@ -787,6 +841,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.2.0
 	*/
+	@Deprecated
 	@Override
 	public void copyUserGroupLayouts(long userGroupId, long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -805,6 +860,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	@Override
 	public void copyUserGroupLayouts(long userGroupId, long[] userIds)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -822,6 +878,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	@Override
 	public void copyUserGroupLayouts(long[] userGroupIds, long userId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -841,14 +898,6 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 		java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _userGroupLocalService.fetchUserGroup(companyId, name);
-	}
-
-	@Override
-	public com.liferay.portal.model.UserGroup fetchUserGroupByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _userGroupLocalService.fetchUserGroupByUuidAndCompanyId(uuid,
-			companyId);
 	}
 
 	/**
@@ -978,6 +1027,49 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 
 	/**
 	* Returns an ordered range of all the user groups that match the name and
+	* description.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end -
+	* start</code> instances. <code>start</code> and <code>end</code> are not
+	* primary keys, they are indexes in the result set. Thus, <code>0</code>
+	* refers to the first result in the set. Setting both <code>start</code>
+	* and <code>end</code> to {@link
+	* com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	* result set.
+	* </p>
+	*
+	* @param companyId the primary key of the user group's company
+	* @param name the user group's name (optionally <code>null</code>)
+	* @param description the user group's description (optionally
+	<code>null</code>)
+	* @param params the finder params (optionally <code>null</code>). For more
+	information see {@link
+	com.liferay.portal.service.persistence.UserGroupFinder}
+	* @param andOperator whether every field must match its keywords or just
+	one field
+	* @param start the lower bound of the range of user groups to return
+	* @param end the upper bound of the range of user groups to return (not
+	inclusive)
+	* @param obc the comparator to order the user groups (optionally
+	<code>null</code>)
+	* @return the matching user groups ordered by comparator <code>obc</code>
+	* @throws SystemException if a system exception occurred
+	* @see com.liferay.portal.service.persistence.UserGroupFinder
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.UserGroup> search(
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.search(companyId, name, description,
+			params, andOperator, start, end, obc);
+	}
+
+	/**
+	* Returns an ordered range of all the user groups that match the name and
 	* description. It is preferable to use this method instead of the
 	* non-indexed version whenever possible for performance reasons.
 	*
@@ -1041,6 +1133,55 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	}
 
 	/**
+	* Returns the number of user groups that match the name and description.
+	*
+	* @param companyId the primary key of the user group's company
+	* @param name the user group's name (optionally <code>null</code>)
+	* @param description the user group's description (optionally
+	<code>null</code>)
+	* @param params the finder params (optionally <code>null</code>). For more
+	information see {@link
+	com.liferay.portal.service.persistence.UserGroupFinder}
+	* @param andOperator whether every field must match its keywords or just
+	one field
+	* @return the number of matching user groups
+	* @throws SystemException if a system exception occurred
+	* @see com.liferay.portal.service.persistence.UserGroupFinder
+	*/
+	@Override
+	public int searchCount(long companyId, java.lang.String name,
+		java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andOperator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.searchCount(companyId, name, description,
+			params, andOperator);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.UserGroup> searchUserGroups(
+		long companyId, java.lang.String keywords,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		int start, int end, com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.searchUserGroups(companyId, keywords,
+			params, start, end, sort);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.BaseModelSearchResult<com.liferay.portal.model.UserGroup> searchUserGroups(
+		long companyId, java.lang.String name, java.lang.String description,
+		java.util.LinkedHashMap<java.lang.String, java.lang.Object> params,
+		boolean andSearch, int start, int end,
+		com.liferay.portal.kernel.search.Sort sort)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupLocalService.searchUserGroups(companyId, name,
+			description, params, andSearch, start, end, sort);
+	}
+
+	/**
 	* Removes the user groups from the group.
 	*
 	* @param groupId the primary key of the group
@@ -1080,6 +1221,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long, long,
 	String, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.UserGroup updateUserGroup(long companyId,
 		long userGroupId, java.lang.String name, java.lang.String description)
@@ -1117,6 +1259,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public UserGroupLocalService getWrappedUserGroupLocalService() {
 		return _userGroupLocalService;
 	}
@@ -1124,6 +1267,7 @@ public class UserGroupLocalServiceWrapper implements UserGroupLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedUserGroupLocalService(
 		UserGroupLocalService userGroupLocalService) {
 		_userGroupLocalService = userGroupLocalService;

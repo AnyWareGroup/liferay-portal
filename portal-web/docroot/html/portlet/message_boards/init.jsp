@@ -17,27 +17,10 @@
 <%@ include file="/html/portlet/init.jsp" %>
 
 <%@ page import="com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil" %><%@
-page import="com.liferay.portal.kernel.repository.model.FileEntry" %><%@
-page import="com.liferay.portal.kernel.search.Hits" %><%@
-page import="com.liferay.portal.kernel.search.Indexer" %><%@
-page import="com.liferay.portal.kernel.search.IndexerRegistryUtil" %><%@
-page import="com.liferay.portal.kernel.search.QueryConfig" %><%@
-page import="com.liferay.portal.kernel.search.SearchContext" %><%@
-page import="com.liferay.portal.kernel.search.SearchContextFactory" %><%@
-page import="com.liferay.portal.kernel.search.SearchResultUtil" %><%@
-page import="com.liferay.portal.kernel.search.Summary" %><%@
 page import="com.liferay.portal.kernel.util.MimeTypesUtil" %><%@
-page import="com.liferay.portlet.asset.model.AssetEntry" %><%@
-page import="com.liferay.portlet.asset.model.AssetTag" %><%@
-page import="com.liferay.portlet.asset.service.AssetEntryServiceUtil" %><%@
-page import="com.liferay.portlet.asset.service.AssetTagLocalServiceUtil" %><%@
-page import="com.liferay.portlet.asset.service.persistence.AssetEntryQuery" %><%@
-page import="com.liferay.portlet.asset.util.AssetUtil" %><%@
+page import="com.liferay.portlet.documentlibrary.DuplicateFileException" %><%@
 page import="com.liferay.portlet.documentlibrary.FileExtensionException" %><%@
 page import="com.liferay.portlet.documentlibrary.FileNameException" %><%@
-page import="com.liferay.portlet.documentlibrary.FileSizeException" %><%@
-page import="com.liferay.portlet.documentlibrary.model.DLFileEntry" %><%@
-page import="com.liferay.portlet.documentlibrary.util.DLUtil" %><%@
 page import="com.liferay.portlet.messageboards.BannedUserException" %><%@
 page import="com.liferay.portlet.messageboards.CategoryNameException" %><%@
 page import="com.liferay.portlet.messageboards.LockedThreadException" %><%@
@@ -59,7 +42,6 @@ page import="com.liferay.portlet.messageboards.model.MBCategory" %><%@
 page import="com.liferay.portlet.messageboards.model.MBCategoryConstants" %><%@
 page import="com.liferay.portlet.messageboards.model.MBCategoryDisplay" %><%@
 page import="com.liferay.portlet.messageboards.model.MBMailingList" %><%@
-page import="com.liferay.portlet.messageboards.model.MBMessage" %><%@
 page import="com.liferay.portlet.messageboards.model.MBMessageConstants" %><%@
 page import="com.liferay.portlet.messageboards.model.MBMessageDisplay" %><%@
 page import="com.liferay.portlet.messageboards.model.MBStatsUser" %><%@
@@ -73,7 +55,6 @@ page import="com.liferay.portlet.messageboards.service.MBBanLocalServiceUtil" %>
 page import="com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil" %><%@
 page import="com.liferay.portlet.messageboards.service.MBCategoryServiceUtil" %><%@
 page import="com.liferay.portlet.messageboards.service.MBMailingListLocalServiceUtil" %><%@
-page import="com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil" %><%@
 page import="com.liferay.portlet.messageboards.service.MBMessageServiceUtil" %><%@
 page import="com.liferay.portlet.messageboards.service.MBStatsUserLocalServiceUtil" %><%@
 page import="com.liferay.portlet.messageboards.service.MBThreadFlagLocalServiceUtil" %><%@
@@ -87,41 +68,31 @@ page import="com.liferay.portlet.messageboards.util.MBUtil" %><%@
 page import="com.liferay.portlet.messageboards.util.comparator.MessageCreateDateComparator" %><%@
 page import="com.liferay.portlet.ratings.model.RatingsStats" %><%@
 page import="com.liferay.portlet.ratings.service.RatingsStatsLocalServiceUtil" %><%@
-page import="com.liferay.portlet.trash.model.TrashEntry" %><%@
 page import="com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil" %><%@
-page import="com.liferay.portlet.trash.util.TrashUtil" %><%@
 page import="com.liferay.util.RSSUtil" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
-
-String portletResource = ParamUtil.getString(request, "portletResource");
-
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-}
-
 String currentLanguageId = LanguageUtil.getLanguageId(request);
 Locale currentLocale = LocaleUtil.fromLanguageId(currentLanguageId);
-Locale defaultLocale = LocaleUtil.getDefault();
+Locale defaultLocale = themeDisplay.getSiteDefaultLocale();
 String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
 
-Locale[] locales = LanguageUtil.getAvailableLocales();
+Locale[] locales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
-String[] priorities = LocalizationUtil.getPreferencesValues(preferences, "priorities", currentLanguageId);
+String[] priorities = LocalizationUtil.getPreferencesValues(portletPreferences, "priorities", currentLanguageId);
 
-boolean allowAnonymousPosting = MBUtil.isAllowAnonymousPosting(preferences);
-boolean subscribeByDefault = GetterUtil.getBoolean(preferences.getValue("subscribeByDefault", null), PropsValues.MESSAGE_BOARDS_SUBSCRIBE_BY_DEFAULT);
-String messageFormat = MBUtil.getMessageFormat(preferences);
-boolean enableFlags = GetterUtil.getBoolean(preferences.getValue("enableFlags", null), true);
-boolean enableRatings = GetterUtil.getBoolean(preferences.getValue("enableRatings", null), true);
-boolean threadAsQuestionByDefault = GetterUtil.getBoolean(preferences.getValue("threadAsQuestionByDefault", null));
-String recentPostsDateOffset = preferences.getValue("recentPostsDateOffset", "7");
+boolean allowAnonymousPosting = MBUtil.isAllowAnonymousPosting(portletPreferences);
+boolean subscribeByDefault = GetterUtil.getBoolean(portletPreferences.getValue("subscribeByDefault", null), PropsValues.MESSAGE_BOARDS_SUBSCRIBE_BY_DEFAULT);
+String messageFormat = MBUtil.getMessageFormat(portletPreferences);
+boolean enableFlags = GetterUtil.getBoolean(portletPreferences.getValue("enableFlags", null), true);
+boolean enableRatings = GetterUtil.getBoolean(portletPreferences.getValue("enableRatings", null), true);
+boolean threadAsQuestionByDefault = GetterUtil.getBoolean(portletPreferences.getValue("threadAsQuestionByDefault", null));
+String recentPostsDateOffset = portletPreferences.getValue("recentPostsDateOffset", "7");
 
-boolean enableRSS = !PortalUtil.isRSSFeedsEnabled() ? false : GetterUtil.getBoolean(preferences.getValue("enableRss", null), true);
-int rssDelta = GetterUtil.getInteger(preferences.getValue("rssDelta", StringPool.BLANK), SearchContainer.DEFAULT_DELTA);
-String rssDisplayStyle = preferences.getValue("rssDisplayStyle", RSSUtil.DISPLAY_STYLE_DEFAULT);
-String rssFeedType = preferences.getValue("rssFeedType", RSSUtil.FEED_TYPE_DEFAULT);
+boolean enableRSS = !PortalUtil.isRSSFeedsEnabled() ? false : GetterUtil.getBoolean(portletPreferences.getValue("enableRss", null), true);
+int rssDelta = GetterUtil.getInteger(portletPreferences.getValue("rssDelta", StringPool.BLANK), SearchContainer.DEFAULT_DELTA);
+String rssDisplayStyle = portletPreferences.getValue("rssDisplayStyle", RSSUtil.DISPLAY_STYLE_DEFAULT);
+String rssFeedType = portletPreferences.getValue("rssFeedType", RSSUtil.FEED_TYPE_DEFAULT);
 
 ResourceURL rssURL = liferayPortletResponse.createResourceURL();
 

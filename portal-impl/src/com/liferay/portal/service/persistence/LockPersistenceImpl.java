@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -45,6 +44,8 @@ import com.liferay.portal.model.impl.LockModelImpl;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
 
 import java.io.Serializable;
+
+import java.sql.Timestamp;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -354,6 +355,10 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 	public Lock fetchByUuid_Last(String uuid,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<Lock> list = findByUuid(uuid, count - 1, count, orderByComparator);
 
@@ -904,6 +909,10 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Lock> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1250,7 +1259,8 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 
 		if ((list != null) && !list.isEmpty()) {
 			for (Lock lock : list) {
-				if (!Validator.equals(expirationDate, lock.getExpirationDate())) {
+				if ((expirationDate.getTime() <= lock.getExpirationDate()
+														 .getTime())) {
 					list = null;
 
 					break;
@@ -1303,7 +1313,7 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 				QueryPos qPos = QueryPos.getInstance(q);
 
 				if (bindExpirationDate) {
-					qPos.add(CalendarUtil.getTimestamp(expirationDate));
+					qPos.add(new Timestamp(expirationDate.getTime()));
 				}
 
 				if (!pagination) {
@@ -1433,6 +1443,10 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 	public Lock fetchByLtExpirationDate_Last(Date expirationDate,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByLtExpirationDate(expirationDate);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<Lock> list = findByLtExpirationDate(expirationDate, count - 1,
 				count, orderByComparator);
@@ -1580,7 +1594,7 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 		QueryPos qPos = QueryPos.getInstance(q);
 
 		if (bindExpirationDate) {
-			qPos.add(CalendarUtil.getTimestamp(expirationDate));
+			qPos.add(new Timestamp(expirationDate.getTime()));
 		}
 
 		if (orderByComparator != null) {
@@ -1661,7 +1675,7 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 				QueryPos qPos = QueryPos.getInstance(q);
 
 				if (bindExpirationDate) {
-					qPos.add(CalendarUtil.getTimestamp(expirationDate));
+					qPos.add(new Timestamp(expirationDate.getTime()));
 				}
 
 				count = (Long)q.uniqueResult();
@@ -1980,6 +1994,10 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 	private static final String _FINDER_COLUMN_C_K_KEY_2 = "lock.key = ?";
 	private static final String _FINDER_COLUMN_C_K_KEY_3 = "(lock.key IS NULL OR lock.key = '')";
 
+	public LockPersistenceImpl() {
+		setModelClass(Lock.class);
+	}
+
 	/**
 	 * Caches the lock in the entity cache if it is enabled.
 	 *
@@ -2291,10 +2309,12 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 		}
 
 		EntityCacheUtil.putResult(LockModelImpl.ENTITY_CACHE_ENABLED,
-			LockImpl.class, lock.getPrimaryKey(), lock);
+			LockImpl.class, lock.getPrimaryKey(), lock, false);
 
 		clearUniqueFindersCache(lock);
 		cacheUniqueFindersCache(lock);
+
+		lock.resetOriginalValues();
 
 		return lock;
 	}
@@ -2309,6 +2329,7 @@ public class LockPersistenceImpl extends BasePersistenceImpl<Lock>
 		lockImpl.setNew(lock.isNew());
 		lockImpl.setPrimaryKey(lock.getPrimaryKey());
 
+		lockImpl.setMvccVersion(lock.getMvccVersion());
 		lockImpl.setUuid(lock.getUuid());
 		lockImpl.setLockId(lock.getLockId());
 		lockImpl.setCompanyId(lock.getCompanyId());

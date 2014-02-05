@@ -36,6 +36,7 @@ import org.apache.lucene.util.Version;
 /**
  * @author Bruno Farache
  * @author Shuyang Zhou
+ * @author Andrea Di Giorgi
  */
 public interface LuceneHelper {
 
@@ -45,6 +46,19 @@ public interface LuceneHelper {
 	public void addExactTerm(
 		BooleanQuery booleanQuery, String field, String value);
 
+	public void addNumericRangeTerm(
+		BooleanQuery booleanQuery, String field, Integer startValue,
+		Integer endValue);
+
+	public void addNumericRangeTerm(
+		BooleanQuery booleanQuery, String field, Long startValue,
+		Long endValue);
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #addNumericRangeTerm(BooleanQuery, String, Long, Long)}
+	 */
+	@Deprecated
 	public void addNumericRangeTerm(
 		BooleanQuery booleanQuery, String field, String startValue,
 		String endValue);
@@ -69,6 +83,8 @@ public interface LuceneHelper {
 	public void addTerm(
 		BooleanQuery booleanQuery, String field, String[] values, boolean like);
 
+	public void cleanUp(IndexSearcher indexSearcher);
+
 	public int countScoredFieldNames(Query query, String[] fieldNames);
 
 	public void delete(long companyId);
@@ -79,6 +95,8 @@ public interface LuceneHelper {
 		throws IOException;
 
 	public Analyzer getAnalyzer();
+
+	public IndexAccessor getIndexAccessor(long companyId);
 
 	public long getLastGeneration(long companyId);
 
@@ -106,6 +124,8 @@ public interface LuceneHelper {
 	public void loadIndexesFromCluster(long companyId) throws SystemException;
 
 	public void shutdown();
+
+	public void shutdown(long companyId);
 
 	public void startup(long companyId);
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * The extended model interface for the LayoutRevision service. Represents a row in the &quot;LayoutRevision&quot; database table, with each column mapped to a property of this class.
  *
@@ -23,6 +25,7 @@ package com.liferay.portal.model;
  * @see com.liferay.portal.model.impl.LayoutRevisionModelImpl
  * @generated
  */
+@ProviderType
 public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -44,6 +47,8 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 
 	public java.lang.String getHTMLTitle(java.lang.String localeLanguageId);
 
+	public boolean getIconImage();
+
 	public com.liferay.portal.model.LayoutBranch getLayoutBranch()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
@@ -52,9 +57,17 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	public java.lang.String getRegularURL(
+		javax.servlet.http.HttpServletRequest request)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
 	public com.liferay.portal.model.Theme getTheme()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
+
+	public java.lang.String getThemeSetting(java.lang.String key,
+		java.lang.String device);
 
 	public com.liferay.portal.kernel.util.UnicodeProperties getTypeSettingsProperties();
 
@@ -68,6 +81,10 @@ public interface LayoutRevision extends LayoutRevisionModel, PersistedModel {
 
 	public boolean hasChildren()
 		throws com.liferay.portal.kernel.exception.SystemException;
+
+	public boolean isContentDisplayPage();
+
+	public boolean isIconImage();
 
 	public boolean isInheritLookAndFeel();
 

@@ -215,6 +215,9 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		attributes.put("directDownloadURL", getDirectDownloadURL());
 		attributes.put("repoStoreArtifact", getRepoStoreArtifact());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -293,8 +296,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getProductVersionId() {
 		return _productVersionId;
 	}
@@ -304,8 +307,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_productVersionId = productVersionId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -315,8 +318,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_companyId = companyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -336,8 +339,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -352,8 +355,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -365,8 +368,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -376,8 +379,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getProductEntryId() {
 		return _productEntryId;
 	}
@@ -399,8 +402,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		return _originalProductEntryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getVersion() {
 		if (_version == null) {
 			return StringPool.BLANK;
@@ -415,8 +418,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_version = version;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getChangeLog() {
 		if (_changeLog == null) {
 			return StringPool.BLANK;
@@ -431,8 +434,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_changeLog = changeLog;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDownloadPageURL() {
 		if (_downloadPageURL == null) {
 			return StringPool.BLANK;
@@ -447,8 +450,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		_downloadPageURL = downloadPageURL;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDirectDownloadURL() {
 		if (_directDownloadURL == null) {
 			return StringPool.BLANK;
@@ -473,8 +476,8 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 		return GetterUtil.getString(_originalDirectDownloadURL);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getRepoStoreArtifact() {
 		return _repoStoreArtifact;
 	}
@@ -579,6 +582,16 @@ public class SCProductVersionModelImpl extends BaseModelImpl<SCProductVersion>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

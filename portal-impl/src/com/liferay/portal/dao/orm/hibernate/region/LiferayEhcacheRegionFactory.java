@@ -14,6 +14,7 @@
 
 package com.liferay.portal.dao.orm.hibernate.region;
 
+import com.liferay.portal.cache.ehcache.CacheManagerUtil;
 import com.liferay.portal.cache.ehcache.EhcacheConfigurationUtil;
 import com.liferay.portal.cache.ehcache.ModifiableEhcacheWrapper;
 import com.liferay.portal.kernel.log.Log;
@@ -127,6 +128,10 @@ public class LiferayEhcacheRegionFactory extends EhCacheRegionFactory {
 	}
 
 	public void reconfigureCaches(URL cacheConfigFile) {
+		if (manager == null) {
+			return;
+		}
+
 		synchronized (manager) {
 			Configuration configuration =
 				EhcacheConfigurationUtil.getConfiguration(
@@ -179,7 +184,7 @@ public class LiferayEhcacheRegionFactory extends EhCacheRegionFactory {
 
 			configuration.setDefaultTransactionManager(transactionManager);*/
 
-			manager = new CacheManager(configuration);
+			manager = CacheManagerUtil.createCacheManager(configuration);
 
 			boolean skipUpdateCheck = GetterUtil.getBoolean(
 				SystemProperties.get("net.sf.ehcache.skipUpdateCheck"));

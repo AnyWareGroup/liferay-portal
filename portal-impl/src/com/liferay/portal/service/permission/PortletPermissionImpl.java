@@ -223,10 +223,6 @@ public class PortletPermissionImpl implements PortletPermission {
 			return false;
 		}
 
-		if (portlet.isSystem() && actionId.equals(ActionKeys.VIEW)) {
-			return true;
-		}
-
 		return contains(
 			permissionChecker, groupId, layout, portlet.getPortletId(),
 			actionId, strict);
@@ -260,13 +256,6 @@ public class PortletPermissionImpl implements PortletPermission {
 				groupId, name, primKey, actionId);
 		}
 
-		Group group = layout.getGroup();
-
-		groupId = group.getGroupId();
-
-		name = PortletConstants.getRootPortletId(portletId);
-		primKey = getPrimaryKey(layout.getPlid(), portletId);
-
 		if (!actionId.equals(ActionKeys.VIEW) &&
 			(layout instanceof VirtualLayout)) {
 
@@ -274,12 +263,18 @@ public class PortletPermissionImpl implements PortletPermission {
 				permissionChecker, layout, portletId, actionId);
 		}
 
+		Group group = layout.getGroup();
+
 		if (!group.isLayoutSetPrototype() &&
-			!SitesUtil.isLayoutUpdateable(layout) &&
-			actionId.equals(ActionKeys.CONFIGURATION)) {
+			actionId.equals(ActionKeys.CONFIGURATION) &&
+			!SitesUtil.isLayoutUpdateable(layout)) {
 
 			return false;
 		}
+
+		groupId = layout.getGroupId();
+
+		name = PortletConstants.getRootPortletId(portletId);
 
 		Boolean hasPermission = StagingPermissionUtil.hasPermission(
 			permissionChecker, groupId, name, groupId, name, actionId);
@@ -291,6 +286,8 @@ public class PortletPermissionImpl implements PortletPermission {
 		if (group.isControlPanel() && actionId.equals(ActionKeys.VIEW)) {
 			return true;
 		}
+
+		primKey = getPrimaryKey(layout.getPlid(), portletId);
 
 		if (strict) {
 			return permissionChecker.hasPermission(
@@ -459,7 +456,7 @@ public class PortletPermissionImpl implements PortletPermission {
 		LayoutTypePortlet layoutTypePortlet =
 			(LayoutTypePortlet)layout.getLayoutType();
 
-		for (Portlet portlet : layoutTypePortlet.getAllPortlets()) {
+		for (Portlet portlet : layoutTypePortlet.getAllPortlets(false)) {
 			if (contains(
 					permissionChecker, groupId, layout, portlet.getPortletId(),
 					actionId)) {
@@ -511,7 +508,9 @@ public class PortletPermissionImpl implements PortletPermission {
 				permissionChecker, group, portlet);
 		}
 		catch (Exception e) {
-			_log.warn("Cannot process control panel access permission", e);
+			if (_log.isWarnEnabled()) {
+				_log.warn("Cannot process control panel access permission", e);
+			}
 
 			return false;
 		}
@@ -594,7 +593,9 @@ public class PortletPermissionImpl implements PortletPermission {
 				Portlet portlet = PortletLocalServiceUtil.getPortletById(
 					layout.getCompanyId(), portletId);
 
-				if (portlet.isPreferencesUniquePerLayout()) {
+				if (portlet.isInstanceable() ||
+					portlet.isPreferencesUniquePerLayout()) {
+
 					return true;
 				}
 			}

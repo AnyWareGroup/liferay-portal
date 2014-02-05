@@ -15,6 +15,8 @@
 package com.liferay.portal.tools.servicebuilder;
 
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -135,7 +137,7 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 	}
 
 	public String getHumanCondition(boolean arrayable) {
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(6);
 
 		sb.append(_name);
 		sb.append(" ");
@@ -348,7 +350,7 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 	}
 
 	public void setArrayableOperator(String arrayableOperator) {
-		_arrayableOperator = arrayableOperator.toUpperCase();
+		_arrayableOperator = StringUtil.toUpperCase(arrayableOperator);
 	}
 
 	public void setCaseSensitive(boolean caseSensitive) {
@@ -401,6 +403,41 @@ public class EntityColumn implements Cloneable, Comparable<EntityColumn> {
 
 	public void setParentContainerModel(boolean parentContainerModel) {
 		_parentContainerModel = parentContainerModel;
+	}
+
+	public void validate() {
+		if (Validator.isNotNull(_arrayableOperator)) {
+			if (!_type.equals("char") && !_type.equals("int") &&
+				!_type.equals("long") && !_type.equals("short") &&
+				!_type.equals("String")) {
+
+				throw new IllegalArgumentException(
+					"Type " + _type + " cannot be arrayable");
+			}
+		}
+
+		String comparator = _comparator;
+
+		if (comparator == null) {
+			comparator = StringPool.EQUAL;
+		}
+
+		if (_arrayableOperator.equals("AND") &&
+			!comparator.equals(StringPool.NOT_EQUAL)) {
+
+			throw new IllegalArgumentException(
+				"Illegal combination of arrayable \"AND\" and comparator \"" +
+					comparator + "\"");
+		}
+
+		if (_arrayableOperator.equals("OR") &&
+			!comparator.equals(StringPool.EQUAL) &&
+			!comparator.equals(StringPool.LIKE)) {
+
+			throw new IllegalArgumentException(
+				"Illegal combination of arrayable \"OR\" and comparator \"" +
+					comparator + "\"");
+		}
 	}
 
 	protected String convertComparatorToHtml(String comparator) {

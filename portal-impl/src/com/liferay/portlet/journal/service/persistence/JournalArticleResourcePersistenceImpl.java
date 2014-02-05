@@ -363,6 +363,10 @@ public class JournalArticleResourcePersistenceImpl extends BasePersistenceImpl<J
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<JournalArticleResource> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1147,6 +1151,10 @@ public class JournalArticleResourcePersistenceImpl extends BasePersistenceImpl<J
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<JournalArticleResource> list = findByGroupId(groupId, count - 1,
 				count, orderByComparator);
 
@@ -1640,6 +1648,10 @@ public class JournalArticleResourcePersistenceImpl extends BasePersistenceImpl<J
 	private static final String _FINDER_COLUMN_G_A_ARTICLEID_2 = "journalArticleResource.articleId = ?";
 	private static final String _FINDER_COLUMN_G_A_ARTICLEID_3 = "(journalArticleResource.articleId IS NULL OR journalArticleResource.articleId = '')";
 
+	public JournalArticleResourcePersistenceImpl() {
+		setModelClass(JournalArticleResource.class);
+	}
+
 	/**
 	 * Caches the journal article resource in the entity cache if it is enabled.
 	 *
@@ -2027,10 +2039,13 @@ public class JournalArticleResourcePersistenceImpl extends BasePersistenceImpl<J
 
 		EntityCacheUtil.putResult(JournalArticleResourceModelImpl.ENTITY_CACHE_ENABLED,
 			JournalArticleResourceImpl.class,
-			journalArticleResource.getPrimaryKey(), journalArticleResource);
+			journalArticleResource.getPrimaryKey(), journalArticleResource,
+			false);
 
 		clearUniqueFindersCache(journalArticleResource);
 		cacheUniqueFindersCache(journalArticleResource);
+
+		journalArticleResource.resetOriginalValues();
 
 		return journalArticleResource;
 	}

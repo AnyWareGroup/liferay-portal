@@ -309,14 +309,18 @@ public class DDMStructureFinderImpl
 				sql, "storageType", StringPool.LIKE, true, storageTypes);
 			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
 			qPos.add(companyId);
-			qPos.add(groupIds);
+
+			if (groupIds != null) {
+				qPos.add(groupIds);
+			}
+
 			qPos.add(classNameIds, 2);
 			qPos.add(names, 2);
 			qPos.add(descriptions, 2);
@@ -393,14 +397,18 @@ public class DDMStructureFinderImpl
 				sql = CustomSQLUtil.replaceOrderBy(sql, orderByComparator);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("DDMStructure", DDMStructureImpl.class);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
 			qPos.add(companyId);
-			qPos.add(groupIds);
+
+			if (groupIds != null) {
+				qPos.add(groupIds);
+			}
+
 			qPos.add(classNameIds, 2);
 			qPos.add(names, 2);
 			qPos.add(descriptions, 2);
@@ -419,7 +427,7 @@ public class DDMStructureFinderImpl
 	}
 
 	protected String getGroupIds(long[] groupIds) {
-		if (groupIds.length == 0) {
+		if (ArrayUtil.isEmpty(groupIds)) {
 			return StringPool.BLANK;
 		}
 

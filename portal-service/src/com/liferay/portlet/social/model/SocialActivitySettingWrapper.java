@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialActivitySetting}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivitySetting
+ * @author Brian Wing Shun Chan
+ * @see SocialActivitySetting
  * @generated
  */
+@ProviderType
 public class SocialActivitySettingWrapper implements SocialActivitySetting,
 	ModelWrapper<SocialActivitySetting> {
 	public SocialActivitySettingWrapper(
@@ -385,9 +389,30 @@ public class SocialActivitySettingWrapper implements SocialActivitySetting,
 		_socialActivitySetting.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivitySettingWrapper)) {
+			return false;
+		}
+
+		SocialActivitySettingWrapper socialActivitySettingWrapper = (SocialActivitySettingWrapper)obj;
+
+		if (Validator.equals(_socialActivitySetting,
+					socialActivitySettingWrapper._socialActivitySetting)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivitySetting getWrappedSocialActivitySetting() {
 		return _socialActivitySetting;
 	}
@@ -395,6 +420,16 @@ public class SocialActivitySettingWrapper implements SocialActivitySetting,
 	@Override
 	public SocialActivitySetting getWrappedModel() {
 		return _socialActivitySetting;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivitySetting.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivitySetting.isFinderCacheEnabled();
 	}
 
 	@Override

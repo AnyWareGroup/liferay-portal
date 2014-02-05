@@ -63,6 +63,24 @@ public class TrashEntryImpl extends TrashEntryBaseImpl {
 	}
 
 	@Override
+	public boolean isTrashEntry(Class<?> clazz, long classPK) {
+		if (clazz == null) {
+			return false;
+		}
+
+		return isTrashEntry(clazz.getName(), classPK);
+	}
+
+	@Override
+	public boolean isTrashEntry(String className, long classPK) {
+		if (className.equals(getClassName()) && (classPK == getClassPK())) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public void setRootEntry(TrashEntry rootEntry) {
 		_rootEntry = rootEntry;
 	}

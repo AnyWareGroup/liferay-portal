@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AnnouncementsFlagService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsFlagService
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsFlagService
  * @generated
  */
+@ProviderType
 public class AnnouncementsFlagServiceWrapper implements AnnouncementsFlagService,
 	ServiceWrapper<AnnouncementsFlagService> {
 	public AnnouncementsFlagServiceWrapper(
@@ -75,6 +78,7 @@ public class AnnouncementsFlagServiceWrapper implements AnnouncementsFlagService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AnnouncementsFlagService getWrappedAnnouncementsFlagService() {
 		return _announcementsFlagService;
 	}
@@ -82,6 +86,7 @@ public class AnnouncementsFlagServiceWrapper implements AnnouncementsFlagService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAnnouncementsFlagService(
 		AnnouncementsFlagService announcementsFlagService) {
 		_announcementsFlagService = announcementsFlagService;

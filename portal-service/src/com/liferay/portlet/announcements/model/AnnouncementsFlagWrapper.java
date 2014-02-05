@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.announcements.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AnnouncementsFlag}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsFlag
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsFlag
  * @generated
  */
+@ProviderType
 public class AnnouncementsFlagWrapper implements AnnouncementsFlag,
 	ModelWrapper<AnnouncementsFlag> {
 	public AnnouncementsFlagWrapper(AnnouncementsFlag announcementsFlag) {
@@ -338,9 +342,30 @@ public class AnnouncementsFlagWrapper implements AnnouncementsFlag,
 		_announcementsFlag.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AnnouncementsFlagWrapper)) {
+			return false;
+		}
+
+		AnnouncementsFlagWrapper announcementsFlagWrapper = (AnnouncementsFlagWrapper)obj;
+
+		if (Validator.equals(_announcementsFlag,
+					announcementsFlagWrapper._announcementsFlag)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AnnouncementsFlag getWrappedAnnouncementsFlag() {
 		return _announcementsFlag;
 	}
@@ -348,6 +373,16 @@ public class AnnouncementsFlagWrapper implements AnnouncementsFlag,
 	@Override
 	public AnnouncementsFlag getWrappedModel() {
 		return _announcementsFlag;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _announcementsFlag.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _announcementsFlag.isFinderCacheEnabled();
 	}
 
 	@Override

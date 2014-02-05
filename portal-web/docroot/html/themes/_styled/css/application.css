@@ -1,3 +1,4 @@
+@import "aui/alloy-font-awesome/scss/variables";
 @import "compass";
 
 /* ---------- Dragging/sorting indicators ---------- */
@@ -87,16 +88,29 @@
 .tagselector-content {
 	border-width: 0;
 	margin-bottom: 15px;
+	overflow: visible;
 	padding: 0;
 
 	.textboxlistentry-holder {
 		background: #FFF;
-		border: 1px solid;
-		border-color: #BFBFBF #DEDEDE #DEDEDE #BFBFBF;
+		border: 1px solid #CCC;
 		margin-bottom: 5px;
 		overflow: visible;
 		padding: 5px;
 		position: relative;
+
+		li {
+			line-height: 1;
+		}
+
+		.lfr-tag-selector-input {
+			border-width: 0;
+			margin-bottom: 0;
+		}
+	}
+
+	.textboxlistentry-remove {
+		padding: 0 3px 1px;
 	}
 }
 
@@ -121,8 +135,8 @@
 }
 
 .tagselector-focused .textboxlistentry-holder {
-	background: #FFC none;
-	border: 1px solid #FC0;
+	background: #FFF none;
+	border: 1px solid #CCC;
 }
 
 .categoriesselector-content .textboxlistentry-holder {
@@ -214,7 +228,24 @@
 	padding: 1px;
 }
 
-/* ---------- Misc. ---------- */
+/* ---------- Miscellaneous ---------- */
+
+.hsv-palette {
+	.hsv-view-container {
+		.hsv-label-value-hex .hsv-value {
+			width: 95px;
+		}
+
+		.hsv-label {
+			display: inline;
+			margin-left: 5px;
+		}
+
+		.hsv-value {
+			width: 30px;
+		}
+	}
+}
 
 .lfr-panel-container {
 	background: #FFF;
@@ -248,13 +279,31 @@
 .app-view-drop-active {
 	background-color: #00A2EA;
 	font-weight: bold;
+
+	.category-portlets & {
+		color: #FFF;
+	}
+}
+
+.basecelleditor [class~="form-validator-message"] {
+	clip: rect(auto auto auto auto);
+	width: auto;
+}
+
+.document-library-file-entry-cell-editor-hidden {
+	display: none;
+}
+
+.previous-level {
+	display: inline-block;
+	font-size: 21px;
+	line-height: 21px;
+	margin-right: 5px;
+	text-decoration: none;
+	vertical-align: middle;
 }
 
 /* ---------- Menus ---------- */
-
-.lfr-menu-list {
-	z-index: 450;
-}
 
 .lfr-page-templates li {
 	a {
@@ -343,7 +392,7 @@
 	text-shadow: -1px -1px #2C2F34;
 }
 
-/* ---------- Loading Mask ---------- */
+/* ---------- Loading mask ---------- */
 
 .loadingmask-content {
 	background: #CCC;
@@ -353,14 +402,65 @@
 	background: #D4D4D4 url(../images/portlet/header_bg.png) repeat-x 0 0;
 }
 
-/* ---------- Tree View ---------- */
+/* ---------- Tree view ---------- */
+
+.tree-node {
+	.icon-check {
+		padding-right: 2px;
+
+		&:before {
+			content: $check-empty;
+		}
+	}
+
+	.tree-node-checked {
+		.icon-check {
+			padding-right: 0;
+
+			&:before {
+				content: $check;
+			}
+		}
+	}
+
+	.tree-node-over .tree-label {
+		text-decoration: underline;
+	}
+
+	[class ^="icon-"] {
+		margin-right: 5px;
+	}
+
+	.tree-node-checkbox-container {
+		margin-right: 0;
+	}
+
+	.tree-node-selected .tree-label {
+		background: none;
+	}
+}
+
+.tree-node-content {
+	.tree-hitarea {
+		color: #999;
+		font-size: 10px;
+		padding-right: 6px;
+	}
+
+	.tree-label {
+		margin-left: 3px;
+	}
+
+	.tree-node-hidden-hitarea {
+		visibility: hidden;
+	}
+}
 
 .tree-node-selected .tree-label {
 	background-color: transparent;
-	font-weight: bold;
 }
 
-/* ---------- Page Customization ---------- */
+/* ---------- Page customization ---------- */
 
 .dragging .portlet-column.customizable {
 	background-color: #CFFCCF;
@@ -492,6 +592,46 @@
 	margin-left: 1em;
 }
 
+.lfr-portlet-title-editable {
+	margin-top: 0;
+	z-index: 9999;
+
+	.lfr-portlet-title-editable-content {
+		padding: 0;
+
+		.combobox-content {
+			.field-content .field-input-text {
+				display: block;
+				margin-bottom: 0;
+			}
+
+			.field-label.textfield-label {
+				display: none;
+			}
+
+			.toolbar-content {
+				margin-top: 0;
+				vertical-align: top;
+
+				.btn-group {
+					margin-top: 0;
+				}
+			}
+		}
+	}
+}
+
+.lfr-page-layouts .lfr-layout-template .layout-template-entry {
+	height: 25px;
+	width: 25px;
+}
+
+.yui3-color-picker-popover {
+	.palette-container {
+		border-collapse: separate;
+	}
+}
+
 .ie {
 	.proxy.not-intersecting .forbidden-action {
 		right: 2px;
@@ -523,5 +663,12 @@
 
 	.paginator-current-page {
 		color: #FFF;
+	}
+}
+
+.ios.mobile {
+	.modal-content .dialog-iframe-bd {
+		overflow: auto;
+		-webkit-overflow-scrolling: touch;
 	}
 }

@@ -203,8 +203,8 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 		throws SystemException {
 
 		if (status == WorkflowConstants.STATUS_ANY) {
-			return bookmarksFolderPersistence.filterCountByG_P(
-				groupId, parentFolderId);
+			return bookmarksFolderPersistence.filterCountByG_P_NotS(
+				groupId, parentFolderId, WorkflowConstants.STATUS_IN_TRASH);
 		}
 		else {
 			return bookmarksFolderPersistence.filterCountByG_P_S(
@@ -212,9 +212,22 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 		}
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	 *             long, boolean)}
+	 */
+	@Deprecated
 	@Override
 	public void getSubfolderIds(
 			List<Long> folderIds, long groupId, long folderId)
+		throws SystemException {
+
+		getSubfolderIds(folderIds, groupId, folderId, true);
+	}
+
+	@Override
+	public void getSubfolderIds(
+			List<Long> folderIds, long groupId, long folderId, boolean recurse)
 		throws SystemException {
 
 		List<BookmarksFolder> folders =
@@ -222,14 +235,13 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 				groupId, folderId, WorkflowConstants.STATUS_APPROVED);
 
 		for (BookmarksFolder folder : folders) {
-			if (folder.isInTrashContainer()) {
-				continue;
-			}
-
 			folderIds.add(folder.getFolderId());
 
-			getSubfolderIds(
-				folderIds, folder.getGroupId(), folder.getFolderId());
+			if (recurse) {
+				getSubfolderIds(
+					folderIds, folder.getGroupId(), folder.getFolderId(),
+					recurse);
+			}
 		}
 	}
 
@@ -240,7 +252,7 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 
 		List<Long> folderIds = new ArrayList<Long>();
 
-		getSubfolderIds(folderIds, groupId, folderId);
+		getSubfolderIds(folderIds, groupId, folderId, recurse);
 
 		return folderIds;
 	}
@@ -274,7 +286,7 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 	}
 
 	@Override
-	public void moveFolderToTrash(long folderId)
+	public BookmarksFolder moveFolderToTrash(long folderId)
 		throws PortalException, SystemException {
 
 		BookmarksFolder folder = bookmarksFolderLocalService.getFolder(
@@ -283,7 +295,8 @@ public class BookmarksFolderServiceImpl extends BookmarksFolderServiceBaseImpl {
 		BookmarksFolderPermission.check(
 			getPermissionChecker(), folder, ActionKeys.DELETE);
 
-		bookmarksFolderLocalService.moveFolderToTrash(getUserId(), folderId);
+		return bookmarksFolderLocalService.moveFolderToTrash(
+			getUserId(), folderId);
 	}
 
 	@Override

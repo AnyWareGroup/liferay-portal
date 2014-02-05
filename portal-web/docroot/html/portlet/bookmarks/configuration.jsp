@@ -21,11 +21,11 @@ String tabs2 = ParamUtil.getString(request, "tabs2", "display-settings");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
-String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", BookmarksUtil.getEmailFromName(preferences, company.getCompanyId()));
-String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", BookmarksUtil.getEmailFromAddress(preferences, company.getCompanyId()));
+String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", BookmarksUtil.getEmailFromName(portletPreferences, company.getCompanyId()));
+String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", BookmarksUtil.getEmailFromAddress(portletPreferences, company.getCompanyId()));
 
-boolean emailEntryAddedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryAddedEnabled--", BookmarksUtil.getEmailEntryAddedEnabled(preferences));
-boolean emailEntryUpdatedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryUpdatedEnabled--", BookmarksUtil.getEmailEntryUpdatedEnabled(preferences));
+boolean emailEntryAddedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryAddedEnabled--", BookmarksUtil.getEmailEntryAddedEnabled(portletPreferences));
+boolean emailEntryUpdatedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryUpdatedEnabled--", BookmarksUtil.getEmailEntryUpdatedEnabled(portletPreferences));
 
 String emailParam = StringPool.BLANK;
 String defaultEmailSubject = StringPool.BLANK;
@@ -33,13 +33,13 @@ String defaultEmailBody = StringPool.BLANK;
 
 if (tabs2.equals("entry-added-email")) {
 	emailParam = "emailEntryAdded";
-	defaultEmailSubject = ContentUtil.get(PropsUtil.get(PropsKeys.BOOKMARKS_EMAIL_ENTRY_ADDED_SUBJECT));
-	defaultEmailBody = ContentUtil.get(PropsUtil.get(PropsKeys.BOOKMARKS_EMAIL_ENTRY_ADDED_BODY));
+	defaultEmailSubject = ContentUtil.get(PropsValues.BOOKMARKS_EMAIL_ENTRY_ADDED_SUBJECT);
+	defaultEmailBody = ContentUtil.get(PropsValues.BOOKMARKS_EMAIL_ENTRY_ADDED_BODY);
 }
 else if (tabs2.equals("entry-updated-email")) {
 	emailParam = "emailEntryUpdated";
-	defaultEmailSubject = ContentUtil.get(PropsUtil.get(PropsKeys.BOOKMARKS_EMAIL_ENTRY_UPDATED_SUBJECT));
-	defaultEmailBody = ContentUtil.get(PropsUtil.get(PropsKeys.BOOKMARKS_EMAIL_ENTRY_UPDATED_BODY));
+	defaultEmailSubject = ContentUtil.get(PropsValues.BOOKMARKS_EMAIL_ENTRY_UPDATED_SUBJECT);
+	defaultEmailBody = ContentUtil.get(PropsValues.BOOKMARKS_EMAIL_ENTRY_UPDATED_BODY);
 }
 
 String currentLanguageId = LanguageUtil.getLanguageId(request);
@@ -47,8 +47,22 @@ String currentLanguageId = LanguageUtil.getLanguageId(request);
 String emailSubjectParam = emailParam + "Subject_" + currentLanguageId;
 String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 
-String emailSubject = PrefsParamUtil.getString(preferences, request, emailSubjectParam, defaultEmailSubject);
-String emailBody = PrefsParamUtil.getString(preferences, request, emailBodyParam, defaultEmailBody);
+String emailSubject = PrefsParamUtil.getString(portletPreferences, request, emailSubjectParam, defaultEmailSubject);
+String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBodyParam, defaultEmailBody);
+
+try {
+	BookmarksFolder rootFolder = BookmarksFolderLocalServiceUtil.getFolder(rootFolderId);
+
+	rootFolderName = rootFolder.getName();
+
+	if (rootFolder.getGroupId() != scopeGroupId) {
+		rootFolderId = BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+		rootFolderName = StringPool.BLANK;
+	}
+}
+catch (NoSuchFolderException nsfe) {
+	rootFolderId = BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID;
+}
 %>
 
 <liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
@@ -101,13 +115,13 @@ String emailBody = PrefsParamUtil.getString(preferences, request, emailBodyParam
 				<aui:select label="language" name="languageId" onChange='<%= renderResponse.getNamespace() + "updateLanguage(this);" %>'>
 
 					<%
-					Locale[] locales = LanguageUtil.getAvailableLocales();
+					Locale[] locales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
 					for (int i = 0; i < locales.length; i++) {
 						String style = StringPool.BLANK;
 
-						if (Validator.isNotNull(preferences.getValue(emailParam + "Subject_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK)) ||
-							Validator.isNotNull(preferences.getValue(emailParam + "Body_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK))) {
+						if (Validator.isNotNull(portletPreferences.getValue(emailParam + "Subject_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK)) ||
+							Validator.isNotNull(portletPreferences.getValue(emailParam + "Body_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK))) {
 
 							style = "font-weight: bold;";
 						}
@@ -130,8 +144,10 @@ String emailBody = PrefsParamUtil.getString(preferences, request, emailBodyParam
 				</aui:field-wrapper>
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
 					<dt>
@@ -189,7 +205,7 @@ String emailBody = PrefsParamUtil.getString(preferences, request, emailBodyParam
 						<liferay-ui:message key="the-name-of-the-email-recipient" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 		</c:when>
 		<c:when test='<%= tabs2.equals("display-settings") %>'>
 			<%@ include file="/html/portlet/bookmarks/display_settings.jspf" %>
@@ -208,6 +224,7 @@ String emailBody = PrefsParamUtil.getString(preferences, request, emailBodyParam
 
 	function <portlet:namespace />updateLanguage() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 

@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link WorkflowInstanceLinkLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       WorkflowInstanceLinkLocalService
+ * @author Brian Wing Shun Chan
+ * @see WorkflowInstanceLinkLocalService
  * @generated
  */
+@ProviderType
 public class WorkflowInstanceLinkLocalServiceWrapper
 	implements WorkflowInstanceLinkLocalService,
 		ServiceWrapper<WorkflowInstanceLinkLocalService> {
@@ -166,6 +169,23 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _workflowInstanceLinkLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _workflowInstanceLinkLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -366,6 +386,7 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WorkflowInstanceLinkLocalService getWrappedWorkflowInstanceLinkLocalService() {
 		return _workflowInstanceLinkLocalService;
 	}
@@ -373,6 +394,7 @@ public class WorkflowInstanceLinkLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWorkflowInstanceLinkLocalService(
 		WorkflowInstanceLinkLocalService workflowInstanceLinkLocalService) {
 		_workflowInstanceLinkLocalService = workflowInstanceLinkLocalService;

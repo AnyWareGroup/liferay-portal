@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DDMStorageLink}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDMStorageLink
+ * @author Brian Wing Shun Chan
+ * @see DDMStorageLink
  * @generated
  */
+@ProviderType
 public class DDMStorageLinkWrapper implements DDMStorageLink,
 	ModelWrapper<DDMStorageLink> {
 	public DDMStorageLinkWrapper(DDMStorageLink ddmStorageLink) {
@@ -344,9 +348,30 @@ public class DDMStorageLinkWrapper implements DDMStorageLink,
 		return _ddmStorageLink.getStructure();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDMStorageLinkWrapper)) {
+			return false;
+		}
+
+		DDMStorageLinkWrapper ddmStorageLinkWrapper = (DDMStorageLinkWrapper)obj;
+
+		if (Validator.equals(_ddmStorageLink,
+					ddmStorageLinkWrapper._ddmStorageLink)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDMStorageLink getWrappedDDMStorageLink() {
 		return _ddmStorageLink;
 	}
@@ -354,6 +379,16 @@ public class DDMStorageLinkWrapper implements DDMStorageLink,
 	@Override
 	public DDMStorageLink getWrappedModel() {
 		return _ddmStorageLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddmStorageLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddmStorageLink.isFinderCacheEnabled();
 	}
 
 	@Override

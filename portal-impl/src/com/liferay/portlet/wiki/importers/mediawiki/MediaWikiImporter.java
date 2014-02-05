@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.wiki.importers.mediawiki;
 
-import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
@@ -129,27 +128,26 @@ public class MediaWikiImporter implements WikiImporter {
 	protected long getUserId(
 			long userId, WikiNode node, String author,
 			Map<String, String> usersMap)
-		throws PortalException, SystemException {
+		throws SystemException {
 
 		User user = null;
 
 		String emailAddress = usersMap.get(author);
 
-		try {
-			if (Validator.isNull(emailAddress)) {
-				user = UserLocalServiceUtil.getUserByScreenName(
-					node.getCompanyId(), author.toLowerCase());
-			}
-			else {
-				user = UserLocalServiceUtil.getUserByEmailAddress(
-					node.getCompanyId(), emailAddress);
-			}
+		if (Validator.isNotNull(emailAddress)) {
+			user = UserLocalServiceUtil.fetchUserByEmailAddress(
+				node.getCompanyId(), emailAddress);
 		}
-		catch (NoSuchUserException nsue) {
-			user = UserLocalServiceUtil.getUserById(userId);
+		else {
+			user = UserLocalServiceUtil.fetchUserByScreenName(
+				node.getCompanyId(), StringUtil.toLowerCase(author));
 		}
 
-		return user.getUserId();
+		if (user != null) {
+			return user.getUserId();
+		}
+
+		return userId;
 	}
 
 	protected void importPage(
@@ -260,7 +258,6 @@ public class MediaWikiImporter implements WikiImporter {
 					WikiPageLocalServiceUtil.movePage(
 						userId, node.getNodeId(), frontPageTitle,
 						WikiPageConstants.FRONT_PAGE, false, serviceContext);
-
 				}
 			}
 			catch (Exception e) {
@@ -275,9 +272,7 @@ public class MediaWikiImporter implements WikiImporter {
 					_log.warn(sb.toString(), e);
 				}
 			}
-
 		}
-
 	}
 
 	protected String normalize(String categoryName, int length) {
@@ -361,7 +356,8 @@ public class MediaWikiImporter implements WikiImporter {
 					continue;
 				}
 
-				String fileName = paths[paths.length - 1].toLowerCase();
+				String fileName = StringUtil.toLowerCase(
+					paths[paths.length - 1]);
 
 				ObjectValuePair<String, InputStream> inputStreamOVP =
 					new ObjectValuePair<String, InputStream>(

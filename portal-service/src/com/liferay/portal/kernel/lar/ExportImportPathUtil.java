@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.lar;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
@@ -26,6 +28,7 @@ import java.io.Serializable;
  * @author Mate Thurzo
  * @author Daniel Kocsis
  */
+@ProviderType
 public class ExportImportPathUtil {
 
 	public static final String PATH_PREFIX_COMPANY = "company";
@@ -96,19 +99,21 @@ public class ExportImportPathUtil {
 	public static String getModelPath(
 		StagedModel stagedModel, String dependentFileName) {
 
+		StagedModelType stagedModelType = stagedModel.getStagedModelType();
+
 		if (stagedModel instanceof StagedGroupedModel) {
 			StagedGroupedModel stagedGroupedModel =
 				(StagedGroupedModel)stagedModel;
 
 			return getModelPath(
 				PATH_PREFIX_GROUP, stagedGroupedModel.getGroupId(),
-				stagedModel.getModelClassName(), stagedModel.getPrimaryKeyObj(),
+				stagedModelType.getClassName(), stagedModel.getPrimaryKeyObj(),
 				dependentFileName);
 		}
 		else {
 			return getModelPath(
 				PATH_PREFIX_COMPANY, stagedModel.getCompanyId(),
-				stagedModel.getModelClassName(), stagedModel.getPrimaryKeyObj(),
+				stagedModelType.getClassName(), stagedModel.getPrimaryKeyObj(),
 				dependentFileName);
 		}
 	}

@@ -38,8 +38,8 @@ public class OpenEntryAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
@@ -47,7 +47,7 @@ public class OpenEntryAction extends Action {
 
 			BookmarksEntry entry = BookmarksEntryServiceUtil.getEntry(entryId);
 
-			if (entry.isInTrash() || entry.isInTrashContainer()) {
+			if (entry.isInTrash()) {
 				int status = ParamUtil.getInteger(
 					request, "status", WorkflowConstants.STATUS_APPROVED);
 
@@ -60,7 +60,7 @@ public class OpenEntryAction extends Action {
 
 			request.setAttribute(WebKeys.FORWARD_URL, entry.getUrl());
 
-			return mapping.findForward(ActionConstants.COMMON_FORWARD);
+			return actionMapping.findForward(ActionConstants.COMMON_FORWARD);
 		}
 		catch (Exception e) {
 			PortalUtil.sendError(e, request, response);

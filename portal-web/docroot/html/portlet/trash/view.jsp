@@ -35,9 +35,19 @@ PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/trash/view");
 portletURL.setParameter("tabs1", tabs1);
+
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "recycle-bin"), portletURL.toString());
+
+if (Validator.isNotNull(keywords)) {
+	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
+}
 %>
 
 <liferay-util:include page="/html/portlet/trash/restore_path.jsp" />
+
+<liferay-ui:error exception="<%= DuplicateEntryException.class %>">
+	<liferay-ui:message key="unable-to-move-this-item-to-the-selected-destination" />
+</liferay-ui:error>
 
 <liferay-ui:error exception="<%= TrashPermissionException.class %>">
 
@@ -78,13 +88,6 @@ portletURL.setParameter("tabs1", tabs1);
 	/>
 </c:if>
 
-<c:if test="<%= Validator.isNotNull(keywords) %>">
-	<liferay-ui:header
-		backURL="<%= redirect %>"
-		title="search"
-	/>
-</c:if>
-
 <liferay-portlet:renderURL varImpl="searchURL">
 	<portlet:param name="struts_action" value="/trash/view" />
 </liferay-portlet:renderURL>
@@ -105,38 +108,26 @@ portletURL.setParameter("tabs1", tabs1);
 		if (Validator.isNotNull(searchTerms.getKeywords())) {
 			Sort sort = SortFactoryUtil.getSort(TrashEntry.class, searchContainer.getOrderByCol(), searchContainer.getOrderByType());
 
-			Hits hits = TrashEntryLocalServiceUtil.search(company.getCompanyId(), groupId, user.getUserId(), searchTerms.getKeywords(), searchContainer.getStart(), searchContainer.getEnd(), sort);
+			BaseModelSearchResult<TrashEntry> baseModelSearchResult = TrashEntryLocalServiceUtil.searchTrashEntries(company.getCompanyId(), groupId, user.getUserId(), searchTerms.getKeywords(), searchContainer.getStart(), searchContainer.getEnd(), sort);
 
-			total = hits.getLength();
+			searchContainer.setTotal(baseModelSearchResult.getLength());
 
-			searchContainer.setTotal(total);
-
-			if (searchContainer.isRecalculateCur()) {
-				hits = TrashEntryLocalServiceUtil.search(company.getCompanyId(), groupId, user.getUserId(), searchTerms.getKeywords(), searchContainer.getStart(), searchContainer.getEnd(), sort);
-			}
-
-			pageContext.setAttribute("results", TrashUtil.getEntries(hits));
-			pageContext.setAttribute("total", total);
+			results = baseModelSearchResult.getBaseModels();
 		}
 		else {
 			TrashEntryList trashEntryList = TrashEntryServiceUtil.getEntries(groupId, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
 
-			total = trashEntryList.getCount();
+			searchContainer.setTotal(trashEntryList.getCount());
 
-			searchContainer.setTotal(total);
-
-			if (searchContainer.isRecalculateCur()) {
-				trashEntryList = TrashEntryServiceUtil.getEntries(groupId, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator());
-			}
-
-			pageContext.setAttribute("results", TrashEntryImpl.toModels(trashEntryList.getArray()));
-			pageContext.setAttribute("total", total);
+			results = TrashEntryImpl.toModels(trashEntryList.getArray());
 
 			approximate = trashEntryList.isApproximate();
 		}
 
-		if ((total == 0) && Validator.isNotNull(searchTerms.getKeywords())) {
-			searchContainer.setEmptyResultsMessage(LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(searchTerms.getKeywords()) + "</strong>"));
+		searchContainer.setResults(results);
+
+		if ((searchContainer.getTotal() == 0) && Validator.isNotNull(searchTerms.getKeywords())) {
+			searchContainer.setEmptyResultsMessage(LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(searchTerms.getKeywords()) + "</strong>", false));
 		}
 		%>
 
@@ -181,7 +172,12 @@ portletURL.setParameter("tabs1", tabs1);
 		<liferay-ui:search-container-column-text
 			name="name"
 		>
-			<liferay-ui:icon label="<%= true %>" message="<%= HtmlUtil.escape(trashRenderer.getTitle(locale)) %>" src="<%= trashRenderer.getIconPath(renderRequest) %>" url="<%= viewContentURLString %>" />
+			<liferay-ui:icon
+				label="<%= true %>"
+				message="<%= HtmlUtil.escape(trashRenderer.getTitle(locale)) %>"
+				method="get" src="<%= trashRenderer.getIconPath(renderRequest) %>"
+				url="<%= viewContentURLString %>"
+			/>
 
 			<c:if test="<%= entry.getRootEntry() != null %>">
 
@@ -212,13 +208,14 @@ portletURL.setParameter("tabs1", tabs1);
 				<liferay-util:buffer var="rootEntryIcon">
 					<liferay-ui:icon
 						label="<%= true %>"
-						message="<%= rootTrashRenderer.getTitle(locale) %>"
+						message="<%= HtmlUtil.escape(rootTrashRenderer.getTitle(locale)) %>"
+						method="get"
 						src="<%= rootTrashRenderer.getIconPath(renderRequest) %>"
 						url="<%= viewRootContentURLString %>"
 					/>
 				</liferay-util:buffer>
 
-				<span class="trash-root-entry">(<liferay-ui:message arguments="<%= rootEntryIcon %>" key="<%= rootTrashHandler.getDeleteMessage() %>" />)</span>
+				<span class="trash-root-entry">(<liferay-ui:message arguments="<%= rootEntryIcon %>" key="<%= rootTrashHandler.getDeleteMessage() %>" translateArguments="<%= false %>" />)</span>
 			</c:if>
 		</liferay-ui:search-container-column-text>
 
@@ -228,19 +225,11 @@ portletURL.setParameter("tabs1", tabs1);
 			value="<%= ResourceActionsUtil.getModelResource(locale, entry.getClassName()) %>"
 		/>
 
-		<liferay-ui:search-container-column-text
+		<liferay-ui:search-container-column-date
 			name="removed-date"
 			orderable="<%= true %>"
-		>
-			<span title="<liferay-ui:message arguments="<%= dateFormatDateTime.format(entry.getCreateDate()) %>" key="deleted-x" />">
-
-				<%
-				Date createDate = entry.getCreateDate();
-				%>
-
-				<liferay-ui:message arguments="<%= LanguageUtil.getTimeDescription(pageContext, System.currentTimeMillis() - createDate.getTime(), true) %>" key="x-ago" />
-			</span>
-		</liferay-ui:search-container-column-text>
+			value="<%= entry.getCreateDate() %>"
+		/>
 
 		<liferay-ui:search-container-column-text
 			name="removed-by"
@@ -278,11 +267,12 @@ portletURL.setParameter("tabs1", tabs1);
 
 	<portlet:actionURL var="emptyTrashURL">
 		<portlet:param name="struts_action" value="/trash/edit_entry" />
+		<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 	</portlet:actionURL>
 
 	<liferay-ui:trash-empty
 		portletURL="<%= emptyTrashURL %>"
-		totalEntries="<%= total %>"
+		totalEntries="<%= searchContainer.getTotal() %>"
 	/>
 
 	<aui:form action="<%= searchURL.toString() %>" method="get" name="fm">
@@ -292,20 +282,20 @@ portletURL.setParameter("tabs1", tabs1);
 		<aui:input name="deleteTrashEntryIds" type="hidden" />
 		<aui:input name="restoreTrashEntryIds" type="hidden" />
 
-		<aui:button-row>
-			<liferay-ui:search-form
-				page="/html/portlet/trash/entry_search.jsp"
-			/>
-		</aui:button-row>
+		<liferay-ui:search-form
+			page="/html/portlet/trash/entry_search.jsp"
+		/>
 	</aui:form>
+
+	<liferay-ui:breadcrumb
+		showCurrentGroup="<%= false %>"
+		showCurrentPortlet="<%= true %>"
+		showGuestGroup="<%= false %>"
+		showLayout="<%= false %>"
+		showParentGroups="<%= false %>"
+	/>
 
 	<div class="separator"><!-- --></div>
 
 	<liferay-ui:search-iterator type='<%= approximate ? "more" : "regular" %>' />
 </liferay-ui:search-container>
-
-<%
-if (Validator.isNotNull(keywords)) {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
-}
-%>

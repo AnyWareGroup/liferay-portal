@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DLFolderService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFolderService
+ * @author Brian Wing Shun Chan
+ * @see DLFolderService
  * @generated
  */
+@ProviderType
 public class DLFolderServiceWrapper implements DLFolderService,
 	ServiceWrapper<DLFolderService> {
 	public DLFolderServiceWrapper(DLFolderService dlFolderService) {
@@ -94,7 +97,9 @@ public class DLFolderServiceWrapper implements DLFolderService,
 
 	@Override
 	public int getFileEntriesAndFileShortcutsCount(long groupId, long folderId,
-		int status) throws com.liferay.portal.kernel.exception.SystemException {
+		int status)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getFileEntriesAndFileShortcutsCount(groupId,
 			folderId, status);
 	}
@@ -102,7 +107,8 @@ public class DLFolderServiceWrapper implements DLFolderService,
 	@Override
 	public int getFileEntriesAndFileShortcutsCount(long groupId, long folderId,
 		int status, java.lang.String[] mimeTypes)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getFileEntriesAndFileShortcutsCount(groupId,
 			folderId, status, mimeTypes);
 	}
@@ -163,16 +169,6 @@ public class DLFolderServiceWrapper implements DLFolderService,
 	}
 
 	@Override
-	public int getFoldersAndFileEntriesAndFileShortcuts(long groupId,
-		long folderId, int status, java.lang.String[] mimeTypes,
-		boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _dlFolderService.getFoldersAndFileEntriesAndFileShortcuts(groupId,
-			folderId, status, mimeTypes, includeMountFolders);
-	}
-
-	@Override
 	public java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, java.lang.String[] mimeTypes,
 		boolean includeMountFolders, int start, int end,
@@ -186,7 +182,8 @@ public class DLFolderServiceWrapper implements DLFolderService,
 	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(long groupId,
 		long folderId, int status, boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getFoldersAndFileEntriesAndFileShortcutsCount(groupId,
 			folderId, status, includeMountFolders);
 	}
@@ -195,21 +192,24 @@ public class DLFolderServiceWrapper implements DLFolderService,
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(long groupId,
 		long folderId, int status, java.lang.String[] mimeTypes,
 		boolean includeMountFolders)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getFoldersAndFileEntriesAndFileShortcutsCount(groupId,
 			folderId, status, mimeTypes, includeMountFolders);
 	}
 
 	@Override
 	public int getFoldersCount(long groupId, long parentFolderId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getFoldersCount(groupId, parentFolderId);
 	}
 
 	@Override
 	public int getFoldersCount(long groupId, long parentFolderId, int status,
 		boolean includeMountfolders)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getFoldersCount(groupId, parentFolderId,
 			status, includeMountfolders);
 	}
@@ -226,16 +226,30 @@ public class DLFolderServiceWrapper implements DLFolderService,
 
 	@Override
 	public int getMountFoldersCount(long groupId, long parentFolderId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderService.getMountFoldersCount(groupId, parentFolderId);
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	long, boolean)}
+	*/
+	@Deprecated
 	@Override
 	public void getSubfolderIds(java.util.List<java.lang.Long> folderIds,
 		long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_dlFolderService.getSubfolderIds(folderIds, groupId, folderId);
+	}
+
+	@Override
+	public void getSubfolderIds(java.util.List<java.lang.Long> folderIds,
+		long groupId, long folderId, boolean recurse)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderService.getSubfolderIds(folderIds, groupId, folderId, recurse);
 	}
 
 	@Override
@@ -341,6 +355,7 @@ public class DLFolderServiceWrapper implements DLFolderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFolderService getWrappedDLFolderService() {
 		return _dlFolderService;
 	}
@@ -348,6 +363,7 @@ public class DLFolderServiceWrapper implements DLFolderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFolderService(DLFolderService dlFolderService) {
 		_dlFolderService = dlFolderService;
 	}

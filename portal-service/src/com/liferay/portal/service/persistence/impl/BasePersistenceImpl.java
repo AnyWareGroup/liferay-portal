@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.Dialect;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.Projection;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
@@ -86,7 +87,20 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 
-		dynamicQuery.setProjection(ProjectionFactoryUtil.rowCount());
+		return countWithDynamicQuery(
+			dynamicQuery, ProjectionFactoryUtil.rowCount());
+	}
+
+	@Override
+	public long countWithDynamicQuery(
+			DynamicQuery dynamicQuery, Projection projection)
+		throws SystemException {
+
+		if (projection == null) {
+			projection = ProjectionFactoryUtil.rowCount();
+		}
+
+		dynamicQuery.setProjection(projection);
 
 		List<Long> results = findWithDynamicQuery(dynamicQuery);
 
@@ -210,6 +224,11 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	}
 
 	@Override
+	public Class<T> getModelClass() {
+		return _modelClass;
+	}
+
+	@Override
 	public Session openNewSession(Connection connection) throws ORMException {
 		return _sessionFactory.openNewSession(connection);
 	}
@@ -328,6 +347,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel)}}
 	 */
+	@Deprecated
 	@Override
 	public T update(T model, boolean merge) throws SystemException {
 		if (model instanceof ModelWrapper) {
@@ -365,6 +385,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	 * @deprecated As of 6.2.0, replaced by {@link #update(BaseModel,
 	 *             ServiceContext)}}
 	 */
+	@Deprecated
 	@Override
 	public T update(T model, boolean merge, ServiceContext serviceContext)
 		throws SystemException {
@@ -467,6 +488,10 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 		throw new UnsupportedOperationException();
 	}
 
+	protected void setModelClass(Class<T> modelClass) {
+		_modelClass = modelClass;
+	}
+
 	/**
 	 * Updates the model instance in the database or adds it if it does not yet
 	 * exist. {@link #remove(BaseModel)} depends on this method to implement the
@@ -483,6 +508,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #updateImpl(BaseModel)}
 	 */
+	@Deprecated
 	protected T updateImpl(T model, boolean merge) throws SystemException {
 		return updateImpl(model);
 	}
@@ -518,6 +544,7 @@ public class BasePersistenceImpl<T extends BaseModel<T>>
 	private DataSource _dataSource;
 	private DB _db;
 	private Dialect _dialect;
+	private Class<T> _modelClass;
 	private SessionFactory _sessionFactory;
 
 }

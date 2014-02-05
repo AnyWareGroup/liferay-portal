@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link UserGroupRoleService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroupRoleService
+ * @author Brian Wing Shun Chan
+ * @see UserGroupRoleService
  * @generated
  */
+@ProviderType
 public class UserGroupRoleServiceWrapper implements UserGroupRoleService,
 	ServiceWrapper<UserGroupRoleService> {
 	public UserGroupRoleServiceWrapper(
@@ -79,6 +82,7 @@ public class UserGroupRoleServiceWrapper implements UserGroupRoleService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public UserGroupRoleService getWrappedUserGroupRoleService() {
 		return _userGroupRoleService;
 	}
@@ -86,6 +90,7 @@ public class UserGroupRoleServiceWrapper implements UserGroupRoleService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedUserGroupRoleService(
 		UserGroupRoleService userGroupRoleService) {
 		_userGroupRoleService = userGroupRoleService;

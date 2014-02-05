@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AnnouncementsEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsEntryService
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsEntryService
  * @generated
  */
+@ProviderType
 public class AnnouncementsEntryServiceWrapper
 	implements AnnouncementsEntryService,
 		ServiceWrapper<AnnouncementsEntryService> {
@@ -56,7 +59,7 @@ public class AnnouncementsEntryServiceWrapper
 		long plid, long classNameId, long classPK, java.lang.String title,
 		java.lang.String content, java.lang.String url, java.lang.String type,
 		int displayDateMonth, int displayDateDay, int displayDateYear,
-		int displayDateHour, int displayDateMinute, boolean autoDisplayDate,
+		int displayDateHour, int displayDateMinute, boolean displayImmediately,
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, int priority,
 		boolean alert)
@@ -65,7 +68,7 @@ public class AnnouncementsEntryServiceWrapper
 		return _announcementsEntryService.addEntry(plid, classNameId, classPK,
 			title, content, url, type, displayDateMonth, displayDateDay,
 			displayDateYear, displayDateHour, displayDateMinute,
-			autoDisplayDate, expirationDateMonth, expirationDateDay,
+			displayImmediately, expirationDateMonth, expirationDateDay,
 			expirationDateYear, expirationDateHour, expirationDateMinute,
 			priority, alert);
 	}
@@ -75,6 +78,7 @@ public class AnnouncementsEntryServiceWrapper
 	String, String, String, String, int, int, int, int, int,
 	boolean, int, int, int, int, int, int, boolean)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsEntry addEntry(
 		long plid, long classNameId, long classPK, java.lang.String title,
@@ -112,21 +116,22 @@ public class AnnouncementsEntryServiceWrapper
 		long entryId, java.lang.String title, java.lang.String content,
 		java.lang.String url, java.lang.String type, int displayDateMonth,
 		int displayDateDay, int displayDateYear, int displayDateHour,
-		int displayDateMinute, int expirationDateMonth, int expirationDateDay,
-		int expirationDateYear, int expirationDateHour,
-		int expirationDateMinute, int priority)
+		int displayDateMinute, boolean displayImmediately,
+		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
+		int expirationDateHour, int expirationDateMinute, int priority)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _announcementsEntryService.updateEntry(entryId, title, content,
 			url, type, displayDateMonth, displayDateDay, displayDateYear,
-			displayDateHour, displayDateMinute, expirationDateMonth,
-			expirationDateDay, expirationDateYear, expirationDateHour,
-			expirationDateMinute, priority);
+			displayDateHour, displayDateMinute, displayImmediately,
+			expirationDateMonth, expirationDateDay, expirationDateYear,
+			expirationDateHour, expirationDateMinute, priority);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AnnouncementsEntryService getWrappedAnnouncementsEntryService() {
 		return _announcementsEntryService;
 	}
@@ -134,6 +139,7 @@ public class AnnouncementsEntryServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAnnouncementsEntryService(
 		AnnouncementsEntryService announcementsEntryService) {
 		_announcementsEntryService = announcementsEntryService;

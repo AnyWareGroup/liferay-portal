@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialRequestInterpreterLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRequestInterpreterLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialRequestInterpreterLocalService
  * @generated
  */
+@ProviderType
 public class SocialRequestInterpreterLocalServiceWrapper
 	implements SocialRequestInterpreterLocalService,
 		ServiceWrapper<SocialRequestInterpreterLocalService> {
@@ -147,6 +150,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialRequestInterpreterLocalService getWrappedSocialRequestInterpreterLocalService() {
 		return _socialRequestInterpreterLocalService;
 	}
@@ -154,6 +158,7 @@ public class SocialRequestInterpreterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialRequestInterpreterLocalService(
 		SocialRequestInterpreterLocalService socialRequestInterpreterLocalService) {
 		_socialRequestInterpreterLocalService = socialRequestInterpreterLocalService;

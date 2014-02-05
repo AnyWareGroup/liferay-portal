@@ -7,11 +7,15 @@ AUI.add(
 
 		var Lang = A.Lang;
 
-		var JSON = A.JSON;
-
 		var EMPTY_FN = A.Lang.emptyFn;
 
+		var JSON = A.JSON;
+
+		var STR_DASH = '-';
+
 		var STR_EMPTY = '';
+
+		var STR_SPACE = ' ';
 
 		var DLFileEntryCellEditor = A.Component.create(
 			{
@@ -25,7 +29,7 @@ AUI.add(
 					initializer: function() {
 						var instance = this;
 
-						window[Liferay.Util.getPortletNamespace('15') + 'selectDocumentLibrary'] = A.bind('_selectFileEntry', instance);
+						window[Liferay.Util.getPortletNamespace('166') + 'selectDocumentLibrary'] = A.bind('_selectFileEntry', instance);
 					},
 
 					getElementsValue: function() {
@@ -41,33 +45,49 @@ AUI.add(
 
 						instance.toolbar.add(
 							{
-								handler: A.bind('_handleChooseEvent', instance),
-								label: Liferay.Language.get('choose')
+								label: Liferay.Language.get('choose'),
+								on: {
+									click: A.bind('_onClickChoose', instance)
+								}
 							},
 							1
 						);
+
+						instance.toolbar.add(
+							{
+								label: Liferay.Language.get('clear'),
+								on: {
+									click: A.bind('_onClickClear', instance)
+								}
+							},
+							2
+						);
 					},
 
-					_handleChooseEvent: function() {
+					_onClickChoose: function() {
 						var instance = this;
 
-						var uri = Liferay.Util.addParams(
-							{
-								groupId: themeDisplay.getScopeGroupId(),
-								p_p_id: '166',
-								p_p_state: 'pop_up',
-								struts_action: '/dynamic_data_mapping/select_document_library'
-							},
-							themeDisplay.getURLControlPanel()
-						);
+						var portletURL = Liferay.PortletURL.createURL(themeDisplay.getURLControlPanel());
+
+						portletURL.setDoAsGroupId(themeDisplay.getScopeGroupId());
+						portletURL.setParameter('groupId', themeDisplay.getScopeGroupId());
+						portletURL.setParameter('struts_action', '/dynamic_data_mapping/select_document_library');
+						portletURL.setPortletId('166');
+						portletURL.setWindowState('pop_up');
 
 						Liferay.Util.openWindow(
 							{
 								id: 'selectDocumentLibrary',
 								title: Liferay.Language.get('javax.portlet.title.20'),
-								uri: uri
+								uri: portletURL.toString()
 							}
 						);
+					},
+
+					_onClickClear: function() {
+						var instance = this;
+
+						instance.set('value', STR_EMPTY);
 					},
 
 					_selectFileEntry: function(url, uuid, groupId, title, version) {
@@ -103,7 +123,7 @@ AUI.add(
 						}
 
 						linkNode.setAttribute('href', url);
-						linkNode.setContent(title);
+						linkNode.setContent(Liferay.Util.escapeHTML(title));
 					},
 
 					_uiSetValue: function(val) {
@@ -139,6 +159,155 @@ AUI.add(
 			}
 		);
 
+		var LinkToPageCellEditor = A.Component.create(
+			{
+				NAME: 'link-to-page-cell-editor',
+
+				EXTENDS: A.DropDownCellEditor,
+
+				prototype: {
+					OPT_GROUP_TEMPLATE: '<optgroup label="{label}">{options}</optgroup>',
+
+					renderUI: function(val) {
+						var instance = this;
+
+						var options = {};
+
+						LinkToPageCellEditor.superclass.renderUI.apply(instance, arguments);
+
+						A.io.request(
+							themeDisplay.getPathMain() + '/layouts_admin/get_layouts',
+							{
+								after: {
+									success: function() {
+										var	response = A.JSON.parse(this.get('responseData'));
+
+										if (response && response.layouts) {
+											instance._createOptionElements(response.layouts, options, STR_EMPTY);
+
+											instance.set('options', options);
+										}
+									}
+								},
+								data: {
+									cmd: 'getAll',
+									expandParentLayouts: true,
+									groupId: themeDisplay.getScopeGroupId(),
+									p_auth: Liferay.authToken,
+									paginate: false
+								}
+							}
+						);
+					},
+
+					_createOptions: function(val) {
+						var instance = this;
+
+						var privateOptions = [];
+						var publicOptions = [];
+
+						A.each(
+							val,
+							function(item, index, collection) {
+								var values = {
+									id: A.guid(),
+									label: index,
+									value: Liferay.Util.escapeHTML(JSON.stringify(item))
+								};
+
+								var optionsArray = publicOptions;
+
+								if (item.privateLayout) {
+									optionsArray = privateOptions;
+								}
+
+								optionsArray.push(
+									Lang.sub(instance.OPTION_TEMPLATE, values)
+								);
+							}
+						);
+
+						var optGroupTemplate = instance.OPT_GROUP_TEMPLATE;
+
+						var publicOptGroup = Lang.sub(
+							optGroupTemplate,
+							{
+								label: Liferay.Language.get('public-pages'),
+								options: publicOptions.join(STR_EMPTY)
+							}
+						);
+
+						var privateOptGroup = Lang.sub(
+							optGroupTemplate,
+							{
+								label: Liferay.Language.get('private-pages'),
+								options: privateOptions.join(STR_EMPTY)
+							}
+						);
+
+						var elements = instance.elements;
+
+						elements.setContent(publicOptGroup + privateOptGroup);
+
+						instance.options = elements.all('option');
+					},
+
+					_createOptionElements: function(layouts, options, prefix) {
+						var instance = this;
+
+						AArray.each(
+							layouts,
+							function(item, index, collection) {
+								options[prefix + item.name] = {
+									groupId: item.groupId,
+									layoutId: item.layoutId,
+									name: item.name,
+									privateLayout: item.privateLayout
+								};
+
+								if (item.hasChildren) {
+									instance._createOptionElements(
+										item.children.layouts,
+										options,
+										prefix + STR_DASH + STR_SPACE
+									);
+								}
+							}
+						);
+					},
+
+					_uiSetValue: function(val) {
+						var instance = this;
+
+						var options = instance.options;
+
+						if (options && options.size()) {
+							options.set('selected', false);
+
+							if (Lang.isValue(val)) {
+								var selLayout = SpreadSheet.Util.parseJSON(val);
+
+								options.each(
+									function(item, index, collection) {
+										var curLayout = SpreadSheet.Util.parseJSON(item.attr('value'));
+
+										if ((curLayout.groupId === selLayout.groupId) &&
+											(curLayout.layoutId === selLayout.layoutId) &&
+											(curLayout.privateLayout === selLayout.privateLayout)) {
+
+											item.set('selected', true);
+										}
+									}
+								);
+							}
+						}
+
+						return val;
+					}
+				}
+			}
+		);
+
 		var SpreadSheet = A.Component.create(
 			{
 				ATTRS: {
@@ -158,7 +327,7 @@ AUI.add(
 					}
 				},
 
-				CSS_PREFIX: '',
+				CSS_PREFIX: 'table',
 
 				DATATYPE_VALIDATOR: {
 					'date': 'date',
@@ -245,7 +414,14 @@ AUI.add(
 								var type = item.type;
 								var value = record.get(item.name);
 
-								if ((type === 'radio') || (type === 'select')) {
+								if (type === 'ddm-link-to-page') {
+									value = SpreadSheet.Util.parseJSON(value);
+
+									delete value.name;
+
+									value = JSON.stringify(value);
+								}
+								else if ((type === 'radio') || (type === 'select')) {
 									if (!Lang.isArray(value)) {
 										value = AArray(value);
 									}
@@ -299,7 +475,8 @@ AUI.add(
 									data: data,
 									record: record,
 									recordsetId: recordsetId,
-									structure: structure
+									structure: structure,
+									zIndex: Liferay.zIndex.OVERLAY
 								}
 							);
 						}
@@ -330,7 +507,13 @@ AUI.add(
 									fieldsMap,
 									function(json) {
 										if (json.recordId > 0) {
-											record.set('recordId', json.recordId);
+											record.set(
+												'recordId',
+												json.recordId,
+												{
+													silent: true
+												}
+											);
 										}
 									}
 								);
@@ -448,16 +631,26 @@ AUI.add(
 								};
 							}
 							else if (type === 'ddm-date') {
-								config.inputFormatter = function(value) {
-									var date = A.DataType.Date.parse(value);
+								config.inputFormatter = function(val) {
+									return AArray.map(
+										val,
+										function(item, index, collection) {
+											return item.getTime();
+										}
+									);
+								};
 
-									var dateValue = STR_EMPTY;
+								config.outputFormatter = function(val) {
+									return AArray.map(
+										val,
+										function(item, index, collection) {
+											var date = new Date(Lang.toInt(item));
 
-									if (date) {
-										dateValue = date.getTime();
-									}
+											date = DateMath.add(date, DateMath.MINUTES, date.getTimezoneOffset());
 
-									return dateValue;
+											return date;
+										}
+									);
 								};
 
 								item.formatter = function(obj) {
@@ -468,9 +661,34 @@ AUI.add(
 									if (value !== STR_EMPTY) {
 										var date = new Date(Lang.toInt(value));
 
-										date = DateMath.add(value, DateMath.MINUTES, value.getTimezoneOffset());
+										date = DateMath.add(date, DateMath.MINUTES, date.getTimezoneOffset());
 
 										value = A.DataType.Date.format(date);
+									}
+
+									return value;
+								};
+							}
+							else if ((type === 'ddm-decimal') || (type === 'ddm-integer') || (type === 'ddm-number')) {
+								config.outputFormatter = function(value) {
+									var number = A.DataType.Number.parse(value);
+
+									var numberValue = STR_EMPTY;
+
+									if (Lang.isNumber(number)) {
+										numberValue = number;
+									}
+
+									return numberValue;
+								};
+
+								item.formatter = function(obj) {
+									var data = obj.data;
+
+									var value = A.DataType.Number.parse(data[name]);
+
+									if (!Lang.isNumber(value)) {
+										value = STR_EMPTY;
 									}
 
 									return value;
@@ -494,7 +712,7 @@ AUI.add(
 									return label;
 								};
 							}
-							else if (type === 'ddm-fileupload') {
+							else if (type === 'ddm-link-to-page') {
 								item.formatter = function(obj) {
 									var data = obj.data;
 
@@ -502,21 +720,14 @@ AUI.add(
 									var value = data[name];
 
 									if (value !== STR_EMPTY) {
-										var fileData = SpreadSheet.Util.parseJSON(value);
+										var linkToPageData = SpreadSheet.Util.parseJSON(value);
 
-										if (fileData.classPK) {
-											label = fileData.name;
+										if (linkToPageData.name) {
+											label = linkToPageData.name;
 										}
 									}
 
 									return label;
-								};
-
-								structureField = instance.findStructureFieldByAttribute(structure, 'name', name);
-
-								config.validator.rules[name] = {
-									acceptFiles: structureField.acceptFiles,
-									requiredFields: true
 								};
 							}
 							else if ((type === 'radio') || (type === 'select')) {
@@ -697,6 +908,7 @@ AUI.add(
 		};
 
 		SpreadSheet.TYPE_EDITOR['ddm-documentlibrary'] = DLFileEntryCellEditor;
+		SpreadSheet.TYPE_EDITOR['ddm-link-to-page'] = LinkToPageCellEditor;
 
 		Liferay.SpreadSheet = SpreadSheet;
 
@@ -725,8 +937,6 @@ AUI.add(
 
 					previewDialog.set('bodyContent', content);
 				}
-
-				return previewDialog;
 			}
 		};
 

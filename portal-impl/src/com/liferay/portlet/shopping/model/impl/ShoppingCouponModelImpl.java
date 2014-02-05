@@ -219,6 +219,9 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		attributes.put("discount", getDiscount());
 		attributes.put("discountType", getDiscountType());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -333,8 +336,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCouponId() {
 		return _couponId;
 	}
@@ -344,8 +347,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_couponId = couponId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -367,8 +370,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -378,8 +381,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_companyId = companyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -399,8 +402,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -415,8 +418,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -428,8 +431,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -439,8 +442,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getCode() {
 		if (_code == null) {
 			return StringPool.BLANK;
@@ -465,8 +468,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		return GetterUtil.getString(_originalCode);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -481,8 +484,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_name = name;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -497,8 +500,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_description = description;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getStartDate() {
 		return _startDate;
 	}
@@ -508,8 +511,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_startDate = startDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getEndDate() {
 		return _endDate;
 	}
@@ -519,8 +522,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_endDate = endDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getActive() {
 		return _active;
 	}
@@ -535,8 +538,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_active = active;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getLimitCategories() {
 		if (_limitCategories == null) {
 			return StringPool.BLANK;
@@ -551,8 +554,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_limitCategories = limitCategories;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getLimitSkus() {
 		if (_limitSkus == null) {
 			return StringPool.BLANK;
@@ -567,8 +570,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_limitSkus = limitSkus;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public double getMinOrder() {
 		return _minOrder;
 	}
@@ -578,8 +581,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_minOrder = minOrder;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public double getDiscount() {
 		return _discount;
 	}
@@ -589,8 +592,8 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 		_discount = discount;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDiscountType() {
 		if (_discountType == null) {
 			return StringPool.BLANK;
@@ -699,6 +702,16 @@ public class ShoppingCouponModelImpl extends BaseModelImpl<ShoppingCoupon>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

@@ -36,7 +36,6 @@ if (StateUtil.isStateId(shippingState)) {
 }
 
 String ccType = ParamUtil.getString(request, "ccType");
-String ccNumber = ParamUtil.getString(request, "ccNumber");
 
 Calendar cal = CalendarFactoryUtil.getCalendar();
 
@@ -52,8 +51,6 @@ if (request.getParameter("ccExpMonth") == null) {
 		ccExpMonth++;
 	}
 }
-
-String ccVerNumber = ParamUtil.getString(request, "ccVerNumber");
 
 List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contact.getContactId());
 %>
@@ -98,7 +95,7 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 							Address address = (Address)addresses.get(i);
 						%>
 
-							<aui:option label="<%= address.getStreet1() %>" value="<%= address.getAddressId() %>" />
+							<aui:option label="<%= HtmlUtil.escape(address.getStreet1()) %>" value="<%= address.getAddressId() %>" />
 
 						<%
 						}
@@ -108,7 +105,7 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 				</c:if>
 
 				<aui:col width="<%= 50 %>">
-					<aui:input label="first-name" name="billingFirstName" />
+					<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" label="first-name" name="billingFirstName" />
 
 					<aui:input label="last-name" name="billingLastName" />
 
@@ -174,7 +171,7 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 							Address address = (Address)addresses.get(i);
 						%>
 
-							<aui:option label="<%= address.getStreet1() %>" value="<%= address.getAddressId() %>" />
+							<aui:option label="<%= HtmlUtil.escape(address.getStreet1()) %>" value="<%= address.getAddressId() %>" />
 
 						<%
 						}
@@ -243,7 +240,7 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 					for (int i = 0; i < ccTypes.length; i++) {
 					%>
 
-						<img alt="<%= ccTypes[i] %>" src="<%= themeDisplay.getPathThemeImages() %>/shopping/cc_<%= ccTypes[i] %>.png" />
+						<img alt="<%= HtmlUtil.escapeAttribute(ccTypes[i]) %>" src="<%= themeDisplay.getPathThemeImages() %>/shopping/cc_<%= HtmlUtil.escapeAttribute(ccTypes[i]) %>.png" />
 
 					<%
 					}
@@ -257,7 +254,7 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 						for (int i = 0; i < ccTypes.length; i++) {
 						%>
 
-							<aui:option label='<%= "cc_" + ccTypes[i] %>' selected="<%= ccTypes[i].equals(ccType) %>" value="<%= ccTypes[i] %>" />
+							<aui:option label='<%= "cc_" + HtmlUtil.escape(ccTypes[i]) %>' selected="<%= ccTypes[i].equals(ccType) %>" value="<%= HtmlUtil.escapeAttribute(ccTypes[i]) %>" />
 
 						<%
 						}
@@ -338,14 +335,11 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 		%>
 
 			if ("<%= address.getAddressId() %>" == addressId) {
-				//document.getElementById("<portlet:namespace />" + type + "FirstName").value = "<%= user.getFirstName() %>";
-				//document.getElementById("<portlet:namespace />" + type + "LastName").value = "<%= user.getLastName() %>";
-				//document.getElementById("<portlet:namespace />" + type + "EmailAddress").value = "<%= user.getEmailAddress() %>";
-				document.getElementById("<portlet:namespace />" + type + "Street").value = "<%= address.getStreet1() %>";
-				document.getElementById("<portlet:namespace />" + type + "City").value = "<%= address.getCity() %>";
+				document.getElementById("<portlet:namespace />" + type + "Street").value = "<%= HtmlUtil.escapeJS(address.getStreet1()) %>";
+				document.getElementById("<portlet:namespace />" + type + "City").value = "<%= HtmlUtil.escapeJS(address.getCity()) %>";
 
 				var stateSel = document.getElementById("<portlet:namespace />" + type + "StateSel");
-				var stateSelValue = "<%= region.getRegionCode() %>";
+				var stateSelValue = "<%= HtmlUtil.escapeJS(region.getRegionCode()) %>";
 
 				for (var i = 0; i < stateSel.length; i++) {
 					if (stateSel[i].value == stateSelValue) {
@@ -355,8 +349,8 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 					}
 				}
 
-				document.getElementById("<portlet:namespace />" + type + "Zip").value = "<%= address.getZip() %>";
-				document.getElementById("<portlet:namespace />" + type + "Country").value = "<%= country.getName() %>";
+				document.getElementById("<portlet:namespace />" + type + "Zip").value = "<%= HtmlUtil.escapeJS(address.getZip()) %>";
+				document.getElementById("<portlet:namespace />" + type + "Country").value = "<%= HtmlUtil.escapeJS(country.getName()) %>";
 			}
 
 		<%
@@ -364,8 +358,4 @@ List addresses = AddressServiceUtil.getAddresses(Contact.class.getName(), contac
 		%>
 
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />billingFirstName);
-	</c:if>
 </aui:script>

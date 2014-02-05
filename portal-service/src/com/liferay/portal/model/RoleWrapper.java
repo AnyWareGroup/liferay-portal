@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Role}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Role
+ * @author Brian Wing Shun Chan
+ * @see Role
  * @generated
  */
+@ProviderType
 public class RoleWrapper implements Role, ModelWrapper<Role> {
 	public RoleWrapper(Role role) {
 		_role = role;
@@ -46,6 +52,7 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("roleId", getRoleId());
 		attributes.put("companyId", getCompanyId());
@@ -66,6 +73,12 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -169,6 +182,26 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_role.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this role.
+	*
+	* @return the mvcc version of this role
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _role.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this role.
+	*
+	* @param mvccVersion the mvcc version of this role
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_role.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -789,6 +822,22 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _role.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _role.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_role.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -858,9 +907,34 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 		return _role.isTeam();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RoleWrapper)) {
+			return false;
+		}
+
+		RoleWrapper roleWrapper = (RoleWrapper)obj;
+
+		if (Validator.equals(_role, roleWrapper._role)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _role.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Role getWrappedRole() {
 		return _role;
 	}
@@ -868,6 +942,16 @@ public class RoleWrapper implements Role, ModelWrapper<Role> {
 	@Override
 	public Role getWrappedModel() {
 		return _role;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _role.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _role.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MBBan}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBBan
+ * @author Brian Wing Shun Chan
+ * @see MBBan
  * @generated
  */
+@ProviderType
 public class MBBanWrapper implements MBBan, ModelWrapper<MBBan> {
 	public MBBanWrapper(MBBan mbBan) {
 		_mbBan = mbBan;
@@ -466,9 +471,34 @@ public class MBBanWrapper implements MBBan, ModelWrapper<MBBan> {
 		_mbBan.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBBanWrapper)) {
+			return false;
+		}
+
+		MBBanWrapper mbBanWrapper = (MBBanWrapper)obj;
+
+		if (Validator.equals(_mbBan, mbBanWrapper._mbBan)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbBan.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBBan getWrappedMBBan() {
 		return _mbBan;
 	}
@@ -476,6 +506,16 @@ public class MBBanWrapper implements MBBan, ModelWrapper<MBBan> {
 	@Override
 	public MBBan getWrappedModel() {
 		return _mbBan;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbBan.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbBan.isFinderCacheEnabled();
 	}
 
 	@Override

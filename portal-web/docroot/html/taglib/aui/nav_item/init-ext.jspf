@@ -15,21 +15,29 @@
 --%>
 
 <%
-String randomNamespace = PortalUtil.generateRandomKey(request, "taglib_aui_nav_item_init-ext");
+String randomNamespace = StringUtil.randomId() + StringPool.UNDERLINE;
 
 if (Validator.isNull(id)) {
 	id = randomNamespace;
 }
-else {
+else if (portletResponse != null) {
 	id = portletResponse.getNamespace() + id;
 }
 
-if (Validator.isNotNull(anchorId)) {
+if (useDialog && Validator.isNull(anchorId)) {
+	anchorId = StringUtil.randomId();
+}
+
+if ((portletResponse != null) && Validator.isNotNull(anchorId)) {
 	anchorId = portletResponse.getNamespace() + anchorId;
 }
 
 if (dropdown) {
 	cssClass += " dropdown";
 	anchorCssClass += " dropdown-toggle";
+}
+
+if (Validator.isNull(state)) {
+	state = GetterUtil.getString(SessionClicks.get(request, id, null));
 }
 %>

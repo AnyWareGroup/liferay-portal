@@ -16,6 +16,7 @@ package com.liferay.portlet.bookmarks.trash;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
@@ -36,7 +37,8 @@ import com.liferay.portlet.bookmarks.service.BookmarksFolderLocalServiceUtil;
 import com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -51,34 +53,46 @@ import org.junit.runner.RunWith;
 @Sync
 public class BookmarksEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashAndDeleteDraft() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashAndRestoreDraft() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashDuplicate() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionBaseModelAndDelete() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionBaseModelAndRestore() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionParentBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
+	}
+
+	@Ignore()
+	@Override
+	@Test
+	public void testTrashVersionParentBaseModelAndRestore() throws Exception {
 	}
 
 	@Override
@@ -89,13 +103,42 @@ public class BookmarksEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		BookmarksFolder folder = (BookmarksFolder)parentBaseModel;
 
+		return addBaseModelWithWorkflow(
+			folder.getUserId(), folder.getGroupId(), folder.getFolderId(),
+			serviceContext);
+	}
+
+	@Override
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		return addBaseModelWithWorkflow(
+			TestPropsValues.getUserId(), serviceContext.getScopeGroupId(),
+			BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID, serviceContext);
+	}
+
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			long userId, long groupId, long folderId,
+			ServiceContext serviceContext)
+		throws Exception {
+
 		String name = getSearchKeywords();
 		String url = "http://www.liferay.com";
 		String description = "Content: Enterprise. Open Source.";
 
 		return BookmarksEntryLocalServiceUtil.addEntry(
-			folder.getUserId(), folder.getGroupId(), folder.getFolderId(), name,
-			url, description, serviceContext);
+			userId, groupId, folderId, name, url, description, serviceContext);
+	}
+
+	@Override
+	protected void deleteParentBaseModel(
+			BaseModel<?> parentBaseModel, boolean includeTrashedEntries)
+		throws Exception {
+
+		BookmarksFolder folder = (BookmarksFolder)parentBaseModel;
+
+		BookmarksFolderServiceUtil.deleteFolder(folder.getFolderId(), false);
 	}
 
 	@Override
@@ -117,7 +160,7 @@ public class BookmarksEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 	@Override
 	protected int getMineBaseModelsCount(long groupId, long userId)
-			throws Exception {
+		throws Exception {
 
 		return BookmarksEntryServiceUtil.getGroupEntriesCount(groupId, userId);
 	}
@@ -198,6 +241,25 @@ public class BookmarksEntryTrashHandlerTest extends BaseTrashHandlerTestCase {
 		throws Exception {
 
 		BookmarksFolderServiceUtil.moveFolderToTrash(primaryKey);
+	}
+
+	@Override
+	protected BaseModel<?> updateBaseModel(
+			long primaryKey, ServiceContext serviceContext)
+		throws Exception {
+
+		BookmarksEntry entry = BookmarksEntryLocalServiceUtil.getEntry(
+			primaryKey);
+
+		if (serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT) {
+
+			entry = BookmarksEntryLocalServiceUtil.updateStatus(
+				TestPropsValues.getUserId(), entry,
+				WorkflowConstants.STATUS_DRAFT);
+		}
+
+		return entry;
 	}
 
 }

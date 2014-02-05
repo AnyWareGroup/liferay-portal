@@ -17,6 +17,8 @@
 <%@ include file="/html/portlet/sites_admin/init.jsp" %>
 
 <%
+String strutsAction = ParamUtil.getString(request, "struts_action");
+
 String p_u_i_d = ParamUtil.getString(request, "p_u_i_d");
 long groupId = ParamUtil.getLong(request, "groupId");
 boolean includeCompany = ParamUtil.getBoolean(request, "includeCompany");
@@ -53,19 +55,6 @@ portletURL.setParameter("target", target);
 			page="/html/portlet/users_admin/group_search.jsp"
 		/>
 
-		<div>
-			<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) %>">
-				<aui:button onClick='<%= renderResponse.getNamespace() + "addGroup();" %>' value="add-site" />
-			</c:if>
-		</div>
-
-		<aui:script>
-			function <portlet:namespace />addGroup() {
-				document.<portlet:namespace />fm.method = 'post';
-				submitForm(document.<portlet:namespace />fm, '<portlet:renderURL><portlet:param name="struts_action" value="/sites_admin/edit_site" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>');
-			}
-		</aui:script>
-
 		<%
 		GroupSearchTerms searchTerms = (GroupSearchTerms)searchContainer.getSearchTerms();
 
@@ -77,9 +66,13 @@ portletURL.setParameter("target", target);
 			<%
 			results.clear();
 
-			if (groupId > 0) {
-				List<Long> excludedGroupIds = new ArrayList<Long>();
+			List<Long> excludedGroupIds = new ArrayList<Long>();
 
+			Group companyGroup = company.getGroup();
+
+			excludedGroupIds.add(companyGroup.getGroupId());
+
+			if (groupId > 0) {
 				Group group = GroupLocalServiceUtil.getGroup(groupId);
 
 				if (group.isStagingGroup()) {
@@ -88,8 +81,12 @@ portletURL.setParameter("target", target);
 				else {
 					excludedGroupIds.add(groupId);
 				}
+			}
 
-				groupParams.put("excludedGroupIds", excludedGroupIds);
+			groupParams.put("excludedGroupIds", excludedGroupIds);
+
+			if (strutsAction.equals("/users_admin/select_site")) {
+				groupParams.put("manualMembership", Boolean.TRUE);
 			}
 
 			groupParams.put("site", Boolean.TRUE);
@@ -102,7 +99,7 @@ portletURL.setParameter("target", target);
 
 			if (includeCompany) {
 				if (searchContainer.getStart() == 0) {
-					results.add(company.getGroup());
+					results.add(companyGroup);
 				}
 
 				additionalSites++;
@@ -118,6 +115,17 @@ portletURL.setParameter("target", target);
 				additionalSites++;
 			}
 
+			if (searchTerms.isAdvancedSearch()) {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
+			}
+			else {
+				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams);
+			}
+
+			total += additionalSites;
+
+			searchContainer.setTotal(total);
+
 			int start = searchContainer.getStart();
 
 			if (searchContainer.getStart() > additionalSites) {
@@ -130,20 +138,14 @@ portletURL.setParameter("target", target);
 
 			if (searchTerms.isAdvancedSearch()) {
 				sites = GroupLocalServiceUtil.search(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), start, end, searchContainer.getOrderByComparator());
-				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
 			}
 			else {
 				sites = GroupLocalServiceUtil.search(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams, start, end, searchContainer.getOrderByComparator());
-				total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), null, searchTerms.getKeywords(), groupParams, searchTerms.isAndOperator());
 			}
-
-			total += additionalSites;
 
 			results.addAll(sites);
 
-
-			pageContext.setAttribute("results", results);
-			pageContext.setAttribute("total", total);
+			searchContainer.setResults(results);
 			%>
 
 		</liferay-ui:search-container-results>
@@ -172,8 +174,8 @@ portletURL.setParameter("target", target);
 					<%
 					Map<String, Object> data = new HashMap<String, Object>();
 
+					data.put("groupdescriptivename", group.getDescriptiveName(locale));
 					data.put("groupid", group.getGroupId());
-					data.put("groupname", HtmlUtil.escape(group.getDescriptiveName(locale)));
 					data.put("grouptarget", target);
 					data.put("grouptype", LanguageUtil.get(pageContext, group.getTypeLabel()));
 					%>
@@ -186,10 +188,6 @@ portletURL.setParameter("target", target);
 		<liferay-ui:search-iterator />
 	</liferay-ui:search-container>
 </aui:form>
-
-<aui:script>
-	Liferay.Util.focusFormField(document.<portlet:namespace />selectGroupFm.<portlet:namespace />name);
-</aui:script>
 
 <aui:script use="aui-base">
 	var Util = Liferay.Util;

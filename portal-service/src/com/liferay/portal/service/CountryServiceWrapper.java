@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link CountryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       CountryService
+ * @author Brian Wing Shun Chan
+ * @see CountryService
  * @generated
  */
+@ProviderType
 public class CountryServiceWrapper implements CountryService,
 	ServiceWrapper<CountryService> {
 	public CountryServiceWrapper(CountryService countryService) {
@@ -121,6 +124,7 @@ public class CountryServiceWrapper implements CountryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public CountryService getWrappedCountryService() {
 		return _countryService;
 	}
@@ -128,6 +132,7 @@ public class CountryServiceWrapper implements CountryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedCountryService(CountryService countryService) {
 		_countryService = countryService;
 	}

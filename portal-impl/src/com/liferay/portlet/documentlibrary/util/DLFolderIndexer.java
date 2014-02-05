@@ -32,19 +32,17 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.documentlibrary.asset.DLFileEntryAssetRendererFactory;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
 import com.liferay.portlet.documentlibrary.service.persistence.DLFolderActionableDynamicQuery;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Locale;
 
 import javax.portlet.PortletRequest;
@@ -92,13 +90,7 @@ public class DLFolderIndexer extends BaseIndexer {
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
 
-		int status = GetterUtil.getInteger(
-			searchContext.getAttribute(Field.STATUS),
-			WorkflowConstants.STATUS_APPROVED);
-
-		if (status != WorkflowConstants.STATUS_ANY) {
-			contextQuery.addRequiredTerm(Field.STATUS, status);
-		}
+		addStatus(contextQuery, searchContext);
 
 		contextQuery.addRequiredTerm(Field.HIDDEN, false);
 	}
@@ -131,24 +123,10 @@ public class DLFolderIndexer extends BaseIndexer {
 		document.addKeyword(
 			Field.HIDDEN, (dlFolder.isHidden() || dlFolder.isInHiddenFolder()));
 		document.addText(Field.TITLE, dlFolder.getName());
-
-		if (!dlFolder.isInTrash() && dlFolder.isInTrashContainer()) {
-			DLFolder trashedFolder = dlFolder.getTrashContainer();
-
-			if (trashedFolder != null) {
-				addTrashFields(
-					document, DLFolder.class.getName(),
-					trashedFolder.getFolderId(), null, null,
-					DLFileEntryAssetRendererFactory.TYPE);
-
-				document.addKeyword(
-					Field.ROOT_ENTRY_CLASS_NAME, DLFolder.class.getName());
-				document.addKeyword(
-					Field.ROOT_ENTRY_CLASS_PK, trashedFolder.getFolderId());
-				document.addKeyword(
-					Field.STATUS, WorkflowConstants.STATUS_IN_TRASH);
-			}
-		}
+		document.addKeyword(Field.TREE_PATH, dlFolder.getTreePath());
+		document.addKeyword(
+			Field.TREE_PATH,
+			StringUtil.split(dlFolder.getTreePath(), CharPool.SLASH));
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Document " + dlFolder + " indexed successfully");
@@ -224,8 +202,6 @@ public class DLFolderIndexer extends BaseIndexer {
 	protected void reindexFolders(final long companyId)
 		throws PortalException, SystemException {
 
-		final Collection<Document> documents = new ArrayList<Document>();
-
 		ActionableDynamicQuery actionableDynamicQuery =
 			new DLFolderActionableDynamicQuery() {
 
@@ -243,18 +219,16 @@ public class DLFolderIndexer extends BaseIndexer {
 				Document document = getDocument(dlFolder);
 
 				if (document != null) {
-					documents.add(document);
+					addDocument(document);
 				}
 			}
 
 		};
 
 		actionableDynamicQuery.setCompanyId(companyId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
 		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(DLFolderIndexer.class);

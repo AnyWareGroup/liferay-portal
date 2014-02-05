@@ -109,6 +109,13 @@ public class FileUtil {
 		return getFile().createTempFile(extension);
 	}
 
+	public static File createTempFile(String prefix, String extension) {
+		PortalFilePermission.checkWrite(
+			SystemProperties.get(SystemProperties.TMP_DIR));
+
+		return getFile().createTempFile(prefix, extension);
+	}
+
 	public static String createTempFileName() {
 		PortalFilePermission.checkWrite(
 			SystemProperties.get(SystemProperties.TMP_DIR));
@@ -121,6 +128,13 @@ public class FileUtil {
 			SystemProperties.get(SystemProperties.TMP_DIR));
 
 		return getFile().createTempFileName(extension);
+	}
+
+	public static String createTempFileName(String prefix, String extension) {
+		PortalFilePermission.checkWrite(
+			SystemProperties.get(SystemProperties.TMP_DIR));
+
+		return getFile().createTempFileName(prefix, extension);
 	}
 
 	public static File createTempFolder() {
@@ -199,6 +213,12 @@ public class FileUtil {
 		return getFile().getAbsolutePath(file);
 	}
 
+	public static byte[] getBytes(Class<?> clazz, String fileName)
+		throws Exception {
+
+		return getFile().getBytes(clazz, fileName);
+	}
+
 	public static byte[] getBytes(File file) throws IOException {
 		PortalFilePermission.checkRead(_getPath(file));
 
@@ -230,6 +250,10 @@ public class FileUtil {
 		PortalRuntimePermission.checkGetBeanProperty(FileUtil.class);
 
 		return _file;
+	}
+
+	public static String getMD5Checksum(java.io.File file) throws IOException {
+		return getFile().getMD5Checksum(file);
 	}
 
 	public static String getPath(String fullFileName) {
@@ -369,17 +393,30 @@ public class FileUtil {
 	}
 
 	public static void write(File file, byte[] bytes) throws IOException {
+		write(file, bytes, false);
+	}
+
+	public static void write(File file, byte[] bytes, boolean append)
+		throws IOException {
+
 		PortalFilePermission.checkWrite(_getPath(file));
 
-		getFile().write(file, bytes);
+		getFile().write(file, bytes, append);
 	}
 
 	public static void write(File file, byte[] bytes, int offset, int length)
 		throws IOException {
 
+		write(file, bytes, offset, length, false);
+	}
+
+	public static void write(
+			File file, byte[] bytes, int offset, int length, boolean append)
+		throws IOException {
+
 		PortalFilePermission.checkWrite(_getPath(file));
 
-		getFile().write(file, bytes, offset, length);
+		getFile().write(file, bytes, offset, length, append);
 	}
 
 	public static void write(File file, InputStream is) throws IOException {

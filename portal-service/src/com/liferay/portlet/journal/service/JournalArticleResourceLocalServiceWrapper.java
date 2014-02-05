@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link JournalArticleResourceLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalArticleResourceLocalService
+ * @author Brian Wing Shun Chan
+ * @see JournalArticleResourceLocalService
  * @generated
  */
+@ProviderType
 public class JournalArticleResourceLocalServiceWrapper
 	implements JournalArticleResourceLocalService,
 		ServiceWrapper<JournalArticleResourceLocalService> {
@@ -168,11 +171,44 @@ public class JournalArticleResourceLocalServiceWrapper
 		return _journalArticleResourceLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleResourceLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.journal.model.JournalArticleResource fetchJournalArticleResource(
 		long resourcePrimKey)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalArticleResourceLocalService.fetchJournalArticleResource(resourcePrimKey);
+	}
+
+	/**
+	* Returns the journal article resource matching the UUID and group.
+	*
+	* @param uuid the journal article resource's UUID
+	* @param groupId the primary key of the group
+	* @return the matching journal article resource, or <code>null</code> if a matching journal article resource could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.journal.model.JournalArticleResource fetchJournalArticleResourceByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleResourceLocalService.fetchJournalArticleResourceByUuidAndGroupId(uuid,
+			groupId);
 	}
 
 	/**
@@ -341,6 +377,7 @@ public class JournalArticleResourceLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalArticleResourceLocalService getWrappedJournalArticleResourceLocalService() {
 		return _journalArticleResourceLocalService;
 	}
@@ -348,6 +385,7 @@ public class JournalArticleResourceLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalArticleResourceLocalService(
 		JournalArticleResourceLocalService journalArticleResourceLocalService) {
 		_journalArticleResourceLocalService = journalArticleResourceLocalService;

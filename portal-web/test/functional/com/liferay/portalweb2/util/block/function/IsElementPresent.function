@@ -11,6 +11,12 @@
 		<execute selenium="isElementPresent" />
 	</command>
 
+	<command name="isElementPresentCPNavigation">
+		<execute selenium="waitForElementPresent" argument1="//script[contains(@src,'/html/js/liferay/message.js')]" />
+
+		<execute function="IsElementPresent#isElementPresent" />
+	</command>
+
 	<command name="isVisible">
 		<execute selenium="isVisible" />
 	</command>

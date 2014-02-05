@@ -1,3 +1,7 @@
+@import "compass";
+@import "compass/css3/user-interface";
+@import "mixins";
+
 td {
 	&.lfr-center {
 		text-align: center;
@@ -15,8 +19,12 @@ td {
 .definition-of-terms {
 	margin-bottom: 2em;
 
-	dd {
-		margin-left: 20em;
+	dd:after {
+		content: '';
+		clear: both;
+		display: block;
+		height: 0;
+		visibility: hidden;
 	}
 
 	dl {
@@ -25,12 +33,52 @@ td {
 
 	dt {
 		float: left;
+		width: 25em;
+		word-break: break-word;
 	}
 }
 
 .dialog-iframe-bd {
 	overflow-x: hidden;
 	overflow-y: auto;
+}
+
+.lfr-code {
+	border: 1px solid transparent;
+	font-family: monospace;
+	overflow: hidden;
+	overflow-x: auto;
+	white-space: pre;
+
+	@include word-break(normal);
+
+	table {
+		table-layout: auto;
+		width: 100%;
+
+		tr td {
+			&.lines, &.line-numbers {
+				border-width: 0;
+			}
+
+			&.line-numbers {
+				border-right-width: 1px;
+				text-align: right;
+
+				@include user-select(none);
+
+				vertical-align: top;
+				width: 1%;
+
+				.number {
+					cursor: default;
+					display: block;
+					padding: 0 8px;
+					text-align: right;
+				}
+			}
+		}
+	}
 }
 
 .lfr-grid {
@@ -59,12 +107,27 @@ img.icon {
 	margin-left: 5px;
 }
 
-.popup-alert-notice, .popup-alert-warning {
-	left: 10px;
-	position: fixed;
-	right: 10px;
-	top: 50px;
-	z-index: 10000;
+.alert-block {
+	&.popup-alert-notice, &.popup-alert-warning {
+		left: 0;
+		line-height: 30px;
+		padding: 9px 14px;
+		position: fixed;
+		right: 0;
+		top: 0;
+		z-index: 10000;
+
+		@include respond-to(phone, tablet) {
+			line-height: 20px;
+			margin-bottom: 0;
+			padding: 14px;
+			position: static;
+
+			@include respond-to(phone) {
+				margin: 0 -20px;
+			}
+		}
+	}
 }
 
 .lfr-token-list {
@@ -78,11 +141,7 @@ img.icon {
 	display: inline-block;
 	line-height: 1;
 	padding: 0.3em 0.5em 0.3em;
-	margin: 0 0.2em;
-
-	img {
-		margin-right: 0.3em;
-	}
+	margin: 0.1em 0.2em;
 }
 
 .lfr-token-primary {
@@ -98,6 +157,10 @@ img.icon {
 	vertical-align: middle;
 }
 
+.lfr-token-close {
+	margin-left: 0.3em;
+}
+
 .ie6 {
 	.popup-alert-notice, .popup-alert-warning {
 		bottom: auto;
@@ -111,7 +174,22 @@ img.icon {
 /* Skin */
 
 .definition-of-terms dt {
-	font-weight: bold;
+	color: #333;
+	font-weight: normal;
+}
+
+.lfr-code {
+	background: #FFF;
+	border-color: #777;
+
+	tr td.line-numbers {
+		background: #FAFAFA;
+
+		.number {
+			color: #AAA;
+			text-shadow: 1px 1px #FFF;
+		}
+	}
 }
 
 .popup-alert-notice .countdown-timer {
@@ -135,5 +213,21 @@ img.icon {
 
 	&, &:hover {
 		background-color: #B3DAEF;
+	}
+}
+
+.lfr-token-close:hover {
+	text-decoration: none;
+}
+
+@include respond-to(phone) {
+	.definition-of-terms {
+		dd {
+			margin-left: 10px;
+		}
+
+		dt {
+			float: none;
+		}
 	}
 }

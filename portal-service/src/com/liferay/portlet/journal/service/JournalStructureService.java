@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -32,8 +34,12 @@ import com.liferay.portal.service.BaseService;
  * @see JournalStructureServiceUtil
  * @see com.liferay.portlet.journal.service.base.JournalStructureServiceBaseImpl
  * @see com.liferay.portlet.journal.service.impl.JournalStructureServiceImpl
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+            Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 @AccessControlled
 @JSONWebService
 @Transactional(isolation = Isolation.PORTAL, rollbackFor =  {

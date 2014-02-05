@@ -29,10 +29,12 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.TermQuery;
 import com.liferay.portal.kernel.search.TermQueryFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.security.permission.ActionKeys;
@@ -45,11 +47,14 @@ import com.liferay.portlet.documentlibrary.DirectoryNameException;
 import com.liferay.portlet.documentlibrary.FileExtensionException;
 import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
+import com.liferay.portlet.documentlibrary.FolderNameException;
+import com.liferay.portlet.documentlibrary.InvalidFileVersionException;
 import com.liferay.portlet.documentlibrary.SourceFileNameException;
 import com.liferay.portlet.documentlibrary.antivirus.AntivirusScannerUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
+import com.liferay.portlet.documentlibrary.util.DLUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -226,7 +231,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		store.deleteFile(companyId, repositoryId, fileName, versionLabel);
 	}
@@ -246,7 +251,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.getFile(companyId, repositoryId, fileName, versionLabel);
 	}
@@ -267,7 +272,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.getFileAsBytes(
 			companyId, repositoryId, fileName, versionLabel);
@@ -289,7 +294,7 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.getFileAsStream(
 			companyId, repositoryId, fileName, versionLabel);
@@ -343,9 +348,51 @@ public class DLStoreImpl implements DLStore {
 			String versionLabel)
 		throws PortalException, SystemException {
 
-		validate(fileName, false);
+		validate(fileName, false, versionLabel);
 
 		return store.hasFile(companyId, repositoryId, fileName, versionLabel);
+	}
+
+	@Override
+	public boolean isValidName(String name) {
+		if (Validator.isNull(name)) {
+			return false;
+		}
+
+		for (String blacklistChar : PropsValues.DL_CHAR_BLACKLIST) {
+			if (name.contains(blacklistChar)) {
+				return false;
+			}
+		}
+
+		for (String blacklistLastChar : PropsValues.DL_CHAR_LAST_BLACKLIST) {
+			if (blacklistLastChar.startsWith(_UNICODE_PREFIX)) {
+				blacklistLastChar = UnicodeFormatter.parseString(
+					blacklistLastChar);
+			}
+
+			if (name.endsWith(blacklistLastChar)) {
+				return false;
+			}
+		}
+
+		String nameWithoutExtension = name;
+
+		if (name.contains(StringPool.PERIOD)) {
+			int index = name.lastIndexOf(StringPool.PERIOD);
+
+			nameWithoutExtension = name.substring(0, index);
+		}
+
+		for (String blacklistName : PropsValues.DL_NAME_BLACKLIST) {
+			if (StringUtil.equalsIgnoreCase(
+					nameWithoutExtension, blacklistName)) {
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	@Override
@@ -392,7 +439,7 @@ public class DLStoreImpl implements DLStore {
 				contextQuery.addRequiredTerm(Field.GROUP_ID, groupId);
 			}
 
-			if ((repositoryIds != null) && (repositoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(repositoryIds)) {
 				BooleanQuery repositoryIdsQuery =
 					BooleanQueryFactoryUtil.create(searchContext);
 
@@ -474,7 +521,7 @@ public class DLStoreImpl implements DLStore {
 
 		validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension,
-			file);
+			file, versionLabel);
 
 		if (PropsValues.DL_STORE_ANTIVIRUS_ENABLED) {
 			AntivirusScannerUtil.scan(file);
@@ -504,7 +551,8 @@ public class DLStoreImpl implements DLStore {
 		}
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+			fileName, fileExtension, sourceFileName, validateFileExtension, is,
+			versionLabel);
 
 		if (!PropsValues.DL_STORE_ANTIVIRUS_ENABLED ||
 			!AntivirusScannerUtil.isActive()) {
@@ -653,7 +701,8 @@ public class DLStoreImpl implements DLStore {
 		throws PortalException, SystemException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension);
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			StringPool.BLANK);
 
 		if ((file != null) &&
 			(PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) > 0) &&
@@ -671,7 +720,8 @@ public class DLStoreImpl implements DLStore {
 		throws PortalException, SystemException {
 
 		validate(
-			fileName, fileExtension, sourceFileName, validateFileExtension);
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			StringPool.BLANK);
 
 		try {
 			if ((is != null) &&
@@ -687,32 +737,60 @@ public class DLStoreImpl implements DLStore {
 		}
 	}
 
-	protected boolean isValidName(String name) {
-		if ((name == null) ||
-			name.contains("\\") ||
-			name.contains("\\\\") ||
-			name.contains("//") ||
-			name.contains(":") ||
-			name.contains("*") ||
-			name.contains("?") ||
-			name.contains("\"") ||
-			name.contains("<") ||
-			name.contains(">") ||
-			name.contains("|") ||
-			name.contains("[") ||
-			name.contains("]") ||
-			name.contains("../") ||
-			name.contains("/..")) {
+	@Override
+	public void validateDirectoryName(String directoryName)
+		throws PortalException {
 
-			return false;
+		if (!isValidName(directoryName)) {
+			throw new FolderNameException(directoryName);
+		}
+	}
+
+	protected void isValidVersion(String versionLabel) throws PortalException {
+		if (Validator.isNull(versionLabel)) {
+			return;
 		}
 
-		return true;
+		if (!DLUtil.isValidVersion(versionLabel)) {
+			throw new InvalidFileVersionException();
+		}
+	}
+
+	protected void validate(
+			String fileName, boolean validateFileExtension, String versionLabel)
+		throws PortalException, SystemException {
+
+		isValidVersion(versionLabel);
+
+		validate(fileName, validateFileExtension);
 	}
 
 	protected void validate(
 			String fileName, String fileExtension, String sourceFileName,
-			boolean validateFileExtension)
+			boolean validateFileExtension, File file, String versionLabel)
+		throws PortalException, SystemException {
+
+		isValidVersion(versionLabel);
+
+		validate(
+			fileName, fileExtension, sourceFileName, validateFileExtension,
+			file);
+	}
+
+	protected void validate(
+			String fileName, String fileExtension, String sourceFileName,
+			boolean validateFileExtension, InputStream is, String versionLabel)
+		throws PortalException, SystemException {
+
+		isValidVersion(versionLabel);
+
+		validate(
+			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+	}
+
+	protected void validate(
+			String fileName, String fileExtension, String sourceFileName,
+			boolean validateFileExtension, String versionLabel)
 		throws PortalException, SystemException {
 
 		String sourceFileExtension = FileUtil.getExtension(sourceFileName);
@@ -724,7 +802,7 @@ public class DLStoreImpl implements DLStore {
 			throw new SourceFileNameException(sourceFileExtension);
 		}
 
-		validate(fileName, validateFileExtension);
+		validate(fileName, validateFileExtension, versionLabel);
 	}
 
 	@BeanReference(type = GroupLocalService.class)
@@ -736,5 +814,7 @@ public class DLStoreImpl implements DLStore {
 	private static final String[] _KEYWORDS_FIELDS = {
 		Field.ASSET_TAG_NAMES, Field.CONTENT, Field.PROPERTIES
 	};
+
+	private static final String _UNICODE_PREFIX = "\\u";
 
 }

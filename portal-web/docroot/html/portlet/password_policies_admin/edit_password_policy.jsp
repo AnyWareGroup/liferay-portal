@@ -27,10 +27,6 @@ long passwordPolicyId = BeanParamUtil.getLong(passwordPolicy, request, "password
 boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defaultPolicy");
 %>
 
-<liferay-util:include page="/html/portlet/password_policies_admin/toolbar.jsp">
-	<liferay-util:param name="toolbarItem" value='<%= (passwordPolicy == null) ? "add" : "view-all" %>' />
-</liferay-util:include>
-
 <liferay-ui:header
 	backURL="<%= backURL %>"
 	localizeTitle="<%= (passwordPolicy == null) %>"
@@ -54,9 +50,9 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 	<liferay-ui:panel-container extended="<%= true %>" id="passwordPoliciesAdminPasswordPolicyPanelContainer" persistState="<%= true %>">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="passwordPoliciesAdminPasswordPolicyGeneralPanel" persistState="<%= true %>" title="general">
 			<aui:fieldset>
-				<aui:input disabled="<%= defaultPolicy %>" name="name" />
+				<aui:input autoFocus="<%= (!defaultPolicy && windowState.equals(WindowState.MAXIMIZED)) %>" disabled="<%= defaultPolicy %>" name="name" />
 
-				<aui:input name="description" />
+				<aui:input autoFocus="<%= (defaultPolicy && windowState.equals(WindowState.MAXIMIZED)) %>" name="description" />
 
 				<aui:input helpMessage="changeable-help" name="changeable" />
 
@@ -117,7 +113,7 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 					<aui:input helpMessage="minimum-upper-case-help" label="minimum-upper-case" name="minUpperCase" />
 
 					<%
-					String taglinbHelpMessage = LanguageUtil.format(pageContext, "regular-expression-help", new Object[] {"<a href=\"http://docs.oracle.com/javase/tutorial/essential/regex\" target=\"_blank\">", "</a>"});
+					String taglinbHelpMessage = LanguageUtil.format(pageContext, "regular-expression-help", new Object[] {"<a href=\"http://docs.oracle.com/javase/tutorial/essential/regex\" target=\"_blank\">", "</a>"}, false);
 					%>
 
 					<aui:input helpMessage="<%= taglinbHelpMessage %>" label="regular-expression" name="regex" />
@@ -236,10 +232,6 @@ boolean defaultPolicy = BeanParamUtil.getBoolean(passwordPolicy, request, "defau
 </aui:form>
 
 <aui:script>
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= defaultPolicy ? "description" : "name" %>);
-	</c:if>
-
 	Liferay.Util.toggleBoxes('<portlet:namespace />changeableCheckbox', '<portlet:namespace />changeableSettings');
 	Liferay.Util.toggleBoxes('<portlet:namespace />checkSyntaxCheckbox', '<portlet:namespace />syntaxSettings');
 	Liferay.Util.toggleBoxes('<portlet:namespace />historyCheckbox', '<portlet:namespace />historySettings');

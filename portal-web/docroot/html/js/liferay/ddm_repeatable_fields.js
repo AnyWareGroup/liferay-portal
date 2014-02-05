@@ -18,6 +18,9 @@ AUI.add(
 					classPK: {
 					},
 
+					doAsGroupId: {
+					},
+
 					container: {
 						setter: A.one
 					},
@@ -27,6 +30,9 @@ AUI.add(
 					},
 
 					namespace: {
+					},
+
+					p_l_id: {
 					},
 
 					portletNamespace: {
@@ -68,23 +74,6 @@ AUI.add(
 						instance.syncFieldsTreeUI();
 					},
 
-					createFieldTree: function(fieldNode) {
-						var instance = this;
-
-						var fieldName = fieldNode.getData('fieldName');
-						var fieldNamespace = fieldNode.getData('fieldNamespace');
-
-						var tree = [fieldName + fieldNamespace];
-
-						instance.getFieldsList(null, fieldNode).each(
-							function(item, index, collection) {
-								tree = tree.concat(instance.createFieldTree(item));
-							}
-						);
-
-						return tree;
-					},
-
 					getField: function(fieldName, callback) {
 						var instance = this;
 
@@ -94,8 +83,10 @@ AUI.add(
 								data: {
 									classNameId: instance.get('classNameId'),
 									classPK: instance.get('classPK'),
+									doAsGroupId: instance.get('doAsGroupId'),
 									fieldName: fieldName,
 									namespace: instance.get('namespace'),
+									p_l_id: instance.get('p_l_id'),
 									p_p_isolated: true,
 									portletNamespace: instance.get('portletNamespace'),
 									readOnly: instance.get('readOnly')
@@ -123,11 +114,7 @@ AUI.add(
 							container = instance.get('container');
 						}
 
-						var selector = ['>'];
-
-						if (container.hasClass('field-wrapper')) {
-							selector.push(' .field-wrapper-content >');
-						}
+						var selector = [''];
 
 						selector.push(' .field-wrapper');
 
@@ -218,7 +205,10 @@ AUI.add(
 							function(item, index, collection) {
 								instance.renderRepeatableUI(item);
 
-								fieldsDisplay = fieldsDisplay.concat(instance.createFieldTree(item));
+								var fieldName = item.getData('fieldName');
+								var fieldNamespace = item.getData('fieldNamespace');
+
+								fieldsDisplay.push(fieldName + fieldNamespace);
 							}
 						);
 

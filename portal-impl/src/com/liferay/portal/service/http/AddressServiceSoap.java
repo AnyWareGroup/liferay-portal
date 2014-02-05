@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.AddressServiceUtil;
@@ -54,18 +56,20 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AddressServiceHttp
- * @see       com.liferay.portal.model.AddressSoap
- * @see       com.liferay.portal.service.AddressServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AddressServiceHttp
+ * @see com.liferay.portal.model.AddressSoap
+ * @see com.liferay.portal.service.AddressServiceUtil
  * @generated
  */
+@ProviderType
 public class AddressServiceSoap {
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addAddress( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
 	String, String, String, String, String, long, long, int,
 	boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.AddressSoap addAddress(
 		java.lang.String className, long classPK, java.lang.String street1,
 		java.lang.String street2, java.lang.String street3,

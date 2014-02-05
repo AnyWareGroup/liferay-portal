@@ -16,10 +16,12 @@ package com.liferay.portlet.messageboards.service.permission;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.workflow.permission.WorkflowPermissionUtil;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.messageboards.NoSuchCategoryException;
 import com.liferay.portlet.messageboards.model.MBCategory;
@@ -69,10 +71,29 @@ public class MBMessagePermission {
 			String actionId)
 		throws PortalException, SystemException {
 
-		long groupId = message.getGroupId();
+		if (MBBanLocalServiceUtil.hasBan(
+				message.getGroupId(), permissionChecker.getUserId())) {
 
-		if (message.isPending()) {
-			Boolean hasPermission = WorkflowPermissionUtil.hasPermission(
+			return false;
+		}
+
+		Boolean hasPermission = StagingPermissionUtil.hasPermission(
+			permissionChecker, message.getGroupId(), MBMessage.class.getName(),
+			message.getMessageId(), PortletKeys.MESSAGE_BOARDS, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission.booleanValue();
+		}
+
+		if (message.isDraft() || message.isScheduled()) {
+			if (actionId.equals(ActionKeys.VIEW) &&
+				!contains(permissionChecker, message, ActionKeys.UPDATE)) {
+
+				return false;
+			}
+		}
+		else if (message.isPending()) {
+			hasPermission = WorkflowPermissionUtil.hasPermission(
 				permissionChecker, message.getGroupId(),
 				message.getWorkflowClassName(), message.getMessageId(),
 				actionId);
@@ -82,42 +103,36 @@ public class MBMessagePermission {
 			}
 		}
 
-		if (MBBanLocalServiceUtil.hasBan(
-				groupId, permissionChecker.getUserId())) {
+		if (actionId.equals(ActionKeys.VIEW) &&
+			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
-			return false;
-		}
+			long categoryId = message.getCategoryId();
 
-		long categoryId = message.getCategoryId();
+			if ((categoryId ==
+					MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) ||
+				(categoryId == MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
 
-		if ((categoryId != MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) &&
-			(categoryId != MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+				if (!MBPermission.contains(
+						permissionChecker, message.getGroupId(), actionId)) {
 
-			try {
-				MBCategory category = MBCategoryLocalServiceUtil.getCategory(
-					categoryId);
+					return false;
+				}
+			}
+			else {
+				try {
+					MBCategory category =
+						MBCategoryLocalServiceUtil.getCategory(categoryId);
 
-				if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 					if (!MBCategoryPermission.contains(
-							permissionChecker, category, ActionKeys.VIEW)) {
+							permissionChecker, category, actionId)) {
 
 						return false;
 					}
-
-					if (actionId.equals(ActionKeys.VIEW)) {
-						return true;
+				}
+				catch (NoSuchCategoryException nsce) {
+					if (!message.isInTrash()) {
+						throw nsce;
 					}
-				}
-
-				if (MBCategoryPermission.contains(
-						permissionChecker, category, actionId)) {
-
-					return true;
-				}
-			}
-			catch (NoSuchCategoryException nsce) {
-				if (!message.isInTrashThread()) {
-					throw nsce;
 				}
 			}
 		}
@@ -130,8 +145,8 @@ public class MBMessagePermission {
 		}
 
 		return permissionChecker.hasPermission(
-			groupId, MBMessage.class.getName(), message.getMessageId(),
-			actionId);
+			message.getGroupId(), MBMessage.class.getName(),
+			message.getMessageId(), actionId);
 	}
 
 }

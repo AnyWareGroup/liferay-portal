@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialActivityAchievementLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityAchievementLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityAchievementLocalService
  * @generated
  */
+@ProviderType
 public class SocialActivityAchievementLocalServiceWrapper
 	implements SocialActivityAchievementLocalService,
 		ServiceWrapper<SocialActivityAchievementLocalService> {
@@ -166,6 +169,23 @@ public class SocialActivityAchievementLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _socialActivityAchievementLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialActivityAchievementLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -324,24 +344,24 @@ public class SocialActivityAchievementLocalServiceWrapper
 	}
 
 	@Override
-	public int getUserAchievementCount(long userId, long groupId,
-		java.lang.String name)
+	public java.util.List<com.liferay.portlet.social.model.SocialActivityAchievement> getUserAchievements(
+		long userId, long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _socialActivityAchievementLocalService.getUserAchievementCount(userId,
-			groupId, name);
+		return _socialActivityAchievementLocalService.getUserAchievements(userId,
+			groupId);
 	}
 
 	@Override
-	public java.util.List<com.liferay.portlet.social.model.SocialActivityAchievement> getUserAchievements(
-		long userId, long groupId, java.lang.String name)
+	public int getUserAchievementsCount(long userId, long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return _socialActivityAchievementLocalService.getUserAchievements(userId,
-			groupId, name);
+		return _socialActivityAchievementLocalService.getUserAchievementsCount(userId,
+			groupId);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivityAchievementLocalService getWrappedSocialActivityAchievementLocalService() {
 		return _socialActivityAchievementLocalService;
 	}
@@ -349,6 +369,7 @@ public class SocialActivityAchievementLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivityAchievementLocalService(
 		SocialActivityAchievementLocalService socialActivityAchievementLocalService) {
 		_socialActivityAchievementLocalService = socialActivityAchievementLocalService;

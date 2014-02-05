@@ -71,13 +71,22 @@ public interface HttpHeaders {
 
 	public static final String RANGE = "Range";
 
+	public static final String REFERER = "Referer";
+
 	public static final String SET_COOKIE = "Set-Cookie";
 
 	public static final String USER_AGENT = "User-Agent";
 
 	public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
 
+	public static final String X_CONTENT_TYPE_OPTIONS =
+		"X-Content-Type-Options";
+
+	public static final String X_FRAME_OPTIONS = "X-Frame-Options";
+
 	public static final String X_REQUESTED_WITH = "X-Requested-With";
+
+	public static final String X_XSS_PROTECTION = "X-XSS-Protection";
 
 	// Values
 
@@ -98,6 +107,7 @@ public interface HttpHeaders {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #CONNECTION_CLOSE_VALUE}
 	 */
+	@Deprecated
 	public static final String CLOSE = CONNECTION_CLOSE_VALUE;
 
 	public static final String CONTENT_DISPOSITION_ATTACHMENT = "attachment";
@@ -113,6 +123,7 @@ public interface HttpHeaders {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #CACHE_CONTROL_PUBLIC_VALUE}
 	 */
+	@Deprecated
 	public static final String PUBLIC = CACHE_CONTROL_PUBLIC_VALUE;
 
 	public static final String XML_HTTP_REQUEST = "XMLHttpRequest";

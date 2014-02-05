@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ClusterGroupLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ClusterGroupLocalService
+ * @author Brian Wing Shun Chan
+ * @see ClusterGroupLocalService
  * @generated
  */
+@ProviderType
 public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService,
 	ServiceWrapper<ClusterGroupLocalService> {
 	public ClusterGroupLocalServiceWrapper(
@@ -164,6 +167,23 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 		return _clusterGroupLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _clusterGroupLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.ClusterGroup fetchClusterGroup(
 		long clusterGroupId)
@@ -277,6 +297,7 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ClusterGroupLocalService getWrappedClusterGroupLocalService() {
 		return _clusterGroupLocalService;
 	}
@@ -284,6 +305,7 @@ public class ClusterGroupLocalServiceWrapper implements ClusterGroupLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedClusterGroupLocalService(
 		ClusterGroupLocalService clusterGroupLocalService) {
 		_clusterGroupLocalService = clusterGroupLocalService;

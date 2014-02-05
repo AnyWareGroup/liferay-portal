@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AssetVocabularyService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetVocabularyService
+ * @author Brian Wing Shun Chan
+ * @see AssetVocabularyService
  * @generated
  */
+@ProviderType
 public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	ServiceWrapper<AssetVocabularyService> {
 	public AssetVocabularyServiceWrapper(
@@ -51,8 +54,10 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	}
 
 	/**
-	* @deprecated As of 6.1.0
+	* @deprecated As of 6.1.0 {@link #addVocabulary(String, Map, Map, String,
+	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.asset.model.AssetVocabulary addVocabulary(
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -85,6 +90,18 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _assetVocabularyService.addVocabulary(title, serviceContext);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, Replaced by {@link #deleteVocabularies(long[],
+	ServiceContext)}
+	*/
+	@Deprecated
+	@Override
+	public void deleteVocabularies(long[] vocabularyIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_assetVocabularyService.deleteVocabularies(vocabularyIds);
 	}
 
 	@Override
@@ -178,6 +195,17 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	@Override
 	public com.liferay.portlet.asset.model.AssetVocabularyDisplay getGroupVocabulariesDisplay(
 		long groupId, java.lang.String name, int start, int end,
+		boolean addDefaultVocabulary,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetVocabularyService.getGroupVocabulariesDisplay(groupId,
+			name, start, end, addDefaultVocabulary, obc);
+	}
+
+	@Override
+	public com.liferay.portlet.asset.model.AssetVocabularyDisplay getGroupVocabulariesDisplay(
+		long groupId, java.lang.String name, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -185,6 +213,10 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 			name, start, end, obc);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, with no direct replacement
+	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONGroupVocabularies(
 		long groupId, java.lang.String name, int start, int end,
@@ -212,8 +244,10 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	}
 
 	/**
-	* @deprecated As of 6.1.0
+	* @deprecated As of 6.1.0, {@link #updateVocabulary(long, String, Map, Map,
+	String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.asset.model.AssetVocabulary updateVocabulary(
 		long vocabularyId,
@@ -243,6 +277,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetVocabularyService getWrappedAssetVocabularyService() {
 		return _assetVocabularyService;
 	}
@@ -250,6 +285,7 @@ public class AssetVocabularyServiceWrapper implements AssetVocabularyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetVocabularyService(
 		AssetVocabularyService assetVocabularyService) {
 		_assetVocabularyService = assetVocabularyService;

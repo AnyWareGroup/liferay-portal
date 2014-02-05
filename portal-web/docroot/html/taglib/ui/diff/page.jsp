@@ -14,10 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portal.kernel.util.Diff" %>
-<%@ page import="com.liferay.portal.kernel.util.DiffResult" %>
+<%@ include file="/html/taglib/ui/diff/init.jsp" %>
 
 <%
 String sourceName = (String)request.getAttribute("liferay-ui:diff:sourceName");
@@ -99,7 +96,7 @@ List<DiffResult> targetResults = diffResults[1];
 		</table>
 	</c:when>
 	<c:otherwise>
-		<%= LanguageUtil.format(pageContext, "there-are-no-differences-between-x-and-x", new Object[] {sourceName, targetName}) %>
+		<%= LanguageUtil.format(pageContext, "there-are-no-differences-between-x-and-x", new Object[] {sourceName, targetName}, false) %>
 	</c:otherwise>
 </c:choose>
 

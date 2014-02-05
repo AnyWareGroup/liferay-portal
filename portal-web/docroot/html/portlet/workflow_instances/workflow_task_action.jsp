@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/workflow_instances/init.jsp" %>
 
 <%
-String randomId = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+String randomId = StringUtil.randomId();
 
 ResultRow row = (ResultRow)request.getAttribute(WebKeys.SEARCH_CONTAINER_RESULT_ROW);
 
@@ -52,7 +52,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 			String message = "proceed";
 
 			if (Validator.isNotNull(transitionName)) {
-				message = transitionName;
+				message = HtmlUtil.escape(transitionName);
 			}
 		%>
 
@@ -70,7 +70,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 
 			<liferay-ui:icon
 				cssClass='<%= "workflow-task-" + randomId + " task-change-status-link" %>'
-				image="../aui/shuffle"
+				image="../aui/random"
 				message="<%= message %>"
 				method="get"
 				url="<%= editURL %>"
@@ -106,6 +106,7 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 			{
 				dialog: {
 					bodyContent: form,
+					height: 420,
 					toolbars: {
 						footer: [
 							{
@@ -125,9 +126,10 @@ WorkflowTask workflowTask = (WorkflowTask)row.getObject();
 								}
 							}
 						]
-					}
+					},
+					width: 350
 				},
-				title: title
+				title: Liferay.Util.escapeHTML(title)
 			}
 		);
 	};

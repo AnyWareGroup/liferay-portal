@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.assetpublisher.util;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.Group;
@@ -35,6 +37,7 @@ import javax.portlet.PortletRequest;
 /**
  * @author Eudaldo Alonso
  */
+@ProviderType
 public interface AssetPublisher {
 
 	public static final String SCOPE_ID_CHILD_GROUP_PREFIX = "ChildGroup_";
@@ -73,10 +76,59 @@ public interface AssetPublisher {
 
 	public void checkAssetEntries() throws Exception;
 
+	public long[] getAssetCategoryIds(PortletPreferences portletPreferences)
+		throws Exception;
+
 	public List<AssetEntry> getAssetEntries(
-			PortletPreferences preferences, Layout layout, long scopeGroupId,
-			int max, boolean checkPermission)
+			PortletPreferences portletPreferences, Layout layout,
+			long scopeGroupId, int max, boolean checkPermission)
 		throws PortalException, SystemException;
+
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			boolean deleteMissingAssetEntries, boolean checkPermission)
+		throws Exception;
+
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			long[] allCategoryIds, String[] allTagNames,
+			boolean deleteMissingAssetEntries, boolean checkPermission)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             AssetPublisher#getAssetEntries( PortletRequest,
+	 *             PortletPreferences, PermissionChecker, long[], long[],
+	 *             String[], boolean , boolean)}
+	 */
+	@Deprecated
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			long[] assetCategoryIds, String[] assetEntryXmls,
+			String[] assetTagNames, boolean deleteMissingAssetEntries,
+			boolean checkPermission)
+		throws Exception;
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             AssetPublisher#getAssetEntries( PortletRequest,
+	 *             PortletPreferences, PermissionChecker, long[], boolean,
+	 *             boolean)}
+	 */
+	@Deprecated
+	public List<AssetEntry> getAssetEntries(
+			PortletRequest portletRequest,
+			PortletPreferences portletPreferences,
+			PermissionChecker permissionChecker, long[] groupIds,
+			String[] assetEntryXmls, boolean deleteMissingAssetEntries,
+			boolean checkPermission)
+		throws Exception;
 
 	public AssetEntryQuery getAssetEntryQuery(
 			PortletPreferences portletPreferences, long[] scopeGroupIds)
@@ -96,20 +148,20 @@ public interface AssetPublisher {
 		Long[] availableClassTypeIds);
 
 	public Map<Locale, String> getEmailAssetEntryAddedBodyMap(
-		PortletPreferences preferences);
+		PortletPreferences portletPreferences);
 
 	public boolean getEmailAssetEntryAddedEnabled(
-		PortletPreferences preferences);
+		PortletPreferences portletPreferences);
 
 	public Map<Locale, String> getEmailAssetEntryAddedSubjectMap(
-		PortletPreferences preferences);
+		PortletPreferences portletPreferences);
 
 	public String getEmailFromAddress(
-			PortletPreferences preferences, long companyId)
+			PortletPreferences portletPreferences, long companyId)
 		throws SystemException;
 
 	public String getEmailFromName(
-			PortletPreferences preferences, long companyId)
+			PortletPreferences portletPreferences, long companyId)
 		throws SystemException;
 
 	public long getGroupIdFromScopeId(
@@ -136,9 +188,17 @@ public interface AssetPublisher {
 		throws PortalException, SystemException;
 
 	public void notifySubscribers(
-			PortletPreferences preferences, long plid, String portletId,
+			PortletPreferences portletPreferences, long plid, String portletId,
 			List<AssetEntry> assetEntries)
 		throws PortalException, SystemException;
+
+	public void processAssetEntryQuery(
+			User user, PortletPreferences portletPreferences,
+			AssetEntryQuery assetEntryQuery)
+		throws Exception;
+
+	public void registerAssetQueryProcessor(
+		String name, AssetEntryQueryProcessor assetQueryProcessor);
 
 	public void removeAndStoreSelection(
 			List<String> assetEntryUuids, PortletPreferences portletPreferences)
@@ -151,6 +211,9 @@ public interface AssetPublisher {
 			PermissionChecker permissionChecker, long groupId, long plid,
 			String portletId)
 		throws PortalException, SystemException;
+
+	public void unregisterAssetQueryProcessor(
+		String assetQueryProcessorClassName);
 
 	public void unsubscribe(
 			PermissionChecker permissionChecker, long plid, String portletId)

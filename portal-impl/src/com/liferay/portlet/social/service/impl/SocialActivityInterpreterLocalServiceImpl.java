@@ -107,10 +107,18 @@ public class SocialActivityInterpreterLocalServiceImpl
 		return _activityInterpreters;
 	}
 
+	@Override
+	public List<SocialActivityInterpreter> getActivityInterpreters(
+		String selector) {
+
+		return _activityInterpreters.get(selector);
+	}
+
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #interpret(String,
 	 *             SocialActivity, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public SocialActivityFeedEntry interpret(
 		SocialActivity activity, ThemeDisplay themeDisplay) {
@@ -266,6 +274,12 @@ public class SocialActivityInterpreterLocalServiceImpl
 	@Override
 	public void updateActivitySet(long activityId)
 		throws PortalException, SystemException {
+
+		if (!PropsValues.SOCIAL_ACTIVITY_SETS_BUNDLING_ENABLED) {
+			socialActivitySetLocalService.addActivitySet(activityId);
+
+			return;
+		}
 
 		List<SocialActivityInterpreter> activityInterpreters =
 			_activityInterpreters.get(

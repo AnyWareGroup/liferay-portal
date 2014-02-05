@@ -116,8 +116,11 @@
 			if (!cached) {
 				cached = new A.Tooltip(
 					{
-						zIndex: Liferay.zIndex.TOOLTIP,
-						visible: false
+						cssClass: 'tooltip-help',
+						opacity: 1,
+						trigger: obj,
+						visible: false,
+						zIndex: Liferay.zIndex.TOOLTIP
 					}
 				).render();
 
@@ -134,6 +137,6 @@
 
 			cached.set(TRIGGER, obj).show();
 		},
-		['aui-tooltip']
+		['aui-tooltip-delegate']
 	);
 })(AUI(), Liferay);

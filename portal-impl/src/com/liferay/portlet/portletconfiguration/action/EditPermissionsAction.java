@@ -30,9 +30,14 @@ import com.liferay.portal.service.PortletLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockServiceUtil;
 import com.liferay.portal.service.ResourcePermissionServiceUtil;
+import com.liferay.portal.servlet.filters.cache.CacheUtil;
+import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.WebKeys;
+import com.liferay.portlet.StrictPortletPreferencesImpl;
+import com.liferay.portlet.portletconfiguration.util.ConfigurationActionRequest;
+import com.liferay.portlet.portletconfiguration.util.ConfigurationRenderRequest;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -55,15 +60,19 @@ import org.apache.struts.action.ActionMapping;
  * @author Brian Wing Shun Chan
  * @author Connor McKay
  */
-public class EditPermissionsAction extends EditConfigurationAction {
+public class EditPermissionsAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
+			actionRequest = new ConfigurationActionRequest(
+				actionRequest, new StrictPortletPreferencesImpl());
+
 			updateRolePermissions(actionRequest);
 
 			addSuccessMessage(actionRequest, actionResponse);
@@ -83,9 +92,13 @@ public class EditPermissionsAction extends EditConfigurationAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
+
+		renderRequest = new ConfigurationRenderRequest(
+			renderRequest, new StrictPortletPreferencesImpl());
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -114,17 +127,19 @@ public class EditPermissionsAction extends EditConfigurationAction {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			setForward(renderRequest, "portlet.portlet_configuration.error");
+			return actionMapping.findForward(
+				"portlet.portlet_configuration.error");
 		}
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
 			themeDisplay.getCompanyId(), portletResource);
 
 		if (portlet != null) {
-			renderResponse.setTitle(getTitle(portlet, renderRequest));
+			renderResponse.setTitle(
+				ActionUtil.getTitle(portlet, renderRequest));
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest,
 				"portlet.portlet_configuration.edit_permissions"));
@@ -149,19 +164,21 @@ public class EditPermissionsAction extends EditConfigurationAction {
 		while (enu.hasMoreElements()) {
 			String name = enu.nextElement();
 
-			if (name.startsWith(roleId + "_ACTION_")) {
-				int pos = name.indexOf("_ACTION_");
+			if (name.startsWith(roleId + ActionUtil.ACTION)) {
+				int pos = name.indexOf(ActionUtil.ACTION);
 
-				String actionId = name.substring(pos + 8);
+				String actionId = name.substring(
+					pos + ActionUtil.ACTION.length());
 
 				actionIds.add(actionId);
 			}
 			else if (includePreselected &&
-					 name.startsWith(roleId + "_PRESELECTED_")) {
+					 name.startsWith(roleId + ActionUtil.PRESELECTED)) {
 
-				int pos = name.indexOf("_PRESELECTED_");
+				int pos = name.indexOf(ActionUtil.PRESELECTED);
 
-				String actionId = name.substring(pos + 13);
+				String actionId = name.substring(
+					pos + ActionUtil.PRESELECTED.length());
 
 				actionIds.add(actionId);
 			}
@@ -233,6 +250,8 @@ public class EditPermissionsAction extends EditConfigurationAction {
 				layout.setModifiedDate(new Date());
 
 				LayoutLocalServiceUtil.updateLayout(layout);
+
+				CacheUtil.clearCache(layout.getCompanyId());
 			}
 		}
 

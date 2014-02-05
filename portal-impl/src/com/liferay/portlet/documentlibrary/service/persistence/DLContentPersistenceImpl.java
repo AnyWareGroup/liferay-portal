@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -369,6 +370,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 	public DLContent fetchByC_R_Last(long companyId, long repositoryId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_R(companyId, repositoryId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLContent> list = findByC_R(companyId, repositoryId, count - 1,
 				count, orderByComparator);
@@ -937,6 +942,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 		throws SystemException {
 		int count = countByC_R_P(companyId, repositoryId, path);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLContent> list = findByC_R_P(companyId, repositoryId, path,
 				count - 1, count, orderByComparator);
 
@@ -1312,7 +1321,9 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 			for (DLContent dlContent : list) {
 				if ((companyId != dlContent.getCompanyId()) ||
 						(repositoryId != dlContent.getRepositoryId()) ||
-						!Validator.equals(path, dlContent.getPath())) {
+						!StringUtil.wildcardMatches(dlContent.getPath(), path,
+							CharPool.UNDERLINE, CharPool.PERCENT,
+							CharPool.BACK_SLASH, true)) {
 					list = null;
 
 					break;
@@ -1528,6 +1539,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 		String path, OrderByComparator orderByComparator)
 		throws SystemException {
 		int count = countByC_R_LikeP(companyId, repositoryId, path);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLContent> list = findByC_R_LikeP(companyId, repositoryId, path,
 				count - 1, count, orderByComparator);
@@ -2160,6 +2175,10 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 	private static final String _FINDER_COLUMN_C_R_P_V_VERSION_2 = "dlContent.version = ?";
 	private static final String _FINDER_COLUMN_C_R_P_V_VERSION_3 = "(dlContent.version IS NULL OR dlContent.version = '')";
 
+	public DLContentPersistenceImpl() {
+		setModelClass(DLContent.class);
+	}
+
 	/**
 	 * Caches the document library content in the entity cache if it is enabled.
 	 *
@@ -2496,7 +2515,7 @@ public class DLContentPersistenceImpl extends BasePersistenceImpl<DLContent>
 		}
 
 		EntityCacheUtil.putResult(DLContentModelImpl.ENTITY_CACHE_ENABLED,
-			DLContentImpl.class, dlContent.getPrimaryKey(), dlContent);
+			DLContentImpl.class, dlContent.getPrimaryKey(), dlContent, false);
 
 		clearUniqueFindersCache(dlContent);
 		cacheUniqueFindersCache(dlContent);

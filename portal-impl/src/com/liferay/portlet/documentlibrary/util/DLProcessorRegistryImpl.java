@@ -26,6 +26,8 @@ import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
 import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.util.PrefsPropsUtil;
+import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLProcessorConstants;
 
@@ -132,6 +134,32 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 	}
 
 	@Override
+	public boolean isPreviewableSize(FileVersion fileVersion) {
+		long fileEntryPreviewableProcessorMaxSize =
+			PropsValues.DL_FILE_ENTRY_PREVIEWABLE_PROCESSOR_MAX_SIZE;
+
+		try {
+			fileEntryPreviewableProcessorMaxSize = PrefsPropsUtil.getLong(
+				PropsKeys.DL_FILE_ENTRY_PREVIEWABLE_PROCESSOR_MAX_SIZE);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		if (fileEntryPreviewableProcessorMaxSize == 0) {
+			return false;
+		}
+
+		if ((fileEntryPreviewableProcessorMaxSize > 0) &&
+			(fileVersion.getSize() > fileEntryPreviewableProcessorMaxSize)) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	@Override
 	public void register(DLProcessor dlProcessor) {
 		String type = _getType(dlProcessor);
 
@@ -189,7 +217,7 @@ public class DLProcessorRegistryImpl implements DLProcessorRegistry {
 					dlFileEntry.getLatestFileVersion(trusted));
 			}
 			else {
-				latestFileVersion = fileEntry.getLatestFileVersion();
+				latestFileVersion = fileEntry.getLatestFileVersion(trusted);
 			}
 
 			return latestFileVersion;

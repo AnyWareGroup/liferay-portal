@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.wiki.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.wiki.model.impl.WikiPageModelImpl
  * @generated
  */
+@ProviderType
 public interface WikiPage extends WikiPageModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -71,15 +74,11 @@ public interface WikiPage extends WikiPageModel, PersistedModel {
 
 	public com.liferay.portlet.wiki.model.WikiPage getRedirectPage();
 
-	public com.liferay.portlet.wiki.model.WikiNode getTrashContainer();
-
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getViewableChildPages();
 
 	public com.liferay.portlet.wiki.model.WikiPage getViewableParentPage();
 
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getViewableParentPages();
-
-	public boolean isInTrashContainer();
 
 	public void setAttachmentsFolderId(long attachmentsFolderId);
 }

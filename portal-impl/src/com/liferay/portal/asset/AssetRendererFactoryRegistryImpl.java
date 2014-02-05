@@ -14,6 +14,8 @@
 
 package com.liferay.portal.asset;
 
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistry;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
@@ -30,9 +32,10 @@ public class AssetRendererFactoryRegistryImpl
 	implements AssetRendererFactoryRegistry {
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #getAssetRendererFactories(
-	 *             long)}
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #getAssetRendererFactories(long)}
 	 */
+	@Deprecated
 	@Override
 	public List<AssetRendererFactory> getAssetRendererFactories() {
 		return ListUtil.fromMapValues(_assetRenderFactoriesMapByClassName);
@@ -44,7 +47,7 @@ public class AssetRendererFactoryRegistryImpl
 
 		return ListUtil.fromMapValues(
 			filterAssetRendererFactories(
-				companyId, _assetRenderFactoriesMapByClassName));
+				companyId, _assetRenderFactoriesMapByClassName, false));
 	}
 
 	@Override
@@ -60,8 +63,9 @@ public class AssetRendererFactoryRegistryImpl
 	}
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #getClassNameIds( long)}
+	 * @deprecated As of 6.2.0, replaced by {@link #getClassNameIds(long)}
 	 */
+	@Deprecated
 	@Override
 	public long[] getClassNameIds() {
 		return getClassNameIds(0);
@@ -69,12 +73,18 @@ public class AssetRendererFactoryRegistryImpl
 
 	@Override
 	public long[] getClassNameIds(long companyId) {
+		return getClassNameIds(companyId, false);
+	}
+
+	@Override
+	public long[] getClassNameIds(long companyId, boolean filterSelectable) {
 		Map<String, AssetRendererFactory> assetRenderFactories =
 			_assetRenderFactoriesMapByClassName;
 
 		if (companyId > 0) {
 			assetRenderFactories = filterAssetRendererFactories(
-				companyId, _assetRenderFactoriesMapByClassName);
+				companyId, _assetRenderFactoriesMapByClassName,
+				filterSelectable);
 		}
 
 		long[] classNameIds = new long[assetRenderFactories.size()];
@@ -94,10 +104,29 @@ public class AssetRendererFactoryRegistryImpl
 
 	@Override
 	public void register(AssetRendererFactory assetRendererFactory) {
-		_assetRenderFactoriesMapByClassName.put(
-			assetRendererFactory.getClassName(), assetRendererFactory);
-		_assetRenderFactoriesMapByClassType.put(
-			assetRendererFactory.getType(), assetRendererFactory);
+		String className = assetRendererFactory.getClassName();
+
+		AssetRendererFactory classNameAssetRendererFactory =
+			_assetRenderFactoriesMapByClassName.put(
+				className, assetRendererFactory);
+
+		if (_log.isWarnEnabled() && (classNameAssetRendererFactory != null)) {
+			_log.warn(
+				"Replacing " + classNameAssetRendererFactory +
+					" for class name " + className + " with " +
+						assetRendererFactory);
+		}
+
+		String type = assetRendererFactory.getType();
+
+		AssetRendererFactory typeAssetRendererFactory =
+			_assetRenderFactoriesMapByClassType.put(type, assetRendererFactory);
+
+		if (_log.isWarnEnabled() && (typeAssetRendererFactory != null)) {
+			_log.warn(
+				"Replacing " + typeAssetRendererFactory + " for type " + type +
+					" with " + assetRendererFactory);
+		}
 	}
 
 	@Override
@@ -108,9 +137,10 @@ public class AssetRendererFactoryRegistryImpl
 			assetRendererFactory.getType());
 	}
 
-	private Map<String, AssetRendererFactory> filterAssetRendererFactories(
+	protected Map<String, AssetRendererFactory> filterAssetRendererFactories(
 		long companyId,
-		Map<String, AssetRendererFactory> assetRendererFactories) {
+		Map<String, AssetRendererFactory> assetRendererFactories,
+		boolean filterSelectable) {
 
 		Map<String, AssetRendererFactory> filteredAssetRendererFactories =
 			new ConcurrentHashMap<String, AssetRendererFactory>();
@@ -119,7 +149,9 @@ public class AssetRendererFactoryRegistryImpl
 			AssetRendererFactory assetRendererFactory =
 				assetRendererFactories.get(className);
 
-			if (assetRendererFactory.isActive(companyId)) {
+			if (assetRendererFactory.isActive(companyId) &&
+				(!filterSelectable || assetRendererFactory.isSelectable())) {
+
 				filteredAssetRendererFactories.put(
 					className, assetRendererFactory);
 			}
@@ -127,6 +159,9 @@ public class AssetRendererFactoryRegistryImpl
 
 		return filteredAssetRendererFactories;
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(
+		AssetRendererFactoryRegistryImpl.class);
 
 	private Map<String, AssetRendererFactory>
 		_assetRenderFactoriesMapByClassName =

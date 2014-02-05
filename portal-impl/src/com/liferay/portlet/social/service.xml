@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.0.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_0_0.dtd">
 
 <service-builder package-path="com.liferay.portlet.social">
 	<namespace>Social</namespace>
-	<entity name="SocialActivity" local-service="true" remote-service="false">
+	<entity name="SocialActivity" local-service="true" remote-service="true" dynamic-update-enabled="true">
 
 		<!-- PK fields -->
 
@@ -25,6 +25,8 @@
 		<column name="mirrorActivityId" type="long" />
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
+		<column name="parentClassNameId" type="long" />
+		<column name="parentClassPK" type="long" />
 		<column name="type" type="int" />
 		<column name="extraData" type="String" />
 		<column name="receiverUserId" type="long" />
@@ -178,6 +180,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
 		<finder name="C_C" return-type="Collection">
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
@@ -237,6 +242,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
@@ -279,6 +287,7 @@
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
 		<column name="type" type="int" />
+		<column name="extraData" type="String" />
 		<column name="activityCount" type="int" />
 
 		<!-- Order -->
@@ -292,6 +301,9 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
 		</finder>
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
 		<finder name="G_U_T" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="userId" />
@@ -300,6 +312,12 @@
 		<finder name="C_C_T" return-type="Collection">
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
+			<finder-column name="type" />
+		</finder>
+		<finder name="G_U_C_T" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="userId" />
+			<finder-column name="classNameId" />
 			<finder-column name="type" />
 		</finder>
 		<finder name="U_C_C_T" return-type="Collection">
@@ -458,6 +476,10 @@
 		<finder name="U_S" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="status" />
+		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
 		</finder>
 		<finder name="R_S" return-type="Collection">
 			<finder-column name="receiverUserId" />

@@ -61,13 +61,14 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 	 */
 	public static final String TABLE_NAME = "Region";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "regionId", Types.BIGINT },
 			{ "countryId", Types.BIGINT },
 			{ "regionCode", Types.VARCHAR },
 			{ "name", Types.VARCHAR },
 			{ "active_", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Region (regionId LONG not null primary key,countryId LONG,regionCode VARCHAR(75) null,name VARCHAR(75) null,active_ BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table Region (mvccVersion LONG default 0,regionId LONG not null primary key,countryId LONG,regionCode VARCHAR(75) null,name VARCHAR(75) null,active_ BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table Region";
 	public static final String ORDER_BY_JPQL = " ORDER BY region.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Region.name ASC";
@@ -101,6 +102,7 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 
 		Region model = new RegionImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setRegionId(soapModel.getRegionId());
 		model.setCountryId(soapModel.getCountryId());
 		model.setRegionCode(soapModel.getRegionCode());
@@ -170,17 +172,27 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("regionId", getRegionId());
 		attributes.put("countryId", getCountryId());
 		attributes.put("regionCode", getRegionCode());
 		attributes.put("name", getName());
 		attributes.put("active", getActive());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long regionId = (Long)attributes.get("regionId");
 
 		if (regionId != null) {
@@ -212,8 +224,19 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public long getRegionId() {
 		return _regionId;
 	}
@@ -223,8 +246,8 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 		_regionId = regionId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCountryId() {
 		return _countryId;
 	}
@@ -246,8 +269,8 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 		return _originalCountryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getRegionCode() {
 		if (_regionCode == null) {
 			return StringPool.BLANK;
@@ -272,8 +295,8 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 		return GetterUtil.getString(_originalRegionCode);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -290,8 +313,8 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 		_name = name;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getActive() {
 		return _active;
 	}
@@ -349,6 +372,7 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 	public Object clone() {
 		RegionImpl regionImpl = new RegionImpl();
 
+		regionImpl.setMvccVersion(getMvccVersion());
 		regionImpl.setRegionId(getRegionId());
 		regionImpl.setCountryId(getCountryId());
 		regionImpl.setRegionCode(getRegionCode());
@@ -401,6 +425,16 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		RegionModelImpl regionModelImpl = this;
 
@@ -420,6 +454,8 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 	@Override
 	public CacheModel<Region> toCacheModel() {
 		RegionCacheModel regionCacheModel = new RegionCacheModel();
+
+		regionCacheModel.mvccVersion = getMvccVersion();
 
 		regionCacheModel.regionId = getRegionId();
 
@@ -448,9 +484,11 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(13);
 
-		sb.append("{regionId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", regionId=");
 		sb.append(getRegionId());
 		sb.append(", countryId=");
 		sb.append(getCountryId());
@@ -467,12 +505,16 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(22);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Region");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>regionId</column-name><column-value><![CDATA[");
 		sb.append(getRegionId());
@@ -501,6 +543,7 @@ public class RegionModelImpl extends BaseModelImpl<Region>
 
 	private static ClassLoader _classLoader = Region.class.getClassLoader();
 	private static Class<?>[] _escapedModelInterfaces = new Class[] { Region.class };
+	private long _mvccVersion;
 	private long _regionId;
 	private long _countryId;
 	private long _originalCountryId;

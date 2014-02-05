@@ -26,6 +26,8 @@ boolean viewPreview = ParamUtil.getBoolean(request, "viewPreview");
 		<div id="<portlet:namespace />entries">
 
 			<%
+			String displayStyleDefault = GetterUtil.getString(SessionClicks.get(request, "liferay_addpanel_displaystyle", "descriptive"));
+			String displayStyle = ParamUtil.getString(request, "displayStyle", displayStyleDefault);
 			String keywords = ParamUtil.getString(request, "keywords");
 
 			String panelTitle = "recent";
@@ -33,19 +35,26 @@ boolean viewPreview = ParamUtil.getBoolean(request, "viewPreview");
 			if (Validator.isNotNull(keywords)) {
 				panelTitle = "search-results";
 			}
+
+			String navListCssClass = "add-content nav-list ";
+
+			if (displayStyle.equals("icon")) {
+				navListCssClass += "add-content-icon";
+			}
+			else if (displayStyle.equals("descriptive")) {
+				navListCssClass += "add-content-descriptive";
+			}
+			else if (displayStyle.equals("icon")) {
+				navListCssClass += "add-content-list";
+			}
 			%>
 
 			<liferay-ui:panel collapsible="<%= false %>" cssClass="clearfix lfr-component panel-page-category recent" extended="<%= true %>" id="manageRecentPanel" persistState="<%= true %>" title="<%= panelTitle %>">
-				<aui:nav cssClass="nav-list no-margin-nav-list">
+				<aui:nav cssClass="<%= navListCssClass %>">
 
 					<%
 					int deltaDefault = GetterUtil.getInteger(SessionClicks.get(request, "liferay_addpanel_numitems", "10"));
 					int delta = ParamUtil.getInteger(request, "delta", deltaDefault);
-
-					String displayStyleDefault = GetterUtil.getString(SessionClicks.get(request, "liferay_addpanel_displaystyle", "descriptive"));
-					String displayStyle = ParamUtil.getString(request, "displayStyle", displayStyleDefault);
-
-					long[] groupIds = new long[]{scopeGroupId};
 
 					long[] availableClassNameIds = AssetRendererFactoryRegistryUtil.getClassNameIds(company.getCompanyId());
 
@@ -61,7 +70,7 @@ boolean viewPreview = ParamUtil.getBoolean(request, "viewPreview");
 
 					assetEntryQuery.setClassNameIds(availableClassNameIds);
 					assetEntryQuery.setEnd(delta);
-					assetEntryQuery.setGroupIds(groupIds);
+					assetEntryQuery.setGroupIds(new long[] {scopeGroupId});
 					assetEntryQuery.setKeywords(keywords);
 					assetEntryQuery.setOrderByCol1("modifiedDate");
 					assetEntryQuery.setOrderByCol2("title");
@@ -72,9 +81,9 @@ boolean viewPreview = ParamUtil.getBoolean(request, "viewPreview");
 					List<AssetEntry> results = null;
 
 					if (PropsValues.ASSET_PUBLISHER_SEARCH_WITH_INDEX && (assetEntryQuery.getLinkedAssetEntryId() == 0)) {
-						Hits hits = AssetUtil.search(request, assetEntryQuery, 0, delta);
+						BaseModelSearchResult<AssetEntry> baseModelSearchResult = AssetUtil.searchAssetEntries(request, assetEntryQuery, 0, delta);
 
-						results = AssetUtil.getAssetEntries(hits);
+						results = baseModelSearchResult.getBaseModels();
 					}
 					else {
 						results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
@@ -112,34 +121,35 @@ boolean viewPreview = ParamUtil.getBoolean(request, "viewPreview");
 						data.put("instanceable", true);
 						data.put("portlet-id", assetRenderer.getAddToPagePortletId());
 						data.put("title", title);
+
+						String navItemCssClass="content-shortcut lfr-content-item ";
+
+						if (!displayStyle.equals("icon")) {
+							navItemCssClass += "has-preview";
+						}
 					%>
 
-						<aui:nav-item cssClass='<%= displayStyle.equals("icon") ? "content-shortcut lfr-content-item span6" : "has-preview content-shortcut lfr-content-item row-fluid" %>'
+						<aui:nav-item cssClass='<%= navItemCssClass %>'
 							data="<%= data %>"
 							href=""
-							iconClass='<%= displayStyle.equals("icon") ? "" : "icon-file" %>'
+							iconCssClass='<%= displayStyle.equals("icon") ? "" : "icon-file" %>'
 							label='<%= displayStyle.equals("list") ? title : "" %>'
 						>
 							<c:choose>
 								<c:when test='<%= !displayStyle.equals("list") %>' >
-									<img class='<%= displayStyle.equals("descriptive") ? "span4" : StringPool.BLANK %>' src="<%= assetRenderer.getThumbnailPath(liferayPortletRequest) %>" />
+									<div class="add-content-thumbnail <%= displayStyle.equals("descriptive") ? "span4" : StringPool.BLANK %>">
+										<img src="<%= HtmlUtil.escapeAttribute(assetRenderer.getThumbnailPath(liferayPortletRequest)) %>" />
+									</div>
 
-									<c:choose>
-										<c:when test='<%= displayStyle.equals("descriptive") %>' >
-											<div class="span8">
-												<div>
-													<%= title %>
-												</div>
+									<div class="add-content-details <%= displayStyle.equals("descriptive") ? "span8" : StringPool.BLANK %>">
+										<div class="add-content-title">
+											<%= title %>
+										</div>
 
-												<div>
-													<%= StringUtil.shorten(assetRenderer.getSummary(themeDisplay.getLocale()), 120) %>
-												</div>
-											</div>
-										</c:when>
-										<c:when test='<%= displayStyle.equals("icon") %>' >
-											<p class="text-center"><%= title %></p>
-										</c:when>
-									</c:choose>
+										<div class="add-content-description">
+											<%= HtmlUtil.escape(StringUtil.shorten(assetRenderer.getSummary(themeDisplay.getLocale()), 120)) %>
+										</div>
+									</div>
 								</c:when>
 								<c:otherwise >
 									<div <%= AUIUtil.buildData(data) %> class="add-content-item">
@@ -178,7 +188,7 @@ boolean viewPreview = ParamUtil.getBoolean(request, "viewPreview");
 			%>
 
 			<div id="<portlet:namespace />preview">
-				<liferay-util:include page="<%= assetRenderer.getPreviewPath(liferayPortletRequest, liferayPortletResponse) %>" portletId="<%= assetRendererFactory.getPortletId() %>" />
+				<liferay-util:include page="<%= assetRenderer.getPreviewPath(liferayPortletRequest, liferayPortletResponse) %>" portletId="<%= assetRendererFactory.getPortletId() %>" servletContext="<%= application %>" />
 			</div>
 		</c:if>
 	</c:when>

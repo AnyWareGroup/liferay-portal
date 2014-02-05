@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PortletPreferencesLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortletPreferencesLocalService
+ * @author Brian Wing Shun Chan
+ * @see PortletPreferencesLocalService
  * @generated
  */
+@ProviderType
 public class PortletPreferencesLocalServiceWrapper
 	implements PortletPreferencesLocalService,
 		ServiceWrapper<PortletPreferencesLocalService> {
@@ -166,6 +169,23 @@ public class PortletPreferencesLocalServiceWrapper
 		return _portletPreferencesLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletPreferencesLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.PortletPreferences fetchPortletPreferences(
 		long portletPreferencesId)
@@ -296,6 +316,21 @@ public class PortletPreferencesLocalServiceWrapper
 	}
 
 	@Override
+	public javax.portlet.PortletPreferences fetchPreferences(long companyId,
+		long ownerId, int ownerType, long plid, java.lang.String portletId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletPreferencesLocalService.fetchPreferences(companyId,
+			ownerId, ownerType, plid, portletId);
+	}
+
+	@Override
+	public javax.portlet.PortletPreferences fetchPreferences(
+		com.liferay.portal.model.PortletPreferencesIds portletPreferencesIds)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletPreferencesLocalService.fetchPreferences(portletPreferencesIds);
+	}
+
+	@Override
 	public javax.portlet.PortletPreferences getDefaultPreferences(
 		long companyId, java.lang.String portletId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -366,6 +401,31 @@ public class PortletPreferencesLocalServiceWrapper
 	}
 
 	@Override
+	public long getPortletPreferencesCount(int ownerType,
+		java.lang.String portletId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletPreferencesLocalService.getPortletPreferencesCount(ownerType,
+			portletId);
+	}
+
+	@Override
+	public long getPortletPreferencesCount(long ownerId, int ownerType,
+		long plid, com.liferay.portal.model.Portlet portlet,
+		boolean excludeDefaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletPreferencesLocalService.getPortletPreferencesCount(ownerId,
+			ownerType, plid, portlet, excludeDefaultPreferences);
+	}
+
+	@Override
+	public long getPortletPreferencesCount(long ownerId, int ownerType,
+		java.lang.String portletId, boolean excludeDefaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletPreferencesLocalService.getPortletPreferencesCount(ownerId,
+			ownerType, portletId, excludeDefaultPreferences);
+	}
+
+	@Override
 	public javax.portlet.PortletPreferences getPreferences(long companyId,
 		long ownerId, int ownerType, long plid, java.lang.String portletId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -426,6 +486,7 @@ public class PortletPreferencesLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortletPreferencesLocalService getWrappedPortletPreferencesLocalService() {
 		return _portletPreferencesLocalService;
 	}
@@ -433,6 +494,7 @@ public class PortletPreferencesLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortletPreferencesLocalService(
 		PortletPreferencesLocalService portletPreferencesLocalService) {
 		_portletPreferencesLocalService = portletPreferencesLocalService;

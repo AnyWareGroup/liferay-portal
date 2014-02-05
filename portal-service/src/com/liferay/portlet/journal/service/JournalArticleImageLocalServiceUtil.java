@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.journal.service.impl.JournalArticleImageLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class JournalArticleImageLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -163,6 +166,21 @@ public class JournalArticleImageLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portlet.journal.model.JournalArticleImage fetchJournalArticleImage(
@@ -324,6 +342,17 @@ public class JournalArticleImageLocalServiceUtil {
 		return getService().getArticleImages(groupId);
 	}
 
+	public static java.util.List<com.liferay.portlet.journal.model.JournalArticleImage> getArticleImages(
+		long groupId, java.lang.String articleId, double version)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getArticleImages(groupId, articleId, version);
+	}
+
+	public static int getArticleImagesCount(long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getArticleImagesCount(groupId);
+	}
+
 	public static JournalArticleImageLocalService getService() {
 		if (_service == null) {
 			_service = (JournalArticleImageLocalService)PortalBeanLocatorUtil.locate(JournalArticleImageLocalService.class.getName());
@@ -338,6 +367,7 @@ public class JournalArticleImageLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(JournalArticleImageLocalService service) {
 	}
 

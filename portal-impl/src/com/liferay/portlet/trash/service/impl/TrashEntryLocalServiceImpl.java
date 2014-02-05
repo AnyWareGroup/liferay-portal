@@ -17,6 +17,7 @@ package com.liferay.portlet.trash.service.impl;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.search.BaseModelSearchResult;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
@@ -30,12 +31,13 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.SystemEvent;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.persistence.GroupActionableDynamicQuery;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.trash.model.TrashEntry;
 import com.liferay.portlet.trash.model.TrashVersion;
 import com.liferay.portlet.trash.service.base.TrashEntryLocalServiceBaseImpl;
+import com.liferay.portlet.trash.util.Trash;
 import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.util.Calendar;
@@ -69,12 +71,19 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	@Override
 	public TrashEntry addTrashEntry(
 			long userId, long groupId, String className, long classPK,
-			int status, List<ObjectValuePair<Long, Integer>> statusOVPs,
+			String classUuid, String referrerClassName, int status,
+			List<ObjectValuePair<Long, Integer>> statusOVPs,
 			UnicodeProperties typeSettingsProperties)
 		throws PortalException, SystemException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
+
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			className);
+
+		SystemEvent systemEvent = trashHandler.addDeletionSystemEvent(
+			userId, groupId, classPK, classUuid, referrerClassName);
 
 		long entryId = counterLocalService.increment();
 
@@ -87,6 +96,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		trashEntry.setCreateDate(new Date());
 		trashEntry.setClassNameId(classNameId);
 		trashEntry.setClassPK(classPK);
+		trashEntry.setSystemEventSetKey(systemEvent.getSystemEventSetKey());
 
 		if (typeSettingsProperties != null) {
 			trashEntry.setTypeSettingsProperties(typeSettingsProperties);
@@ -149,6 +159,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 * Deletes the trash entry with the primary key.
 	 *
 	 * @param  entryId the primary key of the trash entry
+	 * @return the trash entry with the primary key
 	 * @throws PortalException if a trash entry with the primary key could not
 	 *         be found
 	 * @throws SystemException if a system exception occurred
@@ -167,6 +178,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	 *
 	 * @param  className the class name of entity
 	 * @param  classPK the primary key of the entry
+	 * @return the trash entry with the entity class name and primary key
 	 * @throws PortalException if a trash entry with the primary key could not
 	 *         be found
 	 * @throws SystemException if a system exception occurred
@@ -175,7 +187,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	public TrashEntry deleteEntry(String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		TrashEntry entry = trashEntryPersistence.fetchByC_C(
 			classNameId, classPK);
@@ -192,6 +204,9 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 			trashVersionPersistence.removeByEntryId(trashEntry.getEntryId());
 
 			trashEntry = trashEntryPersistence.remove(trashEntry);
+
+			systemEventLocalService.deleteSystemEvents(
+				trashEntry.getGroupId(), trashEntry.getSystemEventSetKey());
 		}
 
 		return trashEntry;
@@ -221,7 +236,7 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	public TrashEntry fetchEntry(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return trashEntryPersistence.fetchByC_C(classNameId, classPK);
 	}
@@ -276,6 +291,15 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		return trashEntryPersistence.findByGroupId(groupId, start, end, obc);
 	}
 
+	@Override
+	public List<TrashEntry> getEntries(long groupId, String className)
+		throws SystemException {
+
+		long classNameId = classNameLocalService.getClassNameId(className);
+
+		return trashEntryPersistence.findByG_C(groupId, classNameId);
+	}
+
 	/**
 	 * Returns the number of trash entries with the group ID.
 	 *
@@ -318,38 +342,9 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 	public TrashEntry getEntry(String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return trashEntryPersistence.findByC_C(classNameId, classPK);
-	}
-
-	/**
-	 * Returns all the trash versions associated with the trash entry.
-	 *
-	 * @param  entryId the primary key of the trash entry
-	 * @return all the trash versions associated with the trash entry
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public List<TrashVersion> getVersions(long entryId) throws SystemException {
-		return trashVersionPersistence.findByEntryId(entryId);
-	}
-
-	/**
-	 * Returns all the trash versions associated with the trash entry.
-	 *
-	 * @param  className the class name of the trash entity
-	 * @param  classPK the primary key of the trash entity
-	 * @return all the trash versions associated with the trash entry
-	 * @throws SystemException if a system exception occurred
-	 */
-	@Override
-	public List<TrashVersion> getVersions(String className, long classPK)
-		throws SystemException {
-
-		long classNameId = PortalUtil.getClassNameId(className);
-
-		return trashVersionPersistence.findByC_C(classNameId, classPK);
 	}
 
 	@Override
@@ -359,28 +354,64 @@ public class TrashEntryLocalServiceImpl extends TrashEntryLocalServiceBaseImpl {
 		throws SystemException {
 
 		try {
-			SearchContext searchContext = new SearchContext();
-
-			searchContext.setCompanyId(companyId);
-			searchContext.setEnd(end);
-			searchContext.setKeywords(keywords);
-			searchContext.setGroupIds(new long[] {groupId});
-
-			if (sort != null) {
-				searchContext.setSorts(new Sort[] {sort});
-			}
-
-			searchContext.setStart(start);
-			searchContext.setUserId(userId);
-
 			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 				TrashEntry.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, groupId, userId, keywords, start, end, sort);
 
 			return indexer.search(searchContext);
 		}
 		catch (Exception e) {
 			throw new SystemException(e);
 		}
+	}
+
+	@Override
+	public BaseModelSearchResult<TrashEntry> searchTrashEntries(
+			long companyId, long groupId, long userId, String keywords,
+			int start, int end, Sort sort)
+		throws SystemException {
+
+		try {
+			Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+				TrashEntry.class);
+
+			SearchContext searchContext = buildSearchContext(
+				companyId, groupId, userId, keywords, start, end, sort);
+
+			Hits hits = indexer.search(
+				searchContext, Trash.SELECTED_FIELD_NAMES);
+
+			List<TrashEntry> trashEntries = TrashUtil.getEntries(hits);
+
+			return new BaseModelSearchResult<TrashEntry>(
+				trashEntries, hits.getLength());
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+	}
+
+	protected SearchContext buildSearchContext(
+		long companyId, long groupId, long userId, String keywords, int start,
+		int end, Sort sort) {
+
+		SearchContext searchContext = new SearchContext();
+
+		searchContext.setCompanyId(companyId);
+		searchContext.setEnd(end);
+		searchContext.setKeywords(keywords);
+		searchContext.setGroupIds(new long[] {groupId});
+
+		if (sort != null) {
+			searchContext.setSorts(sort);
+		}
+
+		searchContext.setStart(start);
+		searchContext.setUserId(userId);
+
+		return searchContext;
 	}
 
 	protected Date getMaxAge(Group group)

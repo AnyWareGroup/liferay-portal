@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.announcements.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -37,6 +39,7 @@ import java.util.List;
  * @see AnnouncementsFlagPersistenceImpl
  * @generated
  */
+@ProviderType
 public class AnnouncementsFlagUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -61,7 +64,7 @@ public class AnnouncementsFlagUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
@@ -513,6 +516,7 @@ public class AnnouncementsFlagUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(AnnouncementsFlagPersistence persistence) {
 	}
 

@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link UserGroupGroupRole}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroupGroupRole
+ * @author Brian Wing Shun Chan
+ * @see UserGroupGroupRole
  * @generated
  */
+@ProviderType
 public class UserGroupGroupRoleWrapper implements UserGroupGroupRole,
 	ModelWrapper<UserGroupGroupRole> {
 	public UserGroupGroupRoleWrapper(UserGroupGroupRole userGroupGroupRole) {
@@ -46,6 +51,7 @@ public class UserGroupGroupRoleWrapper implements UserGroupGroupRole,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userGroupId", getUserGroupId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("roleId", getRoleId());
@@ -55,6 +61,12 @@ public class UserGroupGroupRoleWrapper implements UserGroupGroupRole,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userGroupId = (Long)attributes.get("userGroupId");
 
 		if (userGroupId != null) {
@@ -93,6 +105,26 @@ public class UserGroupGroupRoleWrapper implements UserGroupGroupRole,
 	public void setPrimaryKey(
 		com.liferay.portal.service.persistence.UserGroupGroupRolePK primaryKey) {
 		_userGroupGroupRole.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user group group role.
+	*
+	* @return the mvcc version of this user group group role
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userGroupGroupRole.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user group group role.
+	*
+	* @param mvccVersion the mvcc version of this user group group role
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userGroupGroupRole.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -260,9 +292,51 @@ public class UserGroupGroupRoleWrapper implements UserGroupGroupRole,
 		_userGroupGroupRole.persist();
 	}
 
+	@Override
+	public com.liferay.portal.model.Group getGroup()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupGroupRole.getGroup();
+	}
+
+	@Override
+	public com.liferay.portal.model.Role getRole()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupGroupRole.getRole();
+	}
+
+	@Override
+	public com.liferay.portal.model.UserGroup getUserGroup()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroupGroupRole.getUserGroup();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserGroupGroupRoleWrapper)) {
+			return false;
+		}
+
+		UserGroupGroupRoleWrapper userGroupGroupRoleWrapper = (UserGroupGroupRoleWrapper)obj;
+
+		if (Validator.equals(_userGroupGroupRole,
+					userGroupGroupRoleWrapper._userGroupGroupRole)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserGroupGroupRole getWrappedUserGroupGroupRole() {
 		return _userGroupGroupRole;
 	}
@@ -270,6 +344,16 @@ public class UserGroupGroupRoleWrapper implements UserGroupGroupRole,
 	@Override
 	public UserGroupGroupRole getWrappedModel() {
 		return _userGroupGroupRole;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userGroupGroupRole.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userGroupGroupRole.isFinderCacheEnabled();
 	}
 
 	@Override

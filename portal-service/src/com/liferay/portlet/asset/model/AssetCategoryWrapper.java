@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetCategory}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetCategory
+ * @author Brian Wing Shun Chan
+ * @see AssetCategory
  * @generated
  */
+@ProviderType
 public class AssetCategoryWrapper implements AssetCategory,
 	ModelWrapper<AssetCategory> {
 	public AssetCategoryWrapper(AssetCategory assetCategory) {
@@ -804,6 +809,22 @@ public class AssetCategoryWrapper implements AssetCategory,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _assetCategory.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _assetCategory.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_assetCategory.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -869,9 +890,34 @@ public class AssetCategoryWrapper implements AssetCategory,
 		return _assetCategory.isRootCategory();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetCategoryWrapper)) {
+			return false;
+		}
+
+		AssetCategoryWrapper assetCategoryWrapper = (AssetCategoryWrapper)obj;
+
+		if (Validator.equals(_assetCategory, assetCategoryWrapper._assetCategory)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _assetCategory.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetCategory getWrappedAssetCategory() {
 		return _assetCategory;
 	}
@@ -879,6 +925,16 @@ public class AssetCategoryWrapper implements AssetCategory,
 	@Override
 	public AssetCategory getWrappedModel() {
 		return _assetCategory;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetCategory.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetCategory.isFinderCacheEnabled();
 	}
 
 	@Override

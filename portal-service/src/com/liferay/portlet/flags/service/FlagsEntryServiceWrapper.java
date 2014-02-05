@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.flags.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link FlagsEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       FlagsEntryService
+ * @author Brian Wing Shun Chan
+ * @see FlagsEntryService
  * @generated
  */
+@ProviderType
 public class FlagsEntryServiceWrapper implements FlagsEntryService,
 	ServiceWrapper<FlagsEntryService> {
 	public FlagsEntryServiceWrapper(FlagsEntryService flagsEntryService) {
@@ -62,6 +65,7 @@ public class FlagsEntryServiceWrapper implements FlagsEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public FlagsEntryService getWrappedFlagsEntryService() {
 		return _flagsEntryService;
 	}
@@ -69,6 +73,7 @@ public class FlagsEntryServiceWrapper implements FlagsEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedFlagsEntryService(FlagsEntryService flagsEntryService) {
 		_flagsEntryService = flagsEntryService;
 	}

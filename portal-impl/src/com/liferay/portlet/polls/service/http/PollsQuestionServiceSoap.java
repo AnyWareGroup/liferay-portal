@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.polls.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -59,12 +61,13 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsQuestionServiceHttp
- * @see       com.liferay.portlet.polls.model.PollsQuestionSoap
- * @see       com.liferay.portlet.polls.service.PollsQuestionServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PollsQuestionServiceHttp
+ * @see com.liferay.portlet.polls.model.PollsQuestionSoap
+ * @see com.liferay.portlet.polls.service.PollsQuestionServiceUtil
  * @generated
  */
+@ProviderType
 public class PollsQuestionServiceSoap {
 	public static com.liferay.portlet.polls.model.PollsQuestionSoap addQuestion(
 		java.lang.String[] titleMapLanguageIds,

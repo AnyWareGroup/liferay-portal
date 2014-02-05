@@ -80,6 +80,10 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 			AccountModelImpl.FINDER_CACHE_ENABLED, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll", new String[0]);
 
+	public AccountPersistenceImpl() {
+		setModelClass(Account.class);
+	}
+
 	/**
 	 * Caches the account in the entity cache if it is enabled.
 	 *
@@ -296,7 +300,9 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 		}
 
 		EntityCacheUtil.putResult(AccountModelImpl.ENTITY_CACHE_ENABLED,
-			AccountImpl.class, account.getPrimaryKey(), account);
+			AccountImpl.class, account.getPrimaryKey(), account, false);
+
+		account.resetOriginalValues();
 
 		return account;
 	}
@@ -311,6 +317,7 @@ public class AccountPersistenceImpl extends BasePersistenceImpl<Account>
 		accountImpl.setNew(account.isNew());
 		accountImpl.setPrimaryKey(account.getPrimaryKey());
 
+		accountImpl.setMvccVersion(account.getMvccVersion());
 		accountImpl.setAccountId(account.getAccountId());
 		accountImpl.setCompanyId(account.getCompanyId());
 		accountImpl.setUserId(account.getUserId());

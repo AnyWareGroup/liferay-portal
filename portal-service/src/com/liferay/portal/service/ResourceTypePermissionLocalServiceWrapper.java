@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourceTypePermissionLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceTypePermissionLocalService
+ * @author Brian Wing Shun Chan
+ * @see ResourceTypePermissionLocalService
  * @generated
  */
+@ProviderType
 public class ResourceTypePermissionLocalServiceWrapper
 	implements ResourceTypePermissionLocalService,
 		ServiceWrapper<ResourceTypePermissionLocalService> {
@@ -164,6 +167,23 @@ public class ResourceTypePermissionLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _resourceTypePermissionLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _resourceTypePermissionLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -347,6 +367,7 @@ public class ResourceTypePermissionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceTypePermissionLocalService getWrappedResourceTypePermissionLocalService() {
 		return _resourceTypePermissionLocalService;
 	}
@@ -354,6 +375,7 @@ public class ResourceTypePermissionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceTypePermissionLocalService(
 		ResourceTypePermissionLocalService resourceTypePermissionLocalService) {
 		_resourceTypePermissionLocalService = resourceTypePermissionLocalService;

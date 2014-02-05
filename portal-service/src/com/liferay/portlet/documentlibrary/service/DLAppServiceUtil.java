@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.documentlibrary.service.impl.DLAppServiceImpl
  * @generated
  */
+@ProviderType
 public class DLAppServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -149,7 +152,7 @@ public class DLAppServiceUtil {
 
 	/**
 	* Adds a file entry and associated metadata. It is created based on a
-	* {@link java.io.InputStream} object.
+	* {@link InputStream} object.
 	*
 	* <p>
 	* This method takes two file names, the <code>sourceFileName</code> and the
@@ -259,9 +262,9 @@ public class DLAppServiceUtil {
 	eventually reside
 	* @param fileName the file's original name
 	* @param tempFolderName the temporary folder's name
-	* @param file Name the file's original name
+	* @param file the file's data (optionally <code>null</code>)
 	* @param mimeType the file's MIME type
-	* @return the file's name
+	* @return the temporary file entry
 	* @throws PortalException if the file name was invalid
 	* @throws SystemException if a system exception occurred
 	* @see com.liferay.portal.kernel.util.TempFileUtil
@@ -277,6 +280,29 @@ public class DLAppServiceUtil {
 			tempFolderName, file, mimeType);
 	}
 
+	/**
+	* Adds a temporary file entry. It is created based on the {@link
+	* InputStream} object.
+	*
+	* <p>
+	* This allows a client to upload a file into a temporary location and
+	* manipulate its metadata prior to making it available for public usage.
+	* This is different from checking in and checking out a file entry.
+	* </p>
+	*
+	* @param groupId the primary key of the group
+	* @param folderId the primary key of the folder where the file entry will
+	eventually reside
+	* @param fileName the file's original name
+	* @param tempFolderName the temporary folder's name
+	* @param inputStream the file's data
+	* @param mimeType the file's MIME type
+	* @return the temporary file entry
+	* @throws PortalException if the file name was invalid or if a portal
+	exception occurred
+	* @throws SystemException if a system exception occurred
+	* @see com.liferay.portal.kernel.util.TempFileUtil
+	*/
 	public static com.liferay.portal.kernel.repository.model.FileEntry addTempFileEntry(
 		long groupId, long folderId, java.lang.String fileName,
 		java.lang.String tempFolderName, java.io.InputStream inputStream,
@@ -354,6 +380,7 @@ public class DLAppServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	String, ServiceContext)}
 	*/
+	@Deprecated
 	public static void checkInFileEntry(long fileEntryId,
 		java.lang.String lockUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -736,6 +763,13 @@ public class DLAppServiceUtil {
 		return getService()
 				   .getFileEntries(repositoryId, folderId, fileEntryTypeId,
 			start, end, obc);
+	}
+
+	public static java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getFileEntries(
+		long repositoryId, long folderId, java.lang.String[] mimeTypes)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getFileEntries(repositoryId, folderId, mimeTypes);
 	}
 
 	/**
@@ -1718,8 +1752,7 @@ public class DLAppServiceUtil {
 	* @return the temporary file entry names
 	* @throws PortalException if the folder was invalid
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portlet.documentlibrary.service.impl.DLAppServiceImpl#addTempFileEntry(
-	long, long, String, String, File)
+	* @see #addTempFileEntry(long, long, String, String, File, String)
 	* @see com.liferay.portal.kernel.util.TempFileUtil
 	*/
 	public static java.lang.String[] getTempFileEntryNames(long groupId,
@@ -1734,6 +1767,7 @@ public class DLAppServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Lock lockFileEntry(long fileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1744,6 +1778,7 @@ public class DLAppServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	String, long, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Lock lockFileEntry(
 		long fileEntryId, java.lang.String owner, long expirationTime)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -1837,6 +1872,7 @@ public class DLAppServiceUtil {
 	* Moves the file entry with the primary key to the trash portlet.
 	*
 	* @param fileEntryId the primary key of the file entry
+	* @return the file entry
 	* @throws PortalException if the file entry could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -1925,6 +1961,7 @@ public class DLAppServiceUtil {
 	* Moves the folder with the primary key to the trash portlet.
 	*
 	* @param folderId the primary key of the folder
+	* @return the file entry
 	* @throws PortalException if the folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2035,6 +2072,24 @@ public class DLAppServiceUtil {
 	}
 
 	public static com.liferay.portal.kernel.search.Hits search(
+		long repositoryId, long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .search(repositoryId, creatorUserId, status, start, end);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(
+		long repositoryId, long creatorUserId, long folderId,
+		java.lang.String[] mimeTypes, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .search(repositoryId, creatorUserId, folderId, mimeTypes,
+			status, start, end);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(
 		long repositoryId,
 		com.liferay.portal.kernel.search.SearchContext searchContext)
 		throws com.liferay.portal.kernel.search.SearchException {
@@ -2085,6 +2140,7 @@ public class DLAppServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	boolean, String, ServiceContext)}.
 	*/
+	@Deprecated
 	public static void unlockFileEntry(long fileEntryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -2095,6 +2151,7 @@ public class DLAppServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	String)}.
 	*/
+	@Deprecated
 	public static void unlockFileEntry(long fileEntryId,
 		java.lang.String lockUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -2241,7 +2298,7 @@ public class DLAppServiceUtil {
 	* @param changeLog the file's version change log (optionally
 	<code>null</code>)
 	* @param majorVersion whether the new file version is a major version
-	* @param file EntryId the primary key of the file entry
+	* @param file the file's data (optionally <code>null</code>)
 	* @param serviceContext the service context to be applied. Can set the
 	asset category IDs, asset tag names, and expando bridge
 	attributes for the file entry. In a Liferay repository, it may
@@ -2266,7 +2323,7 @@ public class DLAppServiceUtil {
 	}
 
 	/**
-	* Updates a file entry and associated metadata based on an {@link java.io.
+	* Updates a file entry and associated metadata based on an {@link
 	* InputStream} object. If the file data is <code>null</code>, then only the
 	* associated metadata (i.e., <code>title</code>, <code>description</code>,
 	* and parameters in the <code>serviceContext</code>) will be updated.
@@ -2462,6 +2519,7 @@ public class DLAppServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DLAppService service) {
 	}
 

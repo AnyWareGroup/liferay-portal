@@ -322,6 +322,10 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 	private static final String _FINDER_COLUMN_O_O_OWNERID_2 = "portalPreferences.ownerId = ? AND ";
 	private static final String _FINDER_COLUMN_O_O_OWNERTYPE_2 = "portalPreferences.ownerType = ?";
 
+	public PortalPreferencesPersistenceImpl() {
+		setModelClass(PortalPreferences.class);
+	}
+
 	/**
 	 * Caches the portal preferences in the entity cache if it is enabled.
 	 *
@@ -605,10 +609,12 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 
 		EntityCacheUtil.putResult(PortalPreferencesModelImpl.ENTITY_CACHE_ENABLED,
 			PortalPreferencesImpl.class, portalPreferences.getPrimaryKey(),
-			portalPreferences);
+			portalPreferences, false);
 
 		clearUniqueFindersCache(portalPreferences);
 		cacheUniqueFindersCache(portalPreferences);
+
+		portalPreferences.resetOriginalValues();
 
 		return portalPreferences;
 	}
@@ -624,6 +630,7 @@ public class PortalPreferencesPersistenceImpl extends BasePersistenceImpl<Portal
 		portalPreferencesImpl.setNew(portalPreferences.isNew());
 		portalPreferencesImpl.setPrimaryKey(portalPreferences.getPrimaryKey());
 
+		portalPreferencesImpl.setMvccVersion(portalPreferences.getMvccVersion());
 		portalPreferencesImpl.setPortalPreferencesId(portalPreferences.getPortalPreferencesId());
 		portalPreferencesImpl.setOwnerId(portalPreferences.getOwnerId());
 		portalPreferencesImpl.setOwnerType(portalPreferences.getOwnerType());

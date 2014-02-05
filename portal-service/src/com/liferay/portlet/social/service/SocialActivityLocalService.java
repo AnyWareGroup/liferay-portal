@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.transaction.Isolation;
@@ -34,6 +36,7 @@ import com.liferay.portal.service.PersistedModelLocalService;
  * @see com.liferay.portlet.social.service.impl.SocialActivityLocalServiceImpl
  * @generated
  */
+@ProviderType
 @Transactional(isolation = Isolation.PORTAL, rollbackFor =  {
 	PortalException.class, SystemException.class})
 public interface SocialActivityLocalService extends BaseLocalService,
@@ -150,6 +153,19 @@ public interface SocialActivityLocalService extends BaseLocalService,
 	*/
 	public long dynamicQueryCount(
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -364,12 +380,17 @@ public interface SocialActivityLocalService extends BaseLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
+	public void deleteActivities(long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException;
+
 	/**
 	* Removes stored activities for the asset identified by the class name and
 	* class primary key.
 	*
 	* @param className the target asset's class name
 	* @param classPK the primary key of the target asset
+	* @throws PortalException if the user's activity counters could not be
+	deleted
 	* @throws SystemException if a system exception occurred
 	*/
 	public void deleteActivities(java.lang.String className, long classPK)
@@ -391,6 +412,8 @@ public interface SocialActivityLocalService extends BaseLocalService,
 	* Removes the stored activity and its mirror activity from the database.
 	*
 	* @param activity the activity to be removed
+	* @throws PortalException if the user's activity counters could not be
+	deleted or if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	public void deleteActivity(

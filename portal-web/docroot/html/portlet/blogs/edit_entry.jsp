@@ -27,30 +27,32 @@ BlogsEntry entry = (BlogsEntry)request.getAttribute(WebKeys.BLOGS_ENTRY);
 long entryId = BeanParamUtil.getLong(entry, request, "entryId");
 
 String content = BeanParamUtil.getString(entry, request, "content");
-
-boolean preview = ParamUtil.getBoolean(request, "preview");
-
 boolean allowPingbacks = PropsValues.BLOGS_PINGBACK_ENABLED && BeanParamUtil.getBoolean(entry, request, "allowPingbacks", true);
 boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.getBoolean(entry, request, "allowTrackbacks", true);
+boolean smallImage = BeanParamUtil.getBoolean(entry, request, "smallImage");
+
+boolean preview = ParamUtil.getBoolean(request, "preview");
+boolean showHeader = ParamUtil.getBoolean(request, "showHeader", true);
 %>
 
-<liferay-ui:header
-	backURL="<%= backURL %>"
-	localizeTitle="<%= (entry == null) %>"
-	title='<%= (entry == null) ? "new-blog-entry" : entry.getTitle() %>'
-/>
+<c:if test="<%= showHeader %>">
+	<liferay-ui:header
+		backURL="<%= backURL %>"
+		localizeTitle="<%= (entry == null) %>"
+		title='<%= (entry == null) ? "new-blog-entry" : entry.getTitle() %>'
+	/>
+</c:if>
 
 <portlet:actionURL var="editEntryURL">
 	<portlet:param name="struts_action" value="/blogs/edit_entry" />
 </portlet:actionURL>
 
-<aui:form action="<%= editEntryURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault();" %>'>
+<aui:form action="<%= editEntryURL %>" enctype="multipart/form-data" method="post" name="fm" onSubmit="event.preventDefault();">
 	<aui:input name="<%= Constants.CMD %>" type="hidden" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="backURL" type="hidden" value="<%= backURL %>" />
 	<aui:input name="referringPortletResource" type="hidden" value="<%= referringPortletResource %>" />
 	<aui:input name="entryId" type="hidden" value="<%= entryId %>" />
-	<aui:input name="attachments" type="hidden" />
 	<aui:input name="preview" type="hidden" value="<%= false %>" />
 	<aui:input name="workflowAction" type="hidden" value="<%= WorkflowConstants.ACTION_PUBLISH %>" />
 
@@ -72,7 +74,7 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 	</c:if>
 
 	<aui:fieldset>
-		<aui:input name="title" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" name="title" />
 
 		<aui:input name="displayDate" />
 
@@ -126,7 +128,7 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 					for (String trackback : StringUtil.split(entry.getTrackbacks())) {
 					%>
 
-						<%= HtmlUtil.escape(trackback) %><br />
+						<liferay-ui:input-resource url="<%= trackback %>" /><br />
 
 					<%
 					}
@@ -162,19 +164,41 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 				long imageMaxSize = PrefsPropsUtil.getLong(PropsKeys.BLOGS_IMAGE_SMALL_MAX_SIZE) / 1024;
 				%>
 
-				<liferay-ui:message arguments="<%= imageMaxSize %>" key="please-enter-a-small-image-with-a-valid-file-size-no-larger-than-x" />
+				<liferay-ui:message arguments="<%= imageMaxSize %>" key="please-enter-a-small-image-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 			</liferay-ui:error>
 
 			<aui:fieldset>
 				<aui:input label="description" name="description" />
 
-				<aui:input label="use-small-image" name="smallImage" />
+				<div id="<portlet:namespace />smallImageContainer">
+					<div class="lfr-blogs-small-image-header">
+						<aui:input label="use-small-image" name="smallImage" />
+					</div>
 
-				<aui:input label="small-image-url" name="smallImageURL" />
+					<div class="lfr-blogs-small-image-content toggler-content-collapsed">
+						<aui:row>
+							<c:if test="<%= smallImage && (entry != null) %>">
+								<aui:col width="<%= 50 %>">
+									<img alt="<liferay-ui:message key="preview" />" class="lfr-blogs-small-image-preview" src="<%= Validator.isNotNull(entry.getSmallImageURL()) ? entry.getSmallImageURL() : themeDisplay.getPathImage() + "/template?img_id=" + entry.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(entry.getSmallImageId()) %>" />
+								</aui:col>
+							</c:if>
 
-				<span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span>
+							<aui:col width="<%= (smallImage && (entry != null)) ? 50 : 100 %>">
+								<aui:fieldset>
+									<aui:input cssClass="lfr-blogs-small-image-type" inlineField="<%= true %>" label="small-image-url" name="type" type="radio" />
 
-				<aui:input cssClass="lfr-input-text-container" label="small-image" name="smallFile" onChange='<%= renderResponse.getNamespace() + "manageAttachments();" %>' type="file" />
+									<aui:input cssClass="lfr-blogs-small-image-value" inlineField="<%= true %>" label="" name="smallImageURL" />
+								</aui:fieldset>
+
+								<aui:fieldset>
+									<aui:input cssClass="lfr-blogs-small-image-type" inlineField="<%= true %>" label="small-image" name="type" type="radio" />
+
+									<aui:input cssClass="lfr-blogs-small-image-value" inlineField="<%= true %>" label="" name="smallFile" type="file" />
+								</aui:fieldset>
+							</aui:col>
+						</aui:row>
+					</div>
+				</div>
 			</aui:fieldset>
 		</liferay-ui:panel>
 
@@ -227,7 +251,7 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 
 			<c:if test="<%= (entry != null) && entry.isApproved() && WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(entry.getCompanyId(), entry.getGroupId(), BlogsEntry.class.getName()) %>">
 				<div class="alert alert-info">
-					<%= LanguageUtil.format(pageContext, "this-x-is-approved.-publishing-these-changes-will-cause-it-to-be-unpublished-and-go-through-the-approval-process-again", ResourceActionsUtil.getModelResource(locale, BlogsEntry.class.getName())) %>
+					<%= LanguageUtil.format(pageContext, "this-x-is-approved.-publishing-these-changes-will-cause-it-to-be-unpublished-and-go-through-the-approval-process-again", ResourceActionsUtil.getModelResource(locale, BlogsEntry.class.getName()), false) %>
 				</div>
 			</c:if>
 
@@ -256,21 +280,11 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 	}
 
 	function <portlet:namespace />getSuggestionsContent() {
-		var content = '';
-
-		content += document.<portlet:namespace />fm.<portlet:namespace />title.value + ' ';
-		content += window.<portlet:namespace />editor.getHTML();
-
-		return content;
+		return document.<portlet:namespace />fm.<portlet:namespace />title.value + ' ' + window.<portlet:namespace />editor.getHTML();
 	}
 
 	function <portlet:namespace />initEditor() {
 		return "<%= UnicodeFormatter.toString(content) %>";
-	}
-
-	function <portlet:namespace />manageAttachments() {
-		document.<portlet:namespace />fm.encoding = "multipart/form-data";
-		document.<portlet:namespace />fm.<portlet:namespace />attachments.value = "true";
 	}
 
 	function <portlet:namespace />previewEntry() {
@@ -422,10 +436,6 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 		},
 		['aui-io']
 	);
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />title);
-	</c:if>
 </aui:script>
 
 <aui:script use="aui-base">
@@ -442,11 +452,72 @@ boolean allowTrackbacks = PropsValues.BLOGS_TRACKBACK_ENABLED && BeanParamUtil.g
 		);
 	}
 
-	<c:if test="<%= (entry == null) || (entry.getStatus() == WorkflowConstants.STATUS_DRAFT) %>">
+	<c:if test="<%= (entry == null) || ((entry.getUserId() == user.getUserId()) && (entry.getStatus() == WorkflowConstants.STATUS_DRAFT)) %>">
 		<portlet:namespace />saveDraftIntervalId = setInterval('<portlet:namespace />saveEntry(true, true)', 30000);
 		<portlet:namespace />oldTitle = document.<portlet:namespace />fm.<portlet:namespace />title.value;
 		<portlet:namespace />oldContent = <portlet:namespace />initEditor();
 	</c:if>
+</aui:script>
+
+<aui:script use="aui-toggler">
+	var container = A.one('#<portlet:namespace />smallImageContainer');
+
+	var types = container.all('.lfr-blogs-small-image-type');
+	var values = container.all('.lfr-blogs-small-image-value');
+
+	var selectSmallImageType = function(index) {
+		types.set('checked', false);
+
+		types.item(index).set('checked', true);
+
+		values.set('disabled', true);
+
+		values.item(index).set('disabled', false);
+	};
+
+	container.delegate(
+		'change',
+		function(event) {
+			var index = types.indexOf(event.currentTarget);
+
+			selectSmallImageType(index);
+		},
+		'.lfr-blogs-small-image-type'
+	);
+
+	new A.Toggler(
+		{
+			animated: true,
+			content: '#<portlet:namespace />smallImageContainer .lfr-blogs-small-image-content',
+			expanded: <%= smallImage %>,
+			header: '#<portlet:namespace />smallImageContainer .lfr-blogs-small-image-header',
+			on: {
+				animatingChange: function(event) {
+					var instance = this;
+
+					var expanded = !instance.get('expanded');
+
+					A.one('#<portlet:namespace />smallImage').set('value', expanded);
+					A.one('#<portlet:namespace />smallImageCheckbox').set('checked', expanded);
+
+					if (expanded) {
+						types.each(
+							function(item, index, collection) {
+								if (item.get('checked')) {
+									values.item(index).set('disabled', false);
+								}
+							}
+						);
+					}
+					else {
+						values.set('disabled', true);
+					}
+				}
+			}
+		}
+	);
+
+	selectSmallImageType('<%= (entry != null) && Validator.isNotNull(entry.getSmallImageURL()) ? 0 : 1 %>');
 </aui:script>
 
 <%

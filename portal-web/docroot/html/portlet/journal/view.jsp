@@ -53,22 +53,17 @@ request.setAttribute("view.jsp-folder", folder);
 request.setAttribute("view.jsp-folderId", String.valueOf(folderId));
 %>
 
-<portlet:actionURL var="undoTrashURL">
-	<portlet:param name="struts_action" value="/journal/edit_entry" />
-	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
-</portlet:actionURL>
-
-<liferay-ui:trash-undo portletURL="<%= undoTrashURL %>" />
+<liferay-ui:trash-undo />
 
 <div id="<portlet:namespace />journalContainer">
 	<aui:row cssClass="lfr-app-column-view">
-		<aui:col cssClass="navigation-pane" width="<%= 20 %>">
+		<aui:col cssClass="navigation-pane" width="<%= 25 %>">
 			<liferay-util:include page="/html/portlet/journal/view_folders.jsp" />
 
 			<div class="folder-pagination"></div>
 		</aui:col>
 
-		<aui:col cssClass="context-pane" last="<%= true %>" width="<%= 80 %>">
+		<aui:col cssClass="context-pane" last="<%= true %>" width="<%= 75 %>">
 			<liferay-ui:app-view-toolbar
 				includeDisplayStyle="<%= true %>"
 				includeSelectAll="<%= true %>"
@@ -183,7 +178,16 @@ folderStart = GetterUtil.getInteger(request.getAttribute("view_folders.jsp-folde
 			portletId: '<%= portletDisplay.getId() %>',
 			rowIds: '<%= RowChecker.ROW_IDS %>',
 			select: {
-				displayViews: ['<%= StringUtil.merge(displayViews, "','") %>']
+
+				<%
+				String[] escapedDisplayViews = new String[displayViews.length];
+
+				for (int i = 0; i < displayViews.length; i++) {
+					escapedDisplayViews[i] = HtmlUtil.escapeJS(displayViews[i]);
+				}
+				%>
+
+				displayViews: ['<%= StringUtil.merge(escapedDisplayViews, "','") %>']
 			}
 		}
 	);

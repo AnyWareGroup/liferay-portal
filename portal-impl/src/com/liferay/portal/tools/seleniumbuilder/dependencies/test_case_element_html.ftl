@@ -1,93 +1,51 @@
+<#assign void = testCaseNameStack.push(testCaseName)>
+
 <#assign testCaseRootElement = seleniumBuilderContext.getTestCaseRootElement(testCaseName)>
 
-<#assign testCaseCommandElements = testCaseRootElement.elements("command")>
+<#assign testCaseCommandNames = seleniumBuilderContext.getTestCaseCommandNames(testCaseName)>
 
-<ul>
-	<#list testCaseCommandElements as testCaseCommandElement>
-		<#assign testCaseCommand = testCaseCommandElement.attributeValue("name")>
+<#if extendedTestCase??>
+	<#assign extendedTestCaseRootElement = seleniumBuilderContext.getTestCaseRootElement(extendedTestCase)>
+</#if>
 
-		<li id="${testCaseName}TestCase__${testCaseCommand}">
-			<div>
-				<h3 class="testCaseCommand">${testCaseName}#${testCaseCommand}</h3>
-			</div>
+<#list testCaseCommandNames as testCaseCommandName>
+	<#assign testCaseCommandFound = false>
 
-			<ul>
-				<#assign testCaseVarElements = testCaseRootElement.elements("var")>
+	<#if testCaseRootElement.elements("command")??>
+		<#assign testCaseCommandElements = testCaseRootElement.elements("command")>
 
-				<#list testCaseVarElements as testCaseVarElement>
-					<#assign lineNumber = testCaseVarElement.attributeValue("line-number")>
+		<#list testCaseCommandElements as testCaseCommandElement>
+			<#assign testCaseCommand = testCaseCommandElement.attributeValue("name")>
 
-					<li id="${testCaseName}TestCase__${lineNumber}">
-						<#assign varName = testCaseVarElement.attributeValue("name")>
-						<#assign varValue = testCaseVarElement.attributeValue("value")>
+			<#if testCaseCommand == testCaseCommandName>
+				<#include "test_case_command_block_element_html.ftl">
 
-						<div>
-							<span class="arrow">&lt;</span><span class="tag">var</span>
-							<span class="attribute">name</span><span class="arrow">=</span><span class="quote">&quot;${varName}&quot;</span>
-							<span class="attribute">value</span><span class="arrow">=</span><span class="quote">&quot;${varValue}&quot;</span>
-							<span class="arrow">/&gt;</span>
-						</div>
-					</li>
-				</#list>
+				<#assign testCaseCommandFound = true>
 
-				<#if testCaseRootElement.element("set-up")??>
-					<#assign testCaseSetupElement = testCaseRootElement.element("set-up")>
+				<#break>
+			</#if>
+		</#list>
+	</#if>
 
-					<#assign lineNumber = testCaseSetupElement.attributeValue("line-number")>
+	<#if !testCaseCommandFound && extendedTestCaseRootElement?? && extendedTestCaseRootElement.elements("command")??>
+		<#assign extendedTestCaseCommandElements = extendedTestCaseRootElement.elements("command")>
 
-					<li id="${testCaseName}TestCase__${lineNumber}">
-						<div>
-							<span class="arrow">&lt;</span><span class="tag">set-up</span><span class="arrow">&gt;</span>
-						</div>
+		<#list extendedTestCaseCommandElements as extendedTestCaseCommandElement>
+			<#assign extendedTestCaseCommand = extendedTestCaseCommandElement.attributeValue("name")>
 
-						<#assign testCaseBlockElement = testCaseSetupElement>
+			<#if extendedTestCaseCommand = testCaseCommandName>
+				<#assign void = testCaseNameStack.push(extendedTestCase)>
 
-						<#include "test_case_block_element_html.ftl">
+				<#assign testCaseCommandElement = extendedTestCaseCommandElement>
 
-						<div>
-							<span class="arrow">&lt;/</span><span class="tag">set-up</span><span class="arrow">&gt;</span>
-						</div>
-					</li>
-				</#if>
+				<#include "test_case_command_block_element_html.ftl">
 
-				<#assign lineNumber = testCaseCommandElement.attributeValue("line-number")>
+				<#assign void = testCaseNameStack.pop()>
 
-				<li id="${testCaseName}TestCase__${lineNumber}">
-					<div>
-						<span class="arrow">&lt;</span><span class="tag">command</span>
-						<span class="attribute">name</span><span class="arrow">=</span><span class="quote">&quot;${testCaseCommandElement.attributeValue("name")}&quot;</span>
-						<span class="arrow">&gt;</span>
-					</div>
+				<#break>
+			</#if>
+		</#list>
+	</#if>
+</#list>
 
-					<#assign testCaseBlockElement = testCaseCommandElement>
-
-					<#include "test_case_block_element_html.ftl">
-
-					<div>
-						<span class="arrow">&lt;/</span><span class="tag">command</span><span class="arrow">&gt;</span>
-					</div>
-				</li>
-
-				<#if testCaseRootElement.element("tear-down")??>
-					<#assign testCaseTearDownElement = testCaseRootElement.element("tear-down")>
-
-					<#assign lineNumber = testCaseTearDownElement.attributeValue("line-number")>
-
-					<li id="${testCaseName}TestCase__${lineNumber}">
-						<div>
-							<span class="arrow">&lt;</span><span class="tag">tear-down</span><span class="arrow">&gt;</span>
-						</div>
-
-						<#assign testCaseBlockElement = testCaseTearDownElement>
-
-						<#include "test_case_block_element_html.ftl">
-
-						<div>
-							<span class="arrow">&lt;/</span><span class="tag">tear-down</span><span class="arrow">&gt;</span>
-						</div>
-					</li>
-				</#if>
-			</ul>
-		</li>
-	</#list>
-</ul>
+<#assign void = testCaseNameStack.pop()>

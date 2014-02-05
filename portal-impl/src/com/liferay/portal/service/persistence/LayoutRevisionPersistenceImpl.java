@@ -355,6 +355,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		throws SystemException {
 		int count = countByLayoutSetBranchId(layoutSetBranchId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutRevision> list = findByLayoutSetBranchId(layoutSetBranchId,
 				count - 1, count, orderByComparator);
 
@@ -843,6 +847,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 	public LayoutRevision fetchByPlid_Last(long plid,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByPlid(plid);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutRevision> list = findByPlid(plid, count - 1, count,
 				orderByComparator);
@@ -1357,6 +1365,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 	public LayoutRevision fetchByL_H_Last(long layoutSetBranchId, boolean head,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByL_H(layoutSetBranchId, head);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutRevision> list = findByL_H(layoutSetBranchId, head,
 				count - 1, count, orderByComparator);
@@ -1886,6 +1898,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByL_P(layoutSetBranchId, plid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutRevision> list = findByL_P(layoutSetBranchId, plid,
 				count - 1, count, orderByComparator);
 
@@ -2413,6 +2429,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByL_S(layoutSetBranchId, status);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutRevision> list = findByL_S(layoutSetBranchId, status,
 				count - 1, count, orderByComparator);
 
@@ -2934,6 +2954,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByH_P(head, plid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutRevision> list = findByH_P(head, plid, count - 1, count,
 				orderByComparator);
 
@@ -3251,7 +3275,7 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		if ((list != null) && !list.isEmpty()) {
 			for (LayoutRevision layoutRevision : list) {
 				if ((plid != layoutRevision.getPlid()) ||
-						(status != layoutRevision.getStatus())) {
+						(status == layoutRevision.getStatus())) {
 					list = null;
 
 					break;
@@ -3437,6 +3461,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 	public LayoutRevision fetchByP_NotS_Last(long plid, int status,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByP_NotS(plid, status);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutRevision> list = findByP_NotS(plid, status, count - 1,
 				count, orderByComparator);
@@ -3989,6 +4017,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		long layoutBranchId, long plid, OrderByComparator orderByComparator)
 		throws SystemException {
 		int count = countByL_L_P(layoutSetBranchId, layoutBranchId, plid);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutRevision> list = findByL_L_P(layoutSetBranchId,
 				layoutBranchId, plid, count - 1, count, orderByComparator);
@@ -4565,6 +4597,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		long parentLayoutRevisionId, long plid,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByL_P_P(layoutSetBranchId, parentLayoutRevisionId, plid);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<LayoutRevision> list = findByL_P_P(layoutSetBranchId,
 				parentLayoutRevisionId, plid, count - 1, count,
@@ -5408,6 +5444,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		throws SystemException {
 		int count = countByL_P_S(layoutSetBranchId, plid, status);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutRevision> list = findByL_P_S(layoutSetBranchId, plid,
 				status, count - 1, count, orderByComparator);
 
@@ -5659,6 +5699,10 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 	private static final String _FINDER_COLUMN_L_P_S_LAYOUTSETBRANCHID_2 = "layoutRevision.layoutSetBranchId = ? AND ";
 	private static final String _FINDER_COLUMN_L_P_S_PLID_2 = "layoutRevision.plid = ? AND ";
 	private static final String _FINDER_COLUMN_L_P_S_STATUS_2 = "layoutRevision.status = ?";
+
+	public LayoutRevisionPersistenceImpl() {
+		setModelClass(LayoutRevision.class);
+	}
 
 	/**
 	 * Caches the layout revision in the entity cache if it is enabled.
@@ -6140,10 +6184,12 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 
 		EntityCacheUtil.putResult(LayoutRevisionModelImpl.ENTITY_CACHE_ENABLED,
 			LayoutRevisionImpl.class, layoutRevision.getPrimaryKey(),
-			layoutRevision);
+			layoutRevision, false);
 
 		clearUniqueFindersCache(layoutRevision);
 		cacheUniqueFindersCache(layoutRevision);
+
+		layoutRevision.resetOriginalValues();
 
 		return layoutRevision;
 	}
@@ -6158,6 +6204,7 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		layoutRevisionImpl.setNew(layoutRevision.isNew());
 		layoutRevisionImpl.setPrimaryKey(layoutRevision.getPrimaryKey());
 
+		layoutRevisionImpl.setMvccVersion(layoutRevision.getMvccVersion());
 		layoutRevisionImpl.setLayoutRevisionId(layoutRevision.getLayoutRevisionId());
 		layoutRevisionImpl.setGroupId(layoutRevision.getGroupId());
 		layoutRevisionImpl.setCompanyId(layoutRevision.getCompanyId());
@@ -6178,7 +6225,6 @@ public class LayoutRevisionPersistenceImpl extends BasePersistenceImpl<LayoutRev
 		layoutRevisionImpl.setKeywords(layoutRevision.getKeywords());
 		layoutRevisionImpl.setRobots(layoutRevision.getRobots());
 		layoutRevisionImpl.setTypeSettings(layoutRevision.getTypeSettings());
-		layoutRevisionImpl.setIconImage(layoutRevision.isIconImage());
 		layoutRevisionImpl.setIconImageId(layoutRevision.getIconImageId());
 		layoutRevisionImpl.setThemeId(layoutRevision.getThemeId());
 		layoutRevisionImpl.setColorSchemeId(layoutRevision.getColorSchemeId());

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SCLicenseService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SCLicenseService
+ * @author Brian Wing Shun Chan
+ * @see SCLicenseService
  * @generated
  */
+@ProviderType
 public class SCLicenseServiceWrapper implements SCLicenseService,
 	ServiceWrapper<SCLicenseService> {
 	public SCLicenseServiceWrapper(SCLicenseService scLicenseService) {
@@ -87,6 +90,7 @@ public class SCLicenseServiceWrapper implements SCLicenseService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SCLicenseService getWrappedSCLicenseService() {
 		return _scLicenseService;
 	}
@@ -94,6 +98,7 @@ public class SCLicenseServiceWrapper implements SCLicenseService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSCLicenseService(SCLicenseService scLicenseService) {
 		_scLicenseService = scLicenseService;
 	}

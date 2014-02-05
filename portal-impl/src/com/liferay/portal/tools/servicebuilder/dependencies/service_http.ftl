@@ -33,12 +33,20 @@ import com.liferay.portal.service.http.TunnelUtil;
  * The HTTP utility is only generated for remote services.
  * </p>
  *
- * @author    ${author}
- * @see       ${entity.name}ServiceSoap
- * @see       com.liferay.portal.security.auth.HttpPrincipal
- * @see       ${packagePath}.service.${entity.name}ServiceUtil
+ * @author ${author}
+ * @see ${entity.name}ServiceSoap
+ * @see com.liferay.portal.security.auth.HttpPrincipal
+ * @see ${packagePath}.service.${entity.name}ServiceUtil
+<#if classDeprecated>
+ * @deprecated ${classDeprecatedComment}
+</#if>
  * @generated
  */
+
+<#if classDeprecated>
+	@Deprecated
+</#if>
+
 public class ${entity.name}ServiceHttp {
 
 	<#assign hasMethods = false>

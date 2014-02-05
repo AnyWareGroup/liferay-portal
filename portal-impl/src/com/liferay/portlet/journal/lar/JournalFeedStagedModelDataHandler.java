@@ -14,13 +14,15 @@
 
 package com.liferay.portlet.journal.lar;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
+import com.liferay.portal.kernel.lar.ExportImportHelper;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -39,9 +41,7 @@ import com.liferay.portlet.journal.FeedTargetLayoutFriendlyUrlException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFeed;
 import com.liferay.portlet.journal.service.JournalFeedLocalServiceUtil;
-import com.liferay.portlet.journal.service.persistence.JournalFeedUtil;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,6 +51,20 @@ public class JournalFeedStagedModelDataHandler
 	extends BaseStagedModelDataHandler<JournalFeed> {
 
 	public static final String[] CLASS_NAMES = {JournalFeed.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws PortalException, SystemException {
+
+		JournalFeed feed =
+			JournalFeedLocalServiceUtil.fetchJournalFeedByUuidAndGroupId(
+				uuid, groupId);
+
+		if (feed != null) {
+			JournalFeedLocalServiceUtil.deleteFeed(feed);
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -69,12 +83,9 @@ public class JournalFeedStagedModelDataHandler
 			feed.getStructureId(), true);
 
 		if (ddmStructure != null) {
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, ddmStructure);
-
-			portletDataContext.addReferenceElement(
-				feed, feedElement, ddmStructure,
-				PortletDataContext.REFERENCE_TYPE_STRONG, false);
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, feed, ddmStructure,
+				PortletDataContext.REFERENCE_TYPE_STRONG);
 		}
 		else {
 			if (_log.isWarnEnabled()) {
@@ -89,12 +100,9 @@ public class JournalFeedStagedModelDataHandler
 			feed.getTemplateId());
 
 		if (ddmTemplate != null) {
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, ddmTemplate);
-
-			portletDataContext.addReferenceElement(
-				feed, feedElement, ddmTemplate,
-				PortletDataContext.REFERENCE_TYPE_STRONG, false);
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, feed, ddmTemplate,
+				PortletDataContext.REFERENCE_TYPE_STRONG);
 		}
 		else {
 			if (_log.isWarnEnabled()) {
@@ -111,13 +119,10 @@ public class JournalFeedStagedModelDataHandler
 				feed.getRendererTemplateId());
 
 		if (rendererDDMTemplate != null) {
-			StagedModelDataHandlerUtil.exportStagedModel(
-				portletDataContext, rendererDDMTemplate);
-
 			Element rendererDDMTemplateElement =
-				portletDataContext.addReferenceElement(
-					feed, feedElement, rendererDDMTemplate,
-					PortletDataContext.REFERENCE_TYPE_STRONG, false);
+				StagedModelDataHandlerUtil.exportReferenceStagedModel(
+					portletDataContext, feed, rendererDDMTemplate,
+					PortletDataContext.REFERENCE_TYPE_STRONG);
 
 			rendererDDMTemplateElement.addAttribute(
 				"rendererDDMTemplate", "true");
@@ -144,14 +149,15 @@ public class JournalFeedStagedModelDataHandler
 			String targetLayoutFriendlyUrl = StringUtil.replaceFirst(
 				feed.getTargetLayoutFriendlyUrl(),
 				StringPool.SLASH + newGroupFriendlyURL + StringPool.SLASH,
-				"/@data_handler_group_friendly_url@/");
+				StringPool.SLASH +
+					ExportImportHelper.DATA_HANDLER_GROUP_FRIENDLY_URL +
+						StringPool.SLASH);
 
 			feed.setTargetLayoutFriendlyUrl(targetLayoutFriendlyUrl);
 		}
 
 		portletDataContext.addClassedModel(
-			feedElement, ExportImportPathUtil.getModelPath(feed), feed,
-			JournalPortletDataHandler.NAMESPACE);
+			feedElement, ExportImportPathUtil.getModelPath(feed), feed);
 	}
 
 	@Override
@@ -181,11 +187,14 @@ public class JournalFeedStagedModelDataHandler
 
 		String oldGroupFriendlyURL = friendlyURLParts[2];
 
-		if (oldGroupFriendlyURL.equals("@data_handler_group_friendly_url@")) {
+		if (oldGroupFriendlyURL.equals(
+				ExportImportHelper.DATA_HANDLER_GROUP_FRIENDLY_URL)) {
+
 			feed.setTargetLayoutFriendlyUrl(
 				StringUtil.replace(
 					feed.getTargetLayoutFriendlyUrl(),
-					"@data_handler_group_friendly_url@", newGroupFriendlyURL));
+					ExportImportHelper.DATA_HANDLER_GROUP_FRIENDLY_URL,
+					newGroupFriendlyURL));
 		}
 
 		String feedId = feed.getFeedId();
@@ -193,78 +202,37 @@ public class JournalFeedStagedModelDataHandler
 		boolean autoFeedId = false;
 
 		if (Validator.isNumber(feedId) ||
-			(JournalFeedUtil.fetchByG_F(
+			(JournalFeedLocalServiceUtil.fetchFeed(
 				portletDataContext.getScopeGroupId(), feedId) != null)) {
 
 			autoFeedId = true;
 		}
 
-		List<Element> ddmStructureElements =
-			portletDataContext.getReferenceDataElements(
-				feed, DDMStructure.class);
+		StagedModelDataHandlerUtil.importReferenceStagedModels(
+			portletDataContext, feed, DDMStructure.class);
 
-		String parentDDMStructureKey = StringPool.BLANK;
+		Map<String, String> ddmStructureKeys =
+			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
+				DDMStructure.class + ".ddmStructureKey");
 
-		if (!ddmStructureElements.isEmpty()) {
-			Element ddmStructureElement = ddmStructureElements.get(0);
+		String parentDDMStructureKey = MapUtil.getString(
+			ddmStructureKeys, feed.getStructureId(), feed.getStructureId());
 
-			String ddmStructurePath = ddmStructureElement.attributeValue(
-				"path");
+		StagedModelDataHandlerUtil.importReferenceStagedModels(
+			portletDataContext, feed, DDMTemplate.class);
 
-			DDMStructure ddmStructure =
-				(DDMStructure)portletDataContext.getZipEntryAsObject(
-					ddmStructurePath);
+		Map<String, String> ddmTemplateKeys =
+			(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
+				DDMTemplate.class + ".ddmTemplateKey");
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, ddmStructure);
-
-			Map<String, String> ddmStructureKeys =
-				(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
-					DDMStructure.class + ".ddmStructureKey");
-
-			parentDDMStructureKey = MapUtil.getString(
-				ddmStructureKeys, ddmStructure.getStructureKey(),
-				ddmStructure.getStructureKey());
-		}
-
-		List<Element> ddmTemplateElements =
-			portletDataContext.getReferenceDataElements(
-				feed, DDMTemplate.class);
-
-		String parentDDMTemplateKey = StringPool.BLANK;
-		String parentRendererDDMTemplateKey = StringPool.BLANK;
-
-		for (Element ddmTemplateElement : ddmTemplateElements) {
-			String ddmTemplatePath = ddmTemplateElement.attributeValue("path");
-
-			DDMTemplate ddmTemplate =
-				(DDMTemplate)portletDataContext.getZipEntryAsObject(
-					ddmTemplatePath);
-
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, ddmTemplate);
-
-			Map<String, String> ddmTemplateKeys =
-				(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(
-					DDMTemplate.class + ".ddmTemplateKey");
-
-			boolean rendererDDMTemplate = GetterUtil.getBoolean(
-				ddmTemplateElement.attributeValue("rendererDDMTemplate"));
-
-			String ddmTemplateKey = MapUtil.getString(
-				ddmTemplateKeys, ddmTemplate.getTemplateKey(),
-				ddmTemplate.getTemplateKey());
-
-			if (rendererDDMTemplate) {
-				parentDDMTemplateKey = ddmTemplateKey;
-			}
-			else {
-				parentRendererDDMTemplateKey = ddmTemplateKey;
-			}
-		}
+		String parentDDMTemplateKey = MapUtil.getString(
+			ddmTemplateKeys, feed.getTemplateId(), feed.getTemplateId());
+		String parentRendererDDMTemplateKey = MapUtil.getString(
+			ddmTemplateKeys, feed.getRendererTemplateId(),
+			feed.getRendererTemplateId());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			feed, JournalPortletDataHandler.NAMESPACE);
+			feed);
 
 		boolean addGroupPermissions = creationStrategy.addGroupPermissions(
 			portletDataContext, feed);
@@ -280,8 +248,11 @@ public class JournalFeedStagedModelDataHandler
 
 		try {
 			if (portletDataContext.isDataStrategyMirror()) {
-				JournalFeed existingFeed = JournalFeedUtil.fetchByUUID_G(
-					feed.getUuid(), portletDataContext.getScopeGroupId());
+				JournalFeed existingFeed =
+					JournalFeedLocalServiceUtil.
+						fetchJournalFeedByUuidAndGroupId(
+							feed.getUuid(),
+							portletDataContext.getScopeGroupId());
 
 				if (existingFeed == null) {
 					serviceContext.setUuid(feed.getUuid());
@@ -324,8 +295,7 @@ public class JournalFeedStagedModelDataHandler
 					serviceContext);
 			}
 
-			portletDataContext.importClassedModel(
-				feed, importedFeed, JournalPortletDataHandler.NAMESPACE);
+			portletDataContext.importClassedModel(feed, importedFeed);
 
 			if (!feedId.equals(importedFeed.getFeedId())) {
 				if (_log.isWarnEnabled()) {

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -56,12 +58,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBCategoryServiceHttp
- * @see       com.liferay.portlet.messageboards.model.MBCategorySoap
- * @see       com.liferay.portlet.messageboards.service.MBCategoryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see MBCategoryServiceHttp
+ * @see com.liferay.portlet.messageboards.model.MBCategorySoap
+ * @see com.liferay.portlet.messageboards.service.MBCategoryServiceUtil
  * @generated
  */
+@ProviderType
 public class MBCategoryServiceSoap {
 	public static com.liferay.portlet.messageboards.model.MBCategorySoap addCategory(
 		long userId, long parentCategoryId, java.lang.String name,
@@ -202,6 +205,23 @@ public class MBCategoryServiceSoap {
 	}
 
 	public static com.liferay.portlet.messageboards.model.MBCategorySoap[] getCategories(
+		long groupId, long excludedCategoryId, long parentCategoryId,
+		int status, int start, int end) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.messageboards.model.MBCategory> returnValue =
+				MBCategoryServiceUtil.getCategories(groupId,
+					excludedCategoryId, parentCategoryId, status, start, end);
+
+			return com.liferay.portlet.messageboards.model.MBCategorySoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategorySoap[] getCategories(
 		long groupId, long[] parentCategoryIds, int start, int end)
 		throws RemoteException {
 		try {
@@ -225,6 +245,23 @@ public class MBCategoryServiceSoap {
 			java.util.List<com.liferay.portlet.messageboards.model.MBCategory> returnValue =
 				MBCategoryServiceUtil.getCategories(groupId, parentCategoryIds,
 					status, start, end);
+
+			return com.liferay.portlet.messageboards.model.MBCategorySoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portlet.messageboards.model.MBCategorySoap[] getCategories(
+		long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+		int status, int start, int end) throws RemoteException {
+		try {
+			java.util.List<com.liferay.portlet.messageboards.model.MBCategory> returnValue =
+				MBCategoryServiceUtil.getCategories(groupId,
+					excludedCategoryIds, parentCategoryIds, status, start, end);
 
 			return com.liferay.portlet.messageboards.model.MBCategorySoap.toSoapModels(returnValue);
 		}
@@ -265,6 +302,21 @@ public class MBCategoryServiceSoap {
 		}
 	}
 
+	public static int getCategoriesCount(long groupId, long excludedCategoryId,
+		long parentCategoryId, int status) throws RemoteException {
+		try {
+			int returnValue = MBCategoryServiceUtil.getCategoriesCount(groupId,
+					excludedCategoryId, parentCategoryId, status);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
 	public static int getCategoriesCount(long groupId, long[] parentCategoryIds)
 		throws RemoteException {
 		try {
@@ -285,6 +337,22 @@ public class MBCategoryServiceSoap {
 		try {
 			int returnValue = MBCategoryServiceUtil.getCategoriesCount(groupId,
 					parentCategoryIds, status);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getCategoriesCount(long groupId,
+		long[] excludedCategoryIds, long[] parentCategoryIds, int status)
+		throws RemoteException {
+		try {
+			int returnValue = MBCategoryServiceUtil.getCategoriesCount(groupId,
+					excludedCategoryIds, parentCategoryIds, status);
 
 			return returnValue;
 		}

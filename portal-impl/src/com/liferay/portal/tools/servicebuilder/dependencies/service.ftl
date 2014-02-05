@@ -1,5 +1,7 @@
 package ${packagePath}.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
@@ -23,6 +25,9 @@ import com.liferay.portal.service.PersistedModelLocalService;
  * @see ${entity.name}LocalServiceUtil
  * @see ${packagePath}.service.base.${entity.name}LocalServiceBaseImpl
  * @see ${packagePath}.service.impl.${entity.name}LocalServiceImpl
+<#if classDeprecated>
+ * @deprecated ${classDeprecatedComment}
+</#if>
  * @generated
  */
 <#else>
@@ -35,8 +40,19 @@ import com.liferay.portal.service.PersistedModelLocalService;
  * @see ${entity.name}ServiceUtil
  * @see ${packagePath}.service.base.${entity.name}ServiceBaseImpl
  * @see ${packagePath}.service.impl.${entity.name}ServiceImpl
+<#if classDeprecated>
+ * @deprecated ${classDeprecatedComment}
+</#if>
  * @generated
  */
+</#if>
+
+<#if classDeprecated>
+	@Deprecated
+</#if>
+
+<#if pluginName == "">
+	@ProviderType
 </#if>
 
 <#if entity.hasRemoteService() && sessionTypeName != "Local">
@@ -81,6 +97,10 @@ public interface ${entity.name}${sessionTypeName}Service
 	<#list methods as method>
 		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && serviceBuilder.isCustomMethod(method) && !serviceBuilder.isDuplicateMethod(method, tempMap)>
 			${serviceBuilder.getJavadocComment(method)}
+
+			<#if serviceBuilder.hasAnnotation(method, "Deprecated")>
+				@Deprecated
+			</#if>
 
 			<#if overrideMethodNames?seq_index_of(method.name) != -1>
 				@Override

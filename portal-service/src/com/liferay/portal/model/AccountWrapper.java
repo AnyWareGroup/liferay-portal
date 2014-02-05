@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Account}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Account
+ * @author Brian Wing Shun Chan
+ * @see Account
  * @generated
  */
+@ProviderType
 public class AccountWrapper implements Account, ModelWrapper<Account> {
 	public AccountWrapper(Account account) {
 		_account = account;
@@ -46,6 +51,7 @@ public class AccountWrapper implements Account, ModelWrapper<Account> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("accountId", getAccountId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -68,6 +74,12 @@ public class AccountWrapper implements Account, ModelWrapper<Account> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long accountId = (Long)attributes.get("accountId");
 
 		if (accountId != null) {
@@ -183,6 +195,26 @@ public class AccountWrapper implements Account, ModelWrapper<Account> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_account.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this account.
+	*
+	* @return the mvcc version of this account
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _account.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this account.
+	*
+	* @param mvccVersion the mvcc version of this account
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_account.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -631,9 +663,29 @@ public class AccountWrapper implements Account, ModelWrapper<Account> {
 		_account.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AccountWrapper)) {
+			return false;
+		}
+
+		AccountWrapper accountWrapper = (AccountWrapper)obj;
+
+		if (Validator.equals(_account, accountWrapper._account)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Account getWrappedAccount() {
 		return _account;
 	}
@@ -641,6 +693,16 @@ public class AccountWrapper implements Account, ModelWrapper<Account> {
 	@Override
 	public Account getWrappedModel() {
 		return _account;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _account.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _account.isFinderCacheEnabled();
 	}
 
 	@Override

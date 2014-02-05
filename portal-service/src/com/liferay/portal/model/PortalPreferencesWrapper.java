@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link PortalPreferences}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PortalPreferences
+ * @author Brian Wing Shun Chan
+ * @see PortalPreferences
  * @generated
  */
+@ProviderType
 public class PortalPreferencesWrapper implements PortalPreferences,
 	ModelWrapper<PortalPreferences> {
 	public PortalPreferencesWrapper(PortalPreferences portalPreferences) {
@@ -46,6 +51,7 @@ public class PortalPreferencesWrapper implements PortalPreferences,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("portalPreferencesId", getPortalPreferencesId());
 		attributes.put("ownerId", getOwnerId());
 		attributes.put("ownerType", getOwnerType());
@@ -56,6 +62,12 @@ public class PortalPreferencesWrapper implements PortalPreferences,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long portalPreferencesId = (Long)attributes.get("portalPreferencesId");
 
 		if (portalPreferencesId != null) {
@@ -99,6 +111,26 @@ public class PortalPreferencesWrapper implements PortalPreferences,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_portalPreferences.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this portal preferences.
+	*
+	* @return the mvcc version of this portal preferences
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _portalPreferences.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this portal preferences.
+	*
+	* @param mvccVersion the mvcc version of this portal preferences
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_portalPreferences.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -286,9 +318,30 @@ public class PortalPreferencesWrapper implements PortalPreferences,
 		_portalPreferences.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PortalPreferencesWrapper)) {
+			return false;
+		}
+
+		PortalPreferencesWrapper portalPreferencesWrapper = (PortalPreferencesWrapper)obj;
+
+		if (Validator.equals(_portalPreferences,
+					portalPreferencesWrapper._portalPreferences)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PortalPreferences getWrappedPortalPreferences() {
 		return _portalPreferences;
 	}
@@ -296,6 +349,16 @@ public class PortalPreferencesWrapper implements PortalPreferences,
 	@Override
 	public PortalPreferences getWrappedModel() {
 		return _portalPreferences;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _portalPreferences.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _portalPreferences.isFinderCacheEnabled();
 	}
 
 	@Override

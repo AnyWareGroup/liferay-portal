@@ -57,6 +57,7 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 	 *             Boolean, Boolean, Boolean, String, long, long, String,
 	 *             Boolean, Boolean, long, long, Boolean, String)}
 	 */
+	@Deprecated
 	@Override
 	public void actionURL(
 			String windowState, String portletMode, Boolean secure,
@@ -122,6 +123,19 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 		throws Exception {
 	}
 
+	@Override
+	public void discussion(
+			String className, long classPK, String formAction, String formName,
+			boolean hideControls, boolean ratingsEnabled, String redirect,
+			long userId)
+		throws Exception {
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #discussion(String, long,
+	 *             String, String, boolean, boolean, String, long)})}
+	 */
+	@Deprecated
 	@Override
 	public void discussion(
 			String className, long classPK, String formAction, String formName,
@@ -223,64 +237,143 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 		throws Exception {
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #iconBack}
+	 */
+	@Deprecated
 	@Override
 	public void iconBack() throws Exception {
+		portletIconBack();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconClose}
+	 */
+	@Deprecated
 	@Override
 	public void iconClose() throws Exception {
+		portletIconClose();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconConfiguration}
+	 */
+	@Deprecated
 	@Override
 	public void iconConfiguration() throws Exception {
+		portletIconConfiguration();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconEdit}
+	 */
+	@Deprecated
 	@Override
 	public void iconEdit() throws Exception {
+		portletIconEdit();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconEditDefaults}
+	 */
+	@Deprecated
 	@Override
 	public void iconEditDefaults() throws Exception {
+		portletIconEditDefaults();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconEditGuest}
+	 */
+	@Deprecated
 	@Override
 	public void iconEditGuest() throws Exception {
+		portletIconEditGuest();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconHelp}
+	 */
+	@Deprecated
 	@Override
 	public void iconHelp() throws Exception {
+		portletIconHelp();
 	}
 
+	@Override
+	public void iconHelp(String message) throws Exception {
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconMaximize}
+	 */
+	@Deprecated
 	@Override
 	public void iconMaximize() throws Exception {
+		portletIconMaximize();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconMinimize}
+	 */
+	@Deprecated
 	@Override
 	public void iconMinimize() throws Exception {
+		portletIconMinimize();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconOptions}
+	 */
+	@Deprecated
 	@Override
 	public void iconOptions() throws Exception {
+		portletIconOptions();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconPortlet}
+	 */
+	@Deprecated
 	@Override
 	public void iconPortlet() throws Exception {
+		portletIconPortlet();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconPortlet(Portlet)}
+	 */
+	@Deprecated
 	@Override
 	public void iconPortlet(Portlet portlet) throws Exception {
+		portletIconPortlet();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconPortletCss}
+	 */
+	@Deprecated
 	@Override
 	public void iconPortletCss() throws Exception {
+		portletIconPortletCss();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconPrint}
+	 */
+	@Deprecated
 	@Override
 	public void iconPrint() throws Exception {
+		portletIconPrint();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #portletIconRefresh}
+	 */
+	@Deprecated
 	@Override
 	public void iconRefresh() throws Exception {
+		portletIconRefresh();
 	}
 
 	@Override
@@ -336,6 +429,7 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #mySites}
 	 */
+	@Deprecated
 	@Override
 	public void myPlaces() throws Exception {
 	}
@@ -343,6 +437,7 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #mySites(int)}
 	 */
+	@Deprecated
 	@Override
 	public void myPlaces(int max) throws Exception {
 	}
@@ -365,14 +460,75 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #permissionsURL(String,
-	 *             String, String, long, String, String, int[])}
+	 *             String, String, Object, String, String, int[])}
 	 */
+	@Deprecated
 	@Override
 	public void permissionsURL(
 			String redirect, String modelResource,
 			String modelResourceDescription, String resourcePrimKey,
 			String windowState, int[] roleTypes)
 		throws Exception {
+	}
+
+	@Override
+	public void portletIconBack() throws Exception {
+	}
+
+	@Override
+	public void portletIconClose() throws Exception {
+	}
+
+	@Override
+	public void portletIconConfiguration() throws Exception {
+	}
+
+	@Override
+	public void portletIconEdit() throws Exception {
+	}
+
+	@Override
+	public void portletIconEditDefaults() throws Exception {
+	}
+
+	@Override
+	public void portletIconEditGuest() throws Exception {
+	}
+
+	@Override
+	public void portletIconHelp() throws Exception {
+	}
+
+	@Override
+	public void portletIconMaximize() throws Exception {
+	}
+
+	@Override
+	public void portletIconMinimize() throws Exception {
+	}
+
+	@Override
+	public void portletIconOptions() throws Exception {
+	}
+
+	@Override
+	public void portletIconPortlet() throws Exception {
+	}
+
+	@Override
+	public void portletIconPortlet(Portlet portlet) throws Exception {
+	}
+
+	@Override
+	public void portletIconPortletCss() throws Exception {
+	}
+
+	@Override
+	public void portletIconPrint() throws Exception {
+	}
+
+	@Override
+	public void portletIconRefresh() throws Exception {
 	}
 
 	@Override
@@ -407,6 +563,7 @@ public class DummyVelocityTaglib implements VelocityTaglib {
 	 *             Boolean, Boolean, Boolean, long, long, String, Boolean,
 	 *             Boolean, long, long, Boolean, String)}
 	 */
+	@Deprecated
 	@Override
 	public void renderURL(
 			String windowState, String portletMode, Boolean secure,

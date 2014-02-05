@@ -32,13 +32,13 @@ String eventName = ParamUtil.getString(request, "eventName", "selectStructure");
 	<c:if test="<%= !showToolbar %>">
 		<liferay-ui:header
 			localizeTitle="<%= false %>"
-			title="<%= scopeStructureName %>"
+			title="<%= ddmDisplay.getStructureName(locale) %>"
 		/>
 	</c:if>
 
 	<c:if test="<%= showToolbar %>">
 		<liferay-util:include page="/html/portlet/dynamic_data_mapping/structure_toolbar.jsp">
-			<liferay-util:param name="toolbarItem" value="view-all" />
+			<liferay-util:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 		</liferay-util:include>
 	</c:if>
 
@@ -72,9 +72,9 @@ String eventName = ParamUtil.getString(request, "eventName", "selectStructure");
 				value="<%= HtmlUtil.escape(structure.getDescription(locale)) %>"
 			/>
 
-			<liferay-ui:search-container-column-text
+			<liferay-ui:search-container-column-date
 				name="modified-date"
-				value="<%= dateFormatDateTime.format(structure.getModifiedDate()) %>"
+				value="<%= structure.getModifiedDate() %>"
 			/>
 
 			<liferay-ui:search-container-column-text>
@@ -85,7 +85,7 @@ String eventName = ParamUtil.getString(request, "eventName", "selectStructure");
 
 					data.put("ddmstructureid", structure.getStructureId());
 					data.put("ddmstructurekey", structure.getStructureKey());
-					data.put("name", HtmlUtil.escapeAttribute(structure.getName(locale)));
+					data.put("name", structure.getName(locale));
 					%>
 
 					<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />

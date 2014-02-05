@@ -14,33 +14,24 @@
 
 package com.liferay.portlet.mobiledevicerules.service.base;
 
-import com.liferay.counter.service.CounterLocalService;
-
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.bean.IdentifiableBean;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.BaseServiceImpl;
-import com.liferay.portal.service.GroupLocalService;
-import com.liferay.portal.service.GroupService;
-import com.liferay.portal.service.ResourceLocalService;
-import com.liferay.portal.service.UserLocalService;
-import com.liferay.portal.service.UserService;
+import com.liferay.portal.service.persistence.ClassNamePersistence;
 import com.liferay.portal.service.persistence.GroupFinder;
 import com.liferay.portal.service.persistence.GroupPersistence;
+import com.liferay.portal.service.persistence.SystemEventPersistence;
 import com.liferay.portal.service.persistence.UserFinder;
 import com.liferay.portal.service.persistence.UserPersistence;
+import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup;
-import com.liferay.portlet.mobiledevicerules.service.MDRActionLocalService;
-import com.liferay.portlet.mobiledevicerules.service.MDRActionService;
-import com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceLocalService;
-import com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceService;
-import com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupLocalService;
 import com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupService;
-import com.liferay.portlet.mobiledevicerules.service.MDRRuleLocalService;
-import com.liferay.portlet.mobiledevicerules.service.MDRRuleService;
 import com.liferay.portlet.mobiledevicerules.service.persistence.MDRActionPersistence;
 import com.liferay.portlet.mobiledevicerules.service.persistence.MDRRuleGroupFinder;
 import com.liferay.portlet.mobiledevicerules.service.persistence.MDRRuleGroupInstancePersistence;
@@ -74,7 +65,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r action local service
 	 */
-	public MDRActionLocalService getMDRActionLocalService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRActionLocalService getMDRActionLocalService() {
 		return mdrActionLocalService;
 	}
 
@@ -84,7 +75,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 * @param mdrActionLocalService the m d r action local service
 	 */
 	public void setMDRActionLocalService(
-		MDRActionLocalService mdrActionLocalService) {
+		com.liferay.portlet.mobiledevicerules.service.MDRActionLocalService mdrActionLocalService) {
 		this.mdrActionLocalService = mdrActionLocalService;
 	}
 
@@ -93,7 +84,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r action remote service
 	 */
-	public MDRActionService getMDRActionService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRActionService getMDRActionService() {
 		return mdrActionService;
 	}
 
@@ -102,7 +93,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param mdrActionService the m d r action remote service
 	 */
-	public void setMDRActionService(MDRActionService mdrActionService) {
+	public void setMDRActionService(
+		com.liferay.portlet.mobiledevicerules.service.MDRActionService mdrActionService) {
 		this.mdrActionService = mdrActionService;
 	}
 
@@ -130,7 +122,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r rule local service
 	 */
-	public MDRRuleLocalService getMDRRuleLocalService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRRuleLocalService getMDRRuleLocalService() {
 		return mdrRuleLocalService;
 	}
 
@@ -139,7 +131,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param mdrRuleLocalService the m d r rule local service
 	 */
-	public void setMDRRuleLocalService(MDRRuleLocalService mdrRuleLocalService) {
+	public void setMDRRuleLocalService(
+		com.liferay.portlet.mobiledevicerules.service.MDRRuleLocalService mdrRuleLocalService) {
 		this.mdrRuleLocalService = mdrRuleLocalService;
 	}
 
@@ -148,7 +141,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r rule remote service
 	 */
-	public MDRRuleService getMDRRuleService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRRuleService getMDRRuleService() {
 		return mdrRuleService;
 	}
 
@@ -157,7 +150,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param mdrRuleService the m d r rule remote service
 	 */
-	public void setMDRRuleService(MDRRuleService mdrRuleService) {
+	public void setMDRRuleService(
+		com.liferay.portlet.mobiledevicerules.service.MDRRuleService mdrRuleService) {
 		this.mdrRuleService = mdrRuleService;
 	}
 
@@ -184,7 +178,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r rule group local service
 	 */
-	public MDRRuleGroupLocalService getMDRRuleGroupLocalService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupLocalService getMDRRuleGroupLocalService() {
 		return mdrRuleGroupLocalService;
 	}
 
@@ -194,7 +188,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 * @param mdrRuleGroupLocalService the m d r rule group local service
 	 */
 	public void setMDRRuleGroupLocalService(
-		MDRRuleGroupLocalService mdrRuleGroupLocalService) {
+		com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupLocalService mdrRuleGroupLocalService) {
 		this.mdrRuleGroupLocalService = mdrRuleGroupLocalService;
 	}
 
@@ -203,7 +197,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r rule group remote service
 	 */
-	public MDRRuleGroupService getMDRRuleGroupService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupService getMDRRuleGroupService() {
 		return mdrRuleGroupService;
 	}
 
@@ -212,7 +206,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param mdrRuleGroupService the m d r rule group remote service
 	 */
-	public void setMDRRuleGroupService(MDRRuleGroupService mdrRuleGroupService) {
+	public void setMDRRuleGroupService(
+		com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupService mdrRuleGroupService) {
 		this.mdrRuleGroupService = mdrRuleGroupService;
 	}
 
@@ -258,7 +253,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r rule group instance local service
 	 */
-	public MDRRuleGroupInstanceLocalService getMDRRuleGroupInstanceLocalService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceLocalService getMDRRuleGroupInstanceLocalService() {
 		return mdrRuleGroupInstanceLocalService;
 	}
 
@@ -268,7 +263,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 * @param mdrRuleGroupInstanceLocalService the m d r rule group instance local service
 	 */
 	public void setMDRRuleGroupInstanceLocalService(
-		MDRRuleGroupInstanceLocalService mdrRuleGroupInstanceLocalService) {
+		com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceLocalService mdrRuleGroupInstanceLocalService) {
 		this.mdrRuleGroupInstanceLocalService = mdrRuleGroupInstanceLocalService;
 	}
 
@@ -277,7 +272,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the m d r rule group instance remote service
 	 */
-	public MDRRuleGroupInstanceService getMDRRuleGroupInstanceService() {
+	public com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceService getMDRRuleGroupInstanceService() {
 		return mdrRuleGroupInstanceService;
 	}
 
@@ -287,7 +282,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 * @param mdrRuleGroupInstanceService the m d r rule group instance remote service
 	 */
 	public void setMDRRuleGroupInstanceService(
-		MDRRuleGroupInstanceService mdrRuleGroupInstanceService) {
+		com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceService mdrRuleGroupInstanceService) {
 		this.mdrRuleGroupInstanceService = mdrRuleGroupInstanceService;
 	}
 
@@ -315,7 +310,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the counter local service
 	 */
-	public CounterLocalService getCounterLocalService() {
+	public com.liferay.counter.service.CounterLocalService getCounterLocalService() {
 		return counterLocalService;
 	}
 
@@ -324,8 +319,66 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param counterLocalService the counter local service
 	 */
-	public void setCounterLocalService(CounterLocalService counterLocalService) {
+	public void setCounterLocalService(
+		com.liferay.counter.service.CounterLocalService counterLocalService) {
 		this.counterLocalService = counterLocalService;
+	}
+
+	/**
+	 * Returns the class name local service.
+	 *
+	 * @return the class name local service
+	 */
+	public com.liferay.portal.service.ClassNameLocalService getClassNameLocalService() {
+		return classNameLocalService;
+	}
+
+	/**
+	 * Sets the class name local service.
+	 *
+	 * @param classNameLocalService the class name local service
+	 */
+	public void setClassNameLocalService(
+		com.liferay.portal.service.ClassNameLocalService classNameLocalService) {
+		this.classNameLocalService = classNameLocalService;
+	}
+
+	/**
+	 * Returns the class name remote service.
+	 *
+	 * @return the class name remote service
+	 */
+	public com.liferay.portal.service.ClassNameService getClassNameService() {
+		return classNameService;
+	}
+
+	/**
+	 * Sets the class name remote service.
+	 *
+	 * @param classNameService the class name remote service
+	 */
+	public void setClassNameService(
+		com.liferay.portal.service.ClassNameService classNameService) {
+		this.classNameService = classNameService;
+	}
+
+	/**
+	 * Returns the class name persistence.
+	 *
+	 * @return the class name persistence
+	 */
+	public ClassNamePersistence getClassNamePersistence() {
+		return classNamePersistence;
+	}
+
+	/**
+	 * Sets the class name persistence.
+	 *
+	 * @param classNamePersistence the class name persistence
+	 */
+	public void setClassNamePersistence(
+		ClassNamePersistence classNamePersistence) {
+		this.classNamePersistence = classNamePersistence;
 	}
 
 	/**
@@ -333,7 +386,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the group local service
 	 */
-	public GroupLocalService getGroupLocalService() {
+	public com.liferay.portal.service.GroupLocalService getGroupLocalService() {
 		return groupLocalService;
 	}
 
@@ -342,7 +395,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param groupLocalService the group local service
 	 */
-	public void setGroupLocalService(GroupLocalService groupLocalService) {
+	public void setGroupLocalService(
+		com.liferay.portal.service.GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
 	}
 
@@ -351,7 +405,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the group remote service
 	 */
-	public GroupService getGroupService() {
+	public com.liferay.portal.service.GroupService getGroupService() {
 		return groupService;
 	}
 
@@ -360,7 +414,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param groupService the group remote service
 	 */
-	public void setGroupService(GroupService groupService) {
+	public void setGroupService(
+		com.liferay.portal.service.GroupService groupService) {
 		this.groupService = groupService;
 	}
 
@@ -405,7 +460,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the resource local service
 	 */
-	public ResourceLocalService getResourceLocalService() {
+	public com.liferay.portal.service.ResourceLocalService getResourceLocalService() {
 		return resourceLocalService;
 	}
 
@@ -415,8 +470,46 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 * @param resourceLocalService the resource local service
 	 */
 	public void setResourceLocalService(
-		ResourceLocalService resourceLocalService) {
+		com.liferay.portal.service.ResourceLocalService resourceLocalService) {
 		this.resourceLocalService = resourceLocalService;
+	}
+
+	/**
+	 * Returns the system event local service.
+	 *
+	 * @return the system event local service
+	 */
+	public com.liferay.portal.service.SystemEventLocalService getSystemEventLocalService() {
+		return systemEventLocalService;
+	}
+
+	/**
+	 * Sets the system event local service.
+	 *
+	 * @param systemEventLocalService the system event local service
+	 */
+	public void setSystemEventLocalService(
+		com.liferay.portal.service.SystemEventLocalService systemEventLocalService) {
+		this.systemEventLocalService = systemEventLocalService;
+	}
+
+	/**
+	 * Returns the system event persistence.
+	 *
+	 * @return the system event persistence
+	 */
+	public SystemEventPersistence getSystemEventPersistence() {
+		return systemEventPersistence;
+	}
+
+	/**
+	 * Sets the system event persistence.
+	 *
+	 * @param systemEventPersistence the system event persistence
+	 */
+	public void setSystemEventPersistence(
+		SystemEventPersistence systemEventPersistence) {
+		this.systemEventPersistence = systemEventPersistence;
 	}
 
 	/**
@@ -424,7 +517,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the user local service
 	 */
-	public UserLocalService getUserLocalService() {
+	public com.liferay.portal.service.UserLocalService getUserLocalService() {
 		return userLocalService;
 	}
 
@@ -433,7 +526,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param userLocalService the user local service
 	 */
-	public void setUserLocalService(UserLocalService userLocalService) {
+	public void setUserLocalService(
+		com.liferay.portal.service.UserLocalService userLocalService) {
 		this.userLocalService = userLocalService;
 	}
 
@@ -442,7 +536,7 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the user remote service
 	 */
-	public UserService getUserService() {
+	public com.liferay.portal.service.UserService getUserService() {
 		return userService;
 	}
 
@@ -451,7 +545,8 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param userService the user remote service
 	 */
-	public void setUserService(UserService userService) {
+	public void setUserService(
+		com.liferay.portal.service.UserService userService) {
 		this.userService = userService;
 	}
 
@@ -526,13 +621,18 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 	}
 
 	/**
-	 * Performs an SQL query.
+	 * Performs a SQL query.
 	 *
 	 * @param sql the sql query
 	 */
 	protected void runSQL(String sql) throws SystemException {
 		try {
 			DataSource dataSource = mdrRuleGroupPersistence.getDataSource();
+
+			DB db = DBFactoryUtil.getDB();
+
+			sql = db.buildSQL(sql);
+			sql = PortalUtil.transformSQL(sql);
 
 			SqlUpdate sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(dataSource,
 					sql, new int[0]);
@@ -544,48 +644,58 @@ public abstract class MDRRuleGroupServiceBaseImpl extends BaseServiceImpl
 		}
 	}
 
-	@BeanReference(type = MDRActionLocalService.class)
-	protected MDRActionLocalService mdrActionLocalService;
-	@BeanReference(type = MDRActionService.class)
-	protected MDRActionService mdrActionService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRActionLocalService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRActionLocalService mdrActionLocalService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRActionService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRActionService mdrActionService;
 	@BeanReference(type = MDRActionPersistence.class)
 	protected MDRActionPersistence mdrActionPersistence;
-	@BeanReference(type = MDRRuleLocalService.class)
-	protected MDRRuleLocalService mdrRuleLocalService;
-	@BeanReference(type = MDRRuleService.class)
-	protected MDRRuleService mdrRuleService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRRuleLocalService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRRuleLocalService mdrRuleLocalService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRRuleService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRRuleService mdrRuleService;
 	@BeanReference(type = MDRRulePersistence.class)
 	protected MDRRulePersistence mdrRulePersistence;
-	@BeanReference(type = MDRRuleGroupLocalService.class)
-	protected MDRRuleGroupLocalService mdrRuleGroupLocalService;
-	@BeanReference(type = MDRRuleGroupService.class)
-	protected MDRRuleGroupService mdrRuleGroupService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupLocalService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupLocalService mdrRuleGroupLocalService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupService mdrRuleGroupService;
 	@BeanReference(type = MDRRuleGroupPersistence.class)
 	protected MDRRuleGroupPersistence mdrRuleGroupPersistence;
 	@BeanReference(type = MDRRuleGroupFinder.class)
 	protected MDRRuleGroupFinder mdrRuleGroupFinder;
-	@BeanReference(type = MDRRuleGroupInstanceLocalService.class)
-	protected MDRRuleGroupInstanceLocalService mdrRuleGroupInstanceLocalService;
-	@BeanReference(type = MDRRuleGroupInstanceService.class)
-	protected MDRRuleGroupInstanceService mdrRuleGroupInstanceService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceLocalService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceLocalService mdrRuleGroupInstanceLocalService;
+	@BeanReference(type = com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceService.class)
+	protected com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceService mdrRuleGroupInstanceService;
 	@BeanReference(type = MDRRuleGroupInstancePersistence.class)
 	protected MDRRuleGroupInstancePersistence mdrRuleGroupInstancePersistence;
-	@BeanReference(type = CounterLocalService.class)
-	protected CounterLocalService counterLocalService;
-	@BeanReference(type = GroupLocalService.class)
-	protected GroupLocalService groupLocalService;
-	@BeanReference(type = GroupService.class)
-	protected GroupService groupService;
+	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
+	protected com.liferay.counter.service.CounterLocalService counterLocalService;
+	@BeanReference(type = com.liferay.portal.service.ClassNameLocalService.class)
+	protected com.liferay.portal.service.ClassNameLocalService classNameLocalService;
+	@BeanReference(type = com.liferay.portal.service.ClassNameService.class)
+	protected com.liferay.portal.service.ClassNameService classNameService;
+	@BeanReference(type = ClassNamePersistence.class)
+	protected ClassNamePersistence classNamePersistence;
+	@BeanReference(type = com.liferay.portal.service.GroupLocalService.class)
+	protected com.liferay.portal.service.GroupLocalService groupLocalService;
+	@BeanReference(type = com.liferay.portal.service.GroupService.class)
+	protected com.liferay.portal.service.GroupService groupService;
 	@BeanReference(type = GroupPersistence.class)
 	protected GroupPersistence groupPersistence;
 	@BeanReference(type = GroupFinder.class)
 	protected GroupFinder groupFinder;
-	@BeanReference(type = ResourceLocalService.class)
-	protected ResourceLocalService resourceLocalService;
-	@BeanReference(type = UserLocalService.class)
-	protected UserLocalService userLocalService;
-	@BeanReference(type = UserService.class)
-	protected UserService userService;
+	@BeanReference(type = com.liferay.portal.service.ResourceLocalService.class)
+	protected com.liferay.portal.service.ResourceLocalService resourceLocalService;
+	@BeanReference(type = com.liferay.portal.service.SystemEventLocalService.class)
+	protected com.liferay.portal.service.SystemEventLocalService systemEventLocalService;
+	@BeanReference(type = SystemEventPersistence.class)
+	protected SystemEventPersistence systemEventPersistence;
+	@BeanReference(type = com.liferay.portal.service.UserLocalService.class)
+	protected com.liferay.portal.service.UserLocalService userLocalService;
+	@BeanReference(type = com.liferay.portal.service.UserService.class)
+	protected com.liferay.portal.service.UserService userService;
 	@BeanReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
 	@BeanReference(type = UserFinder.class)

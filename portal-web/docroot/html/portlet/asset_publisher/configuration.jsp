@@ -21,9 +21,7 @@ String tabs2 = ParamUtil.getString(request, "tabs2");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
-String typeSelection = ParamUtil.getString(request, "typeSelection", StringPool.BLANK);
-
-AssetRendererFactory rendererFactory = AssetRendererFactoryRegistryUtil.getAssetRendererFactoryByClassName(typeSelection);
+String eventName = "_" + HtmlUtil.escapeJS(portletResource) + "_selectSite";
 
 List<AssetRendererFactory> classTypesAssetRendererFactories = new ArrayList<AssetRendererFactory>();
 
@@ -55,14 +53,14 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 
 	<liferay-util:buffer var="selectStyle">
 		<c:choose>
-			<c:when test="<%= rootPortletId.equals(PortletKeys.RELATED_ASSETS) %>">
+			<c:when test="<%= rootPortletId.equals(PortletKeys.HIGHEST_RATED_ASSETS) || rootPortletId.equals(PortletKeys.MOST_VIEWED_ASSETS) || rootPortletId.equals(PortletKeys.RELATED_ASSETS) %>">
 				<aui:input name="preferences--selectionStyle--" type="hidden" value="dynamic" />
 			</c:when>
 			<c:otherwise>
 				<aui:fieldset label="asset-selection">
-					<aui:input checked='<%= selectionStyle.equals("dynamic") %>' id="selectionStyleDynamic" label="dynamic" name="preferences--selectionStyle--" onChange='<%= renderResponse.getNamespace() + "chooseSelectionStyle();" %>' type="radio" value="dynamic" />
+					<aui:input checked="<%= assetPublisherDisplayContext.isSelectionStyleDynamic() %>" id="selectionStyleDynamic" label="dynamic" name="preferences--selectionStyle--" onChange='<%= renderResponse.getNamespace() + "chooseSelectionStyle();" %>' type="radio" value="dynamic" />
 
-					<aui:input checked='<%= selectionStyle.equals("manual") %>' id="selectionStyleManual" label="manual" name="preferences--selectionStyle--" onChange='<%= renderResponse.getNamespace() + "chooseSelectionStyle();" %>' type="radio" value="manual" />
+					<aui:input checked="<%= assetPublisherDisplayContext.isSelectionStyleManual() %>" id="selectionStyleManual" label="manual" name="preferences--selectionStyle--" onChange='<%= renderResponse.getNamespace() + "chooseSelectionStyle();" %>' type="radio" value="manual" />
 				</aui:fieldset>
 			</c:otherwise>
 		</c:choose>
@@ -80,7 +78,7 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 			availableGroups.add(layout.getScopeGroup());
 		}
 
-		List<Group> selectedGroups = GroupLocalServiceUtil.getGroups(groupIds);
+		List<Group> selectedGroups = GroupLocalServiceUtil.getGroups(assetPublisherDisplayContext.getGroupIds());
 		%>
 
 		<div id="<portlet:namespace />scopesBoxes">
@@ -135,8 +133,10 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 				<liferay-ui:icon-menu cssClass="select-existing-selector" direction="right" icon='<%= themeDisplay.getPathThemeImages() + "/common/add.png" %>' message="select" showWhenSingleIcon="<%= true %>">
 
 					<%
+					Map<String, Object> data = new HashMap<String, Object>();
+
 					for (Group group : availableGroups) {
-						if (ArrayUtil.contains(groupIds, group.getGroupId())) {
+						if (ArrayUtil.contains(assetPublisherDisplayContext.getGroupIds(), group.getGroupId())) {
 							continue;
 						}
 					%>
@@ -166,103 +166,81 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 
 						layoutSiteBrowserURL.setParameter("struts_action", "/site_browser/view");
 						layoutSiteBrowserURL.setParameter("groupId", String.valueOf(layout.getGroupId()));
-						layoutSiteBrowserURL.setParameter("selectedGroupIds", StringUtil.merge(groupIds));
+						layoutSiteBrowserURL.setParameter("selectedGroupIds", StringUtil.merge(assetPublisherDisplayContext.getGroupIds()));
 						layoutSiteBrowserURL.setParameter("type", "layoutScopes");
-						layoutSiteBrowserURL.setParameter("callback", liferayPortletResponse.getNamespace() + "selectGroup");
+						layoutSiteBrowserURL.setParameter("eventName", eventName);
 						layoutSiteBrowserURL.setPortletMode(PortletMode.VIEW);
 						layoutSiteBrowserURL.setWindowState(LiferayWindowState.POP_UP);
 
 						String layoutSiteBrowserURLString = HttpUtil.addParameter(layoutSiteBrowserURL.toString(), "doAsGroupId", scopeGroupId);
 
-						String taglibLayoutSiteBrowserURL = "javascript:Liferay.Util.openWindow({id: '" + liferayPortletResponse.getNamespace() + "selectGroup', title: '" + LanguageUtil.get(pageContext, "select-pages") + "', uri:'" + HtmlUtil.escapeURL(layoutSiteBrowserURLString) + "'});";
+						data = new HashMap<String, Object>();
+
+						data.put("href", layoutSiteBrowserURLString);
+						data.put("title", LanguageUtil.get(pageContext, "pages"));
 						%>
 
 						<liferay-ui:icon
-							cssClass="highlited"
+							cssClass="highlited scope-selector"
+							data="<%= data %>"
+							id="selectGroup"
 							image="add"
 							message='<%= LanguageUtil.get(pageContext, "pages") + StringPool.TRIPLE_PERIOD %>'
-							url="<%= taglibLayoutSiteBrowserURL %>"
+							method="get"
+							url="javascript:;"
 						/>
 					</c:if>
 
 					<%
+					List<String> types = new ArrayList<String>();
+
+					if (PrefsPropsUtil.getBoolean(company.getCompanyId(), PropsKeys.SITES_CONTENT_SHARING_THROUGH_ADMINISTRATORS_ENABLED)) {
+						types.add("sites-that-i-administer");
+					}
+
+					if (GroupLocalServiceUtil.getGroupsCount(company.getCompanyId(), layout.getGroupId(), Boolean.TRUE) > 0) {
+						types.add("child-sites");
+					}
+
 					Group siteGroup = themeDisplay.getSiteGroup();
+
+					if (!siteGroup.isRoot()) {
+						types.add("parent-sites");
+					}
 					%>
 
-					<c:if test="<%= !siteGroup.isRoot() %>">
+					<c:if test="<%= !types.isEmpty() %>">
 
 						<%
-						PortletURL parentSiteBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.SITE_BROWSER, PortalUtil.getControlPanelPlid(company.getCompanyId()), PortletRequest.RENDER_PHASE);
+						PortletURL siteBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.SITE_BROWSER, PortalUtil.getControlPanelPlid(company.getCompanyId()), PortletRequest.RENDER_PHASE);
 
-						parentSiteBrowserURL.setParameter("struts_action", "/site_browser/view");
-						parentSiteBrowserURL.setParameter("groupId", String.valueOf(layout.getGroupId()));
-						parentSiteBrowserURL.setParameter("selectedGroupIds", StringUtil.merge(groupIds));
-						parentSiteBrowserURL.setParameter("type", "parentSites");
-						parentSiteBrowserURL.setParameter("filter", "contentSharingWithChildrenEnabled");
-						parentSiteBrowserURL.setParameter("callback", liferayPortletResponse.getNamespace() + "selectGroup");
-						parentSiteBrowserURL.setPortletMode(PortletMode.VIEW);
-						parentSiteBrowserURL.setWindowState(LiferayWindowState.POP_UP);
+						siteBrowserURL.setParameter("struts_action", "/site_browser/view");
+						siteBrowserURL.setParameter("groupId", String.valueOf(layout.getGroupId()));
+						siteBrowserURL.setParameter("selectedGroupIds", StringUtil.merge(assetPublisherDisplayContext.getGroupIds()));
+						siteBrowserURL.setParameter("types", StringUtil.merge(types));
+						siteBrowserURL.setParameter("filter", "contentSharingWithChildrenEnabled");
+						siteBrowserURL.setParameter("eventName", eventName);
+						siteBrowserURL.setPortletMode(PortletMode.VIEW);
+						siteBrowserURL.setWindowState(LiferayWindowState.POP_UP);
 
-						String parentSiteBrowserURLString = HttpUtil.addParameter(parentSiteBrowserURL.toString(), "doAsGroupId", scopeGroupId);
+						String siteBrowserURLString = HttpUtil.addParameter(siteBrowserURL.toString(), "doAsGroupId", scopeGroupId);
 
-						String taglibParentSiteBrowserURL = "javascript:Liferay.Util.openWindow({id: '" + liferayPortletResponse.getNamespace() + "selectGroup', title: '" + LanguageUtil.get(pageContext, "select-parent-site") + "', uri:'" + HtmlUtil.escapeURL(parentSiteBrowserURLString) + "'});";
+						data = new HashMap<String, Object>();
+
+						data.put("href", siteBrowserURLString);
+						data.put("title", LanguageUtil.get(pageContext, "sites"));
 						%>
 
 						<liferay-ui:icon
-							cssClass="highlited"
+							cssClass="highlited scope-selector"
+							data="<%= data %>"
+							id="selectManageableGroup"
 							image="add"
-							message='<%= LanguageUtil.get(pageContext, "parent-site") + StringPool.TRIPLE_PERIOD %>'
-							url="<%= taglibParentSiteBrowserURL %>"
+							message='<%= LanguageUtil.get(pageContext, "other-site") + StringPool.TRIPLE_PERIOD %>'
+							method="get"
+							url="javascript:;"
 						/>
 					</c:if>
-
-					<c:if test="<%= GroupLocalServiceUtil.getGroupsCount(company.getCompanyId(), layout.getGroupId(), Boolean.TRUE) > 0 %>">
-
-						<%
-						PortletURL childrenSiteBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.SITE_BROWSER, PortalUtil.getControlPanelPlid(company.getCompanyId()), PortletRequest.RENDER_PHASE);
-
-						childrenSiteBrowserURL.setParameter("struts_action", "/site_browser/view");
-						childrenSiteBrowserURL.setParameter("groupId", String.valueOf(layout.getGroupId()));
-						childrenSiteBrowserURL.setParameter("selectedGroupIds", StringUtil.merge(groupIds));
-						childrenSiteBrowserURL.setParameter("type", "childSites");
-						childrenSiteBrowserURL.setParameter("callback", liferayPortletResponse.getNamespace() + "selectGroup");
-						childrenSiteBrowserURL.setPortletMode(PortletMode.VIEW);
-						childrenSiteBrowserURL.setWindowState(LiferayWindowState.POP_UP);
-
-						String childrenSiteBrowserURLString = HttpUtil.addParameter(childrenSiteBrowserURL.toString(), "doAsGroupId", scopeGroupId);
-
-						String taglibChildrenSiteBrowserURL = "javascript:Liferay.Util.openWindow({id: '" + liferayPortletResponse.getNamespace() + "selectGroup', title: '" + LanguageUtil.get(pageContext, "select-child-site") + "', uri:'" + HtmlUtil.escapeURL(childrenSiteBrowserURLString) + "'});";
-						%>
-
-						<liferay-ui:icon
-							cssClass="highlited"
-							image="add"
-							message='<%= LanguageUtil.get(pageContext, "child-site") + StringPool.TRIPLE_PERIOD %>'
-							url="<%= taglibChildrenSiteBrowserURL %>"
-						/>
-					</c:if>
-
-					<%
-					PortletURL siteBrowserURL = PortletURLFactoryUtil.create(request, PortletKeys.SITE_BROWSER, PortalUtil.getControlPanelPlid(company.getCompanyId()), PortletRequest.RENDER_PHASE);
-
-					siteBrowserURL.setParameter("struts_action", "/site_browser/view");
-					siteBrowserURL.setParameter("selectedGroupIds", StringUtil.merge(groupIds));
-					siteBrowserURL.setParameter("type", "manageable-sites");
-					siteBrowserURL.setParameter("callback", liferayPortletResponse.getNamespace() + "selectGroup");
-					siteBrowserURL.setPortletMode(PortletMode.VIEW);
-					siteBrowserURL.setWindowState(LiferayWindowState.POP_UP);
-
-					String siteBrowserURLString = HttpUtil.addParameter(siteBrowserURL.toString(), "doAsGroupId", scopeGroupId);
-
-					String taglibSiteBrowserURL = "javascript:Liferay.Util.openWindow({id: '" + liferayPortletResponse.getNamespace() + "selectGroup', title: '" + LanguageUtil.get(pageContext, "select-site") + "', uri:'" + HtmlUtil.escapeURL(siteBrowserURLString) + "'});";
-					%>
-
-					<liferay-ui:icon
-						cssClass="highlited"
-						image="add"
-						message='<%= LanguageUtil.get(pageContext, "site") + StringPool.TRIPLE_PERIOD %>'
-						url="<%= taglibSiteBrowserURL %>"
-					/>
 				</liferay-ui:icon-menu>
 			</div>
 		</div>
@@ -281,14 +259,46 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 	%>
 
 	<c:choose>
-		<c:when test='<%= selectionStyle.equals("manual") %>'>
+		<c:when test="<%= assetPublisherDisplayContext.isSelectionStyleManual() %>">
 			<liferay-util:include page="/html/portlet/asset_publisher/configuration_manual.jsp" />
 		</c:when>
-		<c:when test='<%= selectionStyle.equals("dynamic") %>'>
+		<c:when test="<%= assetPublisherDisplayContext.isSelectionStyleDynamic() %>">
 			<liferay-util:include page="/html/portlet/asset_publisher/configuration_dynamic.jsp" />
 		</c:when>
 	</c:choose>
 </aui:form>
+
+<aui:script use="aui-base">
+	A.getBody().delegate(
+		'click',
+		function(event) {
+			event.preventDefault();
+
+			var currentTarget = event.currentTarget;
+
+			Liferay.Util.selectEntity(
+				{
+					dialog: {
+						constrain: true,
+						modal: true,
+						width: 600
+					},
+					eventName: '<%= eventName %>',
+					id: '<%= eventName %>' + currentTarget.attr('id'),
+					title: currentTarget.attr('data-title'),
+					uri: currentTarget.attr('data-href')
+				},
+				function(event) {
+					document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'add-scope';
+					document.<portlet:namespace />fm.<portlet:namespace />scopeId.value = event.scopeid;
+
+					submitForm(document.<portlet:namespace />fm);
+				}
+			);
+		},
+		'.scope-selector a'
+	);
+</aui:script>
 
 <aui:script>
 	function <portlet:namespace />chooseSelectionStyle() {
@@ -307,21 +317,6 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 	function <portlet:namespace />moveSelectionUp(assetEntryOrder) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'move-selection-up';
 		document.<portlet:namespace />fm.<portlet:namespace />assetEntryOrder.value = assetEntryOrder;
-
-		submitForm(document.<portlet:namespace />fm);
-	}
-
-	function <portlet:namespace />selectAsset(assetEntryId, assetClassName, assetType, assetEntryTitle, groupName) {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'add-selection';
-		document.<portlet:namespace />fm.<portlet:namespace />assetEntryId.value = assetEntryId;
-		document.<portlet:namespace />fm.<portlet:namespace />assetEntryType.value = assetClassName;
-
-		submitForm(document.<portlet:namespace />fm);
-	}
-
-	function <portlet:namespace />selectGroup(groupId, name, scopeId, target) {
-		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = 'add-scope';
-		document.<portlet:namespace />fm.<portlet:namespace />scopeId.value = scopeId;
 
 		submitForm(document.<portlet:namespace />fm);
 	}
@@ -356,6 +351,4 @@ String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 	);
 
 	Liferay.Util.toggleSelectBox('<portlet:namespace />anyAssetType','false','<portlet:namespace />classNamesBoxes');
-
-	Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />selectionStyle);
 </aui:script>

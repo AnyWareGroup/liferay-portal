@@ -14,12 +14,17 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
 
 import java.io.Serializable;
+
+import java.util.Date;
 
 /**
  * The base model interface for the LayoutFriendlyURL service. Represents a row in the &quot;LayoutFriendlyURL&quot; database table, with each column mapped to a property of this class.
@@ -34,7 +39,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.LayoutFriendlyURLModelImpl
  * @generated
  */
-public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
+@ProviderType
+public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL>,
+	MVCCModel, StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,11 +63,28 @@ public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
 	public void setPrimaryKey(long primaryKey);
 
 	/**
+	 * Returns the mvcc version of this layout friendly u r l.
+	 *
+	 * @return the mvcc version of this layout friendly u r l
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this layout friendly u r l.
+	 *
+	 * @param mvccVersion the mvcc version of this layout friendly u r l
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
+
+	/**
 	 * Returns the uuid of this layout friendly u r l.
 	 *
 	 * @return the uuid of this layout friendly u r l
 	 */
 	@AutoEscape
+	@Override
 	public String getUuid();
 
 	/**
@@ -68,6 +92,7 @@ public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
 	 *
 	 * @param uuid the uuid of this layout friendly u r l
 	 */
+	@Override
 	public void setUuid(String uuid);
 
 	/**
@@ -89,6 +114,7 @@ public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
 	 *
 	 * @return the group ID of this layout friendly u r l
 	 */
+	@Override
 	public long getGroupId();
 
 	/**
@@ -96,6 +122,7 @@ public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
 	 *
 	 * @param groupId the group ID of this layout friendly u r l
 	 */
+	@Override
 	public void setGroupId(long groupId);
 
 	/**
@@ -103,6 +130,7 @@ public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
 	 *
 	 * @return the company ID of this layout friendly u r l
 	 */
+	@Override
 	public long getCompanyId();
 
 	/**
@@ -110,7 +138,90 @@ public interface LayoutFriendlyURLModel extends BaseModel<LayoutFriendlyURL> {
 	 *
 	 * @param companyId the company ID of this layout friendly u r l
 	 */
+	@Override
 	public void setCompanyId(long companyId);
+
+	/**
+	 * Returns the user ID of this layout friendly u r l.
+	 *
+	 * @return the user ID of this layout friendly u r l
+	 */
+	@Override
+	public long getUserId();
+
+	/**
+	 * Sets the user ID of this layout friendly u r l.
+	 *
+	 * @param userId the user ID of this layout friendly u r l
+	 */
+	@Override
+	public void setUserId(long userId);
+
+	/**
+	 * Returns the user uuid of this layout friendly u r l.
+	 *
+	 * @return the user uuid of this layout friendly u r l
+	 * @throws SystemException if a system exception occurred
+	 */
+	@Override
+	public String getUserUuid() throws SystemException;
+
+	/**
+	 * Sets the user uuid of this layout friendly u r l.
+	 *
+	 * @param userUuid the user uuid of this layout friendly u r l
+	 */
+	@Override
+	public void setUserUuid(String userUuid);
+
+	/**
+	 * Returns the user name of this layout friendly u r l.
+	 *
+	 * @return the user name of this layout friendly u r l
+	 */
+	@AutoEscape
+	@Override
+	public String getUserName();
+
+	/**
+	 * Sets the user name of this layout friendly u r l.
+	 *
+	 * @param userName the user name of this layout friendly u r l
+	 */
+	@Override
+	public void setUserName(String userName);
+
+	/**
+	 * Returns the create date of this layout friendly u r l.
+	 *
+	 * @return the create date of this layout friendly u r l
+	 */
+	@Override
+	public Date getCreateDate();
+
+	/**
+	 * Sets the create date of this layout friendly u r l.
+	 *
+	 * @param createDate the create date of this layout friendly u r l
+	 */
+	@Override
+	public void setCreateDate(Date createDate);
+
+	/**
+	 * Returns the modified date of this layout friendly u r l.
+	 *
+	 * @return the modified date of this layout friendly u r l
+	 */
+	@Override
+	public Date getModifiedDate();
+
+	/**
+	 * Sets the modified date of this layout friendly u r l.
+	 *
+	 * @param modifiedDate the modified date of this layout friendly u r l
+	 */
+	@Override
+	public void setModifiedDate(Date modifiedDate);
 
 	/**
 	 * Returns the plid of this layout friendly u r l.

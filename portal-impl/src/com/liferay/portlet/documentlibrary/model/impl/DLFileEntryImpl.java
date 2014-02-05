@@ -16,18 +16,20 @@ package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Lock;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.service.LockLocalServiceUtil;
 import com.liferay.portal.service.RepositoryLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
@@ -60,6 +62,13 @@ import java.util.Map;
 public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 
 	public DLFileEntryImpl() {
+	}
+
+	@Override
+	public String buildTreePath() throws PortalException, SystemException {
+		DLFolder dlFolder = getFolder();
+
+		return dlFolder.buildTreePath();
 	}
 
 	@Override
@@ -187,33 +196,12 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 	}
 
 	@Override
-	public DLFolder getFolder() {
-		DLFolder dlFolder = new DLFolderImpl();
-
+	public DLFolder getFolder() throws PortalException, SystemException {
 		if (getFolderId() <= 0) {
-			return dlFolder;
+			return new DLFolderImpl();
 		}
 
-		try {
-			dlFolder = DLFolderLocalServiceUtil.getFolder(getFolderId());
-		}
-		catch (NoSuchFolderException nsfe) {
-			try {
-				DLFileVersion dlFileVersion = getLatestFileVersion(true);
-
-				if (!dlFileVersion.isInTrash()) {
-					_log.error(nsfe, nsfe);
-				}
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-		}
-
-		return dlFolder;
+		return DLFolderLocalServiceUtil.getFolder(getFolderId());
 	}
 
 	@Override
@@ -269,14 +257,80 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 	}
 
 	@Override
-	public DLFolder getTrashContainer() {
-		DLFolder dlFolder = getFolder();
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(FileEntry.class);
+	}
 
-		if (dlFolder.isInTrash()) {
-			return dlFolder;
+	@Override
+	public int getStatus() {
+		try {
+			DLFileVersion dlFileVersion = getFileVersion();
+
+			return dlFileVersion.getStatus();
+		}
+		catch (Exception e) {
+			return WorkflowConstants.STATUS_APPROVED;
+		}
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserId()}
+	 */
+	@Deprecated
+	@Override
+	public long getVersionUserId() {
+		long versionUserId = 0;
+
+		try {
+			DLFileVersion dlFileVersion = getFileVersion();
+
+			versionUserId = dlFileVersion.getUserId();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 		}
 
-		return dlFolder.getTrashContainer();
+		return versionUserId;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserName()}
+	 */
+	@Deprecated
+	@Override
+	public String getVersionUserName() {
+		String versionUserName = StringPool.BLANK;
+
+		try {
+			DLFileVersion dlFileVersion = getFileVersion();
+
+			versionUserName = dlFileVersion.getUserName();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserName;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserUuid()}
+	 */
+	@Deprecated
+	@Override
+	public String getVersionUserUuid() {
+		String versionUserUuid = StringPool.BLANK;
+
+		try {
+			DLFileVersion dlFileVersion = getFileVersion();
+
+			versionUserUuid = dlFileVersion.getUserUuid();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserUuid;
 	}
 
 	@Override
@@ -323,8 +377,8 @@ public class DLFileEntryImpl extends DLFileEntryBaseImpl {
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
+	public boolean isInTrash() {
+		if (getStatus() == WorkflowConstants.STATUS_IN_TRASH) {
 			return true;
 		}
 		else {

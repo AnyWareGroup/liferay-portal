@@ -21,7 +21,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.model.impl.PasswordPolicyImpl;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
@@ -45,7 +44,7 @@ public class PasswordPolicyFinderImpl
 
 	@Override
 	public int countByC_N(long companyId, String name) throws SystemException {
-		name = StringUtil.lowerCase(name);
+		name = CustomSQLUtil.keywords(name)[0];
 
 		Session session = null;
 
@@ -54,7 +53,7 @@ public class PasswordPolicyFinderImpl
 
 			String sql = CustomSQLUtil.get(COUNT_BY_C_N);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -90,7 +89,7 @@ public class PasswordPolicyFinderImpl
 			OrderByComparator obc)
 		throws SystemException {
 
-		name = StringUtil.lowerCase(name);
+		name = CustomSQLUtil.keywords(name)[0];
 
 		Session session = null;
 
@@ -101,7 +100,7 @@ public class PasswordPolicyFinderImpl
 
 			sql = CustomSQLUtil.replaceOrderBy(sql, obc);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("PasswordPolicy", PasswordPolicyImpl.class);
 

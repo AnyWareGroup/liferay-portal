@@ -14,15 +14,21 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link JournalTemplateService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalTemplateService
+ * @author Brian Wing Shun Chan
+ * @see JournalTemplateService
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	ServiceWrapper<JournalTemplateService> {
 	public JournalTemplateServiceWrapper(
@@ -104,7 +110,8 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	@Override
 	public java.util.List<com.liferay.portlet.journal.model.JournalTemplate> getStructureTemplates(
 		long groupId, java.lang.String structureId)
-		throws com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _journalTemplateService.getStructureTemplates(groupId,
 			structureId);
 	}
@@ -206,6 +213,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalTemplateService getWrappedJournalTemplateService() {
 		return _journalTemplateService;
 	}
@@ -213,6 +221,7 @@ public class JournalTemplateServiceWrapper implements JournalTemplateService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalTemplateService(
 		JournalTemplateService journalTemplateService) {
 		_journalTemplateService = journalTemplateService;

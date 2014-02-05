@@ -16,7 +16,7 @@
 
 <%@ include file="/html/portlet/quick_note/init.jsp" %>
 
-<div id="<portlet:namespace />pad" style="background: <%= color %>;">
+<div id="<portlet:namespace />pad" style="background: <%= HtmlUtil.escapeAttribute(color) %>;">
 	<c:if test="<%= portletDisplay.isShowConfigurationIcon() %>">
 		<table width="100%">
 		<tr>
@@ -37,7 +37,7 @@
 		</table>
 	</c:if>
 
-	<div id="<portlet:namespace />note"><%= StringUtil.replace(HtmlUtil.escape(data), "&lt;br /&gt;", "<br />") %></div>
+	<div class="note-content" id="<portlet:namespace />note"><%= StringUtil.replace(HtmlUtil.escape(data), "&lt;br /&gt;", "<br />") %></div>
 </div>
 
 <c:if test="<%= portletDisplay.isShowConfigurationIcon() %>">

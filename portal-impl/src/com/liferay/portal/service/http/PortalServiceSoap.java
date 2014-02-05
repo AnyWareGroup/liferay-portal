@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.PortalServiceUtil;
@@ -44,11 +46,12 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PortalServiceHttp
- * @see       com.liferay.portal.service.PortalServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PortalServiceHttp
+ * @see com.liferay.portal.service.PortalServiceUtil
  * @generated
  */
+@ProviderType
 public class PortalServiceSoap {
 	public static java.lang.String getAutoDeployDirectory()
 		throws RemoteException {
@@ -141,18 +144,6 @@ public class PortalServiceSoap {
 		throws RemoteException {
 		try {
 			PortalServiceUtil.testAutoSyncHibernateSessionStateOnTxCreation();
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-
-			throw new RemoteException(e.getMessage());
-		}
-	}
-
-	public static void testCounterIncrement_Rollback()
-		throws RemoteException {
-		try {
-			PortalServiceUtil.testCounterIncrement_Rollback();
 		}
 		catch (Exception e) {
 			_log.error(e, e);

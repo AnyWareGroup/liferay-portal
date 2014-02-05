@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link AccountService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AccountService
+ * @author Brian Wing Shun Chan
+ * @see AccountService
  * @generated
  */
+@ProviderType
 public class AccountServiceWrapper implements AccountService,
 	ServiceWrapper<AccountService> {
 	public AccountServiceWrapper(AccountService accountService) {
@@ -50,6 +53,7 @@ public class AccountServiceWrapper implements AccountService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AccountService getWrappedAccountService() {
 		return _accountService;
 	}
@@ -57,6 +61,7 @@ public class AccountServiceWrapper implements AccountService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAccountService(AccountService accountService) {
 		_accountService = accountService;
 	}

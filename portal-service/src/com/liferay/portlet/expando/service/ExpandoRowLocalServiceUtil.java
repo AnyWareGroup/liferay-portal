@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.expando.service.impl.ExpandoRowLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class ExpandoRowLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,6 +168,21 @@ public class ExpandoRowLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.expando.model.ExpandoRow fetchExpandoRow(
 		long rowId) throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchExpandoRow(rowId);
@@ -291,6 +309,11 @@ public class ExpandoRowLocalServiceUtil {
 		getService().deleteRow(companyId, className, tableName, classPK);
 	}
 
+	public static void deleteRows(long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteRows(classPK);
+	}
+
 	public static java.util.List<com.liferay.portlet.expando.model.ExpandoRow> getDefaultTableRows(
 		long companyId, long classNameId, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -368,6 +391,7 @@ public class ExpandoRowLocalServiceUtil {
 	* @deprecated As of 6.1.0, replaced by {@link #getRows(long, String,
 	String, int, int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.expando.model.ExpandoRow> getRows(
 		java.lang.String className, java.lang.String tableName, int start,
 		int end) throws com.liferay.portal.kernel.exception.SystemException {
@@ -395,6 +419,7 @@ public class ExpandoRowLocalServiceUtil {
 	* @deprecated As of 6.1.0, replaced by {@link #getRowsCount(long, String,
 	String)}
 	*/
+	@Deprecated
 	public static int getRowsCount(java.lang.String className,
 		java.lang.String tableName)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -415,6 +440,7 @@ public class ExpandoRowLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(ExpandoRowLocalService service) {
 	}
 

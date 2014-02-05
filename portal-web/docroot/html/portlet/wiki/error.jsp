@@ -16,10 +16,7 @@
 
 <%@ include file="/html/portlet/wiki/init.jsp" %>
 
-<liferay-ui:header
-	backURL="javascript:history.go(-1);"
-	title="error"
-/>
+<liferay-ui:error-header />
 
 <liferay-ui:error exception="<%= NoSuchNodeException.class %>" message="please-enter-a-valid-page-title" />
 
@@ -67,7 +64,7 @@
 
 			boolean editableDraft = false;
 
-			if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId) || (draftPage.getUserId() == user.getUserId())) {
+			if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId) || (draftPage.getUserId() == user.getUserId())) {
 				editableDraft = true;
 			}
 			%>
@@ -78,8 +75,13 @@
 						<liferay-ui:message key="this-page-has-an-associated-draft-that-is-not-yet-published" />
 					</div>
 
-					<div>
-						<input onclick="location.href = '<%= editPageURL.toString() %>'" type="button" value="<%= LanguageUtil.get(pageContext, "edit-draft") %>" />
+					<div class="btn-toolbar">
+
+						<%
+						String taglibEditPage = "location.href = '" + editPageURL.toString() + "';";
+						%>
+
+						<aui:button onClick="<%= taglibEditPage %>" value="edit-draft" />
 					</div>
 				</c:when>
 				<c:otherwise>
@@ -94,10 +96,19 @@
 				<liferay-ui:message key="this-page-is-empty.-use-the-buttons-below-to-create-it-or-to-search-for-the-words-in-the-title" />
 			</div>
 
-			<div>
-				<input onclick="location.href = '<%= searchURL.toString() %>'" type="button" value="<%= LanguageUtil.format(pageContext, "search-for-x", HtmlUtil.escapeAttribute(title)) %>" />
+			<div class="btn-toolbar">
 
-				<input onclick="location.href = '<%= editPageURL.toString() %>'" type="button" value="<%= LanguageUtil.format(pageContext, "create-page-x", HtmlUtil.escapeAttribute(title)) %>" />
+				<%
+				String taglibSearch = "location.href = '" + searchURL.toString() + "';";
+				%>
+
+				<aui:button onClick="<%= taglibSearch %>" value='<%= LanguageUtil.format(pageContext, "search-for-x", HtmlUtil.escapeAttribute(title), false) %>' />
+
+				<%
+				String taglibEditPage = "location.href = '" + editPageURL.toString() + "';";
+				%>
+
+				<aui:button onClick="<%= taglibEditPage %>" value='<%= LanguageUtil.format(pageContext, "create-page-x", HtmlUtil.escapeAttribute(title), false) %>' />
 			</div>
 		</c:otherwise>
 	</c:choose>

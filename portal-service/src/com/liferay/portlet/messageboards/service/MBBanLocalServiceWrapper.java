@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link MBBanLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       MBBanLocalService
+ * @author Brian Wing Shun Chan
+ * @see MBBanLocalService
  * @generated
  */
+@ProviderType
 public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	ServiceWrapper<MBBanLocalService> {
 	public MBBanLocalServiceWrapper(MBBanLocalService mbBanLocalService) {
@@ -163,10 +166,56 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 		return _mbBanLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbBanLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portlet.messageboards.model.MBBan fetchMBBan(long banId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _mbBanLocalService.fetchMBBan(banId);
+	}
+
+	/**
+	* Returns the message boards ban with the matching UUID and company.
+	*
+	* @param uuid the message boards ban's UUID
+	* @param companyId the primary key of the company
+	* @return the matching message boards ban, or <code>null</code> if a matching message boards ban could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBBan fetchMBBanByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbBanLocalService.fetchMBBanByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the message boards ban matching the UUID and group.
+	*
+	* @param uuid the message boards ban's UUID
+	* @param groupId the primary key of the group
+	* @return the matching message boards ban, or <code>null</code> if a matching message boards ban could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBBan fetchMBBanByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbBanLocalService.fetchMBBanByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -190,6 +239,23 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _mbBanLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the message boards ban with the matching UUID and company.
+	*
+	* @param uuid the message boards ban's UUID
+	* @param companyId the primary key of the company
+	* @return the matching message boards ban
+	* @throws PortalException if a matching message boards ban could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBBan getMBBanByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbBanLocalService.getMBBanByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -349,6 +415,7 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBBanLocalService getWrappedMBBanLocalService() {
 		return _mbBanLocalService;
 	}
@@ -356,6 +423,7 @@ public class MBBanLocalServiceWrapper implements MBBanLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBBanLocalService(MBBanLocalService mbBanLocalService) {
 		_mbBanLocalService = mbBanLocalService;
 	}

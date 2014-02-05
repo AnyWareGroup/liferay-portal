@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialActivityAchievement}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityAchievement
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityAchievement
  * @generated
  */
+@ProviderType
 public class SocialActivityAchievementWrapper
 	implements SocialActivityAchievement,
 		ModelWrapper<SocialActivityAchievement> {
@@ -404,9 +408,30 @@ public class SocialActivityAchievementWrapper
 		_socialActivityAchievement.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityAchievementWrapper)) {
+			return false;
+		}
+
+		SocialActivityAchievementWrapper socialActivityAchievementWrapper = (SocialActivityAchievementWrapper)obj;
+
+		if (Validator.equals(_socialActivityAchievement,
+					socialActivityAchievementWrapper._socialActivityAchievement)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivityAchievement getWrappedSocialActivityAchievement() {
 		return _socialActivityAchievement;
 	}
@@ -414,6 +439,16 @@ public class SocialActivityAchievementWrapper
 	@Override
 	public SocialActivityAchievement getWrappedModel() {
 		return _socialActivityAchievement;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivityAchievement.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivityAchievement.isFinderCacheEnabled();
 	}
 
 	@Override

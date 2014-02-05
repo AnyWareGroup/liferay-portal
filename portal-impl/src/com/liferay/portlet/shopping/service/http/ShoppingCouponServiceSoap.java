@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.shopping.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCouponServiceHttp
- * @see       com.liferay.portlet.shopping.model.ShoppingCouponSoap
- * @see       com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCouponServiceHttp
+ * @see com.liferay.portlet.shopping.model.ShoppingCouponSoap
+ * @see com.liferay.portlet.shopping.service.ShoppingCouponServiceUtil
  * @generated
  */
+@ProviderType
 public class ShoppingCouponServiceSoap {
 	public static com.liferay.portlet.shopping.model.ShoppingCouponSoap addCoupon(
 		java.lang.String code, boolean autoCode, java.lang.String name,

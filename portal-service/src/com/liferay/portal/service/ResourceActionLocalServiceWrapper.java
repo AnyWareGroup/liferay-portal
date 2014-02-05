@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourceActionLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceActionLocalService
+ * @author Brian Wing Shun Chan
+ * @see ResourceActionLocalService
  * @generated
  */
+@ProviderType
 public class ResourceActionLocalServiceWrapper
 	implements ResourceActionLocalService,
 		ServiceWrapper<ResourceActionLocalService> {
@@ -165,6 +168,23 @@ public class ResourceActionLocalServiceWrapper
 		return _resourceActionLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _resourceActionLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.ResourceAction fetchResourceAction(
 		long resourceActionId)
@@ -305,6 +325,7 @@ public class ResourceActionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceActionLocalService getWrappedResourceActionLocalService() {
 		return _resourceActionLocalService;
 	}
@@ -312,6 +333,7 @@ public class ResourceActionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceActionLocalService(
 		ResourceActionLocalService resourceActionLocalService) {
 		_resourceActionLocalService = resourceActionLocalService;

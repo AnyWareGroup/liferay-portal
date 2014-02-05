@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PluginSettingService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PluginSettingService
+ * @author Brian Wing Shun Chan
+ * @see PluginSettingService
  * @generated
  */
+@ProviderType
 public class PluginSettingServiceWrapper implements PluginSettingService,
 	ServiceWrapper<PluginSettingService> {
 	public PluginSettingServiceWrapper(
@@ -61,6 +64,7 @@ public class PluginSettingServiceWrapper implements PluginSettingService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PluginSettingService getWrappedPluginSettingService() {
 		return _pluginSettingService;
 	}
@@ -68,6 +72,7 @@ public class PluginSettingServiceWrapper implements PluginSettingService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPluginSettingService(
 		PluginSettingService pluginSettingService) {
 		_pluginSettingService = pluginSettingService;

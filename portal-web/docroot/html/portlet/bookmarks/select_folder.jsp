@@ -20,6 +20,7 @@
 BookmarksFolder folder = (BookmarksFolder)request.getAttribute(WebKeys.BOOKMARKS_FOLDER);
 
 long folderId = BeanParamUtil.getLong(folder, request, "folderId", BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
 String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFolder");
 
 String folderName = LanguageUtil.get(pageContext, "home");
@@ -44,16 +45,16 @@ if (folder != null) {
 	portletURL.setParameter("struts_action", "/bookmarks/select_folder");
 	portletURL.setParameter("folderId", String.valueOf(folderId));
 	portletURL.setParameter("eventName", eventName);
-
-	int bookmarksFoldersCount = BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folderId);
 	%>
 
 	<br />
 
-	<liferay-ui:search-container iteratorURL="<%= portletURL %>">
+	<liferay-ui:search-container
+		iteratorURL="<%= portletURL %>"
+		total="<%= BookmarksFolderServiceUtil.getFoldersCount(scopeGroupId, folderId) %>"
+	>
 		<liferay-ui:search-container-results
 			results="<%= BookmarksFolderServiceUtil.getFolders(scopeGroupId, folderId, searchContainer.getStart(), searchContainer.getEnd()) %>"
-			total="<%= bookmarksFoldersCount %>"
 		/>
 
 		<liferay-ui:search-container-row
@@ -71,7 +72,7 @@ if (folder != null) {
 
 			subfolderIds.add(curFolder.getFolderId());
 
-			BookmarksFolderServiceUtil.getSubfolderIds(subfolderIds, scopeGroupId, curFolder.getFolderId());
+			BookmarksFolderServiceUtil.getSubfolderIds(subfolderIds, scopeGroupId, curFolder.getFolderId(), true);
 
 			int foldersCount = subfolderIds.size() - 1;
 			int entriesCount = BookmarksEntryServiceUtil.getFoldersEntriesCount(scopeGroupId, subfolderIds);
@@ -101,7 +102,7 @@ if (folder != null) {
 				Map<String, Object> data = new HashMap<String, Object>();
 
 				data.put("folderid", curFolder.getFolderId());
-				data.put("name", HtmlUtil.escapeAttribute(curFolder.getName()));
+				data.put("name", curFolder.getName());
 				%>
 
 				<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
@@ -123,7 +124,7 @@ if (folder != null) {
 			Map<String, Object> data = new HashMap<String, Object>();
 
 			data.put("folderid", folderId);
-			data.put("name", HtmlUtil.escapeAttribute(folderName));
+			data.put("name", folderName);
 			%>
 
 			<aui:button cssClass="selector-button" data="<%= data %>" value="choose-this-folder" />

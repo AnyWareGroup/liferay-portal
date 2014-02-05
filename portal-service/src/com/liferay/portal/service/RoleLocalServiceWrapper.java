@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link RoleLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       RoleLocalService
+ * @author Brian Wing Shun Chan
+ * @see RoleLocalService
  * @generated
  */
+@ProviderType
 public class RoleLocalServiceWrapper implements RoleLocalService,
 	ServiceWrapper<RoleLocalService> {
 	public RoleLocalServiceWrapper(RoleLocalService roleLocalService) {
@@ -163,10 +166,41 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 		return _roleLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.Role fetchRole(long roleId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _roleLocalService.fetchRole(roleId);
+	}
+
+	/**
+	* Returns the role with the matching UUID and company.
+	*
+	* @param uuid the role's UUID
+	* @param companyId the primary key of the company
+	* @return the matching role, or <code>null</code> if a matching role could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Role fetchRoleByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.fetchRoleByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -190,6 +224,23 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _roleLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the role with the matching UUID and company.
+	*
+	* @param uuid the role's UUID
+	* @param companyId the primary key of the company
+	* @return the matching role
+	* @throws PortalException if a matching role could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Role getRoleByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getRoleByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -582,6 +633,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Role addRole(long userId, long companyId,
 		java.lang.String name,
@@ -618,6 +670,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(long, String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Role addRole(long userId, long companyId,
 		java.lang.String name,
@@ -720,13 +773,6 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 		return _roleLocalService.fetchRole(companyId, name);
 	}
 
-	@Override
-	public com.liferay.portal.model.Role fetchRoleByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _roleLocalService.fetchRoleByUuidAndCompanyId(uuid, companyId);
-	}
-
 	/**
 	* Returns the default role for the group with the primary key.
 	*
@@ -752,6 +798,14 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _roleLocalService.getDefaultGroupRole(groupId);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Role> getGroupRelatedRoles(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getGroupRelatedRoles(groupId);
 	}
 
 	@Override
@@ -861,6 +915,21 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	}
 
 	/**
+	* Returns all the roles with the types.
+	*
+	* @param companyId the primary key of the company
+	* @param types the role types (optionally <code>null</code>)
+	* @return the roles with the types
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Role> getRoles(
+		long companyId, int[] types)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getRoles(companyId, types);
+	}
+
+	/**
 	* Returns all the roles with the primary keys.
 	*
 	* @param roleIds the primary keys of the roles
@@ -919,6 +988,62 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _roleLocalService.getTeamRole(companyId, teamId);
+	}
+
+	/**
+	* Returns the team role map for the group.
+	*
+	* @param groupId the primary key of the group
+	* @return the team role map for the group
+	* @throws PortalException if a group with the primary key could not be
+	found, if a role could not be found in one of the group's teams,
+	or if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.Map<com.liferay.portal.model.Team, com.liferay.portal.model.Role> getTeamRoleMap(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getTeamRoleMap(groupId);
+	}
+
+	/**
+	* Returns the team roles in the group.
+	*
+	* @param groupId the primary key of the group
+	* @return the team roles in the group
+	* @throws PortalException if a group with the primary key could not be
+	found, if a role could not be found in one of the group's teams,
+	or if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Role> getTeamRoles(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getTeamRoles(groupId);
+	}
+
+	/**
+	* Returns the team roles in the group, excluding the specified role IDs.
+	*
+	* @param groupId the primary key of the group
+	* @param excludedRoleIds the primary keys of the roles to exclude
+	(optionally <code>null</code>)
+	* @return the team roles in the group, excluding the specified role IDs
+	* @throws PortalException if a group with the primary key could not be
+	found, if a role could not be found in one of the group's teams,
+	or if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Role> getTeamRoles(
+		long groupId, long[] excludedRoleIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _roleLocalService.getTeamRoles(groupId, excludedRoleIds);
 	}
 
 	/**
@@ -1005,8 +1130,8 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @param groups the groups (optionally <code>null</code>)
 	* @return the union of all the user's roles within the groups
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, List)
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	List)
 	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
@@ -1022,8 +1147,8 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @param groupId the primary key of the group
 	* @return the user's roles within the group
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, long)
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	long)
 	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
@@ -1039,8 +1164,8 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	* @param groupIds the primary keys of the groups
 	* @return the union of all the user's roles within the groups
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(
-	long, long[])
+	* @see com.liferay.portal.service.persistence.RoleFinder#findByU_G(long,
+	long[])
 	*/
 	@Override
 	public java.util.List<com.liferay.portal.model.Role> getUserRelatedRoles(
@@ -1417,6 +1542,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RoleLocalService getWrappedRoleLocalService() {
 		return _roleLocalService;
 	}
@@ -1424,6 +1550,7 @@ public class RoleLocalServiceWrapper implements RoleLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRoleLocalService(RoleLocalService roleLocalService) {
 		_roleLocalService = roleLocalService;
 	}

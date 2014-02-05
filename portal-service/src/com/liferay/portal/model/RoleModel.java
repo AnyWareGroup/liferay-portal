@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -40,7 +42,9 @@ import java.util.Map;
  * @see com.liferay.portal.model.impl.RoleModelImpl
  * @generated
  */
-public interface RoleModel extends AttachedModel, BaseModel<Role>, StagedModel {
+@ProviderType
+public interface RoleModel extends AttachedModel, BaseModel<Role>, MVCCModel,
+	StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -60,6 +64,22 @@ public interface RoleModel extends AttachedModel, BaseModel<Role>, StagedModel {
 	 * @param primaryKey the primary key of this role
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this role.
+	 *
+	 * @return the mvcc version of this role
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this role.
+	 *
+	 * @param mvccVersion the mvcc version of this role
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this role.
@@ -508,6 +528,12 @@ public interface RoleModel extends AttachedModel, BaseModel<Role>, StagedModel {
 
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
+
+	public String[] getAvailableLanguageIds();
+
+	public String getDefaultLanguageId();
+
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
 
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;

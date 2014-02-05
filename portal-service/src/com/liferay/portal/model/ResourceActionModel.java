@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.ResourceActionModelImpl
  * @generated
  */
-public interface ResourceActionModel extends BaseModel<ResourceAction> {
+@ProviderType
+public interface ResourceActionModel extends BaseModel<ResourceAction>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +57,22 @@ public interface ResourceActionModel extends BaseModel<ResourceAction> {
 	 * @param primaryKey the primary key of this resource action
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this resource action.
+	 *
+	 * @return the mvcc version of this resource action
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this resource action.
+	 *
+	 * @param mvccVersion the mvcc version of this resource action
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the resource action ID of this resource action.

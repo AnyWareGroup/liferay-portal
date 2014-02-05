@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.OrgLaborServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       OrgLaborServiceHttp
- * @see       com.liferay.portal.model.OrgLaborSoap
- * @see       com.liferay.portal.service.OrgLaborServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see OrgLaborServiceHttp
+ * @see com.liferay.portal.model.OrgLaborSoap
+ * @see com.liferay.portal.service.OrgLaborServiceUtil
  * @generated
  */
+@ProviderType
 public class OrgLaborServiceSoap {
 	public static com.liferay.portal.model.OrgLaborSoap addOrgLabor(
 		long organizationId, int typeId, int sunOpen, int sunClose,

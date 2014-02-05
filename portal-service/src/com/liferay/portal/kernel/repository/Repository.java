@@ -66,6 +66,7 @@ public interface Repository {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	 *             String, ServiceContext)}
 	 */
+	@Deprecated
 	public void checkInFileEntry(long fileEntryId, String lockUuid)
 		throws PortalException, SystemException;
 
@@ -121,17 +122,17 @@ public interface Repository {
 		throws PortalException, SystemException;
 
 	public int getFileEntriesAndFileShortcutsCount(long folderId, int status)
-		throws SystemException;
+		throws PortalException, SystemException;
 
 	public int getFileEntriesAndFileShortcutsCount(
 			long folderId, int status, String[] mimeTypes)
 		throws PortalException, SystemException;
 
 	public int getFileEntriesCount(long folderId)
-		throws SystemException;
+		throws PortalException, SystemException;
 
 	public int getFileEntriesCount(long folderId, long fileEntryTypeId)
-		throws SystemException;
+		throws PortalException, SystemException;
 
 	public int getFileEntriesCount(long folderId, String[] mimeTypes)
 		throws PortalException, SystemException;
@@ -192,13 +193,14 @@ public interface Repository {
 		throws PortalException, SystemException;
 
 	public int getFoldersFileEntriesCount(List<Long> folderIds, int status)
-		throws SystemException;
+		throws PortalException, SystemException;
 
 	public List<Folder> getMountFolders(
 			long parentFolderId, int start, int end, OrderByComparator obc)
 		throws PortalException, SystemException;
 
-	public int getMountFoldersCount(long parentFolderId) throws SystemException;
+	public int getMountFoldersCount(long parentFolderId)
+		throws PortalException, SystemException;
 
 	public List<FileEntry> getRepositoryFileEntries(
 			long userId, long rootFolderId, int start, int end,
@@ -229,6 +231,7 @@ public interface Repository {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	public Lock lockFileEntry(long fileEntryId)
 		throws PortalException, SystemException;
 
@@ -236,6 +239,7 @@ public interface Repository {
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             String, long, ServiceContext)}
 	 */
+	@Deprecated
 	public Lock lockFileEntry(
 			long fileEntryId, String owner, long expirationTime)
 		throws PortalException, SystemException;
@@ -267,6 +271,14 @@ public interface Repository {
 
 	public void revertFileEntry(
 			long fileEntryId, String version, ServiceContext serviceContext)
+		throws PortalException, SystemException;
+
+	public Hits search(long creatorUserId, int status, int start, int end)
+		throws PortalException, SystemException;
+
+	public Hits search(
+			long creatorUserId, long folderId, String[] mimeTypes, int status,
+			int start, int end)
 		throws PortalException, SystemException;
 
 	public Hits search(SearchContext searchContext) throws SearchException;

@@ -16,9 +16,9 @@ package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.servlet.taglib.BaseBodyTagSupport;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.taglib.util.IncludeTag;
-import com.liferay.util.PwdGenerator;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
@@ -35,34 +35,35 @@ public class PanelTag extends IncludeTag {
 			(HttpServletRequest)pageContext.getRequest();
 
 		if (Validator.isNull(_id)) {
-			_id = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+			_id = StringUtil.randomId();
 		}
 
-		BaseBodyTagSupport baseBodyTagSupport =
-			(BaseBodyTagSupport)findAncestorWithClass(
-				this, BaseBodyTagSupport.class);
+		if (Validator.isNull(_parentId)) {
+			BaseBodyTagSupport baseBodyTagSupport =
+				(BaseBodyTagSupport)findAncestorWithClass(
+					this, BaseBodyTagSupport.class);
 
-		String parentId = StringPool.BLANK;
+			if (baseBodyTagSupport instanceof PanelContainerTag) {
+				PanelContainerTag panelContainerTag =
+					(PanelContainerTag)baseBodyTagSupport;
 
-		if (baseBodyTagSupport instanceof PanelContainerTag) {
-			PanelContainerTag panelContainerTag =
-				(PanelContainerTag)baseBodyTagSupport;
-
-			parentId = panelContainerTag.getId();
+				_parentId = panelContainerTag.getId();
+			}
 		}
 
 		request.setAttribute("liferay-ui:panel:helpMessage", _helpMessage);
+		request.setAttribute("liferay-ui:panel:iconCssClass", _iconCssClass);
 		request.setAttribute("liferay-ui:panel:id", _id);
-		request.setAttribute("liferay-ui:panel:parentId", parentId);
+		request.setAttribute("liferay-ui:panel:parentId", _parentId);
 		request.setAttribute("liferay-ui:panel:title", _title);
 		request.setAttribute(
 			"liferay-ui:panel:collapsible", String.valueOf(_collapsible));
 		request.setAttribute("liferay-ui:panel:defaultState", _defaultState);
 		request.setAttribute(
 			"liferay-ui:panel:persistState", String.valueOf(_persistState));
-		request.setAttribute(
-			"liferay-ui:panel:extended", String.valueOf(_extended));
+		request.setAttribute("liferay-ui:panel:extended", _extended);
 		request.setAttribute("liferay-ui:panel:cssClass", _cssClass);
+		request.setAttribute("liferay-ui:panel:state", _state);
 
 		super.doStartTag();
 
@@ -85,7 +86,7 @@ public class PanelTag extends IncludeTag {
 		_endPage = endPage;
 	}
 
-	public void setExtended(boolean extended) {
+	public void setExtended(Boolean extended) {
 		_extended = extended;
 	}
 
@@ -93,8 +94,16 @@ public class PanelTag extends IncludeTag {
 		_helpMessage = helpMessage;
 	}
 
+	public void setIconCssClass(String iconCssClass) {
+		_iconCssClass = iconCssClass;
+	}
+
 	public void setId(String id) {
 		_id = id;
+	}
+
+	public void setParentId(String parentId) {
+		_parentId = parentId;
 	}
 
 	public void setPersistState(boolean persistState) {
@@ -105,8 +114,29 @@ public class PanelTag extends IncludeTag {
 		_startPage = startPage;
 	}
 
+	public void setState(String state) {
+		_state = state;
+	}
+
 	public void setTitle(String title) {
 		_title = title;
+	}
+
+	@Override
+	protected void cleanUp() {
+		_collapsible = true;
+		_cssClass = null;
+		_defaultState = "open";
+		_endPage = null;
+		_extended = null;
+		_helpMessage = null;
+		_iconCssClass = null;
+		_id = null;
+		_parentId = StringPool.BLANK;
+		_persistState = true;
+		_startPage = null;
+		_state = null;
+		_title = null;
 	}
 
 	@Override
@@ -137,11 +167,14 @@ public class PanelTag extends IncludeTag {
 	private String _cssClass;
 	private String _defaultState = "open";
 	private String _endPage;
-	private boolean _extended;
+	private Boolean _extended;
 	private String _helpMessage;
+	private String _iconCssClass;
 	private String _id;
+	private String _parentId = StringPool.BLANK;
 	private boolean _persistState = true;
 	private String _startPage;
+	private String _state;
 	private String _title;
 
 }

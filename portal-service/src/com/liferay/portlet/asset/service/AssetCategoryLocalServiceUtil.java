@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.asset.service.impl.AssetCategoryLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class AssetCategoryLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,53 @@ public class AssetCategoryLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.asset.model.AssetCategory fetchAssetCategory(
 		long categoryId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchAssetCategory(categoryId);
+	}
+
+	/**
+	* Returns the asset category with the matching UUID and company.
+	*
+	* @param uuid the asset category's UUID
+	* @param companyId the primary key of the company
+	* @return the matching asset category, or <code>null</code> if a matching asset category could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.asset.model.AssetCategory fetchAssetCategoryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchAssetCategoryByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the asset category matching the UUID and group.
+	*
+	* @param uuid the asset category's UUID
+	* @param groupId the primary key of the group
+	* @return the matching asset category, or <code>null</code> if a matching asset category could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.asset.model.AssetCategory fetchAssetCategoryByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchAssetCategoryByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -191,6 +237,22 @@ public class AssetCategoryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the asset category with the matching UUID and company.
+	*
+	* @param uuid the asset category's UUID
+	* @param companyId the primary key of the company
+	* @return the matching asset category
+	* @throws PortalException if a matching asset category could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.asset.model.AssetCategory getAssetCategoryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getAssetCategoryByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -652,6 +714,7 @@ public class AssetCategoryLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AssetCategoryLocalService service) {
 	}
 

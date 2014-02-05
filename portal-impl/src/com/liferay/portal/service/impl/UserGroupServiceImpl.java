@@ -98,8 +98,9 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	 *             or if the user did not have permission to add the user group
 	 * @throws     SystemException if a system exception occurred
 	 * @deprecated As of 6.2.0, replaced by {@link #addUserGroup(String, String,
-	 *             serviceContext)}
+	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public UserGroup addUserGroup(String name, String description)
 		throws PortalException, SystemException {
@@ -281,8 +282,9 @@ public class UserGroupServiceImpl extends UserGroupServiceBaseImpl {
 	 *             not have permission to update the user group information
 	 * @throws     SystemException if a system exception occurred
 	 * @deprecated As of 6.2.0, replaced by {@link #updateUserGroup(long,
-	 *             String, String, serviceContext)}
+	 *             String, String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public UserGroup updateUserGroup(
 			long userGroupId, String name, String description)

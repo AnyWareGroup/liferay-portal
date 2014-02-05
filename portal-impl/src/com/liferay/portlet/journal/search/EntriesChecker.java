@@ -100,6 +100,8 @@ public class EntriesChecker extends RowChecker {
 				if (JournalArticlePermission.contains(
 						_permissionChecker, article, ActionKeys.DELETE) ||
 					JournalArticlePermission.contains(
+						_permissionChecker, article, ActionKeys.EXPIRE) ||
+					JournalArticlePermission.contains(
 						_permissionChecker, article, ActionKeys.UPDATE)) {
 
 					showInput = true;
@@ -126,7 +128,7 @@ public class EntriesChecker extends RowChecker {
 			return StringPool.BLANK;
 		}
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(9);
 
 		sb.append("['");
 		sb.append(_liferayPortletResponse.getNamespace());

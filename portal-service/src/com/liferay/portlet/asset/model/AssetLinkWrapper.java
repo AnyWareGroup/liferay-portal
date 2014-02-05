@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetLink}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetLink
+ * @author Brian Wing Shun Chan
+ * @see AssetLink
  * @generated
  */
+@ProviderType
 public class AssetLinkWrapper implements AssetLink, ModelWrapper<AssetLink> {
 	public AssetLinkWrapper(AssetLink assetLink) {
 		_assetLink = assetLink;
@@ -444,9 +448,29 @@ public class AssetLinkWrapper implements AssetLink, ModelWrapper<AssetLink> {
 		_assetLink.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetLinkWrapper)) {
+			return false;
+		}
+
+		AssetLinkWrapper assetLinkWrapper = (AssetLinkWrapper)obj;
+
+		if (Validator.equals(_assetLink, assetLinkWrapper._assetLink)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetLink getWrappedAssetLink() {
 		return _assetLink;
 	}
@@ -454,6 +478,16 @@ public class AssetLinkWrapper implements AssetLink, ModelWrapper<AssetLink> {
 	@Override
 	public AssetLink getWrappedModel() {
 		return _assetLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetLink.isFinderCacheEnabled();
 	}
 
 	@Override

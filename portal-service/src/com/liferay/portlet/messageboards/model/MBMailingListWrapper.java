@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MBMailingList}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBMailingList
+ * @author Brian Wing Shun Chan
+ * @see MBMailingList
  * @generated
  */
+@ProviderType
 public class MBMailingListWrapper implements MBMailingList,
 	ModelWrapper<MBMailingList> {
 	public MBMailingListWrapper(MBMailingList mbMailingList) {
@@ -955,9 +960,34 @@ public class MBMailingListWrapper implements MBMailingList,
 		_mbMailingList.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBMailingListWrapper)) {
+			return false;
+		}
+
+		MBMailingListWrapper mbMailingListWrapper = (MBMailingListWrapper)obj;
+
+		if (Validator.equals(_mbMailingList, mbMailingListWrapper._mbMailingList)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbMailingList.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBMailingList getWrappedMBMailingList() {
 		return _mbMailingList;
 	}
@@ -965,6 +995,16 @@ public class MBMailingListWrapper implements MBMailingList,
 	@Override
 	public MBMailingList getWrappedModel() {
 		return _mbMailingList;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbMailingList.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbMailingList.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.mobiledevicerules.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MDRRule}.
  * </p>
  *
- * @author    Edward C. Han
- * @see       MDRRule
+ * @author Edward C. Han
+ * @see MDRRule
  * @generated
  */
+@ProviderType
 public class MDRRuleWrapper implements MDRRule, ModelWrapper<MDRRule> {
 	public MDRRuleWrapper(MDRRule mdrRule) {
 		_mdrRule = mdrRule;
@@ -749,6 +754,22 @@ public class MDRRuleWrapper implements MDRRule, ModelWrapper<MDRRule> {
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _mdrRule.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _mdrRule.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_mdrRule.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -813,9 +834,34 @@ public class MDRRuleWrapper implements MDRRule, ModelWrapper<MDRRule> {
 		_mdrRule.setTypeSettingsProperties(typeSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MDRRuleWrapper)) {
+			return false;
+		}
+
+		MDRRuleWrapper mdrRuleWrapper = (MDRRuleWrapper)obj;
+
+		if (Validator.equals(_mdrRule, mdrRuleWrapper._mdrRule)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mdrRule.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MDRRule getWrappedMDRRule() {
 		return _mdrRule;
 	}
@@ -823,6 +869,16 @@ public class MDRRuleWrapper implements MDRRule, ModelWrapper<MDRRule> {
 	@Override
 	public MDRRule getWrappedModel() {
 		return _mdrRule;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mdrRule.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mdrRule.isFinderCacheEnabled();
 	}
 
 	@Override

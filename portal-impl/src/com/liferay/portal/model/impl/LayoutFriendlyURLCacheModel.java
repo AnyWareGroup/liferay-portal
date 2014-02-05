@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 
+import java.util.Date;
+
 /**
  * The cache model class for representing LayoutFriendlyURL in entity cache.
  *
@@ -35,9 +37,11 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 	Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(27);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", layoutFriendlyURLId=");
 		sb.append(layoutFriendlyURLId);
@@ -45,6 +49,14 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 		sb.append(groupId);
 		sb.append(", companyId=");
 		sb.append(companyId);
+		sb.append(", userId=");
+		sb.append(userId);
+		sb.append(", userName=");
+		sb.append(userName);
+		sb.append(", createDate=");
+		sb.append(createDate);
+		sb.append(", modifiedDate=");
+		sb.append(modifiedDate);
 		sb.append(", plid=");
 		sb.append(plid);
 		sb.append(", privateLayout=");
@@ -62,6 +74,8 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 	public LayoutFriendlyURL toEntityModel() {
 		LayoutFriendlyURLImpl layoutFriendlyURLImpl = new LayoutFriendlyURLImpl();
 
+		layoutFriendlyURLImpl.setMvccVersion(mvccVersion);
+
 		if (uuid == null) {
 			layoutFriendlyURLImpl.setUuid(StringPool.BLANK);
 		}
@@ -72,6 +86,29 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 		layoutFriendlyURLImpl.setLayoutFriendlyURLId(layoutFriendlyURLId);
 		layoutFriendlyURLImpl.setGroupId(groupId);
 		layoutFriendlyURLImpl.setCompanyId(companyId);
+		layoutFriendlyURLImpl.setUserId(userId);
+
+		if (userName == null) {
+			layoutFriendlyURLImpl.setUserName(StringPool.BLANK);
+		}
+		else {
+			layoutFriendlyURLImpl.setUserName(userName);
+		}
+
+		if (createDate == Long.MIN_VALUE) {
+			layoutFriendlyURLImpl.setCreateDate(null);
+		}
+		else {
+			layoutFriendlyURLImpl.setCreateDate(new Date(createDate));
+		}
+
+		if (modifiedDate == Long.MIN_VALUE) {
+			layoutFriendlyURLImpl.setModifiedDate(null);
+		}
+		else {
+			layoutFriendlyURLImpl.setModifiedDate(new Date(modifiedDate));
+		}
+
 		layoutFriendlyURLImpl.setPlid(plid);
 		layoutFriendlyURLImpl.setPrivateLayout(privateLayout);
 
@@ -96,10 +133,15 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		layoutFriendlyURLId = objectInput.readLong();
 		groupId = objectInput.readLong();
 		companyId = objectInput.readLong();
+		userId = objectInput.readLong();
+		userName = objectInput.readUTF();
+		createDate = objectInput.readLong();
+		modifiedDate = objectInput.readLong();
 		plid = objectInput.readLong();
 		privateLayout = objectInput.readBoolean();
 		friendlyURL = objectInput.readUTF();
@@ -109,6 +151,8 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -119,6 +163,17 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 		objectOutput.writeLong(layoutFriendlyURLId);
 		objectOutput.writeLong(groupId);
 		objectOutput.writeLong(companyId);
+		objectOutput.writeLong(userId);
+
+		if (userName == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(userName);
+		}
+
+		objectOutput.writeLong(createDate);
+		objectOutput.writeLong(modifiedDate);
 		objectOutput.writeLong(plid);
 		objectOutput.writeBoolean(privateLayout);
 
@@ -137,10 +192,15 @@ public class LayoutFriendlyURLCacheModel implements CacheModel<LayoutFriendlyURL
 		}
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long layoutFriendlyURLId;
 	public long groupId;
 	public long companyId;
+	public long userId;
+	public String userName;
+	public long createDate;
+	public long modifiedDate;
 	public long plid;
 	public boolean privateLayout;
 	public String friendlyURL;

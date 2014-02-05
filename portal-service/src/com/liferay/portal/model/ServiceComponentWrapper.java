@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ServiceComponent}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ServiceComponent
+ * @author Brian Wing Shun Chan
+ * @see ServiceComponent
  * @generated
  */
+@ProviderType
 public class ServiceComponentWrapper implements ServiceComponent,
 	ModelWrapper<ServiceComponent> {
 	public ServiceComponentWrapper(ServiceComponent serviceComponent) {
@@ -46,6 +51,7 @@ public class ServiceComponentWrapper implements ServiceComponent,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("serviceComponentId", getServiceComponentId());
 		attributes.put("buildNamespace", getBuildNamespace());
 		attributes.put("buildNumber", getBuildNumber());
@@ -57,6 +63,12 @@ public class ServiceComponentWrapper implements ServiceComponent,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long serviceComponentId = (Long)attributes.get("serviceComponentId");
 
 		if (serviceComponentId != null) {
@@ -106,6 +118,26 @@ public class ServiceComponentWrapper implements ServiceComponent,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_serviceComponent.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this service component.
+	*
+	* @return the mvcc version of this service component
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _serviceComponent.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this service component.
+	*
+	* @param mvccVersion the mvcc version of this service component
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_serviceComponent.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -328,9 +360,30 @@ public class ServiceComponentWrapper implements ServiceComponent,
 		return _serviceComponent.getTablesSQL();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ServiceComponentWrapper)) {
+			return false;
+		}
+
+		ServiceComponentWrapper serviceComponentWrapper = (ServiceComponentWrapper)obj;
+
+		if (Validator.equals(_serviceComponent,
+					serviceComponentWrapper._serviceComponent)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ServiceComponent getWrappedServiceComponent() {
 		return _serviceComponent;
 	}
@@ -338,6 +391,16 @@ public class ServiceComponentWrapper implements ServiceComponent,
 	@Override
 	public ServiceComponent getWrappedModel() {
 		return _serviceComponent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _serviceComponent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _serviceComponent.isFinderCacheEnabled();
 	}
 
 	@Override

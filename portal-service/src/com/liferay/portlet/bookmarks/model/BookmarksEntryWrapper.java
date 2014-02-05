@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.bookmarks.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link BookmarksEntry}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       BookmarksEntry
+ * @author Brian Wing Shun Chan
+ * @see BookmarksEntry
  * @generated
  */
+@ProviderType
 public class BookmarksEntryWrapper implements BookmarksEntry,
 	ModelWrapper<BookmarksEntry> {
 	public BookmarksEntryWrapper(BookmarksEntry bookmarksEntry) {
@@ -59,6 +64,7 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("resourceBlockId", getResourceBlockId());
 		attributes.put("folderId", getFolderId());
+		attributes.put("treePath", getTreePath());
 		attributes.put("name", getName());
 		attributes.put("url", getUrl());
 		attributes.put("description", getDescription());
@@ -132,6 +138,12 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 
 		if (folderId != null) {
 			setFolderId(folderId);
+		}
+
+		String treePath = (String)attributes.get("treePath");
+
+		if (treePath != null) {
+			setTreePath(treePath);
 		}
 
 		String name = (String)attributes.get("name");
@@ -432,6 +444,26 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	}
 
 	/**
+	* Returns the tree path of this bookmarks entry.
+	*
+	* @return the tree path of this bookmarks entry
+	*/
+	@Override
+	public java.lang.String getTreePath() {
+		return _bookmarksEntry.getTreePath();
+	}
+
+	/**
+	* Sets the tree path of this bookmarks entry.
+	*
+	* @param treePath the tree path of this bookmarks entry
+	*/
+	@Override
+	public void setTreePath(java.lang.String treePath) {
+		_bookmarksEntry.setTreePath(treePath);
+	}
+
+	/**
 	* Returns the name of this bookmarks entry.
 	*
 	* @return the name of this bookmarks entry
@@ -634,8 +666,69 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	}
 
 	/**
+	* Returns the trash entry created when this bookmarks entry was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this bookmarks entry.
+	*
+	* @return the trash entry created when this bookmarks entry was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntry.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this bookmarks entry.
+	*
+	* @return the class primary key of the trash entry for this bookmarks entry
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _bookmarksEntry.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this bookmarks entry.
+	*
+	* @return the trash handler for this bookmarks entry
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _bookmarksEntry.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this bookmarks entry is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this bookmarks entry is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _bookmarksEntry.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this bookmarks entry is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this bookmarks entry is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _bookmarksEntry.isInTrashContainer();
+	}
+
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntry.isInTrashExplicitly();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _bookmarksEntry.getApproved();
@@ -699,16 +792,6 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	@Override
 	public boolean isIncomplete() {
 		return _bookmarksEntry.isIncomplete();
-	}
-
-	/**
-	* Returns <code>true</code> if this bookmarks entry is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this bookmarks entry is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _bookmarksEntry.isInTrash();
 	}
 
 	/**
@@ -837,23 +920,54 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	}
 
 	@Override
-	public com.liferay.portlet.bookmarks.model.BookmarksFolder getFolder() {
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_bookmarksEntry.updateTreePath(treePath);
+	}
+
+	@Override
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntry.buildTreePath();
+	}
+
+	@Override
+	public com.liferay.portlet.bookmarks.model.BookmarksFolder getFolder()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _bookmarksEntry.getFolder();
 	}
 
 	@Override
-	public com.liferay.portlet.bookmarks.model.BookmarksFolder getTrashContainer() {
-		return _bookmarksEntry.getTrashContainer();
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof BookmarksEntryWrapper)) {
+			return false;
+		}
+
+		BookmarksEntryWrapper bookmarksEntryWrapper = (BookmarksEntryWrapper)obj;
+
+		if (Validator.equals(_bookmarksEntry,
+					bookmarksEntryWrapper._bookmarksEntry)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		return _bookmarksEntry.isInTrashContainer();
+	public StagedModelType getStagedModelType() {
+		return _bookmarksEntry.getStagedModelType();
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public BookmarksEntry getWrappedBookmarksEntry() {
 		return _bookmarksEntry;
 	}
@@ -861,6 +975,16 @@ public class BookmarksEntryWrapper implements BookmarksEntry,
 	@Override
 	public BookmarksEntry getWrappedModel() {
 		return _bookmarksEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _bookmarksEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _bookmarksEntry.isFinderCacheEnabled();
 	}
 
 	@Override

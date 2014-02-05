@@ -18,6 +18,8 @@ import com.liferay.counter.service.CounterLocalServiceUtil;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.Index;
+import com.liferay.portal.kernel.dao.db.IndexMetadata;
+import com.liferay.portal.kernel.dao.db.IndexMetadataFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
@@ -26,7 +28,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -46,12 +47,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -113,8 +112,8 @@ public abstract class BaseDB implements DB {
 	public void buildCreateFile(String sqlDir, String databaseName)
 		throws IOException {
 
-		buildCreateFile(sqlDir, databaseName, POPULATED);
-		buildCreateFile(sqlDir, databaseName, MINIMAL);
+		buildCreateFile(sqlDir, databaseName, BARE);
+		buildCreateFile(sqlDir, databaseName, DEFAULT);
 		buildCreateFile(sqlDir, databaseName, SHARDED);
 	}
 
@@ -139,21 +138,21 @@ public abstract class BaseDB implements DB {
 		}
 		else {
 			String content = buildCreateFileContent(
-				sqlDir, databaseName, MINIMAL);
+				sqlDir, databaseName, DEFAULT);
 
 			if (content != null) {
 				FileUtil.write(file, content);
 			}
 
 			content = buildCreateFileContent(
-				sqlDir, databaseName + "1", MINIMAL);
+				sqlDir, databaseName + "1", DEFAULT);
 
 			if (content != null) {
 				FileUtil.write(file, content, false, true);
 			}
 
 			content = buildCreateFileContent(
-				sqlDir, databaseName + "2", MINIMAL);
+				sqlDir, databaseName + "2", DEFAULT);
 
 			if (content != null) {
 				FileUtil.write(file, content, false, true);
@@ -447,20 +446,21 @@ public abstract class BaseDB implements DB {
 							if (failOnError) {
 								throw sqle;
 							}
-							else if (_log.isWarnEnabled()) {
-								String message = GetterUtil.getString(
-									sqle.getMessage());
 
-								if (!message.startsWith("Duplicate key name")) {
-									_log.warn(message + ": " + buildSQL(sql));
-								}
+							String message = GetterUtil.getString(
+								sqle.getMessage());
 
-								if (message.startsWith("Duplicate entry") ||
-									message.startsWith(
-										"Specified key was too long")) {
+							if (!message.startsWith("Duplicate key name") &&
+								_log.isWarnEnabled()) {
 
-									_log.error(line);
-								}
+								_log.warn(message + ": " + buildSQL(sql));
+							}
+
+							if (message.startsWith("Duplicate entry") ||
+								message.startsWith(
+									"Specified key was too long")) {
+
+								_log.error(line);
 							}
 						}
 					}
@@ -490,7 +490,7 @@ public abstract class BaseDB implements DB {
 	@Override
 	public void updateIndexes(
 			Connection con, String tablesSQL, String indexesSQL,
-			String indexesProperties, boolean dropIndexes)
+			boolean dropIndexes)
 		throws IOException, SQLException {
 
 		List<Index> indexes = getIndexes(con);
@@ -498,14 +498,13 @@ public abstract class BaseDB implements DB {
 		Set<String> validIndexNames = null;
 
 		if (dropIndexes) {
-			validIndexNames = dropIndexes(
-				con, tablesSQL, indexesSQL, indexesProperties, indexes);
+			validIndexNames = dropIndexes(con, tablesSQL, indexesSQL, indexes);
 		}
 		else {
 			validIndexNames = new HashSet<String>();
 
 			for (Index index : indexes) {
-				String indexName = index.getIndexName().toUpperCase();
+				String indexName = StringUtil.toUpperCase(index.getIndexName());
 
 				validIndexNames.add(indexName);
 			}
@@ -581,7 +580,7 @@ public abstract class BaseDB implements DB {
 
 		String template = readFile(sqlDir + "/" + fileName + ".sql");
 
-		if (fileName.equals("portal") || fileName.equals("portal-minimal") ||
+		if (fileName.equals("portal") ||
 			fileName.equals("update-5.0.1-5.1.0")) {
 
 			UnsyncBufferedReader unsyncBufferedReader =
@@ -655,7 +654,7 @@ public abstract class BaseDB implements DB {
 
 	protected Set<String> dropIndexes(
 			Connection con, String tablesSQL, String indexesSQL,
-			String indexesProperties, List<Index> indexes)
+			List<Index> indexes)
 		throws IOException, SQLException {
 
 		if (_log.isInfoEnabled()) {
@@ -668,33 +667,37 @@ public abstract class BaseDB implements DB {
 			return validIndexNames;
 		}
 
-		String tablesSQLLowerCase = tablesSQL.toLowerCase();
-		String indexesSQLLowerCase = indexesSQL.toLowerCase();
+		String tablesSQLLowerCase = StringUtil.toLowerCase(tablesSQL);
+		String indexesSQLLowerCase = StringUtil.toLowerCase(indexesSQL);
 
-		Properties indexesPropertiesObj = PropertiesUtil.load(
-			indexesProperties);
+		String[] lines = StringUtil.splitLines(indexesSQL);
 
-		Enumeration<String> enu =
-			(Enumeration<String>)indexesPropertiesObj.propertyNames();
+		Set<String> indexNames = new HashSet<String>();
 
-		while (enu.hasMoreElements()) {
-			String key = enu.nextElement();
+		for (String line : lines) {
+			if (Validator.isNull(line)) {
+				continue;
+			}
 
-			String value = indexesPropertiesObj.getProperty(key);
+			IndexMetadata indexMetadata =
+				IndexMetadataFactoryUtil.createIndexMetadata(line);
 
-			indexesPropertiesObj.setProperty(key.toLowerCase(), value);
+			indexNames.add(
+				StringUtil.toLowerCase(indexMetadata.getIndexName()));
 		}
 
 		for (Index index : indexes) {
-			String indexNameUpperCase = index.getIndexName().toUpperCase();
-			String indexNameLowerCase = indexNameUpperCase.toLowerCase();
+			String indexNameUpperCase = StringUtil.toUpperCase(
+				index.getIndexName());
+			String indexNameLowerCase = StringUtil.toLowerCase(
+				indexNameUpperCase);
 			String tableName = index.getTableName();
-			String tableNameLowerCase = tableName.toLowerCase();
+			String tableNameLowerCase = StringUtil.toLowerCase(tableName);
 			boolean unique = index.isUnique();
 
 			validIndexNames.add(indexNameUpperCase);
 
-			if (indexesPropertiesObj.containsKey(indexNameLowerCase)) {
+			if (indexNames.contains(indexNameLowerCase)) {
 				if (unique &&
 					indexesSQLLowerCase.contains(
 						"create unique index " + indexNameLowerCase + " ")) {
@@ -801,8 +804,8 @@ public abstract class BaseDB implements DB {
 	protected abstract String getServerName();
 
 	protected String getSuffix(int type) {
-		if (type == MINIMAL) {
-			return "-minimal";
+		if (type == BARE) {
+			return "-bare";
 		}
 		else if (type == SHARDED) {
 			return "-sharded";

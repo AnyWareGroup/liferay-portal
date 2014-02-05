@@ -17,13 +17,14 @@ package com.liferay.portal.service.impl;
 import com.liferay.portal.EmailAddressException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.EmailAddress;
 import com.liferay.portal.model.ListTypeConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.EmailAddressLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 
 import java.util.Date;
 import java.util.List;
@@ -39,6 +40,7 @@ public class EmailAddressLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #addEmailAddress(long,
 	 *             String, long, String, int, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public EmailAddress addEmailAddress(
 			long userId, String className, long classPK, String address,
@@ -57,7 +59,7 @@ public class EmailAddressLocalServiceImpl
 		throws PortalException, SystemException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		Date now = new Date();
 
 		validate(
@@ -87,27 +89,40 @@ public class EmailAddressLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
+	public EmailAddress deleteEmailAddress(EmailAddress emailAddress)
+		throws SystemException {
+
+		emailAddressPersistence.remove(emailAddress);
+
+		return emailAddress;
+	}
+
+	@Override
+	public EmailAddress deleteEmailAddress(long emailAddressId)
+		throws PortalException, SystemException {
+
+		EmailAddress emailAddress = emailAddressPersistence.findByPrimaryKey(
+			emailAddressId);
+
+		return emailAddressLocalService.deleteEmailAddress(emailAddress);
+	}
+
+	@Override
 	public void deleteEmailAddresses(
 			long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		List<EmailAddress> emailAddresses = emailAddressPersistence.findByC_C_C(
 			companyId, classNameId, classPK);
 
 		for (EmailAddress emailAddress : emailAddresses) {
-			deleteEmailAddress(emailAddress);
+			emailAddressLocalService.deleteEmailAddress(emailAddress);
 		}
-	}
-
-	@Override
-	public EmailAddress fetchEmailAddressByUuidAndCompanyId(
-			String uuid, long companyId)
-		throws SystemException {
-
-		return emailAddressPersistence.fetchByUuid_C_First(
-			uuid, companyId, null);
 	}
 
 	@Override
@@ -120,7 +135,7 @@ public class EmailAddressLocalServiceImpl
 			long companyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return emailAddressPersistence.findByC_C_C(
 			companyId, classNameId, classPK);

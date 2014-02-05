@@ -1,0 +1,5 @@
+<definition component-name="portal-collaboration" extends="TestCaseDefinitionElement1006_3">
+	<command name="name" priority="5">
+		<var name="name" value="value" />
+	</command>
+</definition>

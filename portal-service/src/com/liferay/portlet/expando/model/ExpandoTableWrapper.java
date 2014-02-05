@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.expando.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ExpandoTable}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoTable
+ * @author Brian Wing Shun Chan
+ * @see ExpandoTable
  * @generated
  */
+@ProviderType
 public class ExpandoTableWrapper implements ExpandoTable,
 	ModelWrapper<ExpandoTable> {
 	public ExpandoTableWrapper(ExpandoTable expandoTable) {
@@ -308,9 +312,29 @@ public class ExpandoTableWrapper implements ExpandoTable,
 		return _expandoTable.isDefaultTable();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ExpandoTableWrapper)) {
+			return false;
+		}
+
+		ExpandoTableWrapper expandoTableWrapper = (ExpandoTableWrapper)obj;
+
+		if (Validator.equals(_expandoTable, expandoTableWrapper._expandoTable)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ExpandoTable getWrappedExpandoTable() {
 		return _expandoTable;
 	}
@@ -318,6 +342,16 @@ public class ExpandoTableWrapper implements ExpandoTable,
 	@Override
 	public ExpandoTable getWrappedModel() {
 		return _expandoTable;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _expandoTable.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _expandoTable.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -49,6 +49,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class SitesUtil {
 
+	public static void addMergeFailFriendlyURLLayout(Layout layout)
+		throws PortalException, SystemException {
+
+		getSites().addMergeFailFriendlyURLLayout(layout);
+	}
+
 	public static void addPortletBreadcrumbEntries(
 			Group group, HttpServletRequest request,
 			RenderResponse renderResponse)
@@ -166,6 +172,13 @@ public class SitesUtil {
 		return getSites().getMergeFailCount(layoutSetPrototype);
 	}
 
+	public static List<Layout> getMergeFailFriendlyURLLayouts(
+			LayoutSet layoutSet)
+		throws PortalException, SystemException {
+
+		return getSites().getMergeFailFriendlyURLLayouts(layoutSet);
+	}
+
 	public static Sites getSites() {
 		PortalRuntimePermission.checkGetBeanProperty(SitesUtil.class);
 
@@ -185,6 +198,13 @@ public class SitesUtil {
 		throws SystemException {
 
 		return getSites().isContentSharingWithChildrenEnabled(group);
+	}
+
+	public static boolean isFirstLayout(
+			long groupId, boolean privateLayout, long layoutId)
+		throws SystemException {
+
+		return getSites().isFirstLayout(groupId, privateLayout, layoutId);
 	}
 
 	public static boolean isLayoutDeleteable(Layout layout) {
@@ -250,6 +270,7 @@ public class SitesUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #mergeLayoutPrototypeLayout(Group, Layout)}
 	 */
+	@Deprecated
 	public static void mergeLayoutProtypeLayout(Group group, Layout layout)
 		throws Exception {
 
@@ -267,11 +288,18 @@ public class SitesUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #mergeLayoutSetPrototypeLayouts(Group, LayoutSet)}
 	 */
+	@Deprecated
 	public static void mergeLayoutSetProtypeLayouts(
 			Group group, LayoutSet layoutSet)
 		throws Exception {
 
 		getSites().mergeLayoutSetProtypeLayouts(group, layoutSet);
+	}
+
+	public static void removeMergeFailFriendlyURLLayouts(LayoutSet layoutSet)
+		throws SystemException {
+
+		getSites().removeMergeFailFriendlyURLLayouts(layoutSet);
 	}
 
 	public static void resetPrototype(Layout layout)

@@ -19,6 +19,8 @@
 <%
 String redirect = ParamUtil.getString(request, "redirect");
 
+String referringPortletResource = ParamUtil.getString(request, "referringPortletResource");
+
 MBMessage message = (MBMessage)request.getAttribute(WebKeys.MESSAGE_BOARDS_MESSAGE);
 
 long messageId = BeanParamUtil.getLong(message, request, "messageId");
@@ -74,12 +76,39 @@ if (Validator.isNull(redirect)) {
 
 	redirect = viewMessageURL.toString();
 }
+
+if (curParentMessage != null) {
+
+	MBUtil.addPortletBreadcrumbEntries(curParentMessage, request, renderResponse);
+
+	if (!layout.isTypeControlPanel()) {
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "reply"), currentURL);
+	}
+}
+else if (message != null) {
+	MBUtil.addPortletBreadcrumbEntries(message, request, renderResponse);
+
+	if (!layout.isTypeControlPanel()) {
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
+	}
+}
+else {
+	MBUtil.addPortletBreadcrumbEntries(categoryId, request, renderResponse);
+
+	if (!layout.isTypeControlPanel()) {
+		PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-message"), currentURL);
+	}
+}
 %>
+
+<c:if test="<%= Validator.isNull(referringPortletResource) %>">
+	<liferay-util:include page="/html/portlet/message_boards/top_links.jsp" />
+</c:if>
 
 <liferay-ui:header
 	backURL="<%= redirect %>"
 	localizeTitle="<%= (message == null) %>"
-	title='<%= (message == null) ? "new-message" : message.getSubject() %>'
+	title='<%= (curParentMessage != null) ? LanguageUtil.format(pageContext, "reply-to-x", curParentMessage.getSubject(), false) : (message == null) ? "add-message" : LanguageUtil.format(pageContext, "edit-x", message.getSubject(), false) %>'
 />
 
 <c:if test="<%= preview %>">
@@ -114,7 +143,9 @@ if (Validator.isNull(redirect)) {
 	request.setAttribute("edit_message.jsp-depth", depth);
 	request.setAttribute("edit_message.jsp-editable", Boolean.FALSE);
 	request.setAttribute("edit_message.jsp-message", previewMessage);
+	request.setAttribute("edit-message.jsp-showDeletedAttachmentsFileEntries", Boolean.TRUE);
 	request.setAttribute("edit-message.jsp-showPermanentLink", Boolean.TRUE);
+	request.setAttribute("edit-message.jsp-showRecentPosts", Boolean.TRUE);
 	request.setAttribute("edit_message.jsp-thread", thread);
 	%>
 
@@ -143,9 +174,7 @@ if (Validator.isNull(redirect)) {
 
 	<liferay-ui:error exception="<%= CaptchaMaxChallengesException.class %>" message="maximum-number-of-captcha-attempts-exceeded" />
 	<liferay-ui:error exception="<%= CaptchaTextException.class %>" message="text-verification-failed" />
-	<liferay-ui:error exception="<%= LockedThreadException.class %>" message="thread-is-locked" />
-	<liferay-ui:error exception="<%= MessageBodyException.class %>" message="please-enter-a-valid-message" />
-	<liferay-ui:error exception="<%= MessageSubjectException.class %>" message="please-enter-a-valid-subject" />
+	<liferay-ui:error exception="<%= DuplicateFileException.class %>" message="please-enter-a-unique-document-name" />
 
 	<liferay-ui:error exception="<%= FileExtensionException.class %>">
 		<liferay-ui:message key="document-names-must-end-with-one-of-the-following-extensions" /><%= StringUtil.merge(PrefsPropsUtil.getStringArray(PropsKeys.DL_FILE_EXTENSIONS, StringPool.COMMA), StringPool.COMMA_AND_SPACE) %>.
@@ -165,8 +194,12 @@ if (Validator.isNull(redirect)) {
 		fileMaxSize /= 1024;
 		%>
 
-		<liferay-ui:message arguments="<%= fileMaxSize %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" />
+		<liferay-ui:message arguments="<%= fileMaxSize %>" key="please-enter-a-file-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 	</liferay-ui:error>
+
+	<liferay-ui:error exception="<%= LockedThreadException.class %>" message="thread-is-locked" />
+	<liferay-ui:error exception="<%= MessageBodyException.class %>" message="please-enter-a-valid-message" />
+	<liferay-ui:error exception="<%= MessageSubjectException.class %>" message="please-enter-a-valid-subject" />
 
 	<liferay-ui:asset-categories-error />
 
@@ -179,7 +212,7 @@ if (Validator.isNull(redirect)) {
 			<aui:workflow-status status="<%= message.getStatus() %>" />
 		</c:if>
 
-		<aui:input name="subject" value="<%= subject %>" />
+		<aui:input autoFocus="<%= (windowState.equals(WindowState.MAXIMIZED) && !themeDisplay.isFacebook()) %>" name="subject" value="<%= subject %>" />
 
 		<aui:field-wrapper label="body">
 			<c:choose>
@@ -233,7 +266,7 @@ if (Validator.isNull(redirect)) {
 		</c:if>
 
 		<c:if test="<%= (message == null) && themeDisplay.isSignedIn() && !SubscriptionLocalServiceUtil.isSubscribed(themeDisplay.getCompanyId(), user.getUserId(), MBThread.class.getName(), threadId) && !SubscriptionLocalServiceUtil.isSubscribed(themeDisplay.getCompanyId(), user.getUserId(), MBCategory.class.getName(), categoryId) %>">
-			<aui:input helpMessage="message-boards-message-subscribe-me-help" label="subscribe-me" name="subscribe" type='<%= (MBUtil.getEmailMessageAddedEnabled(preferences) || MBUtil.getEmailMessageUpdatedEnabled(preferences)) ? "checkbox" : "hidden" %>' value="<%= subscribeByDefault %>" />
+			<aui:input helpMessage="message-boards-message-subscribe-me-help" label="subscribe-me" name="subscribe" type='<%= (MBUtil.getEmailMessageAddedEnabled(portletPreferences) || MBUtil.getEmailMessageUpdatedEnabled(portletPreferences)) ? "checkbox" : "hidden" %>' value="<%= subscribeByDefault %>" />
 		</c:if>
 
 		<c:if test="<%= (priorities.length > 0) && MBCategoryPermission.contains(permissionChecker, scopeGroupId, categoryId, ActionKeys.UPDATE_THREAD_PRIORITY) %>">
@@ -257,7 +290,7 @@ if (Validator.isNull(redirect)) {
 						if (priorityValue > 0) {
 				%>
 
-							<aui:option label="<%= priorityName %>" selected="<%= (threadPriority == priorityValue) %>" value="<%= priorityValue %>" />
+							<aui:option label="<%= HtmlUtil.escape(priorityName) %>" selected="<%= (threadPriority == priorityValue) %>" value="<%= priorityValue %>" />
 
 				<%
 						}
@@ -420,7 +453,7 @@ if (Validator.isNull(redirect)) {
 
 		<c:if test="<%= (message != null) && message.isApproved() && WorkflowDefinitionLinkLocalServiceUtil.hasWorkflowDefinitionLink(message.getCompanyId(), message.getGroupId(), MBMessage.class.getName()) %>">
 			<div class="alert alert-info">
-				<%= LanguageUtil.format(pageContext, "this-x-is-approved.-publishing-these-changes-will-cause-it-to-be-unpublished-and-go-through-the-approval-process-again", ResourceActionsUtil.getModelResource(locale, MBMessage.class.getName())) %>
+				<%= LanguageUtil.format(pageContext, "this-x-is-approved.-publishing-these-changes-will-cause-it-to-be-unpublished-and-go-through-the-approval-process-again", ResourceActionsUtil.getModelResource(locale, MBMessage.class.getName()), false) %>
 			</div>
 		</c:if>
 
@@ -450,7 +483,9 @@ if (Validator.isNull(redirect)) {
 		request.setAttribute("edit_message.jsp-depth", depth);
 		request.setAttribute("edit_message.jsp-editable", Boolean.FALSE);
 		request.setAttribute("edit_message.jsp-message", message);
+		request.setAttribute("edit-message.jsp-showDeletedAttachmentsFileEntries", Boolean.TRUE);
 		request.setAttribute("edit-message.jsp-showPermanentLink", Boolean.TRUE);
+		request.setAttribute("edit-message.jsp-showRecentPosts", Boolean.TRUE);
 		request.setAttribute("edit_message.jsp-thread", thread);
 		%>
 
@@ -460,15 +495,16 @@ if (Validator.isNull(redirect)) {
 
 <aui:script>
 	function <portlet:namespace />getSuggestionsContent() {
-		var content = '';
-
-		content += document.<portlet:namespace />fm.<portlet:namespace />subject.value + ' ';
-		content += <portlet:namespace />getHTML();
-
-		return content;
+		return document.<portlet:namespace />fm.<portlet:namespace />subject.value + ' ' + <portlet:namespace />getHTML();
 	}
 
 	function <portlet:namespace />previewMessage() {
+		<c:if test="<%= ((message != null) && !message.isDraft()) %>">
+			if (!confirm('<liferay-ui:message key="in-order-to-preview-your-changes,-the-message-will-be-saved-as-a-draft-and-other-users-may-not-be-able-to-see-it" />')) {
+				return false;
+			}
+		</c:if>
+
 		document.<portlet:namespace />fm.<portlet:namespace />body.value = <portlet:namespace />getHTML();
 		document.<portlet:namespace />fm.<portlet:namespace />preview.value = 'true';
 
@@ -554,10 +590,6 @@ if (Validator.isNull(redirect)) {
 			);
 		</c:otherwise>
 	</c:choose>
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) && !themeDisplay.isFacebook() %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />subject);
-	</c:if>
 </aui:script>
 
 <c:if test="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>">
@@ -584,21 +616,3 @@ if (Validator.isNull(redirect)) {
 
 	</aui:script>
 </c:if>
-
-<%
-if (curParentMessage != null) {
-	MBUtil.addPortletBreadcrumbEntries(curParentMessage, request, renderResponse);
-
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "reply"), currentURL);
-}
-else if (message != null) {
-	MBUtil.addPortletBreadcrumbEntries(message, request, renderResponse);
-
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
-}
-else {
-	MBUtil.addPortletBreadcrumbEntries(categoryId, request, renderResponse);
-
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-message"), currentURL);
-}
-%>

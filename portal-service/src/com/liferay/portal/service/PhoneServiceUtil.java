@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.PhoneServiceImpl
  * @generated
  */
+@ProviderType
 public class PhoneServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -57,9 +60,10 @@ public class PhoneServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addPhone( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addPhone(String, long,
 	String, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Phone addPhone(
 		java.lang.String className, long classPK, java.lang.String number,
 		java.lang.String extension, int typeId, boolean primary)
@@ -123,6 +127,7 @@ public class PhoneServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(PhoneService service) {
 	}
 

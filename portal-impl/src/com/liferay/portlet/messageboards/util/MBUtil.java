@@ -14,8 +14,7 @@
 
 package com.liferay.portlet.messageboards.util;
 
-import com.liferay.portal.kernel.concurrent.PortalCallable;
-import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.shard.ShardCallable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
@@ -27,6 +26,7 @@ import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
 import com.liferay.portal.kernel.transaction.TransactionCommitCallbackRegistryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -220,10 +220,11 @@ public class MBUtil {
 
 		Object partContent = part.getContent();
 
-		String contentType = part.getContentType().toLowerCase();
+		String contentType = StringUtil.toLowerCase(part.getContentType());
 
 		if ((part.getDisposition() != null) &&
-			part.getDisposition().equalsIgnoreCase(MimeMessage.ATTACHMENT)) {
+			StringUtil.equalsIgnoreCase(
+				part.getDisposition(), MimeMessage.ATTACHMENT)) {
 
 			if (_log.isDebugEnabled()) {
 				_log.debug("Processing attachment");
@@ -289,12 +290,12 @@ public class MBUtil {
 		sb.append(StringPool.SPACE);
 
 		for (MBCategory curCategory : categories) {
-			sb.append(StringPool.RAQUO);
+			sb.append(StringPool.RAQUO_CHAR);
 			sb.append(StringPool.SPACE);
 			sb.append(curCategory.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append(StringPool.RAQUO_CHAR);
 		sb.append(StringPool.SPACE);
 		sb.append(mbCategory.getName());
 
@@ -418,18 +419,18 @@ public class MBUtil {
 		}
 	}
 
-	public static String getEmailMessageAddedSubjectPrefix(
+	public static String getEmailMessageAddedSubject(
 		PortletPreferences preferences) {
 
-		String emailMessageAddedSubjectPrefix = preferences.getValue(
-			"emailMessageAddedSubjectPrefix", StringPool.BLANK);
+		String emailMessageAddedSubject = preferences.getValue(
+			"emailMessageAddedSubject", StringPool.BLANK);
 
-		if (Validator.isNotNull(emailMessageAddedSubjectPrefix)) {
-			return emailMessageAddedSubjectPrefix;
+		if (Validator.isNotNull(emailMessageAddedSubject)) {
+			return emailMessageAddedSubject;
 		}
 		else {
 			return ContentUtil.get(
-				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_SUBJECT_PREFIX);
+				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_ADDED_SUBJECT);
 		}
 	}
 
@@ -477,19 +478,18 @@ public class MBUtil {
 		}
 	}
 
-	public static String getEmailMessageUpdatedSubjectPrefix(
+	public static String getEmailMessageUpdatedSubject(
 		PortletPreferences preferences) {
 
 		String emailMessageUpdatedSubject = preferences.getValue(
-			"emailMessageUpdatedSubjectPrefix", StringPool.BLANK);
+			"emailMessageUpdatedSubject", StringPool.BLANK);
 
 		if (Validator.isNotNull(emailMessageUpdatedSubject)) {
 			return emailMessageUpdatedSubject;
 		}
 		else {
 			return ContentUtil.get(
-				PropsValues.
-					MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_SUBJECT_PREFIX);
+				PropsValues.MESSAGE_BOARDS_EMAIL_MESSAGE_UPDATED_SUBJECT);
 		}
 	}
 
@@ -569,16 +569,11 @@ public class MBUtil {
 		String messageFormat = preferences.getValue(
 			"messageFormat", MBMessageConstants.DEFAULT_FORMAT);
 
-		String editorImpl = PropsUtil.get(BB_CODE_EDITOR_WYSIWYG_IMPL_KEY);
-
-		if (messageFormat.equals("bbcode") &&
-			!(editorImpl.equals("bbcode") ||
-			  editorImpl.equals("ckeditor_bbcode"))) {
-
-			messageFormat = "html";
+		if (isValidMessageFormat(messageFormat)) {
+			return messageFormat;
 		}
 
-		return messageFormat;
+		return "html";
 	}
 
 	public static long getMessageId(String mailId) {
@@ -632,7 +627,7 @@ public class MBUtil {
 
 		String[] references = message.getHeader("References");
 
-		if ((references != null) && (references.length > 0)) {
+		if (ArrayUtil.isNotEmpty(references)) {
 			String reference = references[0];
 
 			int x = reference.lastIndexOf("<mb.");
@@ -647,7 +642,7 @@ public class MBUtil {
 		if (parentHeader == null) {
 			String[] inReplyToHeaders = message.getHeader("In-Reply-To");
 
-			if ((inReplyToHeaders != null) && (inReplyToHeaders.length > 0)) {
+			if (ArrayUtil.isNotEmpty(inReplyToHeaders)) {
 				parentHeader = inReplyToHeaders[0];
 			}
 		}
@@ -714,7 +709,7 @@ public class MBUtil {
 
 		if (priorityPair == null) {
 			String defaultLanguageId = LocaleUtil.toLanguageId(
-				LocaleUtil.getDefault());
+				LocaleUtil.getSiteDefault());
 
 			priorities = LocalizationUtil.getPreferencesValues(
 				preferences, "priorities", defaultLanguageId);
@@ -813,7 +808,6 @@ public class MBUtil {
 					rank[0] = curRank;
 					maxPosts = posts;
 				}
-
 			}
 			else {
 				String entityType = curRankValueKvp[0];
@@ -863,6 +857,19 @@ public class MBUtil {
 		return GetterUtil.getBoolean(
 			preferences.getValue("allowAnonymousPosting", null),
 			PropsValues.MESSAGE_BOARDS_ANONYMOUS_POSTING_ENABLED);
+	}
+
+	public static boolean isValidMessageFormat(String messageFormat) {
+		String editorImpl = PropsUtil.get(BB_CODE_EDITOR_WYSIWYG_IMPL_KEY);
+
+		if (messageFormat.equals("bbcode") &&
+			!(editorImpl.equals("bbcode") ||
+			  editorImpl.equals("ckeditor_bbcode"))) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	public static boolean isViewableMessage(
@@ -921,7 +928,7 @@ public class MBUtil {
 	public static void updateCategoryMessageCount(
 		long companyId, final long categoryId) {
 
-		Callable<Void> callable = new PortalCallable<Void>(companyId) {
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
 
 			@Override
 			protected Void doCall() throws Exception {
@@ -949,7 +956,7 @@ public class MBUtil {
 	public static void updateCategoryStatistics(
 		long companyId, final long categoryId) {
 
-		Callable<Void> callable = new PortalCallable<Void>(companyId) {
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
 
 			@Override
 			protected Void doCall() throws Exception {
@@ -983,7 +990,7 @@ public class MBUtil {
 	public static void updateCategoryThreadCount(
 		long companyId, final long categoryId) {
 
-		Callable<Void> callable = new PortalCallable<Void>(companyId) {
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
 
 			@Override
 			protected Void doCall() throws Exception {
@@ -1014,7 +1021,7 @@ public class MBUtil {
 	public static void updateThreadMessageCount(
 		long companyId, final long threadId) {
 
-		Callable<Void> callable = new PortalCallable<Void>(companyId) {
+		Callable<Void> callable = new ShardCallable<Void>(companyId) {
 
 			@Override
 			protected Void doCall() throws Exception {
@@ -1072,21 +1079,9 @@ public class MBUtil {
 	private static int _getMessageCount(MBCategory category)
 		throws SystemException {
 
-		int messageCount = MBMessageLocalServiceUtil.getCategoryMessagesCount(
+		return MBMessageLocalServiceUtil.getCategoryMessagesCount(
 			category.getGroupId(), category.getCategoryId(),
 			WorkflowConstants.STATUS_APPROVED);
-
-		QueryDefinition queryDefinition = new QueryDefinition(
-			WorkflowConstants.STATUS_IN_TRASH);
-
-		List<MBThread> threads = MBThreadLocalServiceUtil.getGroupThreads(
-			category.getGroupId(), queryDefinition);
-
-		for (MBThread thread : threads) {
-			messageCount = messageCount - thread.getMessageCount();
-		}
-
-		return messageCount;
 	}
 
 	private static String _getParentMessageIdFromSubject(Message message)

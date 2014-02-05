@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -49,7 +50,7 @@ public class MBMessageFinderImpl
 		MBMessageFinder.class.getName() + ".countByG_U_C_S";
 
 	public static final String COUNT_BY_G_U_MD_C_S =
-	MBMessageFinder.class.getName() + ".countByG_U_MD_C_S";
+		MBMessageFinder.class.getName() + ".countByG_U_MD_C_S";
 
 	public static final String COUNT_BY_G_U_C_A_S =
 		MBMessageFinder.class.getName() + ".countByG_U_C_A_S";
@@ -61,7 +62,7 @@ public class MBMessageFinderImpl
 		MBMessageFinder.class.getName() + ".findByG_U_C_S";
 
 	public static final String FIND_BY_G_U_MD_C_S =
-	MBMessageFinder.class.getName() + ".findByG_U_MD_C_S";
+		MBMessageFinder.class.getName() + ".findByG_U_MD_C_S";
 
 	public static final String FIND_BY_G_U_C_A_S =
 		MBMessageFinder.class.getName() + ".findByG_U_C_A_S";
@@ -79,7 +80,7 @@ public class MBMessageFinderImpl
 
 			String sql = CustomSQLUtil.get(COUNT_BY_C_T);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -194,7 +195,7 @@ public class MBMessageFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_NO_ASSETS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("MBMessage", MBMessageImpl.class);
 
@@ -244,7 +245,7 @@ public class MBMessageFinderImpl
 				sql = StringUtil.replace(sql, _USER_ID_SQL, StringPool.BLANK);
 			}
 
-			if ((categoryIds == null) || (categoryIds.length == 0)) {
+			if (ArrayUtil.isEmpty(categoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(currentMessage.categoryId = ?) AND",
 					StringPool.BLANK);
@@ -268,7 +269,7 @@ public class MBMessageFinderImpl
 					"currentMessage.rootMessageId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -320,7 +321,7 @@ public class MBMessageFinderImpl
 				sql = StringUtil.replace(sql, _USER_ID_SQL, StringPool.BLANK);
 			}
 
-			if ((categoryIds == null) || (categoryIds.length == 0)) {
+			if (ArrayUtil.isEmpty(categoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(currentMessage.categoryId = ?) AND",
 					StringPool.BLANK);
@@ -344,7 +345,7 @@ public class MBMessageFinderImpl
 					"currentMessage.rootMessageId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -394,7 +395,7 @@ public class MBMessageFinderImpl
 
 			String sql = CustomSQLUtil.get(COUNT_BY_G_U_C_A_S);
 
-			if ((categoryIds == null) || (categoryIds.length == 0)) {
+			if (ArrayUtil.isEmpty(categoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(currentMessage.categoryId = ?) AND",
 					StringPool.BLANK);
@@ -418,7 +419,7 @@ public class MBMessageFinderImpl
 					"currentMessage.rootMessageId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -468,7 +469,7 @@ public class MBMessageFinderImpl
 				sql = StringUtil.replace(sql, _USER_ID_SQL, StringPool.BLANK);
 			}
 
-			if ((categoryIds == null) || (categoryIds.length == 0)) {
+			if (ArrayUtil.isEmpty(categoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(currentMessage.categoryId = ?) AND",
 					StringPool.BLANK);
@@ -492,7 +493,7 @@ public class MBMessageFinderImpl
 					"currentMessage.rootMessageId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("threadId", Type.LONG);
 
@@ -534,7 +535,7 @@ public class MBMessageFinderImpl
 				sql = StringUtil.replace(sql, _USER_ID_SQL, StringPool.BLANK);
 			}
 
-			if ((categoryIds == null) || (categoryIds.length == 0)) {
+			if (ArrayUtil.isEmpty(categoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(currentMessage.categoryId = ?) AND",
 					StringPool.BLANK);
@@ -558,7 +559,7 @@ public class MBMessageFinderImpl
 					"currentMessage.rootMessageId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("threadId", Type.LONG);
 
@@ -598,7 +599,7 @@ public class MBMessageFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_G_U_C_A_S);
 
-			if ((categoryIds == null) || (categoryIds.length == 0)) {
+			if (ArrayUtil.isEmpty(categoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(currentMessage.categoryId = ?) AND",
 					StringPool.BLANK);
@@ -622,7 +623,7 @@ public class MBMessageFinderImpl
 					"currentMessage.rootMessageId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("threadId", Type.LONG);
 

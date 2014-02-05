@@ -14,30 +14,21 @@
 
 package com.liferay.portlet.softwarecatalog.service.base;
 
-import com.liferay.counter.service.CounterLocalService;
-
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.bean.IdentifiableBean;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.BaseServiceImpl;
-import com.liferay.portal.service.ResourceLocalService;
-import com.liferay.portal.service.UserLocalService;
-import com.liferay.portal.service.UserService;
+import com.liferay.portal.service.persistence.ClassNamePersistence;
 import com.liferay.portal.service.persistence.UserFinder;
 import com.liferay.portal.service.persistence.UserPersistence;
+import com.liferay.portal.util.PortalUtil;
 
 import com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion;
-import com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalService;
 import com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService;
-import com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService;
-import com.liferay.portlet.softwarecatalog.service.SCLicenseService;
-import com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalService;
-import com.liferay.portlet.softwarecatalog.service.SCProductEntryService;
-import com.liferay.portlet.softwarecatalog.service.SCProductScreenshotLocalService;
-import com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService;
-import com.liferay.portlet.softwarecatalog.service.SCProductVersionService;
 import com.liferay.portlet.softwarecatalog.service.persistence.SCFrameworkVersionPersistence;
 import com.liferay.portlet.softwarecatalog.service.persistence.SCLicensePersistence;
 import com.liferay.portlet.softwarecatalog.service.persistence.SCProductEntryPersistence;
@@ -71,7 +62,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c framework version local service
 	 */
-	public SCFrameworkVersionLocalService getSCFrameworkVersionLocalService() {
+	public com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalService getSCFrameworkVersionLocalService() {
 		return scFrameworkVersionLocalService;
 	}
 
@@ -81,7 +72,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scFrameworkVersionLocalService the s c framework version local service
 	 */
 	public void setSCFrameworkVersionLocalService(
-		SCFrameworkVersionLocalService scFrameworkVersionLocalService) {
+		com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalService scFrameworkVersionLocalService) {
 		this.scFrameworkVersionLocalService = scFrameworkVersionLocalService;
 	}
 
@@ -90,7 +81,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c framework version remote service
 	 */
-	public SCFrameworkVersionService getSCFrameworkVersionService() {
+	public com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService getSCFrameworkVersionService() {
 		return scFrameworkVersionService;
 	}
 
@@ -100,7 +91,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scFrameworkVersionService the s c framework version remote service
 	 */
 	public void setSCFrameworkVersionService(
-		SCFrameworkVersionService scFrameworkVersionService) {
+		com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService scFrameworkVersionService) {
 		this.scFrameworkVersionService = scFrameworkVersionService;
 	}
 
@@ -128,7 +119,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c license local service
 	 */
-	public SCLicenseLocalService getSCLicenseLocalService() {
+	public com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService getSCLicenseLocalService() {
 		return scLicenseLocalService;
 	}
 
@@ -138,7 +129,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scLicenseLocalService the s c license local service
 	 */
 	public void setSCLicenseLocalService(
-		SCLicenseLocalService scLicenseLocalService) {
+		com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService scLicenseLocalService) {
 		this.scLicenseLocalService = scLicenseLocalService;
 	}
 
@@ -147,7 +138,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c license remote service
 	 */
-	public SCLicenseService getSCLicenseService() {
+	public com.liferay.portlet.softwarecatalog.service.SCLicenseService getSCLicenseService() {
 		return scLicenseService;
 	}
 
@@ -156,7 +147,8 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param scLicenseService the s c license remote service
 	 */
-	public void setSCLicenseService(SCLicenseService scLicenseService) {
+	public void setSCLicenseService(
+		com.liferay.portlet.softwarecatalog.service.SCLicenseService scLicenseService) {
 		this.scLicenseService = scLicenseService;
 	}
 
@@ -184,7 +176,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c product entry local service
 	 */
-	public SCProductEntryLocalService getSCProductEntryLocalService() {
+	public com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalService getSCProductEntryLocalService() {
 		return scProductEntryLocalService;
 	}
 
@@ -194,7 +186,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scProductEntryLocalService the s c product entry local service
 	 */
 	public void setSCProductEntryLocalService(
-		SCProductEntryLocalService scProductEntryLocalService) {
+		com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalService scProductEntryLocalService) {
 		this.scProductEntryLocalService = scProductEntryLocalService;
 	}
 
@@ -203,7 +195,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c product entry remote service
 	 */
-	public SCProductEntryService getSCProductEntryService() {
+	public com.liferay.portlet.softwarecatalog.service.SCProductEntryService getSCProductEntryService() {
 		return scProductEntryService;
 	}
 
@@ -213,7 +205,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scProductEntryService the s c product entry remote service
 	 */
 	public void setSCProductEntryService(
-		SCProductEntryService scProductEntryService) {
+		com.liferay.portlet.softwarecatalog.service.SCProductEntryService scProductEntryService) {
 		this.scProductEntryService = scProductEntryService;
 	}
 
@@ -241,7 +233,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c product screenshot local service
 	 */
-	public SCProductScreenshotLocalService getSCProductScreenshotLocalService() {
+	public com.liferay.portlet.softwarecatalog.service.SCProductScreenshotLocalService getSCProductScreenshotLocalService() {
 		return scProductScreenshotLocalService;
 	}
 
@@ -251,7 +243,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scProductScreenshotLocalService the s c product screenshot local service
 	 */
 	public void setSCProductScreenshotLocalService(
-		SCProductScreenshotLocalService scProductScreenshotLocalService) {
+		com.liferay.portlet.softwarecatalog.service.SCProductScreenshotLocalService scProductScreenshotLocalService) {
 		this.scProductScreenshotLocalService = scProductScreenshotLocalService;
 	}
 
@@ -279,7 +271,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c product version local service
 	 */
-	public SCProductVersionLocalService getSCProductVersionLocalService() {
+	public com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService getSCProductVersionLocalService() {
 		return scProductVersionLocalService;
 	}
 
@@ -289,7 +281,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scProductVersionLocalService the s c product version local service
 	 */
 	public void setSCProductVersionLocalService(
-		SCProductVersionLocalService scProductVersionLocalService) {
+		com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService scProductVersionLocalService) {
 		this.scProductVersionLocalService = scProductVersionLocalService;
 	}
 
@@ -298,7 +290,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the s c product version remote service
 	 */
-	public SCProductVersionService getSCProductVersionService() {
+	public com.liferay.portlet.softwarecatalog.service.SCProductVersionService getSCProductVersionService() {
 		return scProductVersionService;
 	}
 
@@ -308,7 +300,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param scProductVersionService the s c product version remote service
 	 */
 	public void setSCProductVersionService(
-		SCProductVersionService scProductVersionService) {
+		com.liferay.portlet.softwarecatalog.service.SCProductVersionService scProductVersionService) {
 		this.scProductVersionService = scProductVersionService;
 	}
 
@@ -336,7 +328,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the counter local service
 	 */
-	public CounterLocalService getCounterLocalService() {
+	public com.liferay.counter.service.CounterLocalService getCounterLocalService() {
 		return counterLocalService;
 	}
 
@@ -345,8 +337,66 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param counterLocalService the counter local service
 	 */
-	public void setCounterLocalService(CounterLocalService counterLocalService) {
+	public void setCounterLocalService(
+		com.liferay.counter.service.CounterLocalService counterLocalService) {
 		this.counterLocalService = counterLocalService;
+	}
+
+	/**
+	 * Returns the class name local service.
+	 *
+	 * @return the class name local service
+	 */
+	public com.liferay.portal.service.ClassNameLocalService getClassNameLocalService() {
+		return classNameLocalService;
+	}
+
+	/**
+	 * Sets the class name local service.
+	 *
+	 * @param classNameLocalService the class name local service
+	 */
+	public void setClassNameLocalService(
+		com.liferay.portal.service.ClassNameLocalService classNameLocalService) {
+		this.classNameLocalService = classNameLocalService;
+	}
+
+	/**
+	 * Returns the class name remote service.
+	 *
+	 * @return the class name remote service
+	 */
+	public com.liferay.portal.service.ClassNameService getClassNameService() {
+		return classNameService;
+	}
+
+	/**
+	 * Sets the class name remote service.
+	 *
+	 * @param classNameService the class name remote service
+	 */
+	public void setClassNameService(
+		com.liferay.portal.service.ClassNameService classNameService) {
+		this.classNameService = classNameService;
+	}
+
+	/**
+	 * Returns the class name persistence.
+	 *
+	 * @return the class name persistence
+	 */
+	public ClassNamePersistence getClassNamePersistence() {
+		return classNamePersistence;
+	}
+
+	/**
+	 * Sets the class name persistence.
+	 *
+	 * @param classNamePersistence the class name persistence
+	 */
+	public void setClassNamePersistence(
+		ClassNamePersistence classNamePersistence) {
+		this.classNamePersistence = classNamePersistence;
 	}
 
 	/**
@@ -354,7 +404,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the resource local service
 	 */
-	public ResourceLocalService getResourceLocalService() {
+	public com.liferay.portal.service.ResourceLocalService getResourceLocalService() {
 		return resourceLocalService;
 	}
 
@@ -364,7 +414,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 * @param resourceLocalService the resource local service
 	 */
 	public void setResourceLocalService(
-		ResourceLocalService resourceLocalService) {
+		com.liferay.portal.service.ResourceLocalService resourceLocalService) {
 		this.resourceLocalService = resourceLocalService;
 	}
 
@@ -373,7 +423,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the user local service
 	 */
-	public UserLocalService getUserLocalService() {
+	public com.liferay.portal.service.UserLocalService getUserLocalService() {
 		return userLocalService;
 	}
 
@@ -382,7 +432,8 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param userLocalService the user local service
 	 */
-	public void setUserLocalService(UserLocalService userLocalService) {
+	public void setUserLocalService(
+		com.liferay.portal.service.UserLocalService userLocalService) {
 		this.userLocalService = userLocalService;
 	}
 
@@ -391,7 +442,7 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @return the user remote service
 	 */
-	public UserService getUserService() {
+	public com.liferay.portal.service.UserService getUserService() {
 		return userService;
 	}
 
@@ -400,7 +451,8 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	 *
 	 * @param userService the user remote service
 	 */
-	public void setUserService(UserService userService) {
+	public void setUserService(
+		com.liferay.portal.service.UserService userService) {
 		this.userService = userService;
 	}
 
@@ -475,13 +527,18 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 	}
 
 	/**
-	 * Performs an SQL query.
+	 * Performs a SQL query.
 	 *
 	 * @param sql the sql query
 	 */
 	protected void runSQL(String sql) throws SystemException {
 		try {
 			DataSource dataSource = scFrameworkVersionPersistence.getDataSource();
+
+			DB db = DBFactoryUtil.getDB();
+
+			sql = db.buildSQL(sql);
+			sql = PortalUtil.transformSQL(sql);
 
 			SqlUpdate sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(dataSource,
 					sql, new int[0]);
@@ -493,42 +550,48 @@ public abstract class SCFrameworkVersionServiceBaseImpl extends BaseServiceImpl
 		}
 	}
 
-	@BeanReference(type = SCFrameworkVersionLocalService.class)
-	protected SCFrameworkVersionLocalService scFrameworkVersionLocalService;
-	@BeanReference(type = SCFrameworkVersionService.class)
-	protected SCFrameworkVersionService scFrameworkVersionService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionLocalService scFrameworkVersionLocalService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCFrameworkVersionService scFrameworkVersionService;
 	@BeanReference(type = SCFrameworkVersionPersistence.class)
 	protected SCFrameworkVersionPersistence scFrameworkVersionPersistence;
-	@BeanReference(type = SCLicenseLocalService.class)
-	protected SCLicenseLocalService scLicenseLocalService;
-	@BeanReference(type = SCLicenseService.class)
-	protected SCLicenseService scLicenseService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCLicenseLocalService scLicenseLocalService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCLicenseService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCLicenseService scLicenseService;
 	@BeanReference(type = SCLicensePersistence.class)
 	protected SCLicensePersistence scLicensePersistence;
-	@BeanReference(type = SCProductEntryLocalService.class)
-	protected SCProductEntryLocalService scProductEntryLocalService;
-	@BeanReference(type = SCProductEntryService.class)
-	protected SCProductEntryService scProductEntryService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCProductEntryLocalService scProductEntryLocalService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductEntryService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCProductEntryService scProductEntryService;
 	@BeanReference(type = SCProductEntryPersistence.class)
 	protected SCProductEntryPersistence scProductEntryPersistence;
-	@BeanReference(type = SCProductScreenshotLocalService.class)
-	protected SCProductScreenshotLocalService scProductScreenshotLocalService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductScreenshotLocalService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCProductScreenshotLocalService scProductScreenshotLocalService;
 	@BeanReference(type = SCProductScreenshotPersistence.class)
 	protected SCProductScreenshotPersistence scProductScreenshotPersistence;
-	@BeanReference(type = SCProductVersionLocalService.class)
-	protected SCProductVersionLocalService scProductVersionLocalService;
-	@BeanReference(type = SCProductVersionService.class)
-	protected SCProductVersionService scProductVersionService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCProductVersionLocalService scProductVersionLocalService;
+	@BeanReference(type = com.liferay.portlet.softwarecatalog.service.SCProductVersionService.class)
+	protected com.liferay.portlet.softwarecatalog.service.SCProductVersionService scProductVersionService;
 	@BeanReference(type = SCProductVersionPersistence.class)
 	protected SCProductVersionPersistence scProductVersionPersistence;
-	@BeanReference(type = CounterLocalService.class)
-	protected CounterLocalService counterLocalService;
-	@BeanReference(type = ResourceLocalService.class)
-	protected ResourceLocalService resourceLocalService;
-	@BeanReference(type = UserLocalService.class)
-	protected UserLocalService userLocalService;
-	@BeanReference(type = UserService.class)
-	protected UserService userService;
+	@BeanReference(type = com.liferay.counter.service.CounterLocalService.class)
+	protected com.liferay.counter.service.CounterLocalService counterLocalService;
+	@BeanReference(type = com.liferay.portal.service.ClassNameLocalService.class)
+	protected com.liferay.portal.service.ClassNameLocalService classNameLocalService;
+	@BeanReference(type = com.liferay.portal.service.ClassNameService.class)
+	protected com.liferay.portal.service.ClassNameService classNameService;
+	@BeanReference(type = ClassNamePersistence.class)
+	protected ClassNamePersistence classNamePersistence;
+	@BeanReference(type = com.liferay.portal.service.ResourceLocalService.class)
+	protected com.liferay.portal.service.ResourceLocalService resourceLocalService;
+	@BeanReference(type = com.liferay.portal.service.UserLocalService.class)
+	protected com.liferay.portal.service.UserLocalService userLocalService;
+	@BeanReference(type = com.liferay.portal.service.UserService.class)
+	protected com.liferay.portal.service.UserService userService;
 	@BeanReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
 	@BeanReference(type = UserFinder.class)

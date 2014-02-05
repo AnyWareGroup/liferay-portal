@@ -77,68 +77,46 @@ public class ShoppingCategoryPermission {
 			actionId = ActionKeys.ADD_SUBCATEGORY;
 		}
 
-		long categoryId = category.getCategoryId();
+		if (actionId.equals(ActionKeys.VIEW) &&
+			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
-		if (actionId.equals(ActionKeys.VIEW)) {
+			long categoryId = category.getCategoryId();
+
 			while (categoryId !=
 						ShoppingCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
 
 				category = ShoppingCategoryLocalServiceUtil.getCategory(
 					categoryId);
 
-				categoryId = category.getParentCategoryId();
-
-				if (!permissionChecker.hasOwnerPermission(
-						category.getCompanyId(),
-						ShoppingCategory.class.getName(),
-						category.getCategoryId(), category.getUserId(),
-						actionId) &&
-					!permissionChecker.hasPermission(
-						category.getGroupId(), ShoppingCategory.class.getName(),
-						category.getCategoryId(), actionId)) {
-
+				if (!_hasPermission(permissionChecker, category, actionId)) {
 					return false;
 				}
 
-				if (!PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
-					break;
-				}
+				categoryId = category.getParentCategoryId();
 			}
+
+			return ShoppingPermission.contains(
+				permissionChecker, category.getGroupId(), actionId);
+		}
+
+		return _hasPermission(permissionChecker, category, actionId);
+	}
+
+	private static boolean _hasPermission(
+		PermissionChecker permissionChecker, ShoppingCategory category,
+		String actionId) {
+
+		if (permissionChecker.hasOwnerPermission(
+				category.getCompanyId(), ShoppingCategory.class.getName(),
+				category.getCategoryId(), category.getUserId(), actionId) ||
+			permissionChecker.hasPermission(
+				category.getGroupId(), ShoppingCategory.class.getName(),
+				category.getCategoryId(), actionId)) {
 
 			return true;
 		}
-		else {
-			while (categoryId !=
-						ShoppingCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) {
 
-				category = ShoppingCategoryLocalServiceUtil.getCategory(
-					categoryId);
-
-				categoryId = category.getParentCategoryId();
-
-				if (permissionChecker.hasOwnerPermission(
-						category.getCompanyId(),
-						ShoppingCategory.class.getName(),
-						category.getCategoryId(), category.getUserId(),
-						actionId)) {
-
-					return true;
-				}
-
-				if (permissionChecker.hasPermission(
-						category.getGroupId(), ShoppingCategory.class.getName(),
-						category.getCategoryId(), actionId)) {
-
-					return true;
-				}
-
-				if (actionId.equals(ActionKeys.VIEW)) {
-					break;
-				}
-			}
-
-			return false;
-		}
+		return false;
 	}
 
 }

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link ShoppingOrderService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingOrderService
+ * @author Brian Wing Shun Chan
+ * @see ShoppingOrderService
  * @generated
  */
+@ProviderType
 public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	ServiceWrapper<ShoppingOrderService> {
 	public ShoppingOrderServiceWrapper(
@@ -130,6 +133,7 @@ public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ShoppingOrderService getWrappedShoppingOrderService() {
 		return _shoppingOrderService;
 	}
@@ -137,6 +141,7 @@ public class ShoppingOrderServiceWrapper implements ShoppingOrderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedShoppingOrderService(
 		ShoppingOrderService shoppingOrderService) {
 		_shoppingOrderService = shoppingOrderService;

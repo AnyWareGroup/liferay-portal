@@ -331,6 +331,10 @@ public class TicketPersistenceImpl extends BasePersistenceImpl<Ticket>
 	private static final String _FINDER_COLUMN_KEY_KEY_2 = "ticket.key = ?";
 	private static final String _FINDER_COLUMN_KEY_KEY_3 = "(ticket.key IS NULL OR ticket.key = '')";
 
+	public TicketPersistenceImpl() {
+		setModelClass(Ticket.class);
+	}
+
 	/**
 	 * Caches the ticket in the entity cache if it is enabled.
 	 *
@@ -593,10 +597,12 @@ public class TicketPersistenceImpl extends BasePersistenceImpl<Ticket>
 		}
 
 		EntityCacheUtil.putResult(TicketModelImpl.ENTITY_CACHE_ENABLED,
-			TicketImpl.class, ticket.getPrimaryKey(), ticket);
+			TicketImpl.class, ticket.getPrimaryKey(), ticket, false);
 
 		clearUniqueFindersCache(ticket);
 		cacheUniqueFindersCache(ticket);
+
+		ticket.resetOriginalValues();
 
 		return ticket;
 	}
@@ -611,6 +617,7 @@ public class TicketPersistenceImpl extends BasePersistenceImpl<Ticket>
 		ticketImpl.setNew(ticket.isNew());
 		ticketImpl.setPrimaryKey(ticket.getPrimaryKey());
 
+		ticketImpl.setMvccVersion(ticket.getMvccVersion());
 		ticketImpl.setTicketId(ticket.getTicketId());
 		ticketImpl.setCompanyId(ticket.getCompanyId());
 		ticketImpl.setCreateDate(ticket.getCreateDate());

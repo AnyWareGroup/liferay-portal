@@ -14,20 +14,20 @@
 
 package com.liferay.portlet.messageboards.action;
 
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portlet.messageboards.LockedThreadException;
+import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBThreadServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -45,20 +45,19 @@ public class DeleteThreadAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		try {
 			if (cmd.equals(Constants.DELETE)) {
-				deleteThreads(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteThreads(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteThreads(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
+				deleteThreads(actionRequest, true);
 			}
 
 			sendRedirect(actionRequest, actionResponse);
@@ -78,7 +77,6 @@ public class DeleteThreadAction extends PortletAction {
 	}
 
 	protected void deleteThreads(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -94,30 +92,24 @@ public class DeleteThreadAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "threadIds"), 0L);
 		}
 
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
 		for (long deleteThreadId : deleteThreadIds) {
 			if (moveToTrash) {
-				MBThreadServiceUtil.moveThreadToTrash(deleteThreadId);
+				MBThread thread = MBThreadServiceUtil.moveThreadToTrash(
+					deleteThreadId);
+
+				trashedModels.add(thread);
 			}
 			else {
 				MBThreadServiceUtil.deleteThread(deleteThreadId);
 			}
 		}
 
-		if (moveToTrash && (deleteThreadIds.length > 0)) {
-			Map<String, String[]> data = new HashMap<String, String[]>();
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
 
-			data.put(
-				"restoreThreadIds", ArrayUtil.toStringArray(deleteThreadIds));
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 

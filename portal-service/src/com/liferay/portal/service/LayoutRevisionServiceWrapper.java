@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutRevisionService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutRevisionService
+ * @author Brian Wing Shun Chan
+ * @see LayoutRevisionService
  * @generated
  */
+@ProviderType
 public class LayoutRevisionServiceWrapper implements LayoutRevisionService,
 	ServiceWrapper<LayoutRevisionService> {
 	public LayoutRevisionServiceWrapper(
@@ -73,6 +76,7 @@ public class LayoutRevisionServiceWrapper implements LayoutRevisionService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutRevisionService getWrappedLayoutRevisionService() {
 		return _layoutRevisionService;
 	}
@@ -80,6 +84,7 @@ public class LayoutRevisionServiceWrapper implements LayoutRevisionService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutRevisionService(
 		LayoutRevisionService layoutRevisionService) {
 		_layoutRevisionService = layoutRevisionService;

@@ -32,6 +32,7 @@ public abstract class BaseMessageStatusMessageListener
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public BaseMessageStatusMessageListener(
 		SingleDestinationMessageSender statusSender,
 		MessageSender responseSender) {
@@ -78,7 +79,8 @@ public abstract class BaseMessageStatusMessageListener
 		return _responseSender;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(BaseMessageListener.class);
+	private static Log _log = LogFactoryUtil.getLog(
+		BaseMessageStatusMessageListener.class);
 
 	private MessageSender _responseSender;
 	private SingleDestinationMessageSender _statusSender;

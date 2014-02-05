@@ -64,6 +64,8 @@ for (long defaultTeamId : defaultTeamIds) {
 <aui:input name="siteRolesRoleIds" type="hidden" value="<%= ListUtil.toString(defaultSiteRoles, Role.ROLE_ID_ACCESSOR) %>" />
 <aui:input name="teamsTeamIds" type="hidden" value="<%= ListUtil.toString(defaultTeams, TeamImpl.TEAM_ID_ACCESSOR) %>" />
 
+<h3><liferay-ui:message key="default-user-associations" /></h3>
+
 <h3><liferay-ui:message key="site-roles" /> <liferay-ui:icon-help message="default-site-roles-assignment-help" /></h3>
 
 <liferay-ui:search-container
@@ -96,9 +98,10 @@ for (long defaultTeamId : defaultTeamIds) {
 
 <liferay-ui:icon
 	cssClass="modify-link"
+	iconCssClass="icon-search"
 	id="selectSiteRoleLink"
-	image="add"
 	label="<%= true %>"
+	linkCssClass="btn"
 	message="select"
 	url="javascript:;"
 />
@@ -136,9 +139,10 @@ for (long defaultTeamId : defaultTeamIds) {
 
 <liferay-ui:icon
 	cssClass="modify-link"
+	iconCssClass="icon-search"
 	id="selectTeamLink"
-	image="add"
 	label="<%= true %>"
+	linkCssClass="btn"
 	message="select"
 	url="javascript:;"
 />
@@ -195,14 +199,13 @@ for (long defaultTeamId : defaultTeamIds) {
 					dialog: {
 						constrain: true,
 						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
 						width: 600
 					},
 					id: '<portlet:namespace />selectSiteRole',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "site-role") %>',
+					title: '<liferay-ui:message arguments="site-role" key="select-x" />',
 					uri: '<portlet:renderURL windowState="<%= LiferayWindowState.POP_UP.toString() %>"><portlet:param name="struts_action" value="/sites_admin/select_site_role" /><portlet:param name="step" value="2" /><portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" /></portlet:renderURL>'
 				},
-				function(event){
+				function(event) {
 					for (var i = 0; i < <portlet:namespace />siteRolesRoleIds.length; i++) {
 						if (<portlet:namespace />siteRolesRoleIds[i] == event.roleid) {
 							return;
@@ -242,11 +245,10 @@ for (long defaultTeamId : defaultTeamIds) {
 					dialog: {
 						constrain: true,
 						modal: true,
-						zIndex: Liferay.zIndex.WINDOW + 2,
 						width: 680
 					},
 					id: '<portlet:namespace />selectTeam',
-					title: '<%= UnicodeLanguageUtil.format(pageContext, "select-x", "team") %>',
+					title: '<liferay-ui:message arguments="team" key="select-x" />',
 					uri: '<%= selectTeamURL.toString() %>'
 				},
 				function(event) {

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.MembershipRequestModelImpl
  * @generated
  */
-public interface MembershipRequestModel extends BaseModel<MembershipRequest> {
+@ProviderType
+public interface MembershipRequestModel extends BaseModel<MembershipRequest>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +61,22 @@ public interface MembershipRequestModel extends BaseModel<MembershipRequest> {
 	 * @param primaryKey the primary key of this membership request
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this membership request.
+	 *
+	 * @return the mvcc version of this membership request
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this membership request.
+	 *
+	 * @param mvccVersion the mvcc version of this membership request
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the membership request ID of this membership request.

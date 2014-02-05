@@ -18,7 +18,9 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.webdav.methods.Method;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
@@ -28,15 +30,15 @@ import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
+import com.liferay.portal.util.RoleTestUtil;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portal.util.UserTestUtil;
-import com.liferay.portal.webdav.methods.Method;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
+import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 
 import java.util.HashMap;
@@ -61,11 +63,17 @@ public class WebServerTrashTest extends BaseWebServerTestCase {
 
 		_user = UserTestUtil.addUser(null, group.getGroupId());
 
-		_role = ServiceTestUtil.addRole(
+		_role = RoleTestUtil.addRole(
 			"Trash Admin", RoleConstants.TYPE_REGULAR, PortletKeys.TRASH,
 			ResourceConstants.SCOPE_COMPANY,
 			String.valueOf(TestPropsValues.getCompanyId()),
 			ActionKeys.ACCESS_IN_CONTROL_PANEL);
+
+		RoleTestUtil.addResourcePermission(
+			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
+			ResourceConstants.SCOPE_GROUP_TEMPLATE,
+			String.valueOf(GroupConstants.DEFAULT_PARENT_GROUP_ID),
+			ActionKeys.VIEW);
 	}
 
 	@Override
@@ -79,6 +87,12 @@ public class WebServerTrashTest extends BaseWebServerTestCase {
 		if (_role != null) {
 			RoleLocalServiceUtil.deleteRole(_role.getRoleId());
 		}
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
+			ResourceConstants.SCOPE_GROUP_TEMPLATE,
+			String.valueOf(GroupConstants.DEFAULT_PARENT_GROUP_ID),
+			ActionKeys.VIEW);
 	}
 
 	@Test

@@ -193,8 +193,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *             a parameter to a method which manipulates a resource to which
 	 *             default community permissions apply; <code>false</code>
 	 *             otherwise
-	 * @deprecated As of 6.1, renamed to {@link #isAddGroupPermissions()}
+	 * @deprecated As of 6.1.0, renamed to {@link #isAddGroupPermissions()}
 	 */
+	@Deprecated
 	public boolean getAddCommunityPermissions() {
 		return isAddGroupPermissions();
 	}
@@ -270,8 +271,9 @@ public class ServiceContext implements Cloneable, Serializable {
 	 * resource.
 	 *
 	 * @return     the community permissions
-	 * @deprecated As of 6.1, renamed to {@link #getGroupPermissions()}
+	 * @deprecated As of 6.1.0, renamed to {@link #getGroupPermissions()}
 	 */
+	@Deprecated
 	public String[] getCommunityPermissions() {
 		return getGroupPermissions();
 	}
@@ -983,9 +985,10 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *
 	 * @param      addCommunityPermissions indicates whether or not to apply
 	 *             default community permissions
-	 * @deprecated As of 6.1, renamed to {@link
+	 * @deprecated As of 6.1.0, renamed to {@link
 	 *             #setAddGroupPermissions(boolean)}
 	 */
+	@Deprecated
 	public void setAddCommunityPermissions(boolean addCommunityPermissions) {
 		setAddGroupPermissions(addCommunityPermissions);
 	}
@@ -1092,8 +1095,10 @@ public class ServiceContext implements Cloneable, Serializable {
 	 *
 	 * @param      communityPermissions the community permissions (optionally
 	 *             <code>null</code>)
-	 * @deprecated As of 6.1, renamed to {@link #setGroupPermissions(String[])}
+	 * @deprecated As of 6.1.0, renamed to {@link
+	 *             #setGroupPermissions(String[])}
 	 */
+	@Deprecated
 	public void setCommunityPermissions(String[] communityPermissions) {
 		setGroupPermissions(communityPermissions);
 	}

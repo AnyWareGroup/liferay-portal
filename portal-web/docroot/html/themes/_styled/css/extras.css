@@ -1,4 +1,5 @@
 @import "compass";
+@import "mixins";
 
 @mixin keyframes($name) {
 	@-webkit-keyframes #{$name} {
@@ -22,6 +23,10 @@
 	@include box-shadow(2px 4px 7px rgba(0, 0, 0, 0.5));
 }
 
+.lfr-add-panel, .lfr-device-preview-panel, .lfr-edit-layout-panel {
+	@include box-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+}
+
 .lfr-preview-file-image img, .lfr-translation-manager {
 	@include box-shadow(0 3px 5px -3px rgba(0, 0, 0, 0.8));
 }
@@ -34,24 +39,117 @@
 	@include box-shadow(inset 0 0 5px rgba(0, 0, 0, 0.8));
 }
 
-.dockbar .menu-button-active .menu-button {
-	@include box-shadow(inset 0 1px 5px rgba(0, 0, 0, 0.7));
+.lfr-device-preview {
+	.lfr-device-size-status-content {
+		@include border-radius(3px);
+		@include box-shadow(0 0 1px #FFF);
+		@include opacity(0.9);
+	}
+
+	.lfr-device {
+		&:after, &:before {
+			@include box-shadow(#111 0 1px 0);
+		}
+
+		&:after {
+			@include border-radius(15px);
+		}
+
+		&.rotated {
+			&:after, &:before {
+				@include box-shadow(#111 -1px 1px 0);
+			}
+		}
+
+		&.smartphone, &.tablet {
+			@include border-radius(25px);
+		}
+
+		&.tablet {
+			&:before {
+				@include border-radius(5px);
+			}
+		}
+	}
+}
+
+.dockbar {
+	@include respond-to(phone, tablet) {
+		.navbar-inner .btn-navbar {
+			@include box-shadow(none);
+			@include text-shadow(none);
+		}
+	}
+
+	.navbar-inner .nav li.staging-toggle {
+		&.active > a {
+			@include box-shadow(none);
+		}
+
+		span {
+			@include border-radius(4px);
+		}
+	}
+
+	.menu-button-active .menu-button {
+		@include box-shadow(inset 0 1px 5px rgba(0, 0, 0, 0.7));
+	}
+
+	.impersonating-user .alert-info {
+		@include border-radius(0);
+	}
+}
+
+.dockbar .navbar-inner .nav-add-controls > li > ul.dropdown-menu {
+	@include box-shadow(none);
+}
+
+.dockbar-split .dockbar .navbar-inner .container .nav-collapse > .nav {
+	 > li > a {
+		@include text-shadow(none);
+
+		@include respond-to(phone) {
+			@include border-radius(4px);
+		}
+	}
+
+	&.nav-add-controls {
+		> li {
+			a {
+				@include border-radius(4px);
+
+				.nav-item-label {
+					@include border-radius(30px);
+				}
+			}
+
+			&.open a {
+				@include border-radius(4px);
+			}
+
+			> ul {
+				@include box-shadow(none);
+			}
+		}
+	}
+}
+
+@include respond-to(phone, tablet) {
+	.navbar .navbar-search .form-search .search-query {
+		@include border-radius(14px);
+	}
 }
 
 .portlet-document-library, .portlet-dynamic-data-mapping {
 	.lfr-ddm-small-image-preview {
-		@include box-shadow(0 1px 3px #ccc);
-    }
+		@include box-shadow(0 1px 3px #CCC);
+	}
 }
 
 .portlet-asset-category-admin {
 	.tree-node-selected, .tree-node-over, .category-item {
 		@include border-radius(5px);
 	}
-}
-
-.portlet-journal .lfr-table .journal-metadata {
-	@include box-shadow(inset 1px 1px 8px #CCC);
 }
 
 .lfr-translation-manager-translation.lfr-translation-manager-translation-editing {
@@ -80,7 +178,13 @@
 	@include border-radius(10px);
 }
 
-body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbnail, .lfr-api-results, .lfr-translation-manager, .lfr-translation-manager-translation, .lfr-upload-container .cancel-button .modify-pages .delete-tab, .portlet-image-gallery-display .image-thumbnail img, .portlet-journal .lfr-table .journal-metadata, .portlet-search .search-facet .facet-value, .rule-group-instance-container .rule-group-instance, .select-documents, .select-files, .taglib-ratings.stars:hover, .taglib-ratings.stars:hover .liferay-rating-vote, .tags-search-combobox .field-input-text {
+.portlet-language .portlet-body {
+	.current-language, .taglib-icon, .taglib-language-list-text {
+		@include border-radius(10px);
+	}
+}
+
+body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbnail, .lfr-api-results, .lfr-translation-manager, .lfr-translation-manager-translation, .lfr-upload-container .cancel-button .modify-pages .delete-tab, .portlet-image-gallery-display .image-thumbnail img, .rule-group-instance-container .rule-group-instance, .select-documents, .select-files, .taglib-ratings.stars:hover, .taglib-ratings.stars:hover .liferay-rating-vote, .tags-search-combobox .field-input-text {
 	@include border-radius(4px);
 }
 
@@ -92,7 +196,7 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 	@include border-radius(6px);
 }
 
-.portlet-journal .display-page-item-container .display-page-item, .portlet-journal .display-page-item-container .display-page-item .display-page-item-remove {
+.portlet-journal .display-page-item-container .display-page-item, .portlet-journal .display-page-item-container .display-page-item .display-page-item-remove, .taglib-categorization-filter .asset-entry {
 	@include border-radius(14px);
 }
 
@@ -107,6 +211,12 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 }
 
 .lfr-add-panel {
+	.add-content-button {
+		.lfr-actions {
+			@include border-radius(2px);
+		}
+	}
+
 	.lfr-panel-content .app-view-entry-taglib {
 		&.display-list, &.display-descriptive {
 			&:hover, &.hover, &.over {
@@ -131,6 +241,12 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 	}
 }
 
+.lfr-add-dialog, .lfr-add-panel {
+	.add-content-menu .search-query {
+		@include border-radius(15px);
+	}
+}
+
 .lfr-content-preview-popup .lfr-content-preview-popup-content {
 	@include border-radius(0);
 	@include box-shadow(8px 3px 7px rgba(0, 0, 0, 0.25));
@@ -148,33 +264,12 @@ body > .lfr-menu-list ul, .active-area-proxy, .entry-display-style .entry-thumbn
 	@include border-radius(6px);
 }
 
-.live-view .staging-tabview-list {
-	@include filter-gradient(#E3F8DF, #C4F0BC);
-}
-
 .staging-tabview-list {
 	@include border-radius(0);
 }
 
-.staging-bar {
-	@include box-shadow(inset 0 3em 1em rgba(0, 0, 0, 0.8));
-}
-
-.site-variations-tabview-list .tab-content, .staging-tabview-list .tab-active .tab-content {
+.site-variations-tabview-list .tab-content, .staging-tabview-list .tab-active .tab-content, .tagselector-content .textboxlistentry-holder .lfr-tag-selector-input:focus {
 	@include box-shadow(none);
-}
-
-.staging-tabview-list {
-	@include background-image(linear-gradient(0 0, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.06) 25%, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, 0.06) 50%, rgba(0, 0, 0, 0.06) 75%, rgba(0, 0, 0, 0) 75%, rgba(0, 0, 0, 0)));
-	@include background-size(100px 100px);
-	@include border-radius(0);
-	@include box-shadow(inset 0 0.75em 0.75em rgba(255, 255, 255, 0.55));
-	@include filter-gradient(#FFEED4, #FFDBA6);
-}
-
-.portlet-staging-bar .staging-bar .site-variations-tabview-list {
-	@include box-shadow(0 1px 5px rgba(0, 0, 0, 0.8) inset, 1px 3px 8px rgba(0, 0, 0, 0.8));
-	@include background-image(linear-gradient(center bottom , #777, #333 80%, #333));
 }
 
 .rule-group-instance-container .rule-group-instance {
@@ -265,7 +360,7 @@ body:first-of-type {
 		}
 	}
 
-	.portlet-dynamic-data-list-display, .portlet-journal-content, .portlet-polls-display {
+	.portlet-borderless-container, .portlet-content {
 		&:hover {
 			.lfr-icon-actions {
 				@extend %portlet-action-bar-fx-hover;
@@ -283,6 +378,10 @@ body:first-of-type {
 
 			.taglib-text {
 				@extend %portlet-action-bar-fx-text;
+
+				@include respond-to(phone, tablet) {
+					max-width: 200px;
+				}
 			}
 		}
 	}
@@ -291,6 +390,12 @@ body:first-of-type {
 .portlet-boundary.yui3-dd-dragging {
 	@include transform(scale(0.8));
 	@include transition(transform 0.3s ease);
+}
+
+.portlet-document-library .entry-thumbnail .label, .portlet-document-library-display .workflow-status .label, .portlet-journal .entry-thumbnail .label {
+	@include border-bottom-left-radius(0);
+	@include border-top-left-radius(0);
+	@include border-top-right-radius(0);
 }
 
 @include keyframes(lfr-drop-active) {

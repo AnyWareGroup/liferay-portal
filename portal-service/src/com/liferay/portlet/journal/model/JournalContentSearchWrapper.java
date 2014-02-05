@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.journal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link JournalContentSearch}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalContentSearch
+ * @author Brian Wing Shun Chan
+ * @see JournalContentSearch
  * @generated
  */
+@ProviderType
 public class JournalContentSearchWrapper implements JournalContentSearch,
 	ModelWrapper<JournalContentSearch> {
 	public JournalContentSearchWrapper(
@@ -380,9 +384,30 @@ public class JournalContentSearchWrapper implements JournalContentSearch,
 		_journalContentSearch.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalContentSearchWrapper)) {
+			return false;
+		}
+
+		JournalContentSearchWrapper journalContentSearchWrapper = (JournalContentSearchWrapper)obj;
+
+		if (Validator.equals(_journalContentSearch,
+					journalContentSearchWrapper._journalContentSearch)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public JournalContentSearch getWrappedJournalContentSearch() {
 		return _journalContentSearch;
 	}
@@ -390,6 +415,16 @@ public class JournalContentSearchWrapper implements JournalContentSearch,
 	@Override
 	public JournalContentSearch getWrappedModel() {
 		return _journalContentSearch;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _journalContentSearch.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _journalContentSearch.isFinderCacheEnabled();
 	}
 
 	@Override

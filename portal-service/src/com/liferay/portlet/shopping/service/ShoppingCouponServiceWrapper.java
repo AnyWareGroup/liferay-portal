@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link ShoppingCouponService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCouponService
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCouponService
  * @generated
  */
+@ProviderType
 public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	ServiceWrapper<ShoppingCouponService> {
 	public ShoppingCouponServiceWrapper(
@@ -117,6 +120,7 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ShoppingCouponService getWrappedShoppingCouponService() {
 		return _shoppingCouponService;
 	}
@@ -124,6 +128,7 @@ public class ShoppingCouponServiceWrapper implements ShoppingCouponService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedShoppingCouponService(
 		ShoppingCouponService shoppingCouponService) {
 		_shoppingCouponService = shoppingCouponService;

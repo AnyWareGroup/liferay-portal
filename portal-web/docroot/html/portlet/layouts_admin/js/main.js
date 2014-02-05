@@ -3,7 +3,15 @@ AUI.add(
 	function(A) {
 		var Lang = A.Lang;
 
-		var REGEX_LAYOUT_ID = /layoutId_(\d+)/;
+		var ADate = A.Date;
+
+		var FAILURE_TIMEOUT = 10000;
+
+		var REGEX_LAYOUT_ID = /plid_(\d+)/;
+
+		var RENDER_INTERVAL_IDLE = 60000;
+
+		var RENDER_INTERVAL_IN_PROGRESS = 2000;
 
 		var STR_CHECKED = 'checked';
 
@@ -18,29 +26,28 @@ AUI.add(
 		var ExportImport = A.Component.create(
 			{
 				ATTRS: {
-					alwaysCurrentUserIdNode: defaultConfig,
 					archivedSetupsNode: defaultConfig,
-					categoriesNode: defaultConfig,
-					copyAsNewNode: defaultConfig,
-					currentUserIdNode: defaultConfig,
+					commentsNode: defaultConfig,
 					deleteMissingLayoutsNode: defaultConfig,
 					deletePortletDataNode: defaultConfig,
+					deletionsNode: defaultConfig,
 					form: defaultConfig,
+					incompleteProcessMessageNode: defaultConfig,
 					layoutSetSettingsNode: defaultConfig,
 					logoNode: defaultConfig,
-					mirrorNode: defaultConfig,
-					mirrorWithOverwritingNode: defaultConfig,
+					processesNode: defaultConfig,
 					rangeAllNode: defaultConfig,
 					rangeDateRangeNode: defaultConfig,
 					rangeLastNode: defaultConfig,
 					rangeLastPublishNode: defaultConfig,
+					ratingsNode: defaultConfig,
 					remoteAddressNode: defaultConfig,
 					remoteDeletePortletDataNode: defaultConfig,
 					remotePortNode: defaultConfig,
 					remotePathContextNode: defaultConfig,
 					remoteGroupIdNode: defaultConfig,
 					secureConnectionNode: defaultConfig,
-					themeNode: defaultConfig,
+					setupNode: defaultConfig,
 					themeReferenceNode: defaultConfig,
 					userPreferencesNode: defaultConfig
 				},
@@ -55,15 +62,23 @@ AUI.add(
 					initializer: function(config) {
 						var instance = this;
 
-						instance._dialogTitle = config.dialogTitle;
-
 						instance._bindUI();
 
+						instance._layoutsExportTreeOutput = instance.byId(config.pageTreeId + 'Output');
+
 						instance._initLabels();
+
+						instance._processesResourceURL = config.processesResourceURL;
+
+						A.later(RENDER_INTERVAL_IN_PROGRESS, instance, instance._renderProcesses);
 					},
 
 					destructor: function() {
 						var instance = this;
+
+						if (instance._contentOptionsDialog) {
+							instance._contentOptionsDialog.destroy();
+						}
 
 						if (instance._globalConfigurationDialog) {
 							instance._globalConfigurationDialog.destroy();
@@ -93,17 +108,58 @@ AUI.add(
 					_bindUI: function() {
 						var instance = this;
 
-						instance.get('form').delegate(
-							STR_CLICK,
-							function(event) {
-								var portletId = event.currentTarget.attr('data-portletid');
+						var form = instance.get('form');
 
-								var contentDialog = instance._getContentDialog(portletId);
+						if (form) {
+							form.delegate(
+								STR_CLICK,
+								function(event) {
+									var portletId = event.currentTarget.attr('data-portletid');
 
-								contentDialog.show();
-							},
-							'.content-link'
-						);
+									var portletTitle = event.currentTarget.attr('data-portlettitle');
+
+									if (!portletTitle) {
+										portletTitle = Liferay.Language.get('configuration');
+									}
+
+									var configurationDialog = instance._getConfigurationDialog(portletId, portletTitle);
+
+									configurationDialog.show();
+								},
+								'.configuration-link'
+							);
+
+							form.delegate(
+								STR_CLICK,
+								function(event) {
+									var portletId = event.currentTarget.attr('data-portletid');
+
+									var portletTitle = event.currentTarget.attr('data-portlettitle');
+
+									if (!portletTitle) {
+										portletTitle = Liferay.Language.get('content');
+									}
+
+									var contentDialog = instance._getContentDialog(portletId, portletTitle);
+
+									contentDialog.show();
+								},
+								'.content-link'
+							);
+						}
+
+						var contentOptionsLink = instance.byId('contentOptionsLink');
+
+						if (contentOptionsLink) {
+							contentOptionsLink.on(
+								STR_CLICK,
+								function(event) {
+									var contentOptionsDialog = instance._getContentOptionsDialog();
+
+									contentOptionsDialog.show();
+								}
+							);
+						}
 
 						var globalConfigurationLink = instance.byId('globalConfigurationLink');
 
@@ -184,7 +240,64 @@ AUI.add(
 						}
 					},
 
-					_getContentDialog: function(portletId) {
+					_getConfigurationDialog: function(portletId, portletTitle) {
+						var instance = this;
+
+						var configurationNode = instance.byId('configuration_' + portletId);
+
+						var configurationDialog = configurationNode.getData('configurationDialog');
+
+						if (!configurationDialog) {
+							configurationNode.show();
+
+							configurationDialog = Liferay.Util.Window.getWindow(
+								{
+									dialog: {
+										bodyContent: configurationNode,
+										centered: true,
+										height: 300,
+										modal: true,
+										render: instance.get('form'),
+										toolbars: {
+											footer: [
+												{
+													on: {
+														click: function(event) {
+															event.domEvent.preventDefault();
+
+															instance._setConfigurationLabels(portletId);
+
+															configurationDialog.hide();
+														}
+													},
+													label: Liferay.Language.get('ok'),
+													primary: true
+												},
+												{
+													on: {
+														click: function(event) {
+															event.domEvent.preventDefault();
+
+															configurationDialog.hide();
+														}
+													},
+													label: Liferay.Language.get('cancel')
+												}
+											]
+										},
+										width: 400
+									},
+									title: portletTitle
+								}
+							);
+
+							configurationNode.setData('configurationDialog', configurationDialog);
+						}
+
+						return configurationDialog;
+					},
+
+					_getContentDialog: function(portletId, portletTitle) {
 						var instance = this;
 
 						var contentNode = instance.byId('content_' + portletId);
@@ -231,7 +344,7 @@ AUI.add(
 										},
 										width: 400
 									},
-									title: instance._dialogTitle
+									title: portletTitle
 								}
 							);
 
@@ -239,6 +352,63 @@ AUI.add(
 						}
 
 						return contentDialog;
+					},
+
+					_getContentOptionsDialog: function() {
+						var instance = this;
+
+						var contentOptionsDialog = instance._contentOptionsDialog;
+
+						if (!contentOptionsDialog) {
+							var contentOptionsNode = instance.byId('contentOptions');
+
+							contentOptionsNode.show();
+
+							contentOptionsDialog = Liferay.Util.Window.getWindow(
+								{
+									dialog: {
+										bodyContent: contentOptionsNode,
+										centered: true,
+										height: 300,
+										modal: true,
+										render: instance.get('form'),
+										toolbars: {
+											footer: [
+												{
+													on: {
+														click: function(event) {
+															event.domEvent.preventDefault();
+
+															instance._setContentOptionsLabels();
+
+															contentOptionsDialog.hide();
+														}
+													},
+													label: Liferay.Language.get('ok'),
+													primary: true
+												},
+												{
+													on: {
+														click: function(event) {
+															event.domEvent.preventDefault();
+
+															contentOptionsDialog.hide();
+														}
+													},
+													label: Liferay.Language.get('cancel')
+												}
+											]
+										},
+										width: 400
+									},
+									title: Liferay.Language.get('comments,-ratings-and-deletions')
+								}
+							);
+
+							instance._contentOptionsDialog = contentOptionsDialog;
+						}
+
+						return contentOptionsDialog;
 					},
 
 					_getGlobalConfigurationDialog: function() {
@@ -345,7 +515,7 @@ AUI.add(
 										},
 										width: 400
 									},
-									title: instance._dialogTitle
+									title: Liferay.Language.get('all-content')
 								}
 							);
 
@@ -369,6 +539,7 @@ AUI.add(
 								{
 									dialog: {
 										bodyContent: pagesNode,
+										centered: true,
 										height: 300,
 										modal: true,
 										render: instance.get('form'),
@@ -379,7 +550,9 @@ AUI.add(
 														click: function(event) {
 															event.domEvent.preventDefault();
 
-															instance._setPageLabels();
+															if (instance._layoutsExportTreeOutput) {
+																instance._reloadForm();
+															}
 
 															pagesDialog.hide();
 														}
@@ -426,7 +599,7 @@ AUI.add(
 									dialog: {
 										bodyContent: rangeNode,
 										centered: true,
-										height: 300,
+										height: 375,
 										modal: true,
 										render: instance.get('form'),
 										toolbars: {
@@ -436,9 +609,72 @@ AUI.add(
 														click: function(event) {
 															event.domEvent.preventDefault();
 
-															instance._reloadForm();
+															var endsLater = true;
+															var endsInPast = true;
+															var startsInPast = true;
 
-															rangeDialog.hide();
+															if (instance._isChecked('rangeDateRangeNode')) {
+																var startDatePicker = Liferay.component(instance.ns('startDateDatePicker'));
+																var startTimePicker = Liferay.component(instance.ns('startTimeTimePicker'));
+
+																var endDatePicker = Liferay.component(instance.ns('endDateDatePicker'));
+																var endTimePicker = Liferay.component(instance.ns('endTimeTimePicker'));
+
+																var startDate = startDatePicker.getDate();
+																var startTime = startTimePicker.getTime();
+
+																startDate.setHours(startTime.getHours());
+																startDate.setMinutes(startTime.getMinutes());
+																startDate.setSeconds(0);
+																startDate.setMilliseconds(0);
+
+																var endDate = endDatePicker.getDate();
+																var endTime = endTimePicker.getTime();
+
+																endDate.setHours(endTime.getHours());
+																endDate.setMinutes(endTime.getMinutes());
+																endDate.setSeconds(0);
+																endDate.setMilliseconds(0);
+
+																endsLater = ADate.isGreater(endDate, startDate);
+
+																var today = new Date();
+
+																endsInPast = ADate.isGreaterOrEqual(today, endDate);
+																startsInPast = ADate.isGreaterOrEqual(today, startDate);
+															}
+
+															if (endsLater && endsInPast && startsInPast) {
+																instance._reloadForm();
+
+																rangeDialog.hide();
+															}
+															else {
+																var message;
+
+																if (!endsLater) {
+																	message = Liferay.Language.get('end-date-must-be-greater-than-start-date');
+																}
+																else if (!endsInPast || !startsInPast) {
+																	message = Liferay.Language.get('selected-dates-cannot-be-in-the-future');
+																}
+
+																if (instance._notice) {
+																	instance._notice.remove();
+																}
+
+																instance._notice = new Liferay.Notice(
+																	{
+																		closeText: false,
+																		content: message + '<button type="button" class="close">&times;</button>',
+																		timeout: 10000,
+																		toggleText: false,
+																		type: 'warning'
+																	}
+																);
+
+																instance._notice.show();
+															}
 														}
 													},
 													label: Liferay.Language.get('ok'),
@@ -458,7 +694,7 @@ AUI.add(
 										},
 										width: 400
 									},
-									title: instance._dialogTitle
+									title: Liferay.Language.get('date-range')
 								}
 							);
 
@@ -507,15 +743,15 @@ AUI.add(
 															event.domEvent.preventDefault();
 
 															remoteDialog.hide();
-														},
-														label: Liferay.Language.get('cancel')
-													}
+														}
+													},
+													label: Liferay.Language.get('cancel')
 												}
 											]
 										},
 										width: 400
 									},
-									title: instance._dialogTitle
+									title: Liferay.Language.get('remote-live-connection-settings')
 								}
 							);
 
@@ -539,8 +775,8 @@ AUI.add(
 								{
 									dialog: {
 										bodyContent: scheduledPublishingEventsNode,
-										centered: true,
 										height: 300,
+										centered: true,
 										modal: true,
 										render: instance.get('form'),
 										toolbars: {
@@ -586,12 +822,19 @@ AUI.add(
 					_initLabels: function() {
 						var instance = this;
 
+						instance.all('.configuration-link').each(
+							function(item, index, collection) {
+								instance._setConfigurationLabels(item.attr('data-portletid'));
+							}
+						);
+
 						instance.all('.content-link').each(
 							function(item, index, collection) {
 								instance._setContentLabels(item.attr('data-portletid'));
 							}
 						);
 
+						instance._setContentOptionsLabels();
 						instance._setGlobalConfigurationLabels();
 						instance._setGlobalContentLabels();
 						instance._setPageLabels();
@@ -610,9 +853,122 @@ AUI.add(
 					_reloadForm: function() {
 						var instance = this;
 
-						instance.byId('cmd').val(STR_EMPTY);
+						var cmdNode = instance.byId('cmd');
 
-						submitForm(instance.get('form'));
+						if (cmdNode) {
+							cmdNode.val(STR_EMPTY);
+
+							submitForm(instance.get('form'));
+						}
+					},
+
+					_renderProcesses: function() {
+						var instance = this;
+
+						var processesNode = instance.get('processesNode');
+
+						if (processesNode) {
+							new A.TogglerDelegate(
+								{
+									animated: true,
+									closeAllOnExpand: true,
+									container: processesNode,
+									content: '.background-task-status-message',
+									expanded: false,
+									header: '.details-link',
+									on: {
+										'toggler:expandedChange': function(event) {
+											var header = event.target.get('header');
+
+											var persistId = 0;
+
+											if (!header.hasClass('toggler-header-collapsed')) {
+												persistId = header.getData('persist-id');
+											}
+
+											Liferay.Store(
+												{
+													'background-task-ids' : persistId
+												}
+											);
+										}
+									},
+									transition: {
+										duration: 0.3
+									}
+								}
+							);
+						}
+
+						if (processesNode && instance._processesResourceURL) {
+							A.io.request(
+								instance._processesResourceURL,
+								{
+									on: {
+										failure: function() {
+											new Liferay.Notice(
+												{
+													closeText: false,
+													content: Liferay.Language.get('your-request-failed-to-complete') + '<button type="button" class="close">&times;</button>',
+													noticeClass: 'hide',
+													timeout: FAILURE_TIMEOUT,
+													toggleText: false,
+													type: 'warning',
+													useAnimation: true
+												}
+											).show();
+										},
+										success: function(event, id, obj) {
+											processesNode.empty();
+
+											processesNode.plug(A.Plugin.ParseContent);
+
+											processesNode.setContent(this.get('responseData'));
+
+											var renderInterval = RENDER_INTERVAL_IDLE;
+
+											var inProgress = !!processesNode.one('.background-task-status-in-progress');
+
+											if (inProgress) {
+												renderInterval = RENDER_INTERVAL_IN_PROGRESS;
+											}
+
+											instance._updateincompleteProcessMessage(inProgress, processesNode.one('.incomplete-process-message'));
+
+											A.later(renderInterval, instance, instance._renderProcesses);
+										}
+									}
+								}
+							);
+						}
+					},
+
+					_setConfigurationLabels: function(portletId) {
+						var instance = this;
+
+						var configurationNode = instance.byId('configuration_' + portletId);
+
+						var inputs = configurationNode.all('.field');
+
+						var selectedConfiguration = [];
+
+						inputs.each(
+							function(item, index, collection) {
+								var checked = item.attr(STR_CHECKED);
+
+								if (checked) {
+									selectedConfiguration.push(item.attr('data-name'));
+								}
+							}
+						);
+
+						if (selectedConfiguration.length === 0) {
+							instance.byId('PORTLET_CONFIGURATION_' + portletId + 'Checkbox').set('checked', false);
+
+							instance.byId('showChangeConfiguration_' + portletId).hide();
+						}
+
+						instance._setLabels('configurationLink_' + portletId, 'selectedConfiguration_' + portletId, selectedConfiguration.join(', '));
 					},
 
 					_setContentLabels: function(portletId) {
@@ -634,13 +990,58 @@ AUI.add(
 							}
 						);
 
-						instance._setLabels('selectedContent_' + portletId, selectedContent.join(', '));
+						if (selectedContent.length === 0) {
+							instance.byId('PORTLET_DATA_' + portletId + 'Checkbox').set('checked', false);
+
+							instance.byId('showChangeContent_' + portletId).hide();
+						}
+
+						instance._setLabels('contentLink_' + portletId, 'selectedContent_' + portletId, selectedContent.join(', '));
+					},
+
+					_setContentOptionsLabels: function() {
+						var instance = this;
+
+						var selectedContentOptions = [];
+
+						if (instance._isChecked('commentsNode')) {
+							selectedContentOptions.push(Liferay.Language.get('comments'));
+						}
+
+						if (instance._isChecked('deletionsNode')) {
+							var deletionsNode = instance.get('deletionsNode');
+
+							selectedContentOptions.push(deletionsNode.attr('data-name'));
+
+							instance.all('.deletions').each(
+								function(item, index, collection) {
+									item.show();
+								}
+							);
+						}
+						else {
+							instance.all('.deletions').each(
+								function(item, index, collection) {
+									item.hide();
+								}
+							);
+						}
+
+						if (instance._isChecked('ratingsNode')) {
+							selectedContentOptions.push(Liferay.Language.get('ratings'));
+						}
+
+						instance._setLabels('contentOptionsLink', 'selectedContentOptions', selectedContentOptions.join(', '));
 					},
 
 					_setGlobalConfigurationLabels: function() {
 						var instance = this;
 
 						var selectedGlobalConfiguration = [];
+
+						if (instance._isChecked('setupNode')) {
+							selectedGlobalConfiguration.push(Liferay.Language.get('setup'));
+						}
 
 						if (instance._isChecked('archivedSetupsNode')) {
 							selectedGlobalConfiguration.push(Liferay.Language.get('archived-setups'));
@@ -650,7 +1051,7 @@ AUI.add(
 							selectedGlobalConfiguration.push(Liferay.Language.get('user-preferences'));
 						}
 
-						instance._setLabels('selectedGlobalConfiguration', selectedGlobalConfiguration.join(', '));
+						instance._setLabels('globalConfigurationLink', 'selectedGlobalConfiguration', selectedGlobalConfiguration.join(', '));
 					},
 
 					_setGlobalContentLabels: function() {
@@ -662,35 +1063,22 @@ AUI.add(
 							selectedGlobalContent.push(Liferay.Language.get('delete-portlet-data-before-importing'));
 						}
 
-						if (instance._isChecked('categoriesNode')) {
-							selectedGlobalContent.push(Liferay.Language.get('categories'));
-						}
-
-						if (instance._isChecked('mirrorNode')) {
-							selectedGlobalContent.push(Liferay.Language.get('mirror'));
-						}
-
-						if (instance._isChecked('mirrorWithOverwritingNode')) {
-							selectedGlobalContent.push(Liferay.Language.get('mirror-with-overwriting'));
-						}
-
-						if (instance._isChecked('copyAsNewNode')) {
-							selectedGlobalContent.push(Liferay.Language.get('copy-as-new'));
-						}
-
-						if (instance._isChecked('currentUserIdNode')) {
-							selectedGlobalContent.push(Liferay.Language.get('use-the-original-author'));
-						}
-
-						if (instance._isChecked('alwaysCurrentUserIdNode')) {
-							selectedGlobalContent.push(Liferay.Language.get('use-the-current-user-as-author'));
-						}
-
-						instance._setLabels('selectedGlobalContent', selectedGlobalContent.join(', '));
+						instance._setLabels('globalContentLink', 'selectedGlobalContent', selectedGlobalContent.join(', '));
 					},
 
-					_setLabels: function(labelDivId, label) {
+					_setLabels: function(linkId, labelDivId, label) {
 						var instance = this;
+
+						var linkNode = instance.byId(linkId);
+
+						if (linkNode) {
+							if (label !== STR_EMPTY) {
+								linkNode.html(Liferay.Language.get('change'));
+							}
+							else {
+								linkNode.html(Liferay.Language.get('select'));
+							}
+						}
 
 						var labelNode = instance.byId(labelDivId);
 
@@ -717,12 +1105,10 @@ AUI.add(
 
 						var selectedPages = [];
 
-						var layoutsExportTreeOutput = instance.byId('layoutsExportTreeOutput');
-
-						if (layoutsExportTreeOutput) {
+						if (instance._layoutsExportTreeOutput) {
 							var layoutIdsInput = instance.byId('layoutIds');
 
-							var treeView = layoutsExportTreeOutput.getData('treeInstance');
+							var treeView = instance._layoutsExportTreeOutput.getData('treeInstance');
 
 							var rootNode = treeView.item(0);
 
@@ -743,7 +1129,7 @@ AUI.add(
 												layoutIds.push(
 													{
 														includeChildren: !item.hasChildNodes(),
-														layoutId: match[1]
+														plid: match[1]
 													}
 												);
 											}
@@ -768,10 +1154,6 @@ AUI.add(
 							selectedPages.push(Liferay.Language.get('site-pages-settings'));
 						}
 
-						if (instance._isChecked('themeNode')) {
-							selectedPages.push(Liferay.Language.get('theme'));
-						}
-
 						if (instance._isChecked('themeReferenceNode')) {
 							selectedPages.push(Liferay.Language.get('theme-settings'));
 						}
@@ -780,7 +1162,7 @@ AUI.add(
 							selectedPages.push(Liferay.Language.get('logo'));
 						}
 
-						instance._setLabels('selectedPages', selectedPages.join(', '));
+						instance._setLabels('pagesLink', 'selectedPages', selectedPages.join(', '));
 					},
 
 					_setRangeLabels: function() {
@@ -801,7 +1183,7 @@ AUI.add(
 							selectedRange = Liferay.Language.get('last');
 						}
 
-						instance._setLabels('selectedRange', selectedRange);
+						instance._setLabels('rangeLink', 'selectedRange', selectedRange);
 					},
 
 					_setRemoteLabels: function() {
@@ -841,7 +1223,27 @@ AUI.add(
 							selectedRemote.push(Liferay.Language.get('delete-portlet-data-before-importing'));
 						}
 
-						instance._setLabels('selectedRemote', selectedRemote.join(', '));
+						instance._setLabels('remoteLink', 'selectedRemote', selectedRemote.join(', '));
+					},
+
+					_updateincompleteProcessMessage: function(inProgress, content) {
+						var instance = this;
+
+						var incompleteProcessMessageNode = instance.get('incompleteProcessMessageNode');
+
+						if (incompleteProcessMessageNode) {
+							content.show();
+
+							if (inProgress || incompleteProcessMessageNode.hasClass('in-progress')) {
+								incompleteProcessMessageNode.setContent(content);
+
+								if (inProgress) {
+									incompleteProcessMessageNode.addClass('in-progress');
+
+									incompleteProcessMessageNode.show();
+								}
+							}
+						}
 					}
 				}
 			}
@@ -851,6 +1253,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-dialog-iframe-deprecated', 'aui-modal', 'aui-tree-view', 'liferay-portlet-base','liferay-util-window']
+		requires: ['aui-dialog-iframe-deprecated', 'aui-io-request', 'aui-modal', 'aui-parse-content', 'aui-toggler', 'aui-tree-view', 'liferay-notice', 'liferay-portlet-base', 'liferay-store', 'liferay-util-window']
 	}
 );

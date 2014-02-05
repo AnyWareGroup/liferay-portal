@@ -37,8 +37,6 @@ if (Validator.isNull(title)) {
 	title = assetRenderer.getTitle(locale);
 }
 
-boolean show = ((Boolean)request.getAttribute("view.jsp-show")).booleanValue();
-
 PortletURL editPortletURL = assetRenderer.getURLEdit(liferayPortletRequest, liferayPortletResponse);
 
 PortletURL viewFullContentURL = renderResponse.createRenderURL();
@@ -55,13 +53,22 @@ if (Validator.isNotNull(assetRenderer.getUrlTitle())) {
 	viewFullContentURL.setParameter("urlTitle", assetRenderer.getUrlTitle());
 }
 
-String viewFullContentURLString = viewFullContentURL.toString();
+String viewURL = null;
 
-viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
+boolean viewInContext = ((Boolean)request.getAttribute("view.jsp-viewInContext")).booleanValue();
 
-String viewURL = viewInContext ? assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, viewFullContentURLString) : viewFullContentURL.toString();
+if (viewInContext) {
+	String viewFullContentURLString = viewFullContentURL.toString();
 
-viewURL = _checkViewURL(assetEntry, viewInContext, viewURL, currentURL, themeDisplay);
+	viewFullContentURLString = HttpUtil.setParameter(viewFullContentURLString, "redirect", currentURL);
+
+	viewURL = assetRenderer.getURLViewInContext(liferayPortletRequest, liferayPortletResponse, viewFullContentURLString);
+}
+else {
+	viewURL = viewFullContentURL.toString();
+}
+
+viewURL = AssetUtil.checkViewURL(assetEntry, viewInContext, viewURL, currentURL, themeDisplay);
 
 request.setAttribute("view.jsp-showIconLabel", false);
 %>
@@ -75,6 +82,8 @@ request.setAttribute("view.jsp-showIconLabel", false);
 		</th>
 
 		<%
+		String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
+
 		for (int m = 0; m < metadataFields.length; m++) {
 		%>
 
@@ -86,7 +95,7 @@ request.setAttribute("view.jsp-showIconLabel", false);
 		}
 		%>
 
-		<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && (editPortletURL != null) && !stageableGroup.hasStagingGroup() %>">
+		<c:if test="<%= !stageableGroup.hasStagingGroup() %>">
 			<th class="table-header"></th>
 		</c:if>
 	</tr>
@@ -94,7 +103,6 @@ request.setAttribute("view.jsp-showIconLabel", false);
 
 	<tbody class="table-data">
 </c:if>
-
 
 <tr>
 	<td class="table-cell">
@@ -109,6 +117,8 @@ request.setAttribute("view.jsp-showIconLabel", false);
 	</td>
 
 	<%
+	String[] metadataFields = assetPublisherDisplayContext.getMetadataFields();
+
 	for (int m = 0; m < metadataFields.length; m++) {
 		String value = null;
 
@@ -184,9 +194,11 @@ request.setAttribute("view.jsp-showIconLabel", false);
 	}
 	%>
 
-	<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && (editPortletURL != null) && !stageableGroup.hasStagingGroup() %>">
+	<c:if test="<%= !stageableGroup.hasStagingGroup() %>">
 		<td class="table-cell">
-			<liferay-util:include page="/html/portlet/asset_publisher/asset_actions.jsp" />
+			<c:if test="<%= assetRenderer.hasEditPermission(permissionChecker) && (editPortletURL != null) %>">
+				<liferay-util:include page="/html/portlet/asset_publisher/asset_actions.jsp" />
+			</c:if>
 		</td>
 	</c:if>
 </tr>

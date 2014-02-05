@@ -17,6 +17,7 @@ package com.liferay.portal.search.lucene;
 import com.liferay.portal.kernel.cluster.Address;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BooleanClauseOccur;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.IOException;
@@ -41,6 +42,7 @@ import org.apache.lucene.util.Version;
  * @author Harry Mark
  * @author Bruno Farache
  * @author Shuyang Zhou
+ * @author Andrea Di Giorgi
  */
 public class LuceneHelperUtil {
 
@@ -94,8 +96,7 @@ public class LuceneHelperUtil {
 		BooleanQuery booleanQuery, String field, int startValue, int endValue) {
 
 		getLuceneHelper().addNumericRangeTerm(
-			booleanQuery, field, String.valueOf(startValue),
-			String.valueOf(endValue));
+			booleanQuery, field, startValue, endValue);
 	}
 
 	public static void addNumericRangeTerm(
@@ -103,8 +104,7 @@ public class LuceneHelperUtil {
 		Integer endValue) {
 
 		getLuceneHelper().addNumericRangeTerm(
-			booleanQuery, field, String.valueOf(startValue),
-			String.valueOf(endValue));
+			booleanQuery, field, startValue, endValue);
 	}
 
 	public static void addNumericRangeTerm(
@@ -112,8 +112,7 @@ public class LuceneHelperUtil {
 		long endValue) {
 
 		getLuceneHelper().addNumericRangeTerm(
-			booleanQuery, field, String.valueOf(startValue),
-			String.valueOf(endValue));
+			booleanQuery, field, startValue, endValue);
 	}
 
 	public static void addNumericRangeTerm(
@@ -121,8 +120,7 @@ public class LuceneHelperUtil {
 		Long endValue) {
 
 		getLuceneHelper().addNumericRangeTerm(
-			booleanQuery, field, String.valueOf(startValue),
-			String.valueOf(endValue));
+			booleanQuery, field, startValue, endValue);
 	}
 
 	public static void addNumericRangeTerm(
@@ -130,8 +128,7 @@ public class LuceneHelperUtil {
 		short endValue) {
 
 		getLuceneHelper().addNumericRangeTerm(
-			booleanQuery, field, String.valueOf(startValue),
-			String.valueOf(endValue));
+			booleanQuery, field, (long)startValue, (long)endValue);
 	}
 
 	public static void addNumericRangeTerm(
@@ -139,8 +136,8 @@ public class LuceneHelperUtil {
 		Short endValue) {
 
 		getLuceneHelper().addNumericRangeTerm(
-			booleanQuery, field, String.valueOf(startValue),
-			String.valueOf(endValue));
+			booleanQuery, field, GetterUtil.getLong(startValue),
+			GetterUtil.getLong(endValue));
 	}
 
 	public static void addRangeTerm(
@@ -286,6 +283,10 @@ public class LuceneHelperUtil {
 		getLuceneHelper().addTerm(booleanQuery, field, values, like);
 	}
 
+	public static void cleanUp(IndexSearcher indexSearcher) {
+		getLuceneHelper().cleanUp(indexSearcher);
+	}
+
 	public static int countScoredFieldNames(Query query, String[] fieldNames) {
 		return getLuceneHelper().countScoredFieldNames(query, fieldNames);
 	}
@@ -308,6 +309,10 @@ public class LuceneHelperUtil {
 
 	public static Analyzer getAnalyzer() {
 		return getLuceneHelper().getAnalyzer();
+	}
+
+	public static IndexAccessor getIndexAccessor(long companyId) {
+		return getLuceneHelper().getIndexAccessor(companyId);
 	}
 
 	public static long getLastGeneration(long companyId) {
@@ -384,6 +389,10 @@ public class LuceneHelperUtil {
 
 	public static void shutdown() {
 		getLuceneHelper().shutdown();
+	}
+
+	public static void shutdown(long companyId) {
+		getLuceneHelper().shutdown(companyId);
 	}
 
 	public static void startup(long companyId) {

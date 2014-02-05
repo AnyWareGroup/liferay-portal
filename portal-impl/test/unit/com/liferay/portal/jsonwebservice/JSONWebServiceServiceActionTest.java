@@ -14,6 +14,7 @@
 
 package com.liferay.portal.jsonwebservice;
 
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
@@ -23,8 +24,6 @@ import com.liferay.portal.util.PropsImpl;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import javax.servlet.ServletContext;
 
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.DynaActionForm;
@@ -42,7 +41,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockServletContext;
 
 /**
  * @author Igor Spasic
@@ -55,7 +53,7 @@ public class JSONWebServiceServiceActionTest
 	extends BaseJSONWebServiceTestCase {
 
 	@BeforeClass
-	public static void init() throws Exception {
+	public static void setUpClass() throws Exception {
 		initPortalServices();
 
 		Class<?> clazz = JSONWebServiceServiceAction.class;
@@ -68,19 +66,22 @@ public class JSONWebServiceServiceActionTest
 
 		PropsUtil.setProps(new PropsImpl());
 
-		ServletContext servletContext = new MockServletContext();
-
-		_jsonWebServiceServiceAction = new JSONWebServiceServiceAction(
-			servletContext, null);
+		_jsonWebServiceServiceAction = new JSONWebServiceServiceAction();
 	}
 
 	@AfterClass
-	public static void tearDown() throws Exception {
+	public static void tearDownClass() throws Exception {
 		PortalClassLoaderUtil.setClassLoader(null);
 	}
 
 	@Before
 	public void setUp() {
+		JSONWebServiceActionsManagerUtil jsonWebServiceActionsManagerUtil =
+			new JSONWebServiceActionsManagerUtil();
+
+		jsonWebServiceActionsManagerUtil.setJSONWebServiceActionsManager(
+			new JSONWebServiceActionsManagerImpl());
+
 		spy(PortalUtil.class);
 
 		when(
@@ -191,10 +192,10 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	protected void testServletContextInvoker(
-			String ctx, boolean setContextPath, String query)
+			String contextPath, boolean setContextPath, String query)
 		throws Exception {
 
-		registerActionClass(FooService.class, ctx);
+		registerActionClass(FooService.class, contextPath);
 
 		Map<String, Object> map = new LinkedHashMap<String, Object>();
 
@@ -211,7 +212,7 @@ public class JSONWebServiceServiceActionTest
 			createInvokerHttpServletRequest(json);
 
 		if (setContextPath) {
-			mockHttpServletRequest.setContextPath(ctx);
+			setServletContext(mockHttpServletRequest, contextPath);
 		}
 
 		MockHttpServletResponse mockHttpServletResponse =
@@ -225,10 +226,10 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	protected void testServletContextRequestParams(
-			String ctx, boolean setContextPath, String request)
+			String contextPath, boolean setContextPath, String request)
 		throws Exception {
 
-		registerActionClass(FooService.class, ctx);
+		registerActionClass(FooService.class, contextPath);
 
 		MockHttpServletRequest mockHttpServletRequest = createHttpRequest(
 			request);
@@ -239,7 +240,7 @@ public class JSONWebServiceServiceActionTest
 		mockHttpServletRequest.setMethod(HttpMethods.GET);
 
 		if (setContextPath) {
-			mockHttpServletRequest.setContextPath(ctx);
+			setServletContext(mockHttpServletRequest, contextPath);
 		}
 
 		MockHttpServletResponse mockHttpServletResponse =
@@ -253,10 +254,10 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	protected void testServletContextURL(
-			String ctx, boolean setContextPath, String request)
+			String contextPath, boolean setContextPath, String request)
 		throws Exception {
 
-		registerActionClass(FooService.class, ctx);
+		registerActionClass(FooService.class, contextPath);
 
 		MockHttpServletRequest mockHttpServletRequest = createHttpRequest(
 			request);
@@ -264,7 +265,7 @@ public class JSONWebServiceServiceActionTest
 		mockHttpServletRequest.setMethod(HttpMethods.GET);
 
 		if (setContextPath) {
-			mockHttpServletRequest.setContextPath(ctx);
+			setServletContext(mockHttpServletRequest, contextPath);
 		}
 
 		MockHttpServletResponse mockHttpServletResponse =

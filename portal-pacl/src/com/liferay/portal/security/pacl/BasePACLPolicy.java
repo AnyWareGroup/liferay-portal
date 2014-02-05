@@ -43,7 +43,9 @@ import java.security.Security;
 import java.security.URIParameter;
 import java.security.cert.Certificate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -112,6 +114,11 @@ public abstract class BasePACLPolicy implements PACLPolicy {
 	@Override
 	public String getServletContextName() {
 		return _servletContextName;
+	}
+
+	@Override
+	public List<URL> getURLs() {
+		return _urls;
 	}
 
 	@Override
@@ -265,10 +272,10 @@ public abstract class BasePACLPolicy implements PACLPolicy {
 	private static Log _log = LogFactoryUtil.getLog(BasePACLPolicy.class);
 
 	private Map<String, Checker> _checkers = new HashMap<String, Checker>();
-
 	private ClassLoader _classLoader;
 	private Policy _policy;
 	private Properties _properties;
 	private String _servletContextName;
+	private List<URL> _urls = new ArrayList<URL>();
 
 }

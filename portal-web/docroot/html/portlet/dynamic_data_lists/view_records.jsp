@@ -17,21 +17,27 @@
 <%@ include file="/html/portlet/dynamic_data_lists/init.jsp" %>
 
 <%
+String redirect = ParamUtil.getString(request, "redirect");
+
 DDLRecordSet recordSet = (DDLRecordSet)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD_SET);
 
 long formDDMTemplateId = ParamUtil.getLong(request, "formDDMTemplateId");
 
-boolean editable = false;
+boolean editable = ParamUtil.getBoolean(request, "editable", true);
+boolean hasDeletePermission = false;
+boolean hasUpdatePermission = false;
 boolean showAddRecordButton = false;
 
-if (DDLUtil.isEditable(request, portletDisplay.getId(), themeDisplay.getScopeGroupId())) {
-	editable = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.UPDATE);
+if (editable || portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS)) {
+	hasDeletePermission = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.DELETE);
+	hasUpdatePermission = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.UPDATE);
 	showAddRecordButton = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.ADD_RECORD);
 }
 
 PortletURL portletURL = renderResponse.createRenderURL();
 
 portletURL.setParameter("struts_action", "/dynamic_data_lists/view_record_set");
+portletURL.setParameter("redirect", redirect);
 portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()));
 %>
 
@@ -56,29 +62,39 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 		headerNames.add(label);
 	}
 
-	if (editable) {
+	if (hasUpdatePermission) {
 		headerNames.add("status");
 		headerNames.add("modified-date");
 		headerNames.add("author");
-		headerNames.add(StringPool.BLANK);
 	}
+
+	headerNames.add(StringPool.BLANK);
 	%>
 
 	<liferay-ui:search-container
-		searchContainer='<%= new SearchContainer(renderRequest, new DisplayTerms(request), null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-x-records-were-found", ddmStructure.getName(locale))) %>'
+		searchContainer='<%= new SearchContainer(renderRequest, new DisplayTerms(request), null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-x-records-were-found", HtmlUtil.escape(ddmStructure.getName(locale)), false)) %>'
 	>
 
-		<liferay-ui:search-form
-			page="/html/portlet/dynamic_data_lists/record_search.jsp"
-			searchContainer="<%= searchContainer %>"
-			showAddButton="<%= showAddRecordButton %>"
-		/>
+		<aui:nav-bar>
+			<aui:nav>
+				<c:if test="<%= showAddRecordButton %>">
+					<portlet:renderURL var="addRecordURL">
+						<portlet:param name="struts_action" value="/dynamic_data_lists/edit_record" />
+						<portlet:param name="redirect" value="<%= currentURL %>" />
+						<portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" />
+						<portlet:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
+					</portlet:renderURL>
+
+					<aui:nav-item href="<%= addRecordURL %>" iconCssClass="icon-plus" label='<%= LanguageUtil.format(pageContext, "add-x", HtmlUtil.escape(ddmStructure.getName(locale)), false) %>' />
+				</c:if>
+			</aui:nav>
+
+			<aui:nav-bar-search cssClass="pull-right" file="/html/portlet/dynamic_data_lists/record_search.jsp" searchContainer="<%= searchContainer %>" />
+		</aui:nav-bar>
 
 		<liferay-ui:search-container-results>
 			<%@ include file="/html/portlet/dynamic_data_lists/record_search_results.jspf" %>
 		</liferay-ui:search-container-results>
-
-		<div class="separator"><!-- --></div>
 
 		<%
 		List resultRows = searchContainer.getResultRows();
@@ -96,8 +112,9 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 
 			ResultRow row = new ResultRow(record, record.getRecordId(), i);
 
-			row.setParameter("editable", String.valueOf(editable));
 			row.setParameter("formDDMTemplateId", String.valueOf(formDDMTemplateId));
+			row.setParameter("hasDeletePermission", String.valueOf(hasDeletePermission));
+			row.setParameter("hasUpdatePermission", String.valueOf(hasUpdatePermission));
 
 			PortletURL rowURL = renderResponse.createRenderURL();
 
@@ -120,15 +137,15 @@ portletURL.setParameter("recordSetId", String.valueOf(recordSet.getRecordSetId()
 			<%
 			}
 
-			if (editable) {
-				row.addText(LanguageUtil.get(pageContext, WorkflowConstants.toLabel(recordVersion.getStatus())), rowURL);
-				row.addText(dateFormatDateTime.format(record.getModifiedDate()), rowURL);
+			if (hasUpdatePermission) {
+				row.addStatus(recordVersion.getStatus(), recordVersion.getStatusByUserId(), recordVersion.getStatusDate(), rowURL);
+				row.addDate(record.getModifiedDate(), rowURL);
 				row.addText(HtmlUtil.escape(PortalUtil.getUserName(recordVersion)), rowURL);
-
-				// Action
-
-				row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/dynamic_data_lists/record_action.jsp");
 			}
+
+			// Action
+
+			row.addJSP("right", SearchEntry.DEFAULT_VALIGN, "/html/portlet/dynamic_data_lists/record_action.jsp");
 
 			// Add result row
 

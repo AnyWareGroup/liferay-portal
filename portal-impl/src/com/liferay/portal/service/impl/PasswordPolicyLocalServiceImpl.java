@@ -20,6 +20,8 @@ import com.liferay.portal.RequiredPasswordPolicyException;
 import com.liferay.portal.kernel.cache.ThreadLocalCachable;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
@@ -27,7 +29,9 @@ import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.PasswordPolicy;
 import com.liferay.portal.model.PasswordPolicyRel;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
+import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portal.security.ldap.LDAPSettingsUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.PasswordPolicyLocalServiceBaseImpl;
@@ -49,6 +53,7 @@ public class PasswordPolicyLocalServiceImpl
 	 *             boolean, long, long, int, boolean, int, long, long, long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy addPasswordPolicy(
 			long userId, boolean defaultPolicy, String name, String description,
@@ -197,7 +202,7 @@ public class PasswordPolicyLocalServiceImpl
 
 		for (PasswordPolicy passwordPolicy : passwordPolicies) {
 			if (!passwordPolicy.isDefaultPolicy()) {
-				deletePasswordPolicy(passwordPolicy);
+				passwordPolicyLocalService.deletePasswordPolicy(passwordPolicy);
 			}
 		}
 	}
@@ -209,14 +214,19 @@ public class PasswordPolicyLocalServiceImpl
 		PasswordPolicy passwordPolicy =
 			passwordPolicyPersistence.findByPrimaryKey(passwordPolicyId);
 
-		return deletePasswordPolicy(passwordPolicy);
+		return passwordPolicyLocalService.deletePasswordPolicy(passwordPolicy);
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public PasswordPolicy deletePasswordPolicy(PasswordPolicy passwordPolicy)
 		throws PortalException, SystemException {
 
-		if (passwordPolicy.isDefaultPolicy()) {
+		if (passwordPolicy.isDefaultPolicy() &&
+			!CompanyThreadLocal.isDeleteInProcess()) {
+
 			throw new RequiredPasswordPolicyException();
 		}
 
@@ -245,15 +255,6 @@ public class PasswordPolicyLocalServiceImpl
 	}
 
 	@Override
-	public PasswordPolicy fetchPasswordPolicyByUuidAndCompanyId(
-			String uuid, long companyId)
-		throws SystemException {
-
-		return passwordPolicyPersistence.fetchByUuid_C_First(
-			uuid, companyId, null);
-	}
-
-	@Override
 	public PasswordPolicy getDefaultPasswordPolicy(long companyId)
 		throws PortalException, SystemException {
 
@@ -267,6 +268,7 @@ public class PasswordPolicyLocalServiceImpl
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy getPasswordPolicy(
 			long companyId, long organizationId, long locationId)
@@ -285,7 +287,7 @@ public class PasswordPolicyLocalServiceImpl
 			return null;
 		}
 
-		if ((organizationIds == null) || (organizationIds.length == 0)) {
+		if (ArrayUtil.isEmpty(organizationIds)) {
 			return getDefaultPasswordPolicy(companyId);
 		}
 
@@ -329,25 +331,24 @@ public class PasswordPolicyLocalServiceImpl
 		if (passwordPolicyRel != null) {
 			return getPasswordPolicy(passwordPolicyRel.getPasswordPolicyId());
 		}
-		else {
-			List<Organization> organizations = userPersistence.getOrganizations(
-				userId);
 
-			if (organizations.isEmpty()) {
-				return passwordPolicyPersistence.findByC_DP(
-					user.getCompanyId(), true);
-			}
+		List<Organization> organizations = userPersistence.getOrganizations(
+			userId);
 
-			long[] organizationIds = new long[organizations.size()];
-
-			for (int i = 0; i < organizationIds.length; i++) {
-				Organization organization = organizations.get(i);
-
-				organizationIds[i] = organization.getOrganizationId();
-			}
-
-			return getPasswordPolicy(user.getCompanyId(), organizationIds);
+		if (organizations.isEmpty()) {
+			return passwordPolicyPersistence.findByC_DP(
+				user.getCompanyId(), true);
 		}
+
+		long[] organizationIds = new long[organizations.size()];
+
+		for (int i = 0; i < organizationIds.length; i++) {
+			Organization organization = organizations.get(i);
+
+			organizationIds[i] = organization.getOrganizationId();
+		}
+
+		return getPasswordPolicy(user.getCompanyId(), organizationIds);
 	}
 
 	@Override
@@ -371,6 +372,7 @@ public class PasswordPolicyLocalServiceImpl
 	 *             long, long, int, boolean, int, long, long, long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public PasswordPolicy updatePasswordPolicy(
 			long passwordPolicyId, String name, String description,

@@ -247,6 +247,11 @@ public class VerifyAuditedModel extends VerifyProcess {
 
 			ps.executeUpdate();
 		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to verify model " + modelName, e);
+			}
+		}
 		finally {
 			DataAccess.cleanUp(con, ps);
 		}
@@ -337,8 +342,7 @@ public class VerifyAuditedModel extends VerifyProcess {
 			"true"
 		},
 		new String[] {
-			"MBThreadFlag", "threadFlagId", "threadId", "MBThread", "threadId",
-			"true"
+			"MBThreadFlag", "threadFlagId", "userId", "User_", "userId", "true",
 		},
 		new String[] {
 			"Organization_", "organizationId", null, null, null, "true"

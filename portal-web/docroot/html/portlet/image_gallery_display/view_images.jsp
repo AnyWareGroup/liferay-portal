@@ -19,8 +19,9 @@
 <%
 Long folderId = GetterUtil.getLong((String)request.getAttribute("view.jsp-folderId"));
 String[] mediaGalleryMimeTypes = (String[])request.getAttribute("view.jsp-mediaGalleryMimeTypes");
-List results = (List)request.getAttribute("view.jsp-results");
 SearchContainer searchContainer = (SearchContainer)request.getAttribute("view.jsp-searchContainer");
+
+List results = searchContainer.getResults();
 %>
 
 <c:choose>
@@ -297,6 +298,7 @@ embeddedPlayerURL.setWindowState(LiferayWindowState.POP_UP);
 				</c:if>
 			},
 			delay: 5000,
+			infoTemplate: '<%= LanguageUtil.format(pageContext, "image-x-of-x", new String[] {"{current}", "{total}"}, false) %>',
 			links: '#<portlet:namespace />imageGalleryAssetInfo .image-link.preview',
 			maxHeight: maxHeight,
 			maxWidth: maxWidth,
@@ -322,7 +324,8 @@ embeddedPlayerURL.setWindowState(LiferayWindowState.POP_UP);
 					},
 					fn: A.MediaViewerPlugin
 				}
-			]
+			],
+			zIndex: ++Liferay.zIndex.WINDOW
 		}
 	).render();
 </aui:script>

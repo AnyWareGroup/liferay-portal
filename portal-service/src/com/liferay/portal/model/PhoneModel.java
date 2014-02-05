@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.PhoneModelImpl
  * @generated
  */
-public interface PhoneModel extends AttachedModel, BaseModel<Phone>, StagedModel {
+@ProviderType
+public interface PhoneModel extends AttachedModel, BaseModel<Phone>, MVCCModel,
+	StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +61,22 @@ public interface PhoneModel extends AttachedModel, BaseModel<Phone>, StagedModel
 	 * @param primaryKey the primary key of this phone
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this phone.
+	 *
+	 * @return the mvcc version of this phone
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this phone.
+	 *
+	 * @param mvccVersion the mvcc version of this phone
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this phone.

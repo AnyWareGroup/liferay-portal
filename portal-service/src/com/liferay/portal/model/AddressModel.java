@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.AddressModelImpl
  * @generated
  */
+@ProviderType
 public interface AddressModel extends AttachedModel, BaseModel<Address>,
-	StagedModel {
+	MVCCModel, StagedAuditedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -58,6 +61,22 @@ public interface AddressModel extends AttachedModel, BaseModel<Address>,
 	 * @param primaryKey the primary key of this address
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this address.
+	 *
+	 * @return the mvcc version of this address
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this address.
+	 *
+	 * @param mvccVersion the mvcc version of this address
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this address.

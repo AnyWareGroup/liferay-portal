@@ -1045,6 +1045,10 @@ public class CompanyPersistenceImpl extends BasePersistenceImpl<Company>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countBySystem(system);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Company> list = findBySystem(system, count - 1, count,
 				orderByComparator);
 
@@ -1268,6 +1272,10 @@ public class CompanyPersistenceImpl extends BasePersistenceImpl<Company>
 	}
 
 	private static final String _FINDER_COLUMN_SYSTEM_SYSTEM_2 = "company.system = ?";
+
+	public CompanyPersistenceImpl() {
+		setModelClass(Company.class);
+	}
 
 	/**
 	 * Caches the company in the entity cache if it is enabled.
@@ -1616,10 +1624,12 @@ public class CompanyPersistenceImpl extends BasePersistenceImpl<Company>
 		}
 
 		EntityCacheUtil.putResult(CompanyModelImpl.ENTITY_CACHE_ENABLED,
-			CompanyImpl.class, company.getPrimaryKey(), company);
+			CompanyImpl.class, company.getPrimaryKey(), company, false);
 
 		clearUniqueFindersCache(company);
 		cacheUniqueFindersCache(company);
+
+		company.resetOriginalValues();
 
 		return company;
 	}
@@ -1634,6 +1644,7 @@ public class CompanyPersistenceImpl extends BasePersistenceImpl<Company>
 		companyImpl.setNew(company.isNew());
 		companyImpl.setPrimaryKey(company.getPrimaryKey());
 
+		companyImpl.setMvccVersion(company.getMvccVersion());
 		companyImpl.setCompanyId(company.getCompanyId());
 		companyImpl.setAccountId(company.getAccountId());
 		companyImpl.setWebId(company.getWebId());

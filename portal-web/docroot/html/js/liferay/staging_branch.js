@@ -82,8 +82,6 @@ AUI.add(
 							}
 						);
 
-						branchDialog.move(branchDialog.get('x'), branchDialog.get('y') + 10);
-
 						instance._branchDialog = branchDialog;
 					}
 
@@ -97,9 +95,9 @@ AUI.add(
 
 					if (!mergeDialog) {
 						mergeDialog = Liferay.Util.Window.getWindow(
-						    {
+							{
 								title: Liferay.Language.get('merge')
-						    }
+							}
 						);
 
 						mergeDialog.plug(
@@ -113,8 +111,6 @@ AUI.add(
 								}
 							}
 						);
-
-						mergeDialog.move(mergeDialog.get('x'), mergeDialog.get('y') + 100);
 
 						mergeDialog.bodyNode.delegate(
 							'click',

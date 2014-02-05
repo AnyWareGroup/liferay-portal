@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link UserGroup}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserGroup
+ * @author Brian Wing Shun Chan
+ * @see UserGroup
  * @generated
  */
+@ProviderType
 public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 	public UserGroupWrapper(UserGroup userGroup) {
 		_userGroup = userGroup;
@@ -46,6 +52,7 @@ public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("userGroupId", getUserGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -63,6 +70,12 @@ public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -148,6 +161,26 @@ public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_userGroup.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user group.
+	*
+	* @return the mvcc version of this user group
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userGroup.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user group.
+	*
+	* @param mvccVersion the mvcc version of this user group
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userGroup.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -514,6 +547,13 @@ public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 	}
 
 	@Override
+	public long getGroupId()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _userGroup.getGroupId();
+	}
+
+	@Override
 	public int getPrivateLayoutsPageCount()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -541,9 +581,34 @@ public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 		return _userGroup.hasPublicLayouts();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserGroupWrapper)) {
+			return false;
+		}
+
+		UserGroupWrapper userGroupWrapper = (UserGroupWrapper)obj;
+
+		if (Validator.equals(_userGroup, userGroupWrapper._userGroup)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _userGroup.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserGroup getWrappedUserGroup() {
 		return _userGroup;
 	}
@@ -551,6 +616,16 @@ public class UserGroupWrapper implements UserGroup, ModelWrapper<UserGroup> {
 	@Override
 	public UserGroup getWrappedModel() {
 		return _userGroup;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userGroup.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userGroup.isFinderCacheEnabled();
 	}
 
 	@Override

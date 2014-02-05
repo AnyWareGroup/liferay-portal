@@ -1,8 +1,8 @@
 <#include "../init.ftl">
 
-<#assign parentFieldRawValue = parentFieldStructure.predefinedValue>
-
-<#if validator.isNull(parentFieldRawValue)>
+<#if parentFieldStructure.predefinedValue?has_content>
+	<#assign parentFieldRawValue = parentFieldStructure.predefinedValue>
+<#else>
 	<#assign parentFieldRawValue = "[]">
 </#if>
 

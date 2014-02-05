@@ -22,7 +22,9 @@ String className = (String)request.getAttribute("edit_message.jsp-className");
 Integer depth = (Integer)request.getAttribute("edit_message.jsp-depth");
 Boolean editable = (Boolean)request.getAttribute("edit_message.jsp-editable");
 MBMessage message = (MBMessage)request.getAttribute("edit_message.jsp-message");
+Boolean showDeletedAttachmentsFileEntries = (Boolean)request.getAttribute("edit-message.jsp-showDeletedAttachmentsFileEntries");
 Boolean showPermanentLink = (Boolean)request.getAttribute("edit-message.jsp-showPermanentLink");
+Boolean showRecentPosts = (Boolean)request.getAttribute("edit-message.jsp-showRecentPosts");
 MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 %>
 
@@ -47,11 +49,11 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 						MBStatsUser statsUser = MBStatsUserLocalServiceUtil.getStatsUser(scopeGroupId, message.getUserId());
 
 						int posts = statsUser.getMessageCount();
-						String[] ranks = MBUtil.getUserRank(preferences, themeDisplay.getLanguageId(), statsUser);
+						String[] ranks = MBUtil.getUserRank(portletPreferences, themeDisplay.getLanguageId(), statsUser);
 						%>
 
 						<c:if test="<%= Validator.isNotNull(ranks[1]) %>">
-							<div class="thread-user-role thread-user-role-<%= ranks[1].toLowerCase() %>"><%= ranks[1] %></div>
+							<div class="thread-user-role thread-user-role-<%= StringUtil.toLowerCase(ranks[1]) %>"><%= ranks[1] %></div>
 						</c:if>
 
 						<c:if test="<%= Validator.isNotNull(ranks[0]) %>">
@@ -68,19 +70,21 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 							<span><liferay-ui:message key="join-date" />:</span> <%= dateFormatDate.format(userDisplay.getCreateDate()) %>
 						</div>
 
-						<portlet:renderURL var="recentPostsURL">
-							<portlet:param name="struts_action" value="/message_boards/view" />
-							<portlet:param name="topLink" value="recent-posts" />
-							<portlet:param name="groupThreadsUserId" value="<%= String.valueOf(userDisplay.getUserId()) %>" />
-						</portlet:renderURL>
+						<c:if test="<%= showRecentPosts %>">
+							<portlet:renderURL var="recentPostsURL">
+								<portlet:param name="struts_action" value="/message_boards/view" />
+								<portlet:param name="topLink" value="recent-posts" />
+								<portlet:param name="groupThreadsUserId" value="<%= String.valueOf(userDisplay.getUserId()) %>" />
+							</portlet:renderURL>
 
-						<liferay-ui:icon
-							image="view"
-							label="<%= true %>"
-							message="recent-posts"
-							method="get"
-							url="<%= recentPostsURL.toString() %>"
-						/>
+							<liferay-ui:icon
+								image="view"
+								label="<%= true %>"
+								message="recent-posts"
+								method="get"
+								url="<%= recentPostsURL.toString() %>"
+							/>
+						</c:if>
 
 						<c:if test="<%= (userDisplay != null) && (user.getUserId() != userDisplay.getUserId()) && !PortalUtil.isGroupAdmin(userDisplay, scopeGroupId) && MBPermission.contains(permissionChecker, scopeGroupId, ActionKeys.BAN_USER) %>">
 							<br />
@@ -188,7 +192,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 						String author = parentMessage.isAnonymous() ? LanguageUtil.get(pageContext, "anonymous") : HtmlUtil.escape(PortalUtil.getUserName(parentMessage.getUserId(), parentMessage.getUserName()));
 						%>
 
-						<%= LanguageUtil.format(pageContext, "posted-as-a-reply-to", author) %>
+						<%= LanguageUtil.format(pageContext, "posted-as-a-reply-to", author, false) %>
 					</c:if>
 				</div>
 
@@ -316,7 +320,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 							%>
 
 									<div>
-										<img alt="<liferay-ui:message key="attachment" />" src="<%= themeDisplay.getPathMain() %>/message_boards/get_message_attachment?messageId=<%= message.getMessageId() %>&attachment=<%= HttpUtil.encodeURL(fileEntry.getTitle()) %>" />
+										<img alt="<liferay-ui:message key="attachment" />" src="<%= PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>" />
 									</div>
 
 									<br />
@@ -331,12 +335,6 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 								<%
 								for (FileEntry fileEntry : attachmentsFileEntries) {
 								%>
-
-									<portlet:actionURL var="attachmentURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
-										<portlet:param name="struts_action" value="/message_boards/get_message_attachment" />
-										<portlet:param name="messageId" value="<%= String.valueOf(message.getMessageId()) %>" />
-										<portlet:param name="attachment" value="<%= fileEntry.getTitle() %>" />
-									</portlet:actionURL>
 
 									<li class="message-attachment">
 
@@ -353,7 +351,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 											image='<%= "../file_system/small/" + DLUtil.getFileIcon(fileEntry.getExtension()) %>'
 											label="<%= true %>"
 											message="<%= sb.toString() %>"
-											url="<%= attachmentURL %>"
+											url="<%= PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, StringPool.BLANK) %>"
 										/>
 									</li>
 
@@ -361,7 +359,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 								}
 								%>
 
-								<c:if test="<%= (deletedAttachmentsFileEntriesCount > 0) && TrashUtil.isTrashEnabled(scopeGroupId) && MBMessagePermission.contains(permissionChecker, message, ActionKeys.UPDATE) %>">
+								<c:if test="<%= showDeletedAttachmentsFileEntries && (deletedAttachmentsFileEntriesCount > 0) && TrashUtil.isTrashEnabled(scopeGroupId) && MBMessagePermission.contains(permissionChecker, message, ActionKeys.UPDATE) %>">
 									<li class="message-attachment">
 										<portlet:renderURL var="viewTrashAttachmentsURL">
 											<portlet:param name="struts_action" value="/message_boards/view_deleted_message_attachments" />
@@ -372,7 +370,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 										<liferay-ui:icon
 											image="delete_attachment"
 											label="<%= true %>"
-											message='<%= LanguageUtil.format(pageContext, (deletedAttachmentsFileEntriesCount == 1) ? "x-recently-removed-attachment" : "x-recently-removed-attachments", deletedAttachmentsFileEntriesCount) %>'
+											message='<%= LanguageUtil.format(pageContext, (deletedAttachmentsFileEntriesCount == 1) ? "x-recently-removed-attachment" : "x-recently-removed-attachments", deletedAttachmentsFileEntriesCount, false) %>'
 											url="<%= viewTrashAttachmentsURL %>"
 										/>
 									</li>
@@ -451,17 +449,20 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 								modelResourceDescription="<%= HtmlUtil.escape(message.getSubject()) %>"
 								resourcePrimKey="<%= String.valueOf(message.getMessageId()) %>"
 								var="permissionsURL"
+								windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 							/>
 
 							<liferay-ui:icon
 								image="permissions"
 								label="<%= true %>"
+								method="get"
 								url="<%= permissionsURL %>"
+								useDialog="<%= true %>"
 							/>
 						</li>
 					</c:if>
 
-					 <c:if test="<%= (message.getParentMessageId() != MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID) && MBCategoryPermission.contains(permissionChecker, scopeGroupId, category.getCategoryId(), ActionKeys.MOVE_THREAD) %>">
+					<c:if test="<%= (message.getParentMessageId() != MBMessageConstants.DEFAULT_PARENT_MESSAGE_ID) && MBCategoryPermission.contains(permissionChecker, scopeGroupId, category.getCategoryId(), ActionKeys.MOVE_THREAD) %>">
 						<li>
 							<portlet:renderURL var="splitThreadURL">
 								<portlet:param name="struts_action" value="/message_boards/split_thread" />
@@ -479,7 +480,7 @@ MBThread thread = (MBThread)request.getAttribute("edit_message.jsp-thread");
 						</li>
 					</c:if>
 
-					<c:if test="<%= !thread.isLocked() && MBMessagePermission.contains(permissionChecker, message, ActionKeys.DELETE) %>">
+					<c:if test="<%= !thread.isLocked() && (thread.getMessageCount() > 1) && MBMessagePermission.contains(permissionChecker, message, ActionKeys.DELETE) %>">
 						<li>
 
 							<%

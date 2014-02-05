@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagServiceHttp
- * @see       com.liferay.portlet.asset.model.AssetTagSoap
- * @see       com.liferay.portlet.asset.service.AssetTagServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AssetTagServiceHttp
+ * @see com.liferay.portlet.asset.model.AssetTagSoap
+ * @see com.liferay.portlet.asset.service.AssetTagServiceUtil
  * @generated
  */
+@ProviderType
 public class AssetTagServiceSoap {
 	public static com.liferay.portlet.asset.model.AssetTagSoap addTag(
 		java.lang.String name, java.lang.String[] tagProperties,
@@ -181,6 +184,7 @@ public class AssetTagServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupTagsDisplay(long,
 	String, int, int)}
 	*/
+	@Deprecated
 	public static java.lang.String getJSONGroupTags(long groupId,
 		java.lang.String name, int start, int end) throws RemoteException {
 		try {

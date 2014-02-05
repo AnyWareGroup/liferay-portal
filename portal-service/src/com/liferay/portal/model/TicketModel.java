@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -36,7 +38,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.TicketModelImpl
  * @generated
  */
-public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
+@ProviderType
+public interface TicketModel extends AttachedModel, BaseModel<Ticket>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +59,22 @@ public interface TicketModel extends AttachedModel, BaseModel<Ticket> {
 	 * @param primaryKey the primary key of this ticket
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this ticket.
+	 *
+	 * @return the mvcc version of this ticket
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this ticket.
+	 *
+	 * @param mvccVersion the mvcc version of this ticket
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the ticket ID of this ticket.

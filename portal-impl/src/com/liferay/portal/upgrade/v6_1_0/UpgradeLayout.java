@@ -17,6 +17,7 @@ package com.liferay.portal.upgrade.v6_1_0;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -46,17 +47,19 @@ public class UpgradeLayout extends UpgradeProcess {
 			con = DataAccess.getUpgradeOptimizedConnection();
 
 			ps = con.prepareStatement(
-				"select plid, name, title, typeSettings from Layout");
+				"select plid, companyId, name, title, typeSettings from " +
+					"Layout");
 
 			rs = ps.executeQuery();
 
 			while (rs.next()) {
 				long plid = rs.getLong("plid");
+				long companyId = rs.getLong("companyId");
 				String name = rs.getString("name");
 				String title = rs.getString("title");
 				String typeSettings = rs.getString("typeSettings");
 
-				updateLayout(plid, name, title, typeSettings);
+				updateLayout(plid, companyId, name, title, typeSettings);
 			}
 		}
 		finally {
@@ -99,7 +102,8 @@ public class UpgradeLayout extends UpgradeProcess {
 	}
 
 	protected void updateLayout(
-			long plid, String name, String title, String typeSettings)
+			long plid, long companyId, String name, String title,
+			String typeSettings)
 		throws Exception {
 
 		if (Validator.isNotNull(name)) {
@@ -122,8 +126,8 @@ public class UpgradeLayout extends UpgradeProcess {
 			return;
 		}
 
-		Locale defaultLocale = LocaleUtil.getDefault();
-		String defaultLanguageId = LocaleUtil.toLanguageId(defaultLocale);
+		String defaultLanguageId = UpgradeProcessUtil.getDefaultLanguageId(
+			companyId);
 
 		UnicodeProperties typeSettingsProperties = new UnicodeProperties(true);
 

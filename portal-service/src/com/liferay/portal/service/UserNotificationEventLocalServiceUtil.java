@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.UserNotificationEventLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class UserNotificationEventLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,40 @@ public class UserNotificationEventLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portal.model.UserNotificationEvent fetchUserNotificationEvent(
 		long userNotificationEventId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchUserNotificationEvent(userNotificationEventId);
+	}
+
+	/**
+	* Returns the user notification event with the matching UUID and company.
+	*
+	* @param uuid the user notification event's UUID
+	* @param companyId the primary key of the company
+	* @return the matching user notification event, or <code>null</code> if a matching user notification event could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.UserNotificationEvent fetchUserNotificationEventByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchUserNotificationEventByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -191,6 +224,23 @@ public class UserNotificationEventLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the user notification event with the matching UUID and company.
+	*
+	* @param uuid the user notification event's UUID
+	* @param companyId the primary key of the company
+	* @return the matching user notification event
+	* @throws PortalException if a matching user notification event could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.UserNotificationEvent getUserNotificationEventByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getUserNotificationEventByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -292,17 +342,69 @@ public class UserNotificationEventLocalServiceUtil {
 		getService().deleteUserNotificationEvents(uuids, companyId);
 	}
 
+	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getArchivedUserNotificationEvents(
+		long userId, boolean archived)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getArchivedUserNotificationEvents(userId, archived);
+	}
+
+	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getArchivedUserNotificationEvents(
+		long userId, boolean archived, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getArchivedUserNotificationEvents(userId, archived, start,
+			end);
+	}
+
+	public static int getArchivedUserNotificationEventsCount(long userId,
+		boolean archived)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getArchivedUserNotificationEventsCount(userId, archived);
+	}
+
+	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getDeliveredUserNotificationEvents(
+		long userId, boolean delivered)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getDeliveredUserNotificationEvents(userId, delivered);
+	}
+
+	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getDeliveredUserNotificationEvents(
+		long userId, boolean delivered, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getDeliveredUserNotificationEvents(userId, delivered,
+			start, end);
+	}
+
+	public static int getDeliveredUserNotificationEventsCount(long userId,
+		boolean delivered)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getDeliveredUserNotificationEventsCount(userId, delivered);
+	}
+
 	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getUserNotificationEvents(
 		long userId) throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getUserNotificationEvents(userId);
 	}
 
+	/**
+	* @deprecated As of 6.2.0 {@link #getArchivedUserNotificationEvents(long,
+	boolean)}
+	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getUserNotificationEvents(
 		long userId, boolean archived)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getUserNotificationEvents(userId, archived);
 	}
 
+	/**
+	* @deprecated As of 6.2.0 {@link #getArchivedUserNotificationEvents(long,
+	boolean, int, int)}
+	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portal.model.UserNotificationEvent> getUserNotificationEvents(
 		long userId, boolean archived, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -321,6 +423,11 @@ public class UserNotificationEventLocalServiceUtil {
 		return getService().getUserNotificationEventsCount(userId);
 	}
 
+	/**
+	* @deprecated As of 6.2.0 {@link
+	#getArchivedUserNotificationEventsCount(long, boolean)}
+	*/
+	@Deprecated
 	public static int getUserNotificationEventsCount(long userId,
 		boolean archived)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -355,6 +462,7 @@ public class UserNotificationEventLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(UserNotificationEventLocalService service) {
 	}
 

@@ -17,12 +17,17 @@ package com.liferay.portal.editor.fckeditor.receiver.impl;
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.editor.fckeditor.command.CommandArgument;
 import com.liferay.portal.editor.fckeditor.exception.FCKException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.LayoutConstants;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutServiceUtil;
+import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 
 import java.io.InputStream;
@@ -60,6 +65,10 @@ public class PageCommandReceiver extends BaseCommandReceiver {
 			_getFolders(commandArgument, document, rootNode);
 		}
 		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+
 			throw new FCKException(e);
 		}
 	}
@@ -73,6 +82,10 @@ public class PageCommandReceiver extends BaseCommandReceiver {
 			_getFiles(commandArgument, document, rootNode);
 		}
 		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e, e);
+			}
+
 			throw new FCKException(e);
 		}
 	}
@@ -116,8 +129,7 @@ public class PageCommandReceiver extends BaseCommandReceiver {
 				fileElement.setAttribute("size", StringPool.BLANK);
 				fileElement.setAttribute(
 					"url",
-					PortalUtil.getLayoutURL(
-						layout, commandArgument.getThemeDisplay(), false));
+					_getRelativeURL(layout, commandArgument.getThemeDisplay()));
 			}
 		}
 		else {
@@ -144,8 +156,7 @@ public class PageCommandReceiver extends BaseCommandReceiver {
 				fileElement.setAttribute("size", getSize());
 				fileElement.setAttribute(
 					"url",
-					PortalUtil.getLayoutURL(
-						layout, commandArgument.getThemeDisplay(), false));
+					_getRelativeURL(layout, commandArgument.getThemeDisplay()));
 			}
 		}
 	}
@@ -252,5 +263,25 @@ public class PageCommandReceiver extends BaseCommandReceiver {
 
 		return layoutName;
 	}
+
+	private String _getRelativeURL(Layout layout, ThemeDisplay themeDisplay)
+		throws PortalException, SystemException {
+
+		String layoutFullURL = PortalUtil.getLayoutFullURL(
+			layout, themeDisplay, false);
+
+		String canonicalURL = PortalUtil.getCanonicalURL(
+			layoutFullURL, themeDisplay, layout, true);
+
+		String portalURL = themeDisplay.getPortalURL();
+
+		if (canonicalURL.startsWith(portalURL)) {
+			return canonicalURL.substring(portalURL.length());
+		}
+
+		return canonicalURL;
+	}
+
+	private static Log _log = LogFactoryUtil.getLog(PageCommandReceiver.class);
 
 }

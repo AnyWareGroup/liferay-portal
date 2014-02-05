@@ -42,6 +42,7 @@ import java.util.Map;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
+import javax.portlet.WindowState;
 
 /**
  * @author Jorge Ferrer
@@ -83,6 +84,25 @@ public abstract class BaseAssetRendererFactory implements AssetRendererFactory {
 	@Override
 	public long getClassNameId() {
 		return PortalUtil.getClassNameId(_className);
+	}
+
+	@Override
+	public Tuple getClassTypeFieldName(
+			long classTypeId, String fieldName, Locale locale)
+		throws Exception {
+
+		List<Tuple> classTypeFieldNames = getClassTypeFieldNames(
+			classTypeId, locale, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (Tuple classTypeFieldName : classTypeFieldNames) {
+			String curFieldName = (String)classTypeFieldName.getObject(1);
+
+			if (fieldName.equals(curFieldName)) {
+				return classTypeFieldName;
+			}
+		}
+
+		return null;
 	}
 
 	@Override
@@ -130,6 +150,16 @@ public abstract class BaseAssetRendererFactory implements AssetRendererFactory {
 	public PortletURL getURLAdd(
 			LiferayPortletRequest liferayPortletRequest,
 			LiferayPortletResponse liferayPortletResponse)
+		throws PortalException, SystemException {
+
+		return null;
+	}
+
+	@Override
+	@SuppressWarnings("unused")
+	public PortletURL getURLView(
+			LiferayPortletResponse liferayPortletResponse,
+			WindowState windowState)
 		throws PortalException, SystemException {
 
 		return null;

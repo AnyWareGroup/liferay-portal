@@ -93,6 +93,11 @@ public class IndexerWrapper implements Indexer {
 	}
 
 	@Override
+	public String getSortField(String orderByCol, int sortType) {
+		return _indexer.getSortField(orderByCol, sortType);
+	}
+
+	@Override
 	public Summary getSummary(
 			Document document, Locale locale, String snippet,
 			PortletURL portletURL)
@@ -174,6 +179,14 @@ public class IndexerWrapper implements Indexer {
 	@Override
 	public Hits search(SearchContext searchContext) throws SearchException {
 		return _indexer.search(searchContext);
+	}
+
+	@Override
+	public Hits search(
+			SearchContext searchContext, String... selectedFieldNames)
+		throws SearchException {
+
+		return _indexer.search(searchContext, selectedFieldNames);
 	}
 
 	@Override

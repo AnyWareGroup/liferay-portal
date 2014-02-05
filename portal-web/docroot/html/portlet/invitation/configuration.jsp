@@ -17,13 +17,8 @@
 <%@ include file="/html/portlet/invitation/init.jsp" %>
 
 <%
-String portletResource = ParamUtil.getString(request, "portletResource");
-String redirect = ParamUtil.getString(request, "redirect");
-
-PortletPreferences preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-
-String emailMessageSubject = ParamUtil.getString(request, "emailMessageSubject", InvitationUtil.getEmailMessageSubject(preferences));
-String emailMessageBody = ParamUtil.getString(request, "emailMessageBody", InvitationUtil.getEmailMessageBody(preferences));
+String emailMessageSubject = ParamUtil.getString(request, "emailMessageSubject", InvitationUtil.getEmailMessageSubject(portletPreferences));
+String emailMessageBody = ParamUtil.getString(request, "emailMessageBody", InvitationUtil.getEmailMessageBody(portletPreferences));
 
 String editorParam = "emailMessageBody";
 String editorContent = emailMessageBody;
@@ -47,8 +42,10 @@ String editorContent = emailMessageBody;
 		</aui:field-wrapper>
 	</aui:fieldset>
 
-	<div class="definition-of-terms">
-		<h4><liferay-ui:message key="definition-of-terms" /></h4>
+	<aui:fieldset cssClass="definition-of-terms">
+		<legend>
+			<liferay-ui:message key="definition-of-terms" />
+		</legend>
 
 		<dl>
 			<dt>
@@ -76,7 +73,7 @@ String editorContent = emailMessageBody;
 				<%= company.getVirtualHostname() %>
 			</dd>
 		</dl>
-	</div>
+	</aui:fieldset>
 
 	<aui:button-row>
 		<aui:button type="submit" />
@@ -90,6 +87,7 @@ String editorContent = emailMessageBody;
 
 	function <portlet:namespace />saveConfiguration() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= editorParam %>.value = window.<portlet:namespace />editor.getHTML();
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 </aui:script>

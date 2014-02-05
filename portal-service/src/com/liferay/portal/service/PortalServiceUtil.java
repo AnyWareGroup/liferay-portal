@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.PortalServiceImpl
  * @generated
  */
+@ProviderType
 public class PortalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -102,11 +105,6 @@ public class PortalServiceUtil {
 		getService().testAutoSyncHibernateSessionStateOnTxCreation();
 	}
 
-	public static void testCounterIncrement_Rollback()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		getService().testCounterIncrement_Rollback();
-	}
-
 	public static void testDeleteClassName()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -140,6 +138,7 @@ public class PortalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(PortalService service) {
 	}
 

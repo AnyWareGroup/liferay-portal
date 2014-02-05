@@ -64,15 +64,13 @@ public class ActionUtil {
 					OrganizationLocalServiceUtil.getOrganization(
 						organizationId);
 
-				Group organizationGroup = organization.getGroup();
-
-				long organizationGroupId = organizationGroup.getGroupId();
+				long organizationGroupId = organization.getGroupId();
 
 				if (GroupPermissionUtil.contains(
 						permissionChecker, organizationGroupId,
 						ActionKeys.ASSIGN_USER_ROLES) ||
 					OrganizationPermissionUtil.contains(
-						permissionChecker, organizationId,
+						permissionChecker, organization,
 						ActionKeys.ASSIGN_USER_ROLES) ||
 					UserGroupRoleLocalServiceUtil.hasUserGroupRole(
 						themeDisplay.getUserId(), organizationGroupId,
@@ -97,8 +95,7 @@ public class ActionUtil {
 		}
 		else if ((group != null) && group.isRegularSite()) {
 			if (GroupPermissionUtil.contains(
-					permissionChecker, group.getGroupId(),
-					ActionKeys.ASSIGN_USER_ROLES) ||
+					permissionChecker, group, ActionKeys.ASSIGN_USER_ROLES) ||
 				UserGroupRoleLocalServiceUtil.hasUserGroupRole(
 					themeDisplay.getUserId(), group.getGroupId(),
 					RoleConstants.SITE_ADMINISTRATOR, true) ||

@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MBThreadFlag}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBThreadFlag
+ * @author Brian Wing Shun Chan
+ * @see MBThreadFlag
  * @generated
  */
+@ProviderType
 public class MBThreadFlagWrapper implements MBThreadFlag,
 	ModelWrapper<MBThreadFlag> {
 	public MBThreadFlagWrapper(MBThreadFlag mbThreadFlag) {
@@ -446,9 +451,34 @@ public class MBThreadFlagWrapper implements MBThreadFlag,
 		_mbThreadFlag.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBThreadFlagWrapper)) {
+			return false;
+		}
+
+		MBThreadFlagWrapper mbThreadFlagWrapper = (MBThreadFlagWrapper)obj;
+
+		if (Validator.equals(_mbThreadFlag, mbThreadFlagWrapper._mbThreadFlag)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbThreadFlag.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBThreadFlag getWrappedMBThreadFlag() {
 		return _mbThreadFlag;
 	}
@@ -456,6 +486,16 @@ public class MBThreadFlagWrapper implements MBThreadFlag,
 	@Override
 	public MBThreadFlag getWrappedModel() {
 		return _mbThreadFlag;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbThreadFlag.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbThreadFlag.isFinderCacheEnabled();
 	}
 
 	@Override

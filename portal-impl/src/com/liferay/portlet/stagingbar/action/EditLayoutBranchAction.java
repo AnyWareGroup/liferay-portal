@@ -17,7 +17,6 @@ package com.liferay.portlet.stagingbar.action;
 import com.liferay.portal.LayoutBranchNameException;
 import com.liferay.portal.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
@@ -26,6 +25,7 @@ import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.LayoutBranchServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portlet.layoutsadmin.action.EditLayoutsAction;
 
@@ -50,8 +50,9 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		try {
@@ -68,16 +69,13 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 				updateLayoutBranch(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteLayoutBranch(actionRequest, portletConfig);
+				deleteLayoutBranch(actionRequest);
 			}
 
 			if (SessionErrors.isEmpty(actionRequest)) {
-				LiferayPortletConfig liferayPortletConfig =
-					(LiferayPortletConfig)portletConfig;
-
 				SessionMessages.add(
 					actionRequest,
-					liferayPortletConfig.getPortletId() +
+					PortalUtil.getPortletId(actionRequest) +
 						SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
 					PortletKeys.STAGING_BAR);
 
@@ -87,7 +85,7 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 
 				SessionMessages.add(
 					actionRequest,
-					liferayPortletConfig.getPortletId() +
+					PortalUtil.getPortletId(actionRequest) +
 						SessionMessages.KEY_SUFFIX_REFRESH_PORTLET_DATA,
 					data);
 			}
@@ -115,8 +113,9 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -126,7 +125,7 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 			SessionErrors.add(
 				renderRequest, PrincipalException.class.getName());
 
-			return mapping.findForward("portlet.staging_bar.error");
+			return actionMapping.findForward("portlet.staging_bar.error");
 		}
 
 		try {
@@ -138,20 +137,19 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.staging_bar.error");
+				return actionMapping.findForward("portlet.staging_bar.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest, "portlet.staging_bar.edit_layout_branch"));
 	}
 
-	protected void deleteLayoutBranch(
-			ActionRequest actionRequest, PortletConfig portletConfig)
+	protected void deleteLayoutBranch(ActionRequest actionRequest)
 		throws Exception {
 
 		long layoutBranchId = ParamUtil.getLong(
@@ -165,12 +163,9 @@ public class EditLayoutBranchAction extends EditLayoutsAction {
 		SessionMessages.add(actionRequest, "pageVariationDeleted");
 
 		if (layoutBranchId == currentLayoutBranchId) {
-			LiferayPortletConfig liferayPortletConfig =
-				(LiferayPortletConfig)portletConfig;
-
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_PORTLET_NOT_AJAXABLE);
 		}
 	}

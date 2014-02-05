@@ -14,27 +14,37 @@
 
 package com.liferay.portlet.journal.lar;
 
-import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.lar.BasePortletDataHandlerTestCase;
+import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
+import com.liferay.portal.test.Sync;
+import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
+import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.LayoutTestUtil;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
+import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 import com.liferay.portlet.dynamicdatamapping.util.DDMStructureTestUtil;
 import com.liferay.portlet.dynamicdatamapping.util.DDMTemplateTestUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
+import com.liferay.portlet.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.portlet.journal.util.JournalTestUtil;
 
+import java.util.List;
 import java.util.Map;
 
+import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -43,16 +53,48 @@ import org.junit.runner.RunWith;
 @ExecutionTestListeners(
 	listeners = {
 		MainServletExecutionTestListener.class,
+		SynchronousDestinationExecutionTestListener.class,
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
+@Sync
 public class JournalPortletDataHandlerTest
 	extends BasePortletDataHandlerTestCase {
+
+	@Test
+	public void testDeleteAllFolders() throws Exception {
+		Group group = GroupTestUtil.addGroup();
+
+		JournalFolder parentFolder = JournalTestUtil.addFolder(
+			group.getGroupId(), "parent");
+
+		JournalFolder childFolder = JournalTestUtil.addFolder(
+			group.getGroupId(), parentFolder.getFolderId(), "child");
+
+		JournalFolderLocalServiceUtil.moveFolderToTrash(
+			TestPropsValues.getUserId(), childFolder.getFolderId());
+
+		JournalFolderLocalServiceUtil.moveFolderToTrash(
+			TestPropsValues.getUserId(), parentFolder.getFolderId());
+
+		JournalFolderLocalServiceUtil.deleteFolder(
+			parentFolder.getFolderId(), false);
+
+		GroupLocalServiceUtil.deleteGroup(group);
+
+		List<JournalFolder> folders = JournalFolderLocalServiceUtil.getFolders(
+			group.getGroupId());
+
+		Assert.assertEquals(0, folders.size());
+	}
 
 	@Override
 	protected void addParameters(Map<String, String[]> parameterMap) {
 		addBooleanParameter(
 			parameterMap, JournalPortletDataHandler.NAMESPACE, "feeds", true);
+		addBooleanParameter(
+			parameterMap, JournalPortletDataHandler.NAMESPACE, "structures",
+			true);
 		addBooleanParameter(
 			parameterMap, JournalPortletDataHandler.NAMESPACE, "web-content",
 			true);
@@ -73,20 +115,15 @@ public class JournalPortletDataHandlerTest
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
 			stagingGroup.getGroupId(), JournalArticle.class.getName());
 
-		portletDataContext.isPathProcessed(
-			ExportImportPathUtil.getModelPath(ddmStructure));
+		DDMTemplateTestUtil.addTemplate(
+			stagingGroup.getGroupId(),
+			PortalUtil.getClassNameId(DDMStructure.class), -1L);
 
 		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
 			stagingGroup.getGroupId(), ddmStructure.getStructureId());
 
-		portletDataContext.isPathProcessed(
-			ExportImportPathUtil.getModelPath(ddmTemplate));
-
 		DDMTemplate rendererDDMTemplate = DDMTemplateTestUtil.addTemplate(
 			stagingGroup.getGroupId(), ddmStructure.getStructureId());
-
-		portletDataContext.isPathProcessed(
-			ExportImportPathUtil.getModelPath(rendererDDMTemplate));
 
 		JournalTestUtil.addFeed(
 			stagingGroup.getGroupId(), layout.getPlid(),

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -56,12 +58,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFolderServiceHttp
- * @see       com.liferay.portlet.documentlibrary.model.DLFolderSoap
- * @see       com.liferay.portlet.documentlibrary.service.DLFolderServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see DLFolderServiceHttp
+ * @see com.liferay.portlet.documentlibrary.model.DLFolderSoap
+ * @see com.liferay.portlet.documentlibrary.service.DLFolderServiceUtil
  * @generated
  */
+@ProviderType
 public class DLFolderServiceSoap {
 	public static com.liferay.portlet.documentlibrary.model.DLFolderSoap addFolder(
 		long groupId, long repositoryId, boolean mountPoint,
@@ -231,22 +234,6 @@ public class DLFolderServiceSoap {
 		}
 	}
 
-	public static int getFoldersAndFileEntriesAndFileShortcuts(long groupId,
-		long folderId, int status, java.lang.String[] mimeTypes,
-		boolean includeMountFolders) throws RemoteException {
-		try {
-			int returnValue = DLFolderServiceUtil.getFoldersAndFileEntriesAndFileShortcuts(groupId,
-					folderId, status, mimeTypes, includeMountFolders);
-
-			return returnValue;
-		}
-		catch (Exception e) {
-			_log.error(e, e);
-
-			throw new RemoteException(e.getMessage());
-		}
-	}
-
 	public static int getFoldersAndFileEntriesAndFileShortcutsCount(
 		long groupId, long folderId, int status, boolean includeMountFolders)
 		throws RemoteException {
@@ -342,11 +329,29 @@ public class DLFolderServiceSoap {
 		}
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	long, boolean)}
+	*/
+	@Deprecated
 	public static void getSubfolderIds(Long[] folderIds, long groupId,
 		long folderId) throws RemoteException {
 		try {
 			DLFolderServiceUtil.getSubfolderIds(ListUtil.toList(folderIds),
 				groupId, folderId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void getSubfolderIds(Long[] folderIds, long groupId,
+		long folderId, boolean recurse) throws RemoteException {
+		try {
+			DLFolderServiceUtil.getSubfolderIds(ListUtil.toList(folderIds),
+				groupId, folderId, recurse);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

@@ -51,8 +51,9 @@ public class ViewChartAction extends PortletAction {
 
 	@Override
 	public void serveResource(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ResourceRequest resourceRequest,
+			ResourceResponse resourceResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)resourceRequest.getAttribute(
@@ -89,7 +90,7 @@ public class ViewChartAction extends PortletAction {
 
 		JFreeChart jFreeChart = getJFreeChart(sb.toString(), meterPlot);
 
-		resourceResponse.setContentType(ContentTypes.IMAGE_JPEG);
+		resourceResponse.setContentType(ContentTypes.IMAGE_PNG);
 
 		OutputStream outputStream = resourceResponse.getPortletOutputStream();
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.ServiceComponentModelImpl
  * @generated
  */
-public interface ServiceComponentModel extends BaseModel<ServiceComponent> {
+@ProviderType
+public interface ServiceComponentModel extends BaseModel<ServiceComponent>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +58,22 @@ public interface ServiceComponentModel extends BaseModel<ServiceComponent> {
 	 * @param primaryKey the primary key of this service component
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this service component.
+	 *
+	 * @return the mvcc version of this service component
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this service component.
+	 *
+	 * @param mvccVersion the mvcc version of this service component
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the service component ID of this service component.

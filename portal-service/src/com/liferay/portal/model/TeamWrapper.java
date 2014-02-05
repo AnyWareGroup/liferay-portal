@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Team}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Team
+ * @author Brian Wing Shun Chan
+ * @see Team
  * @generated
  */
+@ProviderType
 public class TeamWrapper implements Team, ModelWrapper<Team> {
 	public TeamWrapper(Team team) {
 		_team = team;
@@ -46,6 +51,7 @@ public class TeamWrapper implements Team, ModelWrapper<Team> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("teamId", getTeamId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -61,6 +67,12 @@ public class TeamWrapper implements Team, ModelWrapper<Team> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long teamId = (Long)attributes.get("teamId");
 
 		if (teamId != null) {
@@ -134,6 +146,26 @@ public class TeamWrapper implements Team, ModelWrapper<Team> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_team.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this team.
+	*
+	* @return the mvcc version of this team
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _team.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this team.
+	*
+	* @param mvccVersion the mvcc version of this team
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_team.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -449,9 +481,29 @@ public class TeamWrapper implements Team, ModelWrapper<Team> {
 		return _team.getRole();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof TeamWrapper)) {
+			return false;
+		}
+
+		TeamWrapper teamWrapper = (TeamWrapper)obj;
+
+		if (Validator.equals(_team, teamWrapper._team)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Team getWrappedTeam() {
 		return _team;
 	}
@@ -459,6 +511,16 @@ public class TeamWrapper implements Team, ModelWrapper<Team> {
 	@Override
 	public Team getWrappedModel() {
 		return _team;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _team.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _team.isFinderCacheEnabled();
 	}
 
 	@Override

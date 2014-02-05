@@ -31,15 +31,13 @@ UserGroupSearch userGroupSearch = new UserGroupSearch(renderRequest, portletURL)
 				<portlet:param name="struts_action" value="/user_groups_admin/view" />
 			</portlet:renderURL>
 
-			<aui:nav-item href="<%= viewUserGroupsURL %>" label="view-all" selected="<%= true %>" />
-
 			<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_USER_GROUP) %>">
 				<portlet:renderURL var="addUsergroupURL">
 					<portlet:param name="struts_action" value="/user_groups_admin/edit_user_group" />
 					<portlet:param name="redirect" value="<%= viewUserGroupsURL %>" />
 				</portlet:renderURL>
 
-				<aui:nav-item href="<%= addUsergroupURL %>" iconClass="icon-plus" label="add" />
+				<aui:nav-item href="<%= addUsergroupURL %>" iconCssClass="icon-plus" label="add" />
 			</c:if>
 		</aui:nav>
 
@@ -47,7 +45,7 @@ UserGroupSearch userGroupSearch = new UserGroupSearch(renderRequest, portletURL)
 	</aui:nav-bar>
 
 	<%
-	UserGroupSearchTerms searchTerms = (UserGroupSearchTerms)searchContainer.getSearchTerms();
+	UserGroupDisplayTerms searchTerms = (UserGroupDisplayTerms)searchContainer.getSearchTerms();
 
 	LinkedHashMap<String, Object> userGroupParams = new LinkedHashMap<String, Object>();
 
@@ -108,9 +106,7 @@ UserGroupSearch userGroupSearch = new UserGroupSearch(renderRequest, portletURL)
 	<div class="separator"><!-- --></div>
 
 	<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_USER_GROUP) %>">
-		<aui:button onClick='<%= renderResponse.getNamespace() + "deleteUserGroups();" %>' value="delete" />
-
-		<br /><br />
+		<aui:button disabled="<%= true %>" name="delete" onClick='<%= renderResponse.getNamespace() + "deleteUserGroups();" %>' value="delete" />
 	</c:if>
 
 	<liferay-ui:search-iterator />

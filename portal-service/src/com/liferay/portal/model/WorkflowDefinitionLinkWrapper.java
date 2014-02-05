@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link WorkflowDefinitionLink}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WorkflowDefinitionLink
+ * @author Brian Wing Shun Chan
+ * @see WorkflowDefinitionLink
  * @generated
  */
+@ProviderType
 public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	ModelWrapper<WorkflowDefinitionLink> {
 	public WorkflowDefinitionLinkWrapper(
@@ -48,6 +53,7 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("workflowDefinitionLinkId", getWorkflowDefinitionLinkId());
 		attributes.put("groupId", getGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -67,6 +73,12 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long workflowDefinitionLinkId = (Long)attributes.get(
 				"workflowDefinitionLinkId");
 
@@ -161,6 +173,26 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_workflowDefinitionLink.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this workflow definition link.
+	*
+	* @return the mvcc version of this workflow definition link
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _workflowDefinitionLink.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this workflow definition link.
+	*
+	* @param mvccVersion the mvcc version of this workflow definition link
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_workflowDefinitionLink.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -546,9 +578,30 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 		_workflowDefinitionLink.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof WorkflowDefinitionLinkWrapper)) {
+			return false;
+		}
+
+		WorkflowDefinitionLinkWrapper workflowDefinitionLinkWrapper = (WorkflowDefinitionLinkWrapper)obj;
+
+		if (Validator.equals(_workflowDefinitionLink,
+					workflowDefinitionLinkWrapper._workflowDefinitionLink)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WorkflowDefinitionLink getWrappedWorkflowDefinitionLink() {
 		return _workflowDefinitionLink;
 	}
@@ -556,6 +609,16 @@ public class WorkflowDefinitionLinkWrapper implements WorkflowDefinitionLink,
 	@Override
 	public WorkflowDefinitionLink getWrappedModel() {
 		return _workflowDefinitionLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _workflowDefinitionLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _workflowDefinitionLink.isFinderCacheEnabled();
 	}
 
 	@Override

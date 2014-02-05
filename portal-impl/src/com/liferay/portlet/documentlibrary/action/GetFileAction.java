@@ -31,7 +31,6 @@ import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.struts.ActionConstants;
 import com.liferay.portal.struts.PortletAction;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
@@ -72,8 +71,9 @@ public class GetFileAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		HttpServletRequest request = PortalUtil.getHttpServletRequest(
@@ -124,8 +124,8 @@ public class GetFileAction extends PortletAction {
 
 	@Override
 	public ActionForward strutsExecute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
@@ -253,19 +253,23 @@ public class GetFileAction extends PortletAction {
 		FileVersion fileVersion = fileEntry.getFileVersion(version);
 
 		InputStream is = fileVersion.getContentStream(true);
+
 		String fileName = fileVersion.getTitle();
+
+		String sourceExtension = fileVersion.getExtension();
+
+		if (Validator.isNotNull(sourceExtension) &&
+			!fileName.endsWith(StringPool.PERIOD + sourceExtension)) {
+
+			fileName += StringPool.PERIOD + sourceExtension;
+		}
+
 		long contentLength = fileVersion.getSize();
 		String contentType = fileVersion.getMimeType();
 
 		if (Validator.isNotNull(targetExtension)) {
 			String id = DLUtil.getTempFileId(
 				fileEntry.getFileEntryId(), version);
-
-			String sourceExtension = fileVersion.getExtension();
-
-			if (!fileName.endsWith(StringPool.PERIOD + sourceExtension)) {
-				fileName += StringPool.PERIOD + sourceExtension;
-			}
 
 			File convertedFile = DocumentConversionUtil.convert(
 				id, is, sourceExtension, targetExtension);
@@ -309,8 +313,7 @@ public class GetFileAction extends PortletAction {
 			return;
 		}
 
-		String redirect =
-			request.getContextPath() + Portal.PATH_MAIN + "/portal/login";
+		String redirect = PortalUtil.getPathMain() + "/portal/login";
 
 		String currentURL = PortalUtil.getCurrentURL(request);
 

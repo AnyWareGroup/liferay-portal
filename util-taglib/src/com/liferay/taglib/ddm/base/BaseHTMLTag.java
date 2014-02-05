@@ -30,6 +30,10 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 		return super.doStartTag();
 	}
 
+	public boolean getCheckRequired() {
+		return _checkRequired;
+	}
+
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -46,10 +50,6 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 		return _fieldsNamespace;
 	}
 
-	public java.lang.String getMode() {
-		return _mode;
-	}
-
 	public boolean getReadOnly() {
 		return _readOnly;
 	}
@@ -60,6 +60,12 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 
 	public java.util.Locale getRequestedLocale() {
 		return _requestedLocale;
+	}
+
+	public void setCheckRequired(boolean checkRequired) {
+		_checkRequired = checkRequired;
+
+		setScopedAttribute("checkRequired", checkRequired);
 	}
 
 	public void setClassNameId(long classNameId) {
@@ -86,12 +92,6 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("fieldsNamespace", fieldsNamespace);
 	}
 
-	public void setMode(java.lang.String mode) {
-		_mode = mode;
-
-		setScopedAttribute("mode", mode);
-	}
-
 	public void setReadOnly(boolean readOnly) {
 		_readOnly = readOnly;
 
@@ -112,11 +112,11 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 
 	@Override
 	protected void cleanUp() {
+		_checkRequired = true;
 		_classNameId = 0;
 		_classPK = 0;
 		_fields = null;
 		_fieldsNamespace = null;
-		_mode = null;
 		_readOnly = false;
 		_repeatable = true;
 		_requestedLocale = null;
@@ -134,11 +134,11 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
+		setNamespacedAttribute(request, "checkRequired", _checkRequired);
 		setNamespacedAttribute(request, "classNameId", _classNameId);
 		setNamespacedAttribute(request, "classPK", _classPK);
 		setNamespacedAttribute(request, "fields", _fields);
 		setNamespacedAttribute(request, "fieldsNamespace", _fieldsNamespace);
-		setNamespacedAttribute(request, "mode", _mode);
 		setNamespacedAttribute(request, "readOnly", _readOnly);
 		setNamespacedAttribute(request, "repeatable", _repeatable);
 		setNamespacedAttribute(request, "requestedLocale", _requestedLocale);
@@ -152,11 +152,11 @@ public class BaseHTMLTag extends com.liferay.taglib.util.IncludeTag {
 	private static final String _START_PAGE =
 		"/html/taglib/ddm/html/start.jsp";
 
+	private boolean _checkRequired = true;
 	private long _classNameId = 0;
 	private long _classPK = 0;
 	private com.liferay.portlet.dynamicdatamapping.storage.Fields _fields = null;
 	private java.lang.String _fieldsNamespace = null;
-	private java.lang.String _mode = null;
 	private boolean _readOnly = false;
 	private boolean _repeatable = true;
 	private java.util.Locale _requestedLocale = null;

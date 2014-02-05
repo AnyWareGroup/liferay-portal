@@ -19,7 +19,7 @@
 <%
 String strutsAction = ParamUtil.getString(request, "strutsAction", "/document_library/view_file_entry_type");
 
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 %>
 
 <aui:nav-bar>
@@ -28,15 +28,25 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
 			<portlet:param name="struts_action" value="<%= strutsAction %>" />
 		</portlet:renderURL>
 
-		<aui:nav-item href="<%= viewFileEntryTypesURL %>" label="view-all" selected='<%= toolbarItem.equals("view-all") %>' />
-
 		<c:if test="<%= DLPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_DOCUMENT_TYPE) %>">
 			<portlet:renderURL var="addFileEntryTypeURL">
 				<portlet:param name="struts_action" value="/document_library/edit_file_entry_type" />
 				<portlet:param name="redirect" value="<%= viewFileEntryTypesURL %>" />
 			</portlet:renderURL>
 
-			<aui:nav-item href="<%= addFileEntryTypeURL %>" iconClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
+			<aui:nav-item href="<%= addFileEntryTypeURL %>" iconCssClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
 		</c:if>
 	</aui:nav>
+
+	<aui:nav-bar-search cssClass="pull-right">
+		<div class="form-search">
+			<liferay-portlet:renderURL varImpl="searchURL">
+				<portlet:param name="struts_action" value="<%= strutsAction %>" />
+			</liferay-portlet:renderURL>
+
+			<aui:form action="<%= searchURL.toString() %>" method="post" name="fm">
+				<liferay-ui:input-search />
+			</aui:form>
+		</div>
+	</aui:nav-bar-search>
 </aui:nav-bar>

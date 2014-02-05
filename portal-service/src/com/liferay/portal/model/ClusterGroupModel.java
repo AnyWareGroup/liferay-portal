@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.ClusterGroupModelImpl
  * @generated
  */
-public interface ClusterGroupModel extends BaseModel<ClusterGroup> {
+@ProviderType
+public interface ClusterGroupModel extends BaseModel<ClusterGroup>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +57,22 @@ public interface ClusterGroupModel extends BaseModel<ClusterGroup> {
 	 * @param primaryKey the primary key of this cluster group
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this cluster group.
+	 *
+	 * @return the mvcc version of this cluster group
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this cluster group.
+	 *
+	 * @param mvccVersion the mvcc version of this cluster group
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the cluster group ID of this cluster group.

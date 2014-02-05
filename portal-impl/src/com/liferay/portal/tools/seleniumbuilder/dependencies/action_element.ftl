@@ -9,20 +9,13 @@
 <#assign actionCommand = action?substring(x + 1)>
 
 ${seleniumBuilderFileUtil.getVariableName(action?substring(0, x))}Action.${actionCommand}(
-
-<#assign functionName = seleniumBuilderFileUtil.getObjectName(actionCommand)>
+	<#assign functionName = seleniumBuilderFileUtil.getObjectName(actionCommand)>
 
 	<#list 1..seleniumBuilderContext.getFunctionLocatorCount(functionName) as i>
 		<#if actionElement.attributeValue("locator${i}")??>
 			<#assign actionLocator = actionElement.attributeValue("locator${i}")>
 
-			<#if actionLocator?contains("${") && actionLocator?contains("}")>
-				<#assign actionLocator = actionLocator?replace("${", "\" + commandScopeVariables.get(\"")>
-
-				<#assign actionLocator = actionLocator?replace("}", "\") + \"")>
-			</#if>
-
-			"${actionLocator}"
+			RuntimeVariables.evaluateVariable("${actionLocator}", ${variableContext})
 		<#else>
 			null
 		</#if>
@@ -32,13 +25,7 @@ ${seleniumBuilderFileUtil.getVariableName(action?substring(0, x))}Action.${actio
 		<#if actionElement.attributeValue("locator-key${i}")??>
 			<#assign actionLocatorKey = actionElement.attributeValue("locator-key${i}")>
 
-			<#if actionLocatorKey?contains("${") && actionLocatorKey?contains("}")>
-				<#assign actionLocatorKey = actionLocatorKey?replace("${", "\" + commandScopeVariables.get(\"")>
-
-				<#assign actionLocatorKey = actionLocatorKey?replace("}", "\") + \"")>
-			</#if>
-
-			"${actionLocatorKey}"
+			RuntimeVariables.evaluateVariable("${actionLocatorKey}", ${variableContext})
 		<#else>
 			""
 		</#if>
@@ -48,13 +35,7 @@ ${seleniumBuilderFileUtil.getVariableName(action?substring(0, x))}Action.${actio
 		<#if actionElement.attributeValue("value${i}")??>
 			<#assign actionValue = actionElement.attributeValue("value${i}")>
 
-			<#if actionValue?contains("${") && actionValue?contains("}")>
-				<#assign actionValue = actionValue?replace("${", "\" + commandScopeVariables.get(\"")>
-
-				<#assign actionValue = actionValue?replace("}", "\") + \"")>
-			</#if>
-
-			"${actionValue}"
+			RuntimeVariables.evaluateVariable("${seleniumBuilderFileUtil.escapeJava(actionValue)}", ${variableContext})
 		<#else>
 			""
 		</#if>
@@ -63,8 +44,37 @@ ${seleniumBuilderFileUtil.getVariableName(action?substring(0, x))}Action.${actio
 			,
 		</#if>
 	</#list>
-)
+, ${variableContext})
 
 <#if actionElement.getName() == "execute">
 	;
+
+	<#if
+		(actionNextElement??) &&
+		(!action?contains("#is"))
+	>
+		<#if actionNextElement.attributeValue("action")??>
+			<#assign actionNext = actionNextElement.attributeValue("action")>
+		</#if>
+
+		<#if (!actionNext??) ||
+			 ((actionNext??) && (!actionNext?ends_with("#confirm")))>
+
+			<#if testCaseName??>
+				selenium
+			<#else>
+				liferaySelenium
+			</#if>
+
+			.assertJavaScriptErrors();
+
+			<#if testCaseName??>
+				selenium
+			<#else>
+				liferaySelenium
+			</#if>
+
+			.assertLiferayErrors();
+		</#if>
+	</#if>
 </#if>

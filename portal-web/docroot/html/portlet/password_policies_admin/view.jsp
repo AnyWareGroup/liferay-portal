@@ -37,10 +37,6 @@ boolean passwordPolicyEnabled = LDAPSettingsUtil.isPasswordPolicyEnabled(company
 		</div>
 	</c:if>
 
-	<liferay-util:include page="/html/portlet/password_policies_admin/toolbar.jsp">
-		<liferay-util:param name="toolbarItem" value="view-all" />
-	</liferay-util:include>
-
 	<%
 	PasswordPolicySearch searchContainer = new PasswordPolicySearch(renderRequest, portletURL);
 
@@ -49,17 +45,35 @@ boolean passwordPolicyEnabled = LDAPSettingsUtil.isPasswordPolicyEnabled(company
 	headerNames.add(StringPool.BLANK);
 	%>
 
-	<c:if test="<%= !passwordPolicyEnabled %>">
-		<liferay-ui:search-form
-			page="/html/portlet/password_policies_admin/password_policy_search.jsp"
-			searchContainer="<%= searchContainer %>"
-		/>
-	</c:if>
+	<aui:nav-bar>
+		<aui:nav>
+			<portlet:renderURL var="viewPasswordPoliciesURL">
+				<portlet:param name="struts_action" value="/password_policies_admin/view" />
+			</portlet:renderURL>
+
+			<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_PASSWORD_POLICY) %>">
+				<portlet:renderURL var="addPasswordPolicyURL">
+					<portlet:param name="struts_action" value="/password_policies_admin/edit_password_policy" />
+					<portlet:param name="redirect" value="<%= viewPasswordPoliciesURL %>" />
+				</portlet:renderURL>
+
+				<aui:nav-item href="<%= addPasswordPolicyURL %>" iconCssClass="icon-plus" label="add" />
+			</c:if>
+		</aui:nav>
+
+		<c:if test="<%= !passwordPolicyEnabled %>">
+			<aui:nav-bar-search cssClass="pull-right" file="/html/portlet/password_policies_admin/password_policy_search.jsp" searchContainer="<%= searchContainer %>" />
+		</c:if>
+	</aui:nav-bar>
+
+	<div class="alert alert-info">
+		<liferay-ui:message key="when-no-password-policy-is-assigned-to-a-user,-either-explicitly-or-through-an-organization,-the-default-password-policy-will-be-used" />
+	</div>
 
 	<c:if test="<%= !passwordPolicyEnabled && windowState.equals(WindowState.MAXIMIZED) %>">
 
 		<%
-		PasswordPolicySearchTerms searchTerms = (PasswordPolicySearchTerms)searchContainer.getSearchTerms();
+		PasswordPolicyDisplayTerms searchTerms = (PasswordPolicyDisplayTerms)searchContainer.getSearchTerms();
 
 		int total = PasswordPolicyLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName());
 
@@ -75,8 +89,6 @@ boolean passwordPolicyEnabled = LDAPSettingsUtil.isPasswordPolicyEnabled(company
 		%>
 
 		<aui:input name="passwordPoliciesRedirect" type="hidden" value="<%= passwordPoliciesRedirectURL.toString() %>" />
-
-		<div class="separator"><!-- --></div>
 
 		<%
 		List resultRows = searchContainer.getResultRows();

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.ratings.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       RatingsEntryServiceHttp
- * @see       com.liferay.portlet.ratings.model.RatingsEntrySoap
- * @see       com.liferay.portlet.ratings.service.RatingsEntryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see RatingsEntryServiceHttp
+ * @see com.liferay.portlet.ratings.model.RatingsEntrySoap
+ * @see com.liferay.portlet.ratings.service.RatingsEntryServiceUtil
  * @generated
  */
+@ProviderType
 public class RatingsEntryServiceSoap {
 	public static void deleteEntry(java.lang.String className, long classPK)
 		throws RemoteException {

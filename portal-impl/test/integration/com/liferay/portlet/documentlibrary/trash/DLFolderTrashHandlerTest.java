@@ -26,16 +26,17 @@ import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
+import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFolderServiceUtil;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 import com.liferay.portlet.trash.util.TrashUtil;
 
-import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -51,39 +52,52 @@ import org.junit.runner.RunWith;
 @Sync
 public class DLFolderTrashHandlerTest extends BaseTrashHandlerTestCase {
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashAndDeleteDraft() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashAndRestoreDraft() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashMyBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashRecentBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionBaseModelAndDelete() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionBaseModelAndRestore() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
 	}
 
+	@Ignore()
 	@Override
+	@Test
 	public void testTrashVersionParentBaseModel() throws Exception {
-		Assert.assertTrue("This test does not apply", true);
+	}
+
+	@Ignore()
+	@Override
+	@Test
+	public void testTrashVersionParentBaseModelAndRestore() throws Exception {
 	}
 
 	@Override
@@ -94,15 +108,41 @@ public class DLFolderTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		DLFolder parentDLFolder = (DLFolder)parentBaseModel;
 
+		return addBaseModelWithWorkflow(
+			parentDLFolder.getGroupId(), parentDLFolder.getFolderId());
+	}
+
+	@Override
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		return addBaseModelWithWorkflow(
+			serviceContext.getScopeGroupId(),
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+	}
+
+	protected BaseModel<?> addBaseModelWithWorkflow(long groupId, long folderId)
+		throws Exception {
+
 		String name = getSearchKeywords();
 
 		name += ServiceTestUtil.randomString(
 			_FOLDER_NAME_MAX_LENGTH - name.length());
 
-		Folder folder = DLAppTestUtil.addFolder(
-			parentDLFolder.getGroupId(), parentDLFolder.getFolderId(), name);
+		Folder folder = DLAppTestUtil.addFolder(groupId, folderId, name);
 
 		return (DLFolder)folder.getModel();
+	}
+
+	@Override
+	protected void deleteParentBaseModel(
+			BaseModel<?> parentBaseModel, boolean includeTrashedEntries)
+		throws Exception {
+
+		DLFolder dlFolder = (DLFolder)parentBaseModel;
+
+		DLFolderLocalServiceUtil.deleteFolder(dlFolder.getFolderId(), false);
 	}
 
 	@Override
@@ -128,7 +168,7 @@ public class DLFolderTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		DLFolder parentDLFolder = (DLFolder)parentBaseModel;
 
-		return DLFolderServiceUtil.getFoldersCount(
+		return DLFolderLocalServiceUtil.getFoldersCount(
 			parentDLFolder.getGroupId(), parentDLFolder.getFolderId(),
 			WorkflowConstants.STATUS_APPROVED, false);
 	}
@@ -185,6 +225,24 @@ public class DLFolderTrashHandlerTest extends BaseTrashHandlerTestCase {
 		throws Exception {
 
 		DLAppServiceUtil.moveFolderToTrash(primaryKey);
+	}
+
+	@Override
+	protected BaseModel<?> updateBaseModel(
+			long primaryKey, ServiceContext serviceContext)
+		throws Exception {
+
+		DLFolder dlFolder = DLFolderLocalServiceUtil.getFolder(primaryKey);
+
+		if (serviceContext.getWorkflowAction() ==
+				WorkflowConstants.ACTION_SAVE_DRAFT) {
+
+			dlFolder = DLFolderLocalServiceUtil.updateStatus(
+				TestPropsValues.getUserId(), primaryKey,
+				WorkflowConstants.STATUS_DRAFT, null, serviceContext);
+		}
+
+		return dlFolder;
 	}
 
 	private static final int _FOLDER_NAME_MAX_LENGTH = 100;

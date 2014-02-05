@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -64,6 +65,7 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	 */
 	public static final String TABLE_NAME = "PasswordPolicy";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "passwordPolicyId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
@@ -99,7 +101,7 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 			{ "resetFailureCount", Types.BIGINT },
 			{ "resetTicketMaxAge", Types.BIGINT }
 		};
-	public static final String TABLE_SQL_CREATE = "create table PasswordPolicy (uuid_ VARCHAR(75) null,passwordPolicyId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,defaultPolicy BOOLEAN,name VARCHAR(75) null,description STRING null,changeable BOOLEAN,changeRequired BOOLEAN,minAge LONG,checkSyntax BOOLEAN,allowDictionaryWords BOOLEAN,minAlphanumeric INTEGER,minLength INTEGER,minLowerCase INTEGER,minNumbers INTEGER,minSymbols INTEGER,minUpperCase INTEGER,regex VARCHAR(75) null,history BOOLEAN,historyCount INTEGER,expireable BOOLEAN,maxAge LONG,warningTime LONG,graceLimit INTEGER,lockout BOOLEAN,maxFailure INTEGER,lockoutDuration LONG,requireUnlock BOOLEAN,resetFailureCount LONG,resetTicketMaxAge LONG)";
+	public static final String TABLE_SQL_CREATE = "create table PasswordPolicy (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,passwordPolicyId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,defaultPolicy BOOLEAN,name VARCHAR(75) null,description STRING null,changeable BOOLEAN,changeRequired BOOLEAN,minAge LONG,checkSyntax BOOLEAN,allowDictionaryWords BOOLEAN,minAlphanumeric INTEGER,minLength INTEGER,minLowerCase INTEGER,minNumbers INTEGER,minSymbols INTEGER,minUpperCase INTEGER,regex VARCHAR(75) null,history BOOLEAN,historyCount INTEGER,expireable BOOLEAN,maxAge LONG,warningTime LONG,graceLimit INTEGER,lockout BOOLEAN,maxFailure INTEGER,lockoutDuration LONG,requireUnlock BOOLEAN,resetFailureCount LONG,resetTicketMaxAge LONG)";
 	public static final String TABLE_SQL_DROP = "drop table PasswordPolicy";
 	public static final String ORDER_BY_JPQL = " ORDER BY passwordPolicy.passwordPolicyId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY PasswordPolicy.passwordPolicyId ASC";
@@ -134,6 +136,7 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 
 		PasswordPolicy model = new PasswordPolicyImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setPasswordPolicyId(soapModel.getPasswordPolicyId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -232,6 +235,7 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("passwordPolicyId", getPasswordPolicyId());
 		attributes.put("companyId", getCompanyId());
@@ -267,11 +271,20 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		attributes.put("resetFailureCount", getResetFailureCount());
 		attributes.put("resetTicketMaxAge", getResetTicketMaxAge());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -478,8 +491,19 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -502,8 +526,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getPasswordPolicyId() {
 		return _passwordPolicyId;
 	}
@@ -513,8 +537,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_passwordPolicyId = passwordPolicyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -536,8 +560,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -557,8 +581,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -573,8 +597,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -584,8 +608,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -595,8 +619,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getDefaultPolicy() {
 		return _defaultPolicy;
 	}
@@ -623,8 +647,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		return _originalDefaultPolicy;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -649,8 +673,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		return GetterUtil.getString(_originalName);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -665,8 +689,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_description = description;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getChangeable() {
 		return _changeable;
 	}
@@ -681,8 +705,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_changeable = changeable;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getChangeRequired() {
 		return _changeRequired;
 	}
@@ -697,8 +721,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_changeRequired = changeRequired;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getMinAge() {
 		return _minAge;
 	}
@@ -708,8 +732,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minAge = minAge;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getCheckSyntax() {
 		return _checkSyntax;
 	}
@@ -724,8 +748,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_checkSyntax = checkSyntax;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAllowDictionaryWords() {
 		return _allowDictionaryWords;
 	}
@@ -740,8 +764,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_allowDictionaryWords = allowDictionaryWords;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMinAlphanumeric() {
 		return _minAlphanumeric;
 	}
@@ -751,8 +775,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minAlphanumeric = minAlphanumeric;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMinLength() {
 		return _minLength;
 	}
@@ -762,8 +786,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minLength = minLength;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMinLowerCase() {
 		return _minLowerCase;
 	}
@@ -773,8 +797,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minLowerCase = minLowerCase;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMinNumbers() {
 		return _minNumbers;
 	}
@@ -784,8 +808,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minNumbers = minNumbers;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMinSymbols() {
 		return _minSymbols;
 	}
@@ -795,8 +819,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minSymbols = minSymbols;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMinUpperCase() {
 		return _minUpperCase;
 	}
@@ -806,8 +830,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_minUpperCase = minUpperCase;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getRegex() {
 		if (_regex == null) {
 			return StringPool.BLANK;
@@ -822,8 +846,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_regex = regex;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getHistory() {
 		return _history;
 	}
@@ -838,8 +862,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_history = history;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getHistoryCount() {
 		return _historyCount;
 	}
@@ -849,8 +873,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_historyCount = historyCount;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getExpireable() {
 		return _expireable;
 	}
@@ -865,8 +889,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_expireable = expireable;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getMaxAge() {
 		return _maxAge;
 	}
@@ -876,8 +900,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_maxAge = maxAge;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getWarningTime() {
 		return _warningTime;
 	}
@@ -887,8 +911,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_warningTime = warningTime;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getGraceLimit() {
 		return _graceLimit;
 	}
@@ -898,8 +922,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_graceLimit = graceLimit;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getLockout() {
 		return _lockout;
 	}
@@ -914,8 +938,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_lockout = lockout;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getMaxFailure() {
 		return _maxFailure;
 	}
@@ -925,8 +949,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_maxFailure = maxFailure;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getLockoutDuration() {
 		return _lockoutDuration;
 	}
@@ -936,8 +960,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_lockoutDuration = lockoutDuration;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getRequireUnlock() {
 		return _requireUnlock;
 	}
@@ -952,8 +976,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_requireUnlock = requireUnlock;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getResetFailureCount() {
 		return _resetFailureCount;
 	}
@@ -963,8 +987,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 		_resetFailureCount = resetFailureCount;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getResetTicketMaxAge() {
 		return _resetTicketMaxAge;
 	}
@@ -972,6 +996,12 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	@Override
 	public void setResetTicketMaxAge(long resetTicketMaxAge) {
 		_resetTicketMaxAge = resetTicketMaxAge;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				PasswordPolicy.class.getName()));
 	}
 
 	public long getColumnBitmask() {
@@ -1005,6 +1035,7 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	public Object clone() {
 		PasswordPolicyImpl passwordPolicyImpl = new PasswordPolicyImpl();
 
+		passwordPolicyImpl.setMvccVersion(getMvccVersion());
 		passwordPolicyImpl.setUuid(getUuid());
 		passwordPolicyImpl.setPasswordPolicyId(getPasswordPolicyId());
 		passwordPolicyImpl.setCompanyId(getCompanyId());
@@ -1088,6 +1119,16 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		PasswordPolicyModelImpl passwordPolicyModelImpl = this;
 
@@ -1109,6 +1150,8 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	@Override
 	public CacheModel<PasswordPolicy> toCacheModel() {
 		PasswordPolicyCacheModel passwordPolicyCacheModel = new PasswordPolicyCacheModel();
+
+		passwordPolicyCacheModel.mvccVersion = getMvccVersion();
 
 		passwordPolicyCacheModel.uuid = getUuid();
 
@@ -1227,9 +1270,11 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(69);
+		StringBundler sb = new StringBundler(71);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", passwordPolicyId=");
 		sb.append(getPasswordPolicyId());
@@ -1304,12 +1349,16 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(106);
+		StringBundler sb = new StringBundler(109);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.PasswordPolicy");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -1456,6 +1505,7 @@ public class PasswordPolicyModelImpl extends BaseModelImpl<PasswordPolicy>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			PasswordPolicy.class
 		};
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _passwordPolicyId;

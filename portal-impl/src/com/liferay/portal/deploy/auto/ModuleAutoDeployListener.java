@@ -14,11 +14,12 @@
 
 package com.liferay.portal.deploy.auto;
 
-import aQute.lib.osgi.Constants;
-
-import aQute.libg.header.OSGiHeader;
+import aQute.bnd.header.OSGiHeader;
+import aQute.bnd.header.Parameters;
+import aQute.bnd.osgi.Constants;
 
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
+import com.liferay.portal.kernel.deploy.auto.AutoDeployer;
 import com.liferay.portal.kernel.deploy.auto.BaseAutoDeployListener;
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.log.Log;
@@ -30,7 +31,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarInputStream;
@@ -46,7 +46,7 @@ public class ModuleAutoDeployListener extends BaseAutoDeployListener {
 	}
 
 	@Override
-	public void deploy(AutoDeploymentContext autoDeploymentContext)
+	public int deploy(AutoDeploymentContext autoDeploymentContext)
 		throws AutoDeployException {
 
 		File file = autoDeploymentContext.getFile();
@@ -56,7 +56,7 @@ public class ModuleAutoDeployListener extends BaseAutoDeployListener {
 		}
 
 		if (!isModule(file)) {
-			return;
+			return AutoDeployer.CODE_NOT_APPLICABLE;
 		}
 
 		if (_log.isInfoEnabled()) {
@@ -70,6 +70,8 @@ public class ModuleAutoDeployListener extends BaseAutoDeployListener {
 				"Module for " + file.getPath() + " copied successfully. " +
 					"Deployment will start in a few seconds.");
 		}
+
+		return code;
 	}
 
 	protected boolean isModule(File file) throws AutoDeployException {
@@ -98,8 +100,8 @@ public class ModuleAutoDeployListener extends BaseAutoDeployListener {
 		String bundleSymbolicNameAttributeValue = attributes.getValue(
 			Constants.BUNDLE_SYMBOLICNAME);
 
-		Map<String, Map<String, String>> bundleSymbolicNameMap =
-			OSGiHeader.parseHeader(bundleSymbolicNameAttributeValue);
+		Parameters bundleSymbolicNameMap = OSGiHeader.parseHeader(
+			bundleSymbolicNameAttributeValue);
 
 		Set<String> bundleSymbolicNameSet = bundleSymbolicNameMap.keySet();
 

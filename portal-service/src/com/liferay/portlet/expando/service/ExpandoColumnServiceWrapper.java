@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link ExpandoColumnService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoColumnService
+ * @author Brian Wing Shun Chan
+ * @see ExpandoColumnService
  * @generated
  */
+@ProviderType
 public class ExpandoColumnServiceWrapper implements ExpandoColumnService,
 	ServiceWrapper<ExpandoColumnService> {
 	public ExpandoColumnServiceWrapper(
@@ -103,6 +106,7 @@ public class ExpandoColumnServiceWrapper implements ExpandoColumnService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ExpandoColumnService getWrappedExpandoColumnService() {
 		return _expandoColumnService;
 	}
@@ -110,6 +114,7 @@ public class ExpandoColumnServiceWrapper implements ExpandoColumnService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedExpandoColumnService(
 		ExpandoColumnService expandoColumnService) {
 		_expandoColumnService = expandoColumnService;

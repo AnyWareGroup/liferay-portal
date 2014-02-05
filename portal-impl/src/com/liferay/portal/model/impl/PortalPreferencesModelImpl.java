@@ -56,12 +56,13 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 	 */
 	public static final String TABLE_NAME = "PortalPreferences";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "portalPreferencesId", Types.BIGINT },
 			{ "ownerId", Types.BIGINT },
 			{ "ownerType", Types.INTEGER },
 			{ "preferences", Types.CLOB }
 		};
-	public static final String TABLE_SQL_CREATE = "create table PortalPreferences (portalPreferencesId LONG not null primary key,ownerId LONG,ownerType INTEGER,preferences TEXT null)";
+	public static final String TABLE_SQL_CREATE = "create table PortalPreferences (mvccVersion LONG default 0,portalPreferencesId LONG not null primary key,ownerId LONG,ownerType INTEGER,preferences TEXT null)";
 	public static final String TABLE_SQL_DROP = "drop table PortalPreferences";
 	public static final String ORDER_BY_JPQL = " ORDER BY portalPreferences.portalPreferencesId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY PortalPreferences.portalPreferencesId ASC";
@@ -120,16 +121,26 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("portalPreferencesId", getPortalPreferencesId());
 		attributes.put("ownerId", getOwnerId());
 		attributes.put("ownerType", getOwnerType());
 		attributes.put("preferences", getPreferences());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long portalPreferencesId = (Long)attributes.get("portalPreferencesId");
 
 		if (portalPreferencesId != null) {
@@ -153,6 +164,16 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 		if (preferences != null) {
 			setPreferences(preferences);
 		}
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -255,6 +276,7 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 	public Object clone() {
 		PortalPreferencesImpl portalPreferencesImpl = new PortalPreferencesImpl();
 
+		portalPreferencesImpl.setMvccVersion(getMvccVersion());
 		portalPreferencesImpl.setPortalPreferencesId(getPortalPreferencesId());
 		portalPreferencesImpl.setOwnerId(getOwnerId());
 		portalPreferencesImpl.setOwnerType(getOwnerType());
@@ -308,6 +330,16 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		PortalPreferencesModelImpl portalPreferencesModelImpl = this;
 
@@ -325,6 +357,8 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 	@Override
 	public CacheModel<PortalPreferences> toCacheModel() {
 		PortalPreferencesCacheModel portalPreferencesCacheModel = new PortalPreferencesCacheModel();
+
+		portalPreferencesCacheModel.mvccVersion = getMvccVersion();
 
 		portalPreferencesCacheModel.portalPreferencesId = getPortalPreferencesId();
 
@@ -345,9 +379,11 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{portalPreferencesId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", portalPreferencesId=");
 		sb.append(getPortalPreferencesId());
 		sb.append(", ownerId=");
 		sb.append(getOwnerId());
@@ -362,12 +398,16 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(16);
+		StringBundler sb = new StringBundler(19);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.PortalPreferences");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>portalPreferencesId</column-name><column-value><![CDATA[");
 		sb.append(getPortalPreferencesId());
@@ -394,6 +434,7 @@ public class PortalPreferencesModelImpl extends BaseModelImpl<PortalPreferences>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			PortalPreferences.class
 		};
+	private long _mvccVersion;
 	private long _portalPreferencesId;
 	private long _ownerId;
 	private long _originalOwnerId;

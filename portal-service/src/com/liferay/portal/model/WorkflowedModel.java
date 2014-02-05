@@ -26,6 +26,7 @@ public interface WorkflowedModel {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
+	@Deprecated
 	public boolean getApproved();
 
 	public int getStatus();
@@ -49,8 +50,6 @@ public interface WorkflowedModel {
 	public boolean isInactive();
 
 	public boolean isIncomplete();
-
-	public boolean isInTrash();
 
 	public boolean isPending();
 

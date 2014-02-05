@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutSetLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetLocalService
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetLocalService
  * @generated
  */
+@ProviderType
 public class LayoutSetLocalServiceWrapper implements LayoutSetLocalService,
 	ServiceWrapper<LayoutSetLocalService> {
 	public LayoutSetLocalServiceWrapper(
@@ -160,6 +163,22 @@ public class LayoutSetLocalServiceWrapper implements LayoutSetLocalService,
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _layoutSetLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetLocalService.dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	@Override
@@ -322,10 +341,11 @@ public class LayoutSetLocalServiceWrapper implements LayoutSetLocalService,
 	prototype is link enabled
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
-	* @deprecated As of 6.1, replaced by {@link
+	* @deprecated As of 6.1.0, replaced by {@link
 	#updateLayoutSetPrototypeLinkEnabled(long, boolean, boolean,
 	String)}
 	*/
+	@Deprecated
 	@Override
 	public void updateLayoutSetPrototypeLinkEnabled(long groupId,
 		boolean privateLayout, boolean layoutSetPrototypeLinkEnabled)
@@ -442,6 +462,7 @@ public class LayoutSetLocalServiceWrapper implements LayoutSetLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutSetLocalService getWrappedLayoutSetLocalService() {
 		return _layoutSetLocalService;
 	}
@@ -449,6 +470,7 @@ public class LayoutSetLocalServiceWrapper implements LayoutSetLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutSetLocalService(
 		LayoutSetLocalService layoutSetLocalService) {
 		_layoutSetLocalService = layoutSetLocalService;

@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutSetPrototypeService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetPrototypeService
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetPrototypeService
  * @generated
  */
+@ProviderType
 public class LayoutSetPrototypeServiceWrapper
 	implements LayoutSetPrototypeService,
 		ServiceWrapper<LayoutSetPrototypeService> {
@@ -110,6 +113,7 @@ public class LayoutSetPrototypeServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutSetPrototypeService getWrappedLayoutSetPrototypeService() {
 		return _layoutSetPrototypeService;
 	}
@@ -117,6 +121,7 @@ public class LayoutSetPrototypeServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutSetPrototypeService(
 		LayoutSetPrototypeService layoutSetPrototypeService) {
 		_layoutSetPrototypeService = layoutSetPrototypeService;

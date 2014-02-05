@@ -57,12 +57,13 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 	 */
 	public static final String TABLE_NAME = "UserTrackerPath";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "userTrackerPathId", Types.BIGINT },
 			{ "userTrackerId", Types.BIGINT },
 			{ "path_", Types.VARCHAR },
 			{ "pathDate", Types.TIMESTAMP }
 		};
-	public static final String TABLE_SQL_CREATE = "create table UserTrackerPath (userTrackerPathId LONG not null primary key,userTrackerId LONG,path_ STRING null,pathDate DATE null)";
+	public static final String TABLE_SQL_CREATE = "create table UserTrackerPath (mvccVersion LONG default 0,userTrackerPathId LONG not null primary key,userTrackerId LONG,path_ STRING null,pathDate DATE null)";
 	public static final String TABLE_SQL_DROP = "drop table UserTrackerPath";
 	public static final String ORDER_BY_JPQL = " ORDER BY userTrackerPath.userTrackerPathId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY UserTrackerPath.userTrackerPathId ASC";
@@ -120,16 +121,26 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userTrackerPathId", getUserTrackerPathId());
 		attributes.put("userTrackerId", getUserTrackerId());
 		attributes.put("path", getPath());
 		attributes.put("pathDate", getPathDate());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userTrackerPathId = (Long)attributes.get("userTrackerPathId");
 
 		if (userTrackerPathId != null) {
@@ -153,6 +164,16 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 		if (pathDate != null) {
 			setPathDate(pathDate);
 		}
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -243,6 +264,7 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 	public Object clone() {
 		UserTrackerPathImpl userTrackerPathImpl = new UserTrackerPathImpl();
 
+		userTrackerPathImpl.setMvccVersion(getMvccVersion());
 		userTrackerPathImpl.setUserTrackerPathId(getUserTrackerPathId());
 		userTrackerPathImpl.setUserTrackerId(getUserTrackerId());
 		userTrackerPathImpl.setPath(getPath());
@@ -296,6 +318,16 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		UserTrackerPathModelImpl userTrackerPathModelImpl = this;
 
@@ -309,6 +341,8 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 	@Override
 	public CacheModel<UserTrackerPath> toCacheModel() {
 		UserTrackerPathCacheModel userTrackerPathCacheModel = new UserTrackerPathCacheModel();
+
+		userTrackerPathCacheModel.mvccVersion = getMvccVersion();
 
 		userTrackerPathCacheModel.userTrackerPathId = getUserTrackerPathId();
 
@@ -336,9 +370,11 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("{userTrackerPathId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", userTrackerPathId=");
 		sb.append(getUserTrackerPathId());
 		sb.append(", userTrackerId=");
 		sb.append(getUserTrackerId());
@@ -353,12 +389,16 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(16);
+		StringBundler sb = new StringBundler(19);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.UserTrackerPath");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>userTrackerPathId</column-name><column-value><![CDATA[");
 		sb.append(getUserTrackerPathId());
@@ -385,6 +425,7 @@ public class UserTrackerPathModelImpl extends BaseModelImpl<UserTrackerPath>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			UserTrackerPath.class
 		};
+	private long _mvccVersion;
 	private long _userTrackerPathId;
 	private long _userTrackerId;
 	private long _originalUserTrackerId;

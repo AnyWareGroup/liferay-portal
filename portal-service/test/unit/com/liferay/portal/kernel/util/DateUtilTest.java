@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 import java.util.TimeZone;
 
 import org.junit.Assert;
@@ -87,6 +86,11 @@ public class DateUtilTest extends PowerMockito {
 	}
 
 	@Test
+	public void testGetISOFormatLength8() {
+		_testGetISOFormat("01234567","yyyyMMdd");
+	}
+
+	@Test
 	public void testGetISOFormatLength12() {
 		_testGetISOFormat("012345678901","yyyyMMddHHmm");
 	}
@@ -107,11 +111,6 @@ public class DateUtilTest extends PowerMockito {
 	}
 
 	@Test
-	public void testGetISOFormatLength8() {
-		_testGetISOFormat("01234567","yyyyMMdd");
-	}
-
-	@Test
 	public void testGetISOFormatT() {
 		_testGetISOFormat("01234567T9012345","yyyyMMdd'T'HHmmssz");
 	}
@@ -127,7 +126,7 @@ public class DateUtilTest extends PowerMockito {
 		when(
 			DateFormatFactoryUtil.getSimpleDateFormat(pattern)
 		).thenReturn(
-			new SimpleDateFormat(pattern, new Locale("es_ES"))
+			new SimpleDateFormat(pattern, LocaleUtil.SPAIN)
 		);
 	}
 

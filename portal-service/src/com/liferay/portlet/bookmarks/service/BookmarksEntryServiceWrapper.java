@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.bookmarks.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link BookmarksEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       BookmarksEntryService
+ * @author Brian Wing Shun Chan
+ * @see BookmarksEntryService
  * @generated
  */
+@ProviderType
 public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	ServiceWrapper<BookmarksEntryService> {
 	public BookmarksEntryServiceWrapper(
@@ -88,6 +91,12 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	public int getEntriesCount(long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _bookmarksEntryService.getEntriesCount(groupId, folderId);
+	}
+
+	@Override
+	public int getEntriesCount(long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntryService.getEntriesCount(groupId, folderId, status);
 	}
 
 	@Override
@@ -170,10 +179,11 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	}
 
 	@Override
-	public void moveEntryToTrash(long entryId)
+	public com.liferay.portlet.bookmarks.model.BookmarksEntry moveEntryToTrash(
+		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_bookmarksEntryService.moveEntryToTrash(entryId);
+		return _bookmarksEntryService.moveEntryToTrash(entryId);
 	}
 
 	@Override
@@ -197,6 +207,15 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		_bookmarksEntryService.restoreEntryFromTrash(entryId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _bookmarksEntryService.search(groupId, creatorUserId, status,
+			start, end);
 	}
 
 	@Override
@@ -227,6 +246,7 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public BookmarksEntryService getWrappedBookmarksEntryService() {
 		return _bookmarksEntryService;
 	}
@@ -234,6 +254,7 @@ public class BookmarksEntryServiceWrapper implements BookmarksEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedBookmarksEntryService(
 		BookmarksEntryService bookmarksEntryService) {
 		_bookmarksEntryService = bookmarksEntryService;

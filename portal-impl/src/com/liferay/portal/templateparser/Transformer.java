@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
@@ -54,7 +55,6 @@ import com.liferay.portal.xsl.XSLURIResolver;
 import com.liferay.portlet.journal.util.JournalXSLURIResolver;
 import com.liferay.portlet.portletdisplaytemplate.util.PortletDisplayTemplateConstants;
 import com.liferay.taglib.util.VelocityTaglib;
-import com.liferay.util.PwdGenerator;
 
 import java.io.IOException;
 
@@ -62,6 +62,7 @@ import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -78,13 +79,7 @@ import java.util.Set;
  */
 public class Transformer {
 
-	public Transformer(
-		String transformerListenerPropertyKey, String errorTemplatePropertyKey,
-		boolean restricted) {
-
-		_transformerListenerClassNames = SetUtil.fromArray(
-			PropsUtil.getArray(transformerListenerPropertyKey));
-
+	public Transformer(String errorTemplatePropertyKey, boolean restricted) {
 		Set<String> langTypes = TemplateManagerUtil.getSupportedLanguageTypes(
 			errorTemplatePropertyKey);
 
@@ -98,6 +93,16 @@ public class Transformer {
 		}
 
 		_restricted = restricted;
+	}
+
+	public Transformer(
+		String transformerListenerPropertyKey, String errorTemplatePropertyKey,
+		boolean restricted) {
+
+		this(errorTemplatePropertyKey, restricted);
+
+		_transformerListenerClassNames = SetUtil.fromArray(
+			PropsUtil.getArray(transformerListenerPropertyKey));
 	}
 
 	public String transform(
@@ -131,6 +136,8 @@ public class Transformer {
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
 		try {
+			prepareTemplate(themeDisplay, template);
+
 			if (contextObjects != null) {
 				for (String key : contextObjects.keySet()) {
 					template.put(key, contextObjects.get(key));
@@ -149,8 +156,7 @@ public class Transformer {
 				PermissionThreadLocal.getPermissionChecker());
 			template.put(
 				"randomNamespace",
-				PwdGenerator.getPassword(PwdGenerator.KEY3, 4) +
-					StringPool.UNDERLINE);
+				StringUtil.randomId() + StringPool.UNDERLINE);
 			template.put("scopeGroupId", scopeGroupId);
 			template.put("siteGroupId", siteGroupId);
 			template.put("templatesPath", templatesPath);
@@ -334,8 +340,7 @@ public class Transformer {
 					PermissionThreadLocal.getPermissionChecker());
 				template.put(
 					"randomNamespace",
-					PwdGenerator.getPassword(PwdGenerator.KEY3, 4) +
-						StringPool.UNDERLINE);
+					StringUtil.randomId() + StringPool.UNDERLINE);
 				template.put("scopeGroupId", scopeGroupId);
 				template.put("siteGroupId", siteGroupId);
 				template.put("templatesPath", templatesPath);
@@ -520,7 +525,7 @@ public class Transformer {
 				"type", StringPool.BLANK);
 
 			TemplateNode templateNode = new TemplateNode(
-				themeDisplay, name, stripCDATA(data), type);
+				themeDisplay, name, StringUtil.stripCDATA(data), type);
 
 			if (dynamicElementElement.element("dynamic-element") != null) {
 				templateNode.appendChildren(
@@ -534,7 +539,7 @@ public class Transformer {
 
 				for (Element optionElement : optionElements) {
 					templateNode.appendOption(
-						stripCDATA(optionElement.getText()));
+						StringUtil.stripCDATA(optionElement.getText()));
 				}
 			}
 
@@ -632,16 +637,14 @@ public class Transformer {
 		template.processTemplate(unsyncStringWriter);
 	}
 
-	protected String stripCDATA(String s) {
-		if (s.startsWith(StringPool.CDATA_OPEN) &&
-			s.endsWith(StringPool.CDATA_CLOSE)) {
+	protected void prepareTemplate(ThemeDisplay themeDisplay, Template template)
+		throws Exception {
 
-			s = s.substring(
-				StringPool.CDATA_OPEN.length(),
-				s.length() - StringPool.CDATA_CLOSE.length());
+		if (themeDisplay == null) {
+			return;
 		}
 
-		return s;
+		template.prepare(themeDisplay.getRequest());
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(Transformer.class);
@@ -668,6 +671,6 @@ public class Transformer {
 	private Map<String, String> _errorTemplateIds =
 		new HashMap<String, String>();
 	private boolean _restricted;
-	private Set<String> _transformerListenerClassNames;
+	private Set<String> _transformerListenerClassNames = new HashSet<String>();
 
 }

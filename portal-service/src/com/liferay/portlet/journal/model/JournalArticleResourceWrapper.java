@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.journal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link JournalArticleResource}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalArticleResource
+ * @author Brian Wing Shun Chan
+ * @see JournalArticleResource
  * @generated
  */
+@ProviderType
 public class JournalArticleResourceWrapper implements JournalArticleResource,
 	ModelWrapper<JournalArticleResource> {
 	public JournalArticleResourceWrapper(
@@ -289,9 +293,30 @@ public class JournalArticleResourceWrapper implements JournalArticleResource,
 		_journalArticleResource.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalArticleResourceWrapper)) {
+			return false;
+		}
+
+		JournalArticleResourceWrapper journalArticleResourceWrapper = (JournalArticleResourceWrapper)obj;
+
+		if (Validator.equals(_journalArticleResource,
+					journalArticleResourceWrapper._journalArticleResource)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public JournalArticleResource getWrappedJournalArticleResource() {
 		return _journalArticleResource;
 	}
@@ -299,6 +324,16 @@ public class JournalArticleResourceWrapper implements JournalArticleResource,
 	@Override
 	public JournalArticleResource getWrappedModel() {
 		return _journalArticleResource;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _journalArticleResource.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _journalArticleResource.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -1,3 +1,6 @@
+@import "compass";
+@import "mixins";
+
 .taglib-discussion {
 	table.tree-walker {
 		width: 100%;
@@ -74,6 +77,8 @@
 
 	.lfr-discussion-message {
 		padding-bottom: 1em;
+
+		@include word-break(break-all);
 	}
 
 	.taglib-ratings {
@@ -95,6 +100,10 @@
 			a {
 				clip: rect(0 0 0 0);
 				position: absolute;
+
+				@include respond-to(phone, tablet) {
+					position: static;
+				}
 			}
 		}
 
@@ -118,9 +127,16 @@
 			padding: 5px 5px 5px 50px;
 			position: relative;
 
-			&.lfr-discussion-form-edit {
+			&.lfr-discussion-form-edit, &.lfr-discussion-form-reply {
 				left: 0;
+				margin-left: 0;
 				padding: 5px;
+
+				textarea {
+					max-width: 100%;
+					width: 100%;
+					@include box-sizing(border-box);
+				}
 			}
 
 			.taglib-user-display {
@@ -143,6 +159,24 @@
 				margin: 5px 0 0;
 			}
 		}
+	}
+}
+
+.lfr-discussion-reply.popover {
+	max-width: none;
+
+	.lfr-discussion-reply-user-avatar {
+		float: left;
+		margin-right: 15px;
+		margin-top: 3px;
+	}
+
+	.lfr-discussion-reply-user-name {
+		font-weight: bold;
+	}
+
+	.lfr-discussion-reply-content {
+		margin-top: 5px;
 	}
 }
 
@@ -189,6 +223,10 @@
 	.lfr-discussion-posted-on {
 		color: #999;
 		font-size: .9em;
+
+		.lfr-discussion-parent-link {
+			cursor: pointer;
+		}
 	}
 
 	.lfr-discussion-actions li a {

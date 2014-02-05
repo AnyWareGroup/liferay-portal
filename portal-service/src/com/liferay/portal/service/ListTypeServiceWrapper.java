@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ListTypeService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ListTypeService
+ * @author Brian Wing Shun Chan
+ * @see ListTypeService
  * @generated
  */
+@ProviderType
 public class ListTypeServiceWrapper implements ListTypeService,
 	ServiceWrapper<ListTypeService> {
 	public ListTypeServiceWrapper(ListTypeService listTypeService) {
@@ -78,6 +81,7 @@ public class ListTypeServiceWrapper implements ListTypeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ListTypeService getWrappedListTypeService() {
 		return _listTypeService;
 	}
@@ -85,6 +89,7 @@ public class ListTypeServiceWrapper implements ListTypeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedListTypeService(ListTypeService listTypeService) {
 		_listTypeService = listTypeService;
 	}

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -58,12 +60,13 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       RoleServiceHttp
- * @see       com.liferay.portal.model.RoleSoap
- * @see       com.liferay.portal.service.RoleServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see RoleServiceHttp
+ * @see com.liferay.portal.model.RoleSoap
+ * @see com.liferay.portal.service.RoleServiceUtil
  * @generated
  */
+@ProviderType
 public class RoleServiceSoap {
 	/**
 	* Adds a role. The user is reindexed after role is added.
@@ -134,6 +137,7 @@ public class RoleServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.RoleSoap addRole(
 		java.lang.String name, java.lang.String[] titleMapLanguageIds,
 		java.lang.String[] titleMapValues,

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.theme;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
@@ -59,6 +61,7 @@ import javax.servlet.http.HttpServletRequest;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class ThemeDisplay
 	implements Cloneable, Mergeable<ThemeDisplay>, Serializable {
 
@@ -241,22 +244,25 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2 renamed to {@link #getSiteGroup}
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroup}
 	 */
+	@Deprecated
 	public Group getParentGroup() {
 		return getSiteGroup();
 	}
 
 	/**
-	 * @deprecated As of 6.2 renamed to {@link #getSiteGroupId}
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupId}
 	 */
+	@Deprecated
 	public long getParentGroupId() {
 		return getSiteGroupId();
 	}
 
 	/**
-	 * @deprecated As of 6.2 renamed to {@link #getSiteGroupName}
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupName}
 	 */
+	@Deprecated
 	public String getParentGroupName() throws PortalException, SystemException {
 		return getSiteGroupName();
 	}
@@ -316,6 +322,7 @@ public class ThemeDisplay
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getPathThemeImages}
 	 */
+	@Deprecated
 	public String getPathThemeImage() {
 		return getPathThemeImages();
 	}
@@ -355,6 +362,7 @@ public class ThemeDisplay
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getScopeGroupId}
 	 */
+	@Deprecated
 	public long getPortletGroupId() {
 		return getScopeGroupId();
 	}
@@ -404,8 +412,9 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2 renamed to {@link #getSiteGroupIdOrLiveGroupId}
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupIdOrLiveGroupId}
 	 */
+	@Deprecated
 	public long getScopeGroupIdOrLiveGroupId()
 		throws PortalException, SystemException {
 
@@ -416,9 +425,8 @@ public class ThemeDisplay
 		if (_scopeGroup == null) {
 			return StringPool.BLANK;
 		}
-		else {
-			return _scopeGroup.getDescriptiveName();
-		}
+
+		return _scopeGroup.getDescriptiveName();
 	}
 
 	public Layout getScopeLayout() throws PortalException, SystemException {
@@ -445,6 +453,10 @@ public class ThemeDisplay
 		return _sessionId;
 	}
 
+	public Locale getSiteDefaultLocale() {
+		return _siteDefaultLocale;
+	}
+
 	public Group getSiteGroup() {
 		return _siteGroup;
 	}
@@ -463,9 +475,8 @@ public class ThemeDisplay
 		if (_siteGroup == null) {
 			return StringPool.BLANK;
 		}
-		else {
-			return _siteGroup.getDescriptiveName();
-		}
+
+		return _siteGroup.getDescriptiveName();
 	}
 
 	public Theme getTheme() {
@@ -556,6 +567,7 @@ public class ThemeDisplay
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getURLSiteAdministration()}
 	 */
+	@Deprecated
 	public PortletURL getURLManageSiteMemberships() {
 		return _urlManageSiteMemberships;
 	}
@@ -591,6 +603,7 @@ public class ThemeDisplay
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getURLSiteAdministration()}
 	 */
+	@Deprecated
 	public String getURLSiteContent() {
 		return getURLSiteAdministration();
 	}
@@ -599,6 +612,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #isShowSiteAdministrationIcon()}
 	 */
+	@Deprecated
 	public PortletURL getURLSiteMapSettings() {
 		return _urlSiteMapSettings;
 	}
@@ -606,6 +620,7 @@ public class ThemeDisplay
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getURLSiteAdministration()}
 	 */
+	@Deprecated
 	public PortletURL getURLSiteSettings() {
 		return _urlSiteSettings;
 	}
@@ -646,9 +661,8 @@ public class ThemeDisplay
 		if (getUserId() == getRealUserId()) {
 			return false;
 		}
-		else {
-			return true;
-		}
+
+		return true;
 	}
 
 	public boolean isIncludedJs(String js) {
@@ -659,9 +673,8 @@ public class ThemeDisplay
 
 			return true;
 		}
-		else {
-			return false;
-		}
+
+		return false;
 	}
 
 	public boolean isIncludePortletCssJs() {
@@ -716,6 +729,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #isShowSiteAdministrationIcon()}
 	 */
+	@Deprecated
 	public boolean isShowManageSiteMembershipsIcon() {
 		return _showManageSiteMembershipsIcon;
 	}
@@ -752,6 +766,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #isShowSiteAdministrationIcon()}
 	 */
+	@Deprecated
 	public boolean isShowSiteContentIcon() {
 		return isShowSiteAdministrationIcon();
 	}
@@ -760,6 +775,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #isShowSiteAdministrationIcon()}
 	 */
+	@Deprecated
 	public boolean isShowSiteMapSettingsIcon() {
 		return _showSiteMapSettingsIcon;
 	}
@@ -768,6 +784,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #isShowSiteAdministrationIcon()}
 	 */
+	@Deprecated
 	public boolean isShowSiteSettingsIcon() {
 		return _showSiteSettingsIcon;
 	}
@@ -859,7 +876,7 @@ public class ThemeDisplay
 		throws PortalException, SystemException {
 
 		_company = company;
-		_companyGroupId = company.getGroup().getGroupId();
+		_companyGroupId = company.getGroupId();
 
 		setAccount(company.getAccount());
 	}
@@ -1055,8 +1072,9 @@ public class ThemeDisplay
 	}
 
 	/**
-	 * @deprecated As of 6.2 renamed to {@link #setSiteGroupId(long)}
+	 * @deprecated As of 6.2.0 renamed to {@link #setSiteGroupId(long)}
 	 */
+	@Deprecated
 	public void setParentGroupId(long parentGroupId) {
 		setSiteGroupId(parentGroupId);
 	}
@@ -1277,6 +1295,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #setShowSiteAdministrationIcon(boolean)}
 	 */
+	@Deprecated
 	public void setShowSiteContentIcon(boolean showSiteContentIcon) {
 		setShowSiteAdministrationIcon(showSiteContentIcon);
 	}
@@ -1295,6 +1314,12 @@ public class ThemeDisplay
 
 	public void setSignedIn(boolean signedIn) {
 		_signedIn = signedIn;
+	}
+
+	public void setSiteDefaultLocale(Locale siteDefaultLocale) {
+		_siteDefaultLocale = siteDefaultLocale;
+
+		LocaleThreadLocal.setSiteDefaultLocale(siteDefaultLocale);
 	}
 
 	public void setSiteGroupId(long siteGroupId) {
@@ -1418,6 +1443,7 @@ public class ThemeDisplay
 	 * @deprecated As of 6.2.0, replaced by {@link
 	 *             #setURLSiteAdministration(String)}
 	 */
+	@Deprecated
 	public void setURLSiteContent(String urlSiteContent) {
 		setURLSiteAdministration(urlSiteContent);
 	}
@@ -1448,11 +1474,7 @@ public class ThemeDisplay
 		return LanguageUtil.get(getLocale(), key);
 	}
 
-	public String translate(String pattern, Object argument) {
-		return LanguageUtil.format(getLocale(), pattern, argument);
-	}
-
-	public String translate(String pattern, Object[] arguments) {
+	public String translate(String pattern, Object... arguments) {
 		return LanguageUtil.format(getLocale(), pattern, arguments);
 	}
 
@@ -1550,6 +1572,7 @@ public class ThemeDisplay
 	private boolean _showSiteSettingsIcon;
 	private boolean _showStagingIcon;
 	private boolean _signedIn;
+	private Locale _siteDefaultLocale;
 	private Group _siteGroup;
 	private long _siteGroupId;
 	private boolean _stateExclusive;

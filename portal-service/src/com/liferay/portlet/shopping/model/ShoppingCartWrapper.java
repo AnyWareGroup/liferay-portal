@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.shopping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ShoppingCart}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCart
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCart
  * @generated
  */
+@ProviderType
 public class ShoppingCartWrapper implements ShoppingCart,
 	ModelWrapper<ShoppingCart> {
 	public ShoppingCartWrapper(ShoppingCart shoppingCart) {
@@ -533,9 +537,29 @@ public class ShoppingCartWrapper implements ShoppingCart,
 		return _shoppingCart.getItemsSize();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShoppingCartWrapper)) {
+			return false;
+		}
+
+		ShoppingCartWrapper shoppingCartWrapper = (ShoppingCartWrapper)obj;
+
+		if (Validator.equals(_shoppingCart, shoppingCartWrapper._shoppingCart)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ShoppingCart getWrappedShoppingCart() {
 		return _shoppingCart;
 	}
@@ -543,6 +567,16 @@ public class ShoppingCartWrapper implements ShoppingCart,
 	@Override
 	public ShoppingCart getWrappedModel() {
 		return _shoppingCart;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _shoppingCart.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _shoppingCart.isFinderCacheEnabled();
 	}
 
 	@Override

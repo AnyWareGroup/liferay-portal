@@ -25,12 +25,7 @@ PortletURL portletURL = renderResponse.createRenderURL();
 portletURL.setParameter("struts_action", "/blogs/view");
 %>
 
-<portlet:actionURL var="undoTrashURL">
-	<portlet:param name="struts_action" value="/blogs/edit_entry" />
-	<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
-</portlet:actionURL>
-
-<liferay-ui:trash-undo portletURL="<%= undoTrashURL %>" />
+<liferay-ui:trash-undo />
 
 <liferay-portlet:renderURL varImpl="searchURL">
 	<portlet:param name="struts_action" value="/blogs/search" />
@@ -39,7 +34,6 @@ portletURL.setParameter("struts_action", "/blogs/view");
 <aui:form action="<%= searchURL %>" method="get" name="fm1">
 	<liferay-portlet:renderURLParams varImpl="searchURL" />
 	<aui:input name="redirect" type="hidden" value="<%= currentURL %>" />
-	<aui:input name="groupId" type="hidden" value="<%= String.valueOf(scopeGroupId) %>" />
 
 	<%
 	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, pageDelta, portletURL, null, null);
@@ -60,10 +54,8 @@ portletURL.setParameter("struts_action", "/blogs/view");
 
 		searchContainer.setTotal(total);
 
-		if (searchContainer.isRecalculateCur()) {
-			assetEntryQuery.setEnd(searchContainer.getEnd());
-			assetEntryQuery.setStart(searchContainer.getStart());
-		}
+		assetEntryQuery.setEnd(searchContainer.getEnd());
+		assetEntryQuery.setStart(searchContainer.getStart());
 
 		results = AssetEntryServiceUtil.getEntries(assetEntryQuery);
 	}
@@ -86,9 +78,3 @@ portletURL.setParameter("struts_action", "/blogs/view");
 
 	<%@ include file="/html/portlet/blogs/view_entries.jspf" %>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm1.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>

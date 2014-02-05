@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PasswordPolicyLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PasswordPolicyLocalService
+ * @author Brian Wing Shun Chan
+ * @see PasswordPolicyLocalService
  * @generated
  */
+@ProviderType
 public class PasswordPolicyLocalServiceWrapper
 	implements PasswordPolicyLocalService,
 		ServiceWrapper<PasswordPolicyLocalService> {
@@ -167,11 +170,44 @@ public class PasswordPolicyLocalServiceWrapper
 		return _passwordPolicyLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _passwordPolicyLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.PasswordPolicy fetchPasswordPolicy(
 		long passwordPolicyId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _passwordPolicyLocalService.fetchPasswordPolicy(passwordPolicyId);
+	}
+
+	/**
+	* Returns the password policy with the matching UUID and company.
+	*
+	* @param uuid the password policy's UUID
+	* @param companyId the primary key of the company
+	* @return the matching password policy, or <code>null</code> if a matching password policy could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.PasswordPolicy fetchPasswordPolicyByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _passwordPolicyLocalService.fetchPasswordPolicyByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -196,6 +232,24 @@ public class PasswordPolicyLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _passwordPolicyLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the password policy with the matching UUID and company.
+	*
+	* @param uuid the password policy's UUID
+	* @param companyId the primary key of the company
+	* @return the matching password policy
+	* @throws PortalException if a matching password policy could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.PasswordPolicy getPasswordPolicyByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _passwordPolicyLocalService.getPasswordPolicyByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -270,6 +324,7 @@ public class PasswordPolicyLocalServiceWrapper
 	boolean, long, long, int, boolean, int, long, long, long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.PasswordPolicy addPasswordPolicy(
 		long userId, boolean defaultPolicy, java.lang.String name,
@@ -336,14 +391,6 @@ public class PasswordPolicyLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.portal.model.PasswordPolicy fetchPasswordPolicyByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _passwordPolicyLocalService.fetchPasswordPolicyByUuidAndCompanyId(uuid,
-			companyId);
-	}
-
-	@Override
 	public com.liferay.portal.model.PasswordPolicy getDefaultPasswordPolicy(
 		long companyId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -354,6 +401,7 @@ public class PasswordPolicyLocalServiceWrapper
 	/**
 	* @deprecated As of 6.1.0
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.PasswordPolicy getPasswordPolicy(
 		long companyId, long organizationId, long locationId)
@@ -402,6 +450,7 @@ public class PasswordPolicyLocalServiceWrapper
 	long, long, int, boolean, int, long, long, long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.PasswordPolicy updatePasswordPolicy(
 		long passwordPolicyId, java.lang.String name,
@@ -448,6 +497,7 @@ public class PasswordPolicyLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PasswordPolicyLocalService getWrappedPasswordPolicyLocalService() {
 		return _passwordPolicyLocalService;
 	}
@@ -455,6 +505,7 @@ public class PasswordPolicyLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPasswordPolicyLocalService(
 		PasswordPolicyLocalService passwordPolicyLocalService) {
 		_passwordPolicyLocalService = passwordPolicyLocalService;

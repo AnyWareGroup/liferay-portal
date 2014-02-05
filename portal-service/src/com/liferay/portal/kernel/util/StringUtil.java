@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +30,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,6 +44,7 @@ import java.util.regex.Pattern;
  * @author Sandeep Soni
  * @author Ganesh Ram
  * @author Shuyang Zhou
+ * @author Hugo Huijser
  */
 public class StringUtil {
 
@@ -119,7 +123,7 @@ public class StringUtil {
 		}
 
 		if (allowDuplicates || !contains(s, add, delimiter)) {
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(4);
 
 			sb.append(s);
 
@@ -153,6 +157,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * appendParentheticalSuffix("file", 0) returns "file (0)"
@@ -160,6 +165,7 @@ public class StringUtil {
 	 * appendParentheticalSuffix("file (0)", 1) returns "file (1)"
 	 * appendParentheticalSuffix("file (0)", 2) returns "file (0) (2)"
 	 * </code>
+	 * </pre>
 	 * </p>
 	 *
 	 * @param  s the original string
@@ -188,11 +194,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * appendParentheticalSuffix("Java", "EE") returns "Java (EE)"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  suffix the suffix to be appended
@@ -222,8 +230,9 @@ public class StringUtil {
 		StringBundler sb = new StringBundler(bytes.length * 2);
 
 		for (byte b : bytes) {
-			String hex = Integer.toHexString(
-				0x0100 + (b & 0x00FF)).substring(1);
+			String hex = Integer.toHexString(0x0100 + (b & 0x00FF));
+
+			hex = hex.substring(1);
 
 			if (hex.length() < 2) {
 				sb.append("0");
@@ -243,12 +252,14 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * contains("one,two,three", "two") returns true
 	 * contains("one,two,three", "thr") returns false
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string in which to search
 	 * @param  text the text to search for in the string
@@ -267,12 +278,14 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * contains("three...two...one", "two", "...") returns true
 	 * contains("three...two...one", "thr", "...") returns false
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string in which to search
 	 * @param  text the text to search for in the string
@@ -335,12 +348,12 @@ public class StringUtil {
 
 	/**
 	 * Returns <code>true</code> if the string ends with the specified
-	 * character.
+	 * character, ignoring case.
 	 *
 	 * @param  s the string in which to search
 	 * @param  end the character to search for at the end of the string
 	 * @return <code>true</code> if the string ends with the specified
-	 *         character; <code>false</code> otherwise
+	 *         character, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, char end) {
 		return endsWith(s, (new Character(end)).toString());
@@ -348,12 +361,12 @@ public class StringUtil {
 
 	/**
 	 * Returns <code>true</code> if the string ends with the string
-	 * <code>end</code>.
+	 * <code>end</code>, ignoring case.
 	 *
 	 * @param  s the string in which to search
 	 * @param  end the string to check for at the end of the string
 	 * @return <code>true</code> if the string ends with the string
-	 *         <code>end</code>; <code>false</code> otherwise
+	 *         <code>end</code>, ignoring case; <code>false</code> otherwise
 	 */
 	public static boolean endsWith(String s, String end) {
 		if ((s == null) || (end == null)) {
@@ -366,12 +379,65 @@ public class StringUtil {
 
 		String temp = s.substring(s.length() - end.length());
 
-		if (temp.equalsIgnoreCase(end)) {
+		if (equalsIgnoreCase(temp, end)) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+
+	/**
+	 * Returns <code>true</code> if the strings are equal, ignoring case.
+	 *
+	 * @param  s1 the first string to compare
+	 * @param  s2 the second string to compare
+	 * @return <code>true</code> if the strings are equal, ignoring case;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean equalsIgnoreCase(String s1, String s2) {
+		if (s1 == s2) {
+			return true;
+		}
+
+		if ((s1 == null) || (s2 == null)) {
+			return false;
+		}
+
+		if (s1.length() != s2.length()) {
+			return false;
+		}
+
+		for (int i = 0; i < s1.length(); i++) {
+			char c1 = s1.charAt(i);
+
+			char c2 = s2.charAt(i);
+
+			if (c1 == c2) {
+				continue;
+			}
+
+			if ((c1 > 127) || (c2 > 127)) {
+
+				// Georgian alphabet needs to check both upper and lower case
+
+				if ((Character.toLowerCase(c1) == Character.toLowerCase(c2)) ||
+					(Character.toUpperCase(c1) == Character.toUpperCase(c2))) {
+
+					continue;
+				}
+
+				return false;
+			}
+
+			int delta = c1 - c2;
+
+			if ((delta != 32) && (delta != -32)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -471,15 +537,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.indexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(0, index);
-			}
+		int index = s.indexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(0, index);
 		}
 	}
 
@@ -498,15 +563,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.indexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(0, index);
-			}
+		int index = s.indexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(0, index);
 		}
 	}
 
@@ -525,15 +589,14 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.lastIndexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(index + 1);
-			}
+		int index = s.lastIndexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(index + 1);
 		}
 	}
 
@@ -552,18 +615,25 @@ public class StringUtil {
 		if (s == null) {
 			return null;
 		}
-		else {
-			int index = s.lastIndexOf(delimiter);
 
-			if (index < 0) {
-				return null;
-			}
-			else {
-				return s.substring(index + delimiter.length());
-			}
+		int index = s.lastIndexOf(delimiter);
+
+		if (index < 0) {
+			return null;
+		}
+		else {
+			return s.substring(index + delimiter.length());
 		}
 	}
 
+	/**
+	 * Returns the substring of all leading digits of string <code>s</code>, or
+	 * an empty string if it has no leading digits.
+	 *
+	 * @param  s the string from which to extract the substring
+	 * @return the substring of all leading digits of string <code>s</code>, or
+	 *         an empty string if it has no leading digits
+	 */
 	public static String extractLeadingDigits(String s) {
 		if (s == null) {
 			return StringPool.BLANK;
@@ -588,6 +658,7 @@ public class StringUtil {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static String highlight(String s, String keywords) {
 		return highlight(s, keywords, "<span class=\"highlight\">", "</span>");
 	}
@@ -595,6 +666,7 @@ public class StringUtil {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static String highlight(
 		String s, String keywords, String highlight1, String highlight2) {
 
@@ -608,15 +680,37 @@ public class StringUtil {
 		return _highlight(s, pattern, highlight1, highlight2);
 	}
 
+	/**
+	 * Returns the string <code>s</code> with any of the query terms found
+	 * within it highlighted with HTML.
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  queryTerms the terms to search for in the string (optionally
+	 *         <code>null</code>)
+	 * @return the string <code>s</code> with any of the query terms found
+	 *         within it highlighted with HTML
+	 */
 	public static String highlight(String s, String[] queryTerms) {
 		return highlight(
 			s, queryTerms, "<span class=\"highlight\">", "</span>");
 	}
 
+	/**
+	 * Returns the string <code>s</code> with any of the query terms found
+	 * within it highlighted with the syntax highlighting tags.
+	 *
+	 * @param  s the string to search (optionally <code>null</code>)
+	 * @param  queryTerms the terms to search for in the string (optionally
+	 *         <code>null</code>)
+	 * @param  highlight1 the beginning highlight tag
+	 * @param  highlight2 the ending highlight tag
+	 * @return the string <code>s</code> with any of the query terms found
+	 *         within it highlighted with the syntax highlighting tags
+	 */
 	public static String highlight(
 		String s, String[] queryTerms, String highlight1, String highlight2) {
 
-		if (Validator.isNull(s) || Validator.isNull(queryTerms)) {
+		if (Validator.isNull(s) || ArrayUtil.isEmpty(queryTerms)) {
 			return s;
 		}
 
@@ -654,6 +748,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * indexOfAny(null, *) returns -1
@@ -664,6 +759,7 @@ public class StringUtil {
 	 * indexOfAny("zzabyycdxx", ['m','n']) returns -1
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  chars the characters to search for (optionally <code>null</code>)
@@ -693,6 +789,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * indexOfAny(null, *, *) returns -1
@@ -701,6 +798,7 @@ public class StringUtil {
 	 * indexOfAny("zzabyycdxx", ['a','c'], 3) returns 6
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  chars the characters to search for (optionally <code>null</code>)
@@ -733,6 +831,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * indexOfAny(null, *, *, *) returns -1
@@ -741,6 +840,7 @@ public class StringUtil {
 	 * indexOfAny("zzabyycdxx", ['a','c'], 3, 7) returns 6
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  chars the characters to search for (optionally <code>null</code>)
@@ -759,7 +859,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((chars == null) || (chars.length == 0)) {
+		if (ArrayUtil.isEmpty(chars)) {
 			return -1;
 		}
 
@@ -803,6 +903,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * indexOfAny(null, *) returns -1
@@ -815,6 +916,7 @@ public class StringUtil {
 	 * indexOfAny("zzabyycdxx", ["mn",""]) returns 0
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string (optionally <code>null</code>)
 	 * @param  texts the strings to search for (optionally <code>null</code>)
@@ -846,6 +948,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * indexOfAny(null, *, *) returns -1
@@ -858,6 +961,7 @@ public class StringUtil {
 	 * indexOfAny("zzabyycdxx", ["mn",""], 3) returns 3
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  texts the strings to search for (optionally <code>null</code>)
@@ -892,6 +996,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * indexOfAny(null, *, *, *) returns -1
@@ -904,6 +1009,7 @@ public class StringUtil {
 	 * indexOfAny("zzabyycdxx", ["mn",""], 3, *) returns 3
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  texts the strings to search for (optionally <code>null</code>)
@@ -923,7 +1029,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((texts == null) || (texts.length == 0)) {
+		if (ArrayUtil.isEmpty(texts)) {
 			return -1;
 		}
 
@@ -979,12 +1085,85 @@ public class StringUtil {
 		if (offset > s.length()) {
 			return s.concat(insert);
 		}
-		else {
-			String prefix = s.substring(0, offset);
-			String postfix = s.substring(offset);
 
-			return prefix.concat(insert).concat(postfix);
+		String prefix = s.substring(0, offset);
+		String postfix = s.substring(offset);
+
+		return prefix.concat(insert).concat(postfix);
+	}
+
+	/**
+	 * Returns <code>true</code> if all the characters in string <code>s</code>
+	 * are lower case, ignoring any non-alphabetic characters.
+	 *
+	 * @param  s the string in which to search
+	 * @return <code>true</code> if all the characters in string <code>s</code>
+	 *         are lower case, ignoring any non-alphabetic characters;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isLowerCase(String s) {
+		if (s == null) {
+			return false;
 		}
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			// Fast path for ascii code, fallback to the slow unicode detection
+
+			if (c <= 127) {
+				if ((c >= CharPool.UPPER_CASE_A) &&
+					(c <= CharPool.UPPER_CASE_Z)) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Character.isLetter(c) && Character.isUpperCase(c)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns <code>true</code> if all the characters in string <code>s</code>
+	 * are upper case, ignoring any non-alphabetic characters.
+	 *
+	 * @param  s the string in which to search
+	 * @return <code>true</code> if all the characters in string <code>s</code>
+	 *         are upper case, ignoring any non-alphabetic characters;
+	 *         <code>false</code> otherwise
+	 */
+	public static boolean isUpperCase(String s) {
+		if (s == null) {
+			return false;
+		}
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			// Fast path for ascii code, fallback to the slow unicode detection
+
+			if (c <= 127) {
+				if ((c >= CharPool.LOWER_CASE_A) &&
+					(c <= CharPool.LOWER_CASE_Z)) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Character.isLetter(c) && Character.isLowerCase(c)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -1000,6 +1179,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * lastIndexOfAny(null, *) returns -1
@@ -1010,6 +1190,7 @@ public class StringUtil {
 	 * lastIndexOfAny("zzabyycdxx", ['m','n']) returns -1
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  chars the characters to search for (optionally <code>null</code>)
@@ -1039,6 +1220,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * lastIndexOfAny(null, *, *) returns -1
@@ -1048,6 +1230,7 @@ public class StringUtil {
 	 * lastIndexOfAny("zzabyycdxx", ['m','n'], *) returns -1
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  chars the characters to search for (optionally <code>null</code>)
@@ -1080,6 +1263,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * lastIndexOfAny(null</code>, *, *, *) returns -1
@@ -1089,6 +1273,7 @@ public class StringUtil {
 	 * lastIndexOfAny("zzabyycdxx", ['m','n'], *, *) returns -1
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  chars the characters to search for (optionally <code>null</code>)
@@ -1107,7 +1292,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((chars == null) || (chars.length == 0)) {
+		if (ArrayUtil.isEmpty(chars)) {
 			return -1;
 		}
 
@@ -1151,6 +1336,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * lastIndexOfAny(null</code>, *) returns -1
@@ -1163,6 +1349,7 @@ public class StringUtil {
 	 * lastIndexOfAny("zzabyycdxx", ["mn",""]) returns 10
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  texts the strings to search for (optionally <code>null</code>)
@@ -1194,6 +1381,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * lastIndexOfAny(null, *, *) returns -1
@@ -1206,6 +1394,7 @@ public class StringUtil {
 	 * lastIndexOfAny("zzabyycdxx", ["mn",""], 5) returns 5
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  texts the strings to search for (optionally <code>null</code>)
@@ -1240,6 +1429,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * lastIndexOfAny(null, *, *, *) returns -1
@@ -1251,6 +1441,7 @@ public class StringUtil {
 	 * lastIndexOfAny("zzabyycdxx", ["mn",""], 2, 5) returns 5
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to search (optionally <code>null</code>)
 	 * @param  texts the strings to search for (optionally <code>null</code>)
@@ -1270,7 +1461,7 @@ public class StringUtil {
 			return -1;
 		}
 
-		if ((texts == null) || (texts.length == 0)) {
+		if (ArrayUtil.isEmpty(texts)) {
 			return -1;
 		}
 
@@ -1312,18 +1503,13 @@ public class StringUtil {
 	 * @see    String#toLowerCase()
 	 */
 	public static String lowerCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return s.toLowerCase();
-		}
+		return toLowerCase(s);
 	}
 
 	public static void lowerCase(String... array) {
 		if (array != null) {
 			for (int i = 0; i < array.length; i++) {
-				array[i] = array[i].toLowerCase();
+				array[i] = toLowerCase(array[i]);
 			}
 		}
 	}
@@ -1762,11 +1948,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * quote("Hello, World!") returns "'Hello, World!'"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to enclose in apostrophes
 	 * @return the string enclosed by apostrophes, or <code>null</code> if the
@@ -1783,11 +1971,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * quote("PATH", '%') returns "%PATH%"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to enclose in quotes
 	 * @param  quote the character to insert to insert to the beginning of and
@@ -1810,11 +2000,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * quote("WARNING", "!!!") returns "!!!WARNING!!!"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to enclose in quotes
 	 * @param  quote the quote string to insert to insert to the beginning of
@@ -1831,6 +2023,23 @@ public class StringUtil {
 	}
 
 	/**
+	 * Returns a randomized string of four lower case, alphabetic characters.
+	 *
+	 * @return a randomized string of four lower case, alphabetic characters
+	 */
+	public static String randomId() {
+		Random random = new Random();
+
+		char[] chars = new char[4];
+
+		for (int i = 0; i < 4; i++) {
+			chars[i] = (char)(CharPool.LOWER_CASE_A + random.nextInt(26));
+		}
+
+		return new String(chars);
+	}
+
+	/**
 	 * Pseudorandomly permutes the characters of the string.
 	 *
 	 * @param  s the string whose characters are to be randomized
@@ -1839,7 +2048,40 @@ public class StringUtil {
 	 *         string
 	 */
 	public static String randomize(String s) {
-		return Randomizer.getInstance().randomize(s);
+		return RandomUtil.shuffle(s);
+	}
+
+	/**
+	 * Returns a randomized string of eight characters consisting of lower case
+	 * letters, upper case letters, and single-digit whole numbers.
+	 *
+	 * @return a randomized string of eight characters consisting of lower case
+	 *         letters, upper case letters, and single-digit whole numbers
+	 */
+	public static String randomString() {
+		return randomString(8);
+	}
+
+	/**
+	 * Returns a randomized string of the specified length consisting of lower
+	 * case letters, upper case letters, and single-digit whole numbers.
+	 *
+	 * @param  length the character length of the randomized string
+	 * @return a randomized string of the specified length consisting of lower
+	 *         case letters, upper case letters, and single-digit whole numbers
+	 */
+	public static String randomString(int length) {
+		Random random = new Random();
+
+		char[] chars = new char[length];
+
+		for (int i = 0; i < length; i++) {
+			int index = random.nextInt(_RANDOM_STRING_CHAR_TABLE.length);
+
+			chars[i] = _RANDOM_STRING_CHAR_TABLE[index];
+		}
+
+		return new String(chars);
 	}
 
 	public static String read(ClassLoader classLoader, String name)
@@ -1866,27 +2108,36 @@ public class StringUtil {
 						"Unable to open resource at " + url.toString());
 				}
 
-				String s = read(is);
+				try {
+					String s = read(is);
 
-				if (s != null) {
-					sb.append(s);
-					sb.append(StringPool.NEW_LINE);
+					if (s != null) {
+						sb.append(s);
+						sb.append(StringPool.NEW_LINE);
+					}
+				}
+				finally {
+					StreamUtil.cleanUp(is);
 				}
 			}
 
 			return sb.toString().trim();
 		}
-		else {
-			InputStream is = classLoader.getResourceAsStream(name);
 
-			if (is == null) {
-				throw new IOException(
-					"Unable to open resource in class loader " + name);
-			}
+		InputStream is = classLoader.getResourceAsStream(name);
 
+		if (is == null) {
+			throw new IOException(
+				"Unable to open resource in class loader " + name);
+		}
+
+		try {
 			String s = read(is);
 
 			return s;
+		}
+		finally {
+			StreamUtil.cleanUp(is);
 		}
 	}
 
@@ -1927,6 +2178,24 @@ public class StringUtil {
 	}
 
 	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #removeFromList(String,
+	 *             String)}
+	 */
+	@Deprecated
+	public static String remove(String s, String element) {
+		return removeFromList(s, element, StringPool.COMMA);
+	}
+
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link #removeFromList(String,
+	 *             String, String)}
+	 */
+	@Deprecated
+	public static String remove(String s, String element, String delimiter) {
+		return removeFromList(s, element, delimiter);
+	}
+
+	/**
 	 * Removes the <code>remove</code> string from string <code>s</code> that
 	 * represents a list of comma delimited strings.
 	 *
@@ -1939,6 +2208,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * remove("red,blue,green,yellow", "blue") returns "red,green,yellow,"
@@ -1946,16 +2216,17 @@ public class StringUtil {
 	 * remove("blue,", "blue") returns ""
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string representing the list of comma delimited strings
-	 * @param  remove the string to remove
+	 * @param  element the string to remove
 	 * @return a string representing the list of comma delimited strings with
 	 *         the <code>remove</code> string removed, or <code>null</code> if
 	 *         the original string, the string to remove, or the delimiter is
 	 *         <code>null</code>
 	 */
-	public static String remove(String s, String remove) {
-		return remove(s, remove, StringPool.COMMA);
+	public static String removeFromList(String s, String element) {
+		return removeFromList(s, element, StringPool.COMMA);
 	}
 
 	/**
@@ -1971,6 +2242,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * remove("red;blue;green;yellow", "blue", ";") returns "red;green;yellow;"
@@ -1978,17 +2250,20 @@ public class StringUtil {
 	 * remove("blue;", "blue", ";") returns ""
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string representing the list of delimited strings
-	 * @param  remove the string to remove
+	 * @param  element the string to remove
 	 * @param  delimiter the delimiter
 	 * @return a string representing the list of delimited strings with the
 	 *         <code>remove</code> string removed, or <code>null</code> if the
 	 *         original string, the string to remove, or the delimiter is
 	 *         <code>null</code>
 	 */
-	public static String remove(String s, String remove, String delimiter) {
-		if ((s == null) || (remove == null) || (delimiter == null)) {
+	public static String removeFromList(
+		String s, String element, String delimiter) {
+
+		if ((s == null) || (element == null) || (delimiter == null)) {
 			return null;
 		}
 
@@ -1996,23 +2271,23 @@ public class StringUtil {
 			s += delimiter;
 		}
 
-		String drd = delimiter.concat(remove).concat(delimiter);
+		String drd = delimiter.concat(element).concat(delimiter);
 
-		String rd = remove.concat(delimiter);
+		String rd = element.concat(delimiter);
 
-		while (contains(s, remove, delimiter)) {
+		while (contains(s, element, delimiter)) {
 			int pos = s.indexOf(drd);
 
 			if (pos == -1) {
 				if (s.startsWith(rd)) {
-					int x = remove.length() + delimiter.length();
+					int x = element.length() + delimiter.length();
 					int y = s.length();
 
 					s = s.substring(x, y);
 				}
 			}
 			else {
-				int x = pos + remove.length() + delimiter.length();
+				int x = pos + element.length() + delimiter.length();
 				int y = s.length();
 
 				String temp = s.substring(0, pos);
@@ -2203,6 +2478,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * replace("redorangeyellow", {"red", "orange", "yellow"}, {"RED","ORANGE", "YELLOW"}, false) returns "REDORANGEYELLOW"
@@ -2213,6 +2489,7 @@ public class StringUtil {
 	 * replace("redorange.yellow", {"red", "orange", "yellow"}, {"RED","ORANGE", * "YELLOW"}, true) returns "redorange.YELLOW"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  oldSubs the strings to be searched for and replaced in the
@@ -2307,6 +2584,12 @@ public class StringUtil {
 	 *         string <code>newSub</code>
 	 */
 	public static String replaceFirst(String s, String oldSub, String newSub) {
+		return replaceFirst(s, oldSub, newSub, 0);
+	}
+
+	public static String replaceFirst(
+		String s, String oldSub, String newSub, int fromIndex) {
+
 		if ((s == null) || (oldSub == null) || (newSub == null)) {
 			return null;
 		}
@@ -2315,7 +2598,7 @@ public class StringUtil {
 			return s;
 		}
 
-		int y = s.indexOf(oldSub);
+		int y = s.indexOf(oldSub, fromIndex);
 
 		if (y >= 0) {
 			return s.substring(0, y).concat(newSub).concat(
@@ -2585,11 +2868,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * safePath("http://www.liferay.com") returns "http:/www.liferay.com"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  path the original string
 	 * @return a string representing the original string with all double slashes
@@ -2613,6 +2898,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * shorten("12345678901234567890xyz") returns "12345678901234567..."
@@ -2622,6 +2908,7 @@ public class StringUtil {
 	 * shorten(" 2345678901234567890") returns " 2345678901234567890"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @return a string representing the original string shortened to 20
@@ -2646,6 +2933,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * shorten("123456789", 8) returns "12345..."
@@ -2655,6 +2943,7 @@ public class StringUtil {
 	 * shorten(" 1234567", 8) returns " 1234567"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  length the number of characters to limit from the original string
@@ -2680,6 +2969,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * shorten("12345678901234", 13, "... etc.") returns "12345... etc."
@@ -2689,6 +2979,7 @@ public class StringUtil {
 	 * shorten(" 123456789012", 13, "... etc.") returns " 123456789012"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  length the number of characters to limit from the original string
@@ -2742,6 +3033,7 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * shorten("12345678901234567890xyz", "... etc.") returns "123456789012... etc."
@@ -2751,6 +3043,7 @@ public class StringUtil {
 	 * shorten(" 2345678901234567890", "... etc.") returns " 2345678901234567890"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  suffix the suffix to append
@@ -2768,12 +3061,14 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * split("Alice,Bob,Charlie") returns {"Alice", "Bob", "Charlie"}
 	 * split("Alice, Bob, Charlie") returns {"Alice", " Bob", " Charlie"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @return the array of strings resulting from splitting string
@@ -2806,11 +3101,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * splitLines("First;Second;Third", ';') returns {"First","Second","Third"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @param  delimiter the delimiter
@@ -2938,11 +3235,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * splitLines("oneandtwoandthreeandfour", "and") returns {"one","two","three","four"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @param  delimiter the delimiter
@@ -3181,11 +3480,13 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * splitLines("Red\rBlue\nGreen") returns {"Red","Blue","Green"}
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the string to split
 	 * @return the array of strings resulting from splitting string
@@ -3279,7 +3580,7 @@ public class StringUtil {
 
 		String temp = s.substring(0, start.length());
 
-		if (temp.equalsIgnoreCase(start)) {
+		if (equalsIgnoreCase(temp, start)) {
 			return true;
 		}
 		else {
@@ -3323,13 +3624,15 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * strip("Mississipi", 'i') returns "Mssssp"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
-	 * @param  s the string from which to strip all occurrences the character
+	 * @param  s the string from which to strip all occurrences of the character
 	 * @param  remove the character to strip from the string
 	 * @return a string representing the string <code>s</code> with all
 	 *         occurrences of the specified character removed, or
@@ -3373,13 +3676,15 @@ public class StringUtil {
 	 * Example:
 	 * <p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * stripBetween("One small step for man, one giant leap for mankind", "step", "giant ") returns "One small leap for mankind"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
-	 * @param  s the from which to strip a substring
+	 * @param  s the string from which to strip a substring
 	 * @param  begin the beginning characters of the substring to be removed
 	 * @param  end the ending characters of the substring to be removed
 	 * @return a string representing the combination of the substring of
@@ -3419,6 +3724,43 @@ public class StringUtil {
 	}
 
 	/**
+	 * Returns a string representing the string <code>s</code> with its
+	 * <code>&lt;![CDATA[]]&gt;</code> wrapper removed.
+	 *
+	 * <p>
+	 * Example:
+	 * <p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * stripCDATA("&lt;![CDATA[One small step for man]]&gt;") returns "One small step for man"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  s the string from which to strip its CDATA wrapper
+	 * @return a string representing the string <code>s</code> with its
+	 *         <code>&lt;![CDATA[]]&gt;</code> wrapper removed, or
+	 *         <code>null</code> if <code>s</code> is <code>null</code>
+	 */
+	public static String stripCDATA(String s) {
+		if (s == null) {
+			return s;
+		}
+
+		if (s.startsWith(StringPool.CDATA_OPEN) &&
+			s.endsWith(StringPool.CDATA_CLOSE)) {
+
+			s = s.substring(
+				StringPool.CDATA_OPEN.length(),
+				s.length() - StringPool.CDATA_CLOSE.length());
+		}
+
+		return s;
+	}
+
+	/**
 	 * Returns a string representing the Unicode character codes of the
 	 * characters comprising the string <code>s</code>.
 	 *
@@ -3426,6 +3768,7 @@ public class StringUtil {
 	 * Example:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * toCharCode("a") returns "97"
@@ -3433,6 +3776,7 @@ public class StringUtil {
 	 * toCharCode("c") returns "99"
 	 * toCharCode("What's for lunch?") returns "87104971163911532102111114321081171109910463"
 	 * </code>
+	 * </pre>
 	 * </p>
 	 *
 	 * @param  s the string whose character codes are to be represented
@@ -3449,6 +3793,28 @@ public class StringUtil {
 		return sb.toString();
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the
+	 * integer.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * toHexString(10) returns "a"
+	 * toHexString(15) returns "f"
+	 * toHexString(10995) returns "2af3"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  i the integer to convert
+	 * @return a string representing the hexidecimal character code of the
+	 *         integer
+	 */
 	public static String toHexString(int i) {
 		char[] buffer = new char[8];
 
@@ -3464,6 +3830,26 @@ public class StringUtil {
 		return new String(buffer, index, 8 - index);
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the long
+	 * integer.
+	 *
+	 * <p>
+	 * Example:
+	 * </p>
+	 *
+	 * <p>
+	 * <pre>
+	 * <code>
+	 * toHexString(12345678910L) returns "2dfdc1c3e"
+	 * </code>
+	 * </pre>
+	 * </p>
+	 *
+	 * @param  l the long integer to convert
+	 * @return a string representing the hexidecimal character code of the long
+	 *         integer
+	 */
 	public static String toHexString(long l) {
 		char[] buffer = new char[16];
 
@@ -3479,6 +3865,15 @@ public class StringUtil {
 		return new String(buffer, index, 16 - index);
 	}
 
+	/**
+	 * Returns a string representing the hexidecimal character code of the
+	 * <code>Integer</code> or <code>Long</code> object type. If the object is
+	 * not an instance of these types, the object's original value is returned.
+	 *
+	 * @param  obj the object to convert
+	 * @return a string representing the hexidecimal character code of the
+	 *         object
+	 */
 	public static String toHexString(Object obj) {
 		if (obj instanceof Integer) {
 			return toHexString(((Integer)obj).intValue());
@@ -3489,6 +3884,88 @@ public class StringUtil {
 		else {
 			return String.valueOf(obj);
 		}
+	}
+
+	public static String toLowerCase(String s) {
+		return toLowerCase(s, null);
+	}
+
+	public static String toLowerCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
+		StringBuilder sb = null;
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			if (c > 127) {
+
+				// Found non-ascii char, fallback to the slow unicode detection
+
+				if (locale == null) {
+					locale = LocaleUtil.getDefault();
+				}
+
+				return s.toLowerCase(locale);
+			}
+
+			if ((c >= 'A') && (c <= 'Z')) {
+				if (sb == null) {
+					sb = new StringBuilder(s);
+				}
+
+				sb.setCharAt(i, (char)(c + 32));
+			}
+		}
+
+		if (sb == null) {
+			return s;
+		}
+
+		return sb.toString();
+	}
+
+	public static String toUpperCase(String s) {
+		return toUpperCase(s, null);
+	}
+
+	public static String toUpperCase(String s, Locale locale) {
+		if (s == null) {
+			return null;
+		}
+
+		StringBuilder sb = null;
+
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+
+			if (c > 127) {
+
+				// Found non-ascii char, fallback to the slow unicode detection
+
+				if (locale == null) {
+					locale = LocaleUtil.getDefault();
+				}
+
+				return s.toLowerCase(locale);
+			}
+
+			if ((c >= 'a') && (c <= 'z')) {
+				if (sb == null) {
+					sb = new StringBuilder(s);
+				}
+
+				sb.setCharAt(i, (char)(c - 32));
+			}
+		}
+
+		if (sb == null) {
+			return s;
+		}
+
+		return sb.toString();
 	}
 
 	/**
@@ -3552,12 +4029,14 @@ public class StringUtil {
 	 * Examples:
 	 * </p>
 	 *
+	 * <p>
 	 * <pre>
 	 * <code>
 	 * trim(" \tHey\t ", '\t') returns "\tHey\t"
 	 * trim(" \t Hey \t ", '\t') returns "\t Hey \t"
 	 * </code>
 	 * </pre>
+	 * </p>
 	 *
 	 * @param  s the original string
 	 * @param  c the whitespace character to limit trimming
@@ -3588,7 +4067,7 @@ public class StringUtil {
 			return s;
 		}
 
-		if ((exceptions == null) || (exceptions.length == 0)) {
+		if (ArrayUtil.isEmpty(exceptions)) {
 			return trim(s);
 		}
 
@@ -3702,7 +4181,7 @@ public class StringUtil {
 			return s;
 		}
 
-		if ((exceptions == null) || (exceptions.length == 0)) {
+		if (ArrayUtil.isEmpty(exceptions)) {
 			return trimLeading(s);
 		}
 
@@ -3803,7 +4282,7 @@ public class StringUtil {
 			return s;
 		}
 
-		if ((exceptions == null) || (exceptions.length == 0)) {
+		if (ArrayUtil.isEmpty(exceptions)) {
 			return trimTrailing(s);
 		}
 
@@ -3869,12 +4348,7 @@ public class StringUtil {
 	 * @see    String#toUpperCase()
 	 */
 	public static String upperCase(String s) {
-		if (s == null) {
-			return null;
-		}
-		else {
-			return s.toUpperCase();
-		}
+		return toUpperCase(s);
 	}
 
 	/**
@@ -3902,6 +4376,130 @@ public class StringUtil {
 	 */
 	public static String valueOf(Object obj) {
 		return String.valueOf(obj);
+	}
+
+	public static boolean wildcardMatches(
+		String s, String wildcard, char singleWildcardCharacter,
+		char multipleWildcardCharacter, char escapeWildcardCharacter,
+		boolean caseSensitive) {
+
+		if (!caseSensitive) {
+			s = toLowerCase(s);
+			wildcard = toLowerCase(wildcard);
+		}
+
+		// Update the wildcard, single whildcard character, and multiple
+		// wildcard character so that they no longer have escaped wildcard
+		// characters
+
+		int index = wildcard.indexOf(escapeWildcardCharacter);
+
+		if (index != -1) {
+
+			// Search for safe wildcard replacement
+
+			char newSingleWildcardCharacter = 0;
+
+			while (wildcard.indexOf(newSingleWildcardCharacter) != -1) {
+				newSingleWildcardCharacter++;
+			}
+
+			char newMultipleWildcardCharacter =
+				(char)(newSingleWildcardCharacter + 1);
+
+			while (wildcard.indexOf(newMultipleWildcardCharacter) != -1) {
+				newMultipleWildcardCharacter++;
+			}
+
+			// Purify
+
+			StringBuilder sb = new StringBuilder(wildcard);
+
+			for (int i = 0; i < sb.length(); i++) {
+				char c = sb.charAt(i);
+
+				if (c == escapeWildcardCharacter) {
+					sb.deleteCharAt(i);
+				}
+				else if (c == singleWildcardCharacter) {
+					sb.setCharAt(i, newSingleWildcardCharacter);
+				}
+				else if (c == multipleWildcardCharacter) {
+					sb.setCharAt(i, newMultipleWildcardCharacter);
+				}
+			}
+
+			wildcard = sb.toString();
+
+			singleWildcardCharacter = newSingleWildcardCharacter;
+			multipleWildcardCharacter = newMultipleWildcardCharacter;
+		}
+
+		// Align head
+
+		for (index = 0; index < s.length(); index++) {
+			if (index >= wildcard.length()) {
+				return false;
+			}
+
+			char c = wildcard.charAt(index);
+
+			if (c == multipleWildcardCharacter) {
+				break;
+			}
+
+			if ((s.charAt(index) != c) && (c != singleWildcardCharacter)) {
+				return false;
+			}
+		}
+
+		// Match body
+
+		int sIndex = index;
+		int wildcardIndex = index;
+
+		int matchPoint = 0;
+		int comparePoint = 0;
+
+		while (sIndex < s.length()) {
+			char c = wildcard.charAt(wildcardIndex);
+
+			if (c == multipleWildcardCharacter) {
+				if (++wildcardIndex == wildcard.length()) {
+					return true;
+				}
+
+				matchPoint = wildcardIndex;
+				comparePoint = sIndex + 1;
+			}
+			else if ((c == s.charAt(sIndex)) ||
+					 (c == singleWildcardCharacter)) {
+
+				sIndex++;
+				wildcardIndex++;
+			}
+			else {
+				wildcardIndex = matchPoint;
+				sIndex = comparePoint++;
+			}
+		}
+
+		// Match tail
+
+		while (wildcardIndex < wildcard.length()) {
+			if (wildcard.charAt(wildcardIndex) != multipleWildcardCharacter) {
+				break;
+			}
+
+			wildcardIndex++;
+		}
+
+		if (wildcardIndex == wildcard.length()) {
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 
 	public static String wrap(String text) {
@@ -3940,8 +4538,8 @@ public class StringUtil {
 
 				do {
 					matcher.appendReplacement(
-						hightlighted, highlight1 + matcher.group() +
-						highlight2);
+						hightlighted,
+						highlight1 + matcher.group() + highlight2);
 				}
 				while (matcher.find());
 
@@ -4058,6 +4656,14 @@ public class StringUtil {
 	private static final char[] _HEX_DIGITS = {
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd',
 		'e', 'f'
+	};
+
+	private static final char[] _RANDOM_STRING_CHAR_TABLE = {
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+		'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
+		'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
+		'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
+		'u', 'v', 'w', 'x', 'y', 'z'
 	};
 
 	private static Log _log = LogFactoryUtil.getLog(StringUtil.class);

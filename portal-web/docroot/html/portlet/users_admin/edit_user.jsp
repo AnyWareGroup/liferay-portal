@@ -131,13 +131,32 @@ else if (selUser != null) {
 	}
 }
 
+List<UserGroupGroupRole> inheritedSiteRoles = Collections.emptyList();
+
+if (selUser != null) {
+	inheritedSiteRoles = UserGroupGroupRoleLocalServiceUtil.getUserGroupGroupRolesByUser(selUser.getUserId());
+}
+
+List<Group> inheritedSites = GroupLocalServiceUtil.getUserGroupsRelatedGroups(userGroups);
+List<Group> organizationsRelatedGroups = Collections.emptyList();
+
+if (!organizations.isEmpty()) {
+	organizationsRelatedGroups = GroupLocalServiceUtil.getOrganizationsRelatedGroups(organizations);
+
+	for (Group group : organizationsRelatedGroups) {
+		if (!inheritedSites.contains(group)) {
+			inheritedSites.add(group);
+		}
+	}
+}
+
 List<Group> allGroups = new ArrayList<Group>();
 
 allGroups.addAll(groups);
+allGroups.addAll(inheritedSites);
+allGroups.addAll(organizationsRelatedGroups);
 allGroups.addAll(GroupLocalServiceUtil.getOrganizationsGroups(organizations));
-allGroups.addAll(GroupLocalServiceUtil.getOrganizationsRelatedGroups(organizations));
 allGroups.addAll(GroupLocalServiceUtil.getUserGroupsGroups(userGroups));
-allGroups.addAll(GroupLocalServiceUtil.getUserGroupsRelatedGroups(userGroups));
 
 String[] mainSections = PropsValues.USERS_FORM_ADD_MAIN;
 String[] identificationSections = PropsValues.USERS_FORM_ADD_IDENTIFICATION;
@@ -157,6 +176,16 @@ if (selUser != null) {
 }
 
 String[][] categorySections = {mainSections, identificationSections, miscellaneousSections};
+
+if (organizations.size() == 1) {
+	UsersAdminUtil.addPortletBreadcrumbEntries(organizations.get(0), request, renderResponse);
+}
+
+if (selUser != null) {
+	if (!portletName.equals(PortletKeys.MY_ACCOUNT)) {
+		PortalUtil.addPortletBreadcrumbEntry(request, selUser.getFullName(), null);
+	}
+}
 %>
 
 <liferay-ui:error exception="<%= CompanyMaxUsersException.class %>" message="unable-to-create-user-account-because-the-maximum-number-of-users-has-been-reached" />
@@ -167,21 +196,31 @@ String[][] categorySections = {mainSections, identificationSections, miscellaneo
 			<liferay-util:param name="toolbarItem" value='<%= (selUser == null) ? "add" : "view" %>' />
 		</liferay-util:include>
 	</aui:nav-bar>
+
+	<div id="breadcrumb">
+		<liferay-ui:breadcrumb showCurrentGroup="<%= false %>" showCurrentPortlet="<%= false %>" showGuestGroup="<%= false %>" showLayout="<%= false %>" showPortletBreadcrumb="<%= true %>" />
+	</div>
+
+	<liferay-ui:header
+		backURL="<%= backURL %>"
+		escapeXml="<%= false %>"
+		localizeTitle="<%= (selUser == null) %>"
+		title='<%= (selUser == null) ? "add-user" : LanguageUtil.format(pageContext, "edit-user-x", HtmlUtil.escape(selUser.getFullName()), false) %>'
+	/>
 </c:if>
 
-<liferay-ui:header
-	backURL="<%= backURL %>"
-	localizeTitle="<%= (selUser == null) %>"
-	title='<%= (selUser == null) ? "new-user" : selUser.getFullName() %>'
-/>
+<portlet:actionURL var="editUserActionURL">
+	<portlet:param name="struts_action" value="/users_admin/edit_user" />
+</portlet:actionURL>
 
-<%
-String taglibOnSubmit = "event.preventDefault(); " + renderResponse.getNamespace() + "saveUser('" + ((selUser == null) ? Constants.ADD : Constants.UPDATE) + "');";
-%>
+<portlet:renderURL var="editUserRenderURL">
+	<portlet:param name="struts_action" value="/users_admin/edit_user" />
+	<portlet:param name="backURL" value="<%= backURL %>" />
+</portlet:renderURL>
 
-<aui:form method="post" name="fm" onSubmit="<%= taglibOnSubmit %>">
-	<aui:input name="<%= Constants.CMD %>" type="hidden" />
-	<aui:input name="redirect" type="hidden" />
+<aui:form action="<%= editUserActionURL %>" method="post" name="fm">
+	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (selUser == null) ? Constants.ADD : Constants.UPDATE %>" />
+	<aui:input name="redirect" type="hidden" value="<%= editUserRenderURL %>" />
 	<aui:input name="backURL" type="hidden" value="<%= backURL %>" />
 	<aui:input name="p_u_i_d" type="hidden" value="<%= (selUser != null) ? selUser.getUserId() : 0 %>" />
 
@@ -190,10 +229,12 @@ String taglibOnSubmit = "event.preventDefault(); " + renderResponse.getNamespace
 	request.setAttribute("user.selContact", selContact);
 	request.setAttribute("user.passwordPolicy", passwordPolicy);
 	request.setAttribute("user.groups", groups);
+	request.setAttribute("user.inheritedSites", inheritedSites);
 	request.setAttribute("user.organizations", organizations);
 	request.setAttribute("user.roles", roles);
 	request.setAttribute("user.organizationRoles", organizationRoles);
 	request.setAttribute("user.siteRoles", siteRoles);
+	request.setAttribute("user.inheritedSiteRoles", inheritedSiteRoles);
 	request.setAttribute("user.userGroups", userGroups);
 	request.setAttribute("user.allGroups", allGroups);
 
@@ -266,30 +307,9 @@ if (selUser != null) {
 	function <portlet:namespace />saveUser(cmd) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = cmd;
 
-		var redirect = "<portlet:renderURL><portlet:param name="struts_action" value="/users_admin/edit_user" /><portlet:param name="backURL" value="<%= backURL %>"></portlet:param></portlet:renderURL>";
-
-		document.<portlet:namespace />fm.<portlet:namespace />redirect.value = redirect;
-
-		submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/users_admin/edit_user" /></portlet:actionURL>");
+		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />screenName);
-	</c:if>
 </aui:script>
-
-<%
-if (selUser != null) {
-	if (!portletName.equals(PortletKeys.MY_ACCOUNT)) {
-		PortalUtil.addPortletBreadcrumbEntry(request, selUser.getFullName(), null);
-	}
-
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "edit"), currentURL);
-}
-else {
-	PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "add-user"), currentURL);
-}
-%>
 
 <%!
 private static final String[] _CATEGORY_NAMES = {"user-information", "identification", "miscellaneous"};

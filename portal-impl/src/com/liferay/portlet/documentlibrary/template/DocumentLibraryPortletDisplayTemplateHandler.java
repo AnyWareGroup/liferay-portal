@@ -54,7 +54,7 @@ public class DocumentLibraryPortletDisplayTemplateHandler
 
 	@Override
 	public String getResourceName() {
-		return "com.liferay.portlet.documentlibrary";
+		return PortletKeys.DOCUMENT_LIBRARY;
 	}
 
 	@Override
@@ -72,10 +72,12 @@ public class DocumentLibraryPortletDisplayTemplateHandler
 
 		templateVariableGroup.addCollectionVariable(
 			"documents", List.class, PortletDisplayTemplateConstants.ENTRIES,
-			"document", FileEntry.class, "curFileEntry");
+			"document", FileEntry.class, "curFileEntry", "title");
+
+		String[] restrictedVariables = getRestrictedVariables(language);
 
 		TemplateVariableGroup documentServicesTemplateVariableGroup =
-			new TemplateVariableGroup("document-services");
+			new TemplateVariableGroup("document-services", restrictedVariables);
 
 		documentServicesTemplateVariableGroup.setAutocompleteEnabled(false);
 

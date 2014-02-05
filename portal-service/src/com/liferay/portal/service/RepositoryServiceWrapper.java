@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link RepositoryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       RepositoryService
+ * @author Brian Wing Shun Chan
+ * @see RepositoryService
  * @generated
  */
+@ProviderType
 public class RepositoryServiceWrapper implements RepositoryService,
 	ServiceWrapper<RepositoryService> {
 	public RepositoryServiceWrapper(RepositoryService repositoryService) {
@@ -148,6 +151,7 @@ public class RepositoryServiceWrapper implements RepositoryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RepositoryService getWrappedRepositoryService() {
 		return _repositoryService;
 	}
@@ -155,6 +159,7 @@ public class RepositoryServiceWrapper implements RepositoryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRepositoryService(RepositoryService repositoryService) {
 		_repositoryService = repositoryService;
 	}

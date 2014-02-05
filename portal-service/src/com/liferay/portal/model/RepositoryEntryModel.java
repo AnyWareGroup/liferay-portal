@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.RepositoryEntryModelImpl
  * @generated
  */
+@ProviderType
 public interface RepositoryEntryModel extends BaseModel<RepositoryEntry>,
-	StagedGroupedModel {
+	MVCCModel, StagedGroupedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -58,6 +61,22 @@ public interface RepositoryEntryModel extends BaseModel<RepositoryEntry>,
 	 * @param primaryKey the primary key of this repository entry
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this repository entry.
+	 *
+	 * @return the mvcc version of this repository entry
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this repository entry.
+	 *
+	 * @param mvccVersion the mvcc version of this repository entry
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this repository entry.

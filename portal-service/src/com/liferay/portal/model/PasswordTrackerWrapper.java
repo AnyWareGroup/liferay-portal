@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link PasswordTracker}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PasswordTracker
+ * @author Brian Wing Shun Chan
+ * @see PasswordTracker
  * @generated
  */
+@ProviderType
 public class PasswordTrackerWrapper implements PasswordTracker,
 	ModelWrapper<PasswordTracker> {
 	public PasswordTrackerWrapper(PasswordTracker passwordTracker) {
@@ -47,6 +52,7 @@ public class PasswordTrackerWrapper implements PasswordTracker,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("passwordTrackerId", getPasswordTrackerId());
 		attributes.put("userId", getUserId());
 		attributes.put("createDate", getCreateDate());
@@ -57,6 +63,12 @@ public class PasswordTrackerWrapper implements PasswordTracker,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long passwordTrackerId = (Long)attributes.get("passwordTrackerId");
 
 		if (passwordTrackerId != null) {
@@ -100,6 +112,26 @@ public class PasswordTrackerWrapper implements PasswordTracker,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_passwordTracker.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this password tracker.
+	*
+	* @return the mvcc version of this password tracker
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _passwordTracker.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this password tracker.
+	*
+	* @param mvccVersion the mvcc version of this password tracker
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_passwordTracker.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -309,9 +341,30 @@ public class PasswordTrackerWrapper implements PasswordTracker,
 		_passwordTracker.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PasswordTrackerWrapper)) {
+			return false;
+		}
+
+		PasswordTrackerWrapper passwordTrackerWrapper = (PasswordTrackerWrapper)obj;
+
+		if (Validator.equals(_passwordTracker,
+					passwordTrackerWrapper._passwordTracker)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PasswordTracker getWrappedPasswordTracker() {
 		return _passwordTracker;
 	}
@@ -319,6 +372,16 @@ public class PasswordTrackerWrapper implements PasswordTracker,
 	@Override
 	public PasswordTracker getWrappedModel() {
 		return _passwordTracker;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _passwordTracker.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _passwordTracker.isFinderCacheEnabled();
 	}
 
 	@Override

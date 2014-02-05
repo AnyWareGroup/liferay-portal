@@ -51,8 +51,10 @@ import java.util.Map;
 public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 
 	/**
-	 * @deprecated As of 6.1.0
+	 * @deprecated As of 6.1.0 {@link #addVocabulary(String, Map, Map, String,
+	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public AssetVocabulary addVocabulary(
 			Map<Locale, String> titleMap, Map<Locale, String> descriptionMap,
@@ -93,6 +95,18 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 			getUserId(), title, serviceContext);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, Replaced by {@link #deleteVocabularies(long[],
+	 *             ServiceContext)}
+	 */
+	@Deprecated
+	@Override
+	public void deleteVocabularies(long[] vocabularyIds)
+		throws PortalException, SystemException {
+
+		deleteVocabularies(vocabularyIds, null);
+	}
+
 	@Override
 	public List<AssetVocabulary> deleteVocabularies(
 			long[] vocabularyIds, ServiceContext serviceContext)
@@ -109,6 +123,10 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 				assetVocabularyLocalService.deleteVocabulary(vocabularyId);
 			}
 			catch (PortalException pe) {
+				if (serviceContext == null) {
+					return null;
+				}
+
 				if (serviceContext.isFailOnPortalException()) {
 					throw pe;
 				}
@@ -196,7 +214,7 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 			OrderByComparator obc)
 		throws SystemException {
 
-		return assetVocabularyFinder.filterFindByG_N(
+		return assetVocabularyPersistence.filterFindByG_LikeN(
 			groupId, name, start, end, obc);
 	}
 
@@ -209,13 +227,13 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 	public int getGroupVocabulariesCount(long groupId, String name)
 		throws SystemException {
 
-		return assetVocabularyFinder.filterCountByG_N(groupId, name);
+		return assetVocabularyPersistence.filterCountByG_LikeN(groupId, name);
 	}
 
 	@Override
 	public AssetVocabularyDisplay getGroupVocabulariesDisplay(
 			long groupId, String name, int start, int end,
-			OrderByComparator obc)
+			boolean addDefaultVocabulary, OrderByComparator obc)
 		throws PortalException, SystemException {
 
 		List<AssetVocabulary> vocabularies;
@@ -232,7 +250,9 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 			total = getGroupVocabulariesCount(groupId);
 		}
 
-		if (total == 0) {
+		if (addDefaultVocabulary && (total == 0) &&
+			(assetVocabularyPersistence.countByGroupId(groupId) == 0)) {
+
 			vocabularies = new ArrayList<AssetVocabulary>();
 
 			vocabularies.add(
@@ -244,6 +264,19 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 		return new AssetVocabularyDisplay(vocabularies, total, start, end);
 	}
 
+	@Override
+	public AssetVocabularyDisplay getGroupVocabulariesDisplay(
+			long groupId, String name, int start, int end,
+			OrderByComparator obc)
+		throws PortalException, SystemException {
+
+		return getGroupVocabulariesDisplay(
+			groupId, name, start, end, false, obc);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, with no direct replacement
+	 */
 	@Deprecated
 	@Override
 	public JSONObject getJSONGroupVocabularies(
@@ -302,8 +335,10 @@ public class AssetVocabularyServiceImpl extends AssetVocabularyServiceBaseImpl {
 	}
 
 	/**
-	 * @deprecated As of 6.1.0
+	 * @deprecated As of 6.1.0, {@link #updateVocabulary(long, String, Map, Map,
+	 *             String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public AssetVocabulary updateVocabulary(
 			long vocabularyId, Map<Locale, String> titleMap,

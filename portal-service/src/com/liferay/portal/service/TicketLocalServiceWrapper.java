@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link TicketLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       TicketLocalService
+ * @author Brian Wing Shun Chan
+ * @see TicketLocalService
  * @generated
  */
+@ProviderType
 public class TicketLocalServiceWrapper implements TicketLocalService,
 	ServiceWrapper<TicketLocalService> {
 	public TicketLocalServiceWrapper(TicketLocalService ticketLocalService) {
@@ -161,6 +164,22 @@ public class TicketLocalServiceWrapper implements TicketLocalService,
 		return _ticketLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ticketLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.Ticket fetchTicket(long ticketId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -281,6 +300,7 @@ public class TicketLocalServiceWrapper implements TicketLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public TicketLocalService getWrappedTicketLocalService() {
 		return _ticketLocalService;
 	}
@@ -288,6 +308,7 @@ public class TicketLocalServiceWrapper implements TicketLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedTicketLocalService(
 		TicketLocalService ticketLocalService) {
 		_ticketLocalService = ticketLocalService;

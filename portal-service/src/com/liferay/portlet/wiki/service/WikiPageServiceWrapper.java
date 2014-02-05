@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.wiki.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link WikiPageService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiPageService
+ * @author Brian Wing Shun Chan
+ * @see WikiPageService
  * @generated
  */
+@ProviderType
 public class WikiPageServiceWrapper implements WikiPageService,
 	ServiceWrapper<WikiPageService> {
 	public WikiPageServiceWrapper(WikiPageService wikiPageService) {
@@ -120,6 +123,15 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	}
 
 	@Override
+	public void copyPageAttachments(long templateNodeId,
+		java.lang.String templateTitle, long nodeId, java.lang.String title)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_wikiPageService.copyPageAttachments(templateNodeId, templateTitle,
+			nodeId, title);
+	}
+
+	@Override
 	public void deletePage(long nodeId, java.lang.String title)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -130,6 +142,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	* @deprecated As of 6.2.0 replaced by {@link #discardDraft(long, String,
 	double)}
 	*/
+	@Deprecated
 	@Override
 	public void deletePage(long nodeId, java.lang.String title, double version)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -176,6 +189,14 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	}
 
 	@Override
+	public com.liferay.portlet.wiki.model.WikiPage fetchPage(long nodeId,
+		java.lang.String title, double version)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPageService.fetchPage(nodeId, title, version);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getChildren(
 		long groupId, long nodeId, boolean head, java.lang.String parentTitle)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -203,6 +224,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	* @deprecated As of 6.2.0, replaced by {@link #getNodePagesRSS(long, int,
 	String, double, String, String, String, String)}
 	*/
+	@Deprecated
 	@Override
 	public java.lang.String getNodePagesRSS(long nodeId, int max,
 		java.lang.String type, double version, java.lang.String displayStyle,
@@ -302,6 +324,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	String, int, String, double, String, String, String, String,
 	java.util.Locale)}
 	*/
+	@Deprecated
 	@Override
 	public java.lang.String getPagesRSS(long companyId, long nodeId,
 		java.lang.String title, int max, java.lang.String type, double version,
@@ -360,8 +383,8 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	}
 
 	@Override
-	public long movePageAttachmentToTrash(long nodeId, java.lang.String title,
-		java.lang.String fileName)
+	public com.liferay.portal.kernel.repository.model.FileEntry movePageAttachmentToTrash(
+		long nodeId, java.lang.String title, java.lang.String fileName)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _wikiPageService.movePageAttachmentToTrash(nodeId, title,
@@ -369,18 +392,19 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	}
 
 	@Override
-	public void movePageToTrash(long nodeId, java.lang.String title)
+	public com.liferay.portlet.wiki.model.WikiPage movePageToTrash(
+		long nodeId, java.lang.String title)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_wikiPageService.movePageToTrash(nodeId, title);
+		return _wikiPageService.movePageToTrash(nodeId, title);
 	}
 
 	@Override
-	public void movePageToTrash(long nodeId, java.lang.String title,
-		double version)
+	public com.liferay.portlet.wiki.model.WikiPage movePageToTrash(
+		long nodeId, java.lang.String title, double version)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_wikiPageService.movePageToTrash(nodeId, title, version);
+		return _wikiPageService.movePageToTrash(nodeId, title, version);
 	}
 
 	@Override
@@ -438,6 +462,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WikiPageService getWrappedWikiPageService() {
 		return _wikiPageService;
 	}
@@ -445,6 +470,7 @@ public class WikiPageServiceWrapper implements WikiPageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWikiPageService(WikiPageService wikiPageService) {
 		_wikiPageService = wikiPageService;
 	}

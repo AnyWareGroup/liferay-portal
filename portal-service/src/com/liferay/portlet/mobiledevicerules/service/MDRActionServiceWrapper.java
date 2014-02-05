@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.mobiledevicerules.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link MDRActionService}.
  *
- * @author    Edward C. Han
- * @see       MDRActionService
+ * @author Edward C. Han
+ * @see MDRActionService
  * @generated
  */
+@ProviderType
 public class MDRActionServiceWrapper implements MDRActionService,
 	ServiceWrapper<MDRActionService> {
 	public MDRActionServiceWrapper(MDRActionService mdrActionService) {
@@ -129,6 +132,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MDRActionService getWrappedMDRActionService() {
 		return _mdrActionService;
 	}
@@ -136,6 +140,7 @@ public class MDRActionServiceWrapper implements MDRActionService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMDRActionService(MDRActionService mdrActionService) {
 		_mdrActionService = mdrActionService;
 	}

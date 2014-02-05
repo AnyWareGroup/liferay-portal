@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link UserIdMapper}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       UserIdMapper
+ * @author Brian Wing Shun Chan
+ * @see UserIdMapper
  * @generated
  */
+@ProviderType
 public class UserIdMapperWrapper implements UserIdMapper,
 	ModelWrapper<UserIdMapper> {
 	public UserIdMapperWrapper(UserIdMapper userIdMapper) {
@@ -46,6 +51,7 @@ public class UserIdMapperWrapper implements UserIdMapper,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("userIdMapperId", getUserIdMapperId());
 		attributes.put("userId", getUserId());
 		attributes.put("type", getType());
@@ -57,6 +63,12 @@ public class UserIdMapperWrapper implements UserIdMapper,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long userIdMapperId = (Long)attributes.get("userIdMapperId");
 
 		if (userIdMapperId != null) {
@@ -106,6 +118,26 @@ public class UserIdMapperWrapper implements UserIdMapper,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_userIdMapper.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this user ID mapper.
+	*
+	* @return the mvcc version of this user ID mapper
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _userIdMapper.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this user ID mapper.
+	*
+	* @param mvccVersion the mvcc version of this user ID mapper
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_userIdMapper.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -334,9 +366,29 @@ public class UserIdMapperWrapper implements UserIdMapper,
 		_userIdMapper.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserIdMapperWrapper)) {
+			return false;
+		}
+
+		UserIdMapperWrapper userIdMapperWrapper = (UserIdMapperWrapper)obj;
+
+		if (Validator.equals(_userIdMapper, userIdMapperWrapper._userIdMapper)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public UserIdMapper getWrappedUserIdMapper() {
 		return _userIdMapper;
 	}
@@ -344,6 +396,16 @@ public class UserIdMapperWrapper implements UserIdMapper,
 	@Override
 	public UserIdMapper getWrappedModel() {
 		return _userIdMapper;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _userIdMapper.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _userIdMapper.isFinderCacheEnabled();
 	}
 
 	@Override

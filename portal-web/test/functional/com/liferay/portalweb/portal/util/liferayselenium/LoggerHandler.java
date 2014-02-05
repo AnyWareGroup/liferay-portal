@@ -39,8 +39,23 @@ public class LoggerHandler implements InvocationHandler {
 			if (methodName.equals("getPrimaryTestSuiteName") ||
 				methodName.equals("setPrimaryTestSuiteName")) {
 			}
+			else if (methodName.equals("pauseLoggerCheck")) {
+				_logger.pauseLoggerCheck();
+			}
+			else if (methodName.equals("saveScreenshot")) {
+				_logger.logScreenShots(arguments);
+			}
+			else if (methodName.equals("sendActionLogger")) {
+				_logger.logActionCommand(arguments);
+			}
 			else if (methodName.equals("sendLogger")) {
 				_logger.send(arguments);
+			}
+			else if (methodName.equals("sendTestCaseCommandLogger")) {
+				_logger.logTestCaseCommand(arguments);
+			}
+			else if (methodName.equals("sendTestCaseHeaderLogger")) {
+				_logger.logTestCaseHeader(arguments);
 			}
 			else if (methodName.equals("startLogger")) {
 				_logger.start();
@@ -49,15 +64,23 @@ public class LoggerHandler implements InvocationHandler {
 				_logger.stop();
 			}
 			else {
-				_logger.logCommand(method, arguments);
+				_logger.logSeleniumCommand(method, arguments);
 			}
 
 			return method.invoke(_liferaySelenium, arguments);
 		}
 		catch (InvocationTargetException ite) {
-			_logger.logError(method, arguments);
+			Throwable throwable = ite.getCause();
 
-			throw ite.getTargetException();
+			if (methodName.equals("stop") || methodName.equals("stopLogger")) {
+				System.out.println("Unable to stop " + throwable.getMessage());
+
+				return null;
+			}
+
+			_logger.logError(method, arguments, throwable);
+
+			throw throwable;
 		}
 	}
 

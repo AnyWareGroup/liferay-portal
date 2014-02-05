@@ -229,6 +229,9 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		attributes.put("repoGroupId", getRepoGroupId());
 		attributes.put("repoArtifactId", getRepoArtifactId());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -331,8 +334,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getProductEntryId() {
 		return _productEntryId;
 	}
@@ -342,8 +345,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_productEntryId = productEntryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -365,8 +368,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -388,8 +391,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -421,8 +424,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		return _originalUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -437,8 +440,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -448,8 +451,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -461,8 +464,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -479,8 +482,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_name = name;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -495,8 +498,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_type = type;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getTags() {
 		if (_tags == null) {
 			return StringPool.BLANK;
@@ -511,8 +514,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_tags = tags;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getShortDescription() {
 		if (_shortDescription == null) {
 			return StringPool.BLANK;
@@ -527,8 +530,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_shortDescription = shortDescription;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getLongDescription() {
 		if (_longDescription == null) {
 			return StringPool.BLANK;
@@ -543,8 +546,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_longDescription = longDescription;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getPageURL() {
 		if (_pageURL == null) {
 			return StringPool.BLANK;
@@ -559,8 +562,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_pageURL = pageURL;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getAuthor() {
 		if (_author == null) {
 			return StringPool.BLANK;
@@ -575,8 +578,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		_author = author;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getRepoGroupId() {
 		if (_repoGroupId == null) {
 			return StringPool.BLANK;
@@ -601,8 +604,8 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 		return GetterUtil.getString(_originalRepoGroupId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getRepoArtifactId() {
 		if (_repoArtifactId == null) {
 			return StringPool.BLANK;
@@ -729,6 +732,16 @@ public class SCProductEntryModelImpl extends BaseModelImpl<SCProductEntry>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

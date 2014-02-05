@@ -20,9 +20,6 @@ import com.liferay.portal.kernel.cache.PortalCache;
 
 import java.io.Serializable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,21 +39,6 @@ public class EhcachePortalCache<K extends Serializable, V>
 
 	public EhcachePortalCache(Ehcache ehcache) {
 		_ehcache = ehcache;
-	}
-
-	@Override
-	public void destroy() {
-	}
-
-	@Override
-	public Collection<V> get(Collection<K> keys) {
-		List<V> values = new ArrayList<V>(keys.size());
-
-		for (K key : keys) {
-			values.add(get(key));
-		}
-
-		return values;
 	}
 
 	@Override
@@ -93,6 +75,22 @@ public class EhcachePortalCache<K extends Serializable, V>
 	}
 
 	@Override
+	public void putQuiet(K key, V value) {
+		Element element = new Element(key, value);
+
+		_ehcache.putQuiet(element);
+	}
+
+	@Override
+	public void putQuiet(K key, V value, int timeToLive) {
+		Element element = new Element(key, value);
+
+		element.setTimeToLive(timeToLive);
+
+		_ehcache.putQuiet(element);
+	}
+
+	@Override
 	public void registerCacheListener(CacheListener<K, V> cacheListener) {
 		registerCacheListener(cacheListener, CacheListenerScope.ALL);
 	}
@@ -109,10 +107,12 @@ public class EhcachePortalCache<K extends Serializable, V>
 		CacheEventListener cacheEventListener =
 			new PortalCacheCacheEventListener<K, V>(cacheListener, this);
 
-		_cacheEventListeners.put(cacheListener, cacheEventListener);
-
 		NotificationScope notificationScope = getNotificationScope(
 			cacheListenerScope);
+
+		_cacheEventListeners.put(
+			cacheListener,
+			new RegistrationPair(cacheEventListener, notificationScope));
 
 		RegisteredEventListeners registeredEventListeners =
 			_ehcache.getCacheEventNotificationService();
@@ -133,21 +133,33 @@ public class EhcachePortalCache<K extends Serializable, V>
 
 	public void setEhcache(Ehcache ehcache) {
 		_ehcache = ehcache;
+
+		RegisteredEventListeners registeredEventListeners =
+			ehcache.getCacheEventNotificationService();
+
+		for (RegistrationPair registrationPair :
+				_cacheEventListeners.values()) {
+
+			registeredEventListeners.registerListener(
+				registrationPair._cacheEventListener,
+				registrationPair._notificationScope);
+		}
 	}
 
 	@Override
 	public void unregisterCacheListener(CacheListener<K, V> cacheListener) {
-		CacheEventListener cacheEventListener = _cacheEventListeners.get(
+		RegistrationPair registrationPair = _cacheEventListeners.remove(
 			cacheListener);
 
-		if (cacheEventListener != null) {
-			RegisteredEventListeners registeredEventListeners =
-				_ehcache.getCacheEventNotificationService();
-
-			registeredEventListeners.unregisterListener(cacheEventListener);
+		if (registrationPair == null) {
+			return;
 		}
 
-		_cacheEventListeners.remove(cacheListener);
+		RegisteredEventListeners registeredEventListeners =
+			_ehcache.getCacheEventNotificationService();
+
+		registeredEventListeners.unregisterListener(
+			registrationPair._cacheEventListener);
 	}
 
 	@Override
@@ -155,10 +167,11 @@ public class EhcachePortalCache<K extends Serializable, V>
 		RegisteredEventListeners registeredEventListeners =
 			_ehcache.getCacheEventNotificationService();
 
-		for (CacheEventListener cacheEventListener :
+		for (RegistrationPair registrationPair :
 				_cacheEventListeners.values()) {
 
-			registeredEventListeners.unregisterListener(cacheEventListener);
+			registeredEventListeners.unregisterListener(
+				registrationPair._cacheEventListener);
 		}
 
 		_cacheEventListeners.clear();
@@ -178,8 +191,23 @@ public class EhcachePortalCache<K extends Serializable, V>
 		}
 	}
 
-	private Map<CacheListener<K, V>, CacheEventListener> _cacheEventListeners =
-		new ConcurrentHashMap<CacheListener<K, V>, CacheEventListener>();
+	private Map<CacheListener<K, V>, RegistrationPair> _cacheEventListeners =
+		new ConcurrentHashMap<CacheListener<K, V>, RegistrationPair>();
 	private Ehcache _ehcache;
+
+	private static class RegistrationPair {
+
+		public RegistrationPair(
+			CacheEventListener cacheEventListener,
+			NotificationScope notificationScope) {
+
+			_cacheEventListener = cacheEventListener;
+			_notificationScope = notificationScope;
+		}
+
+		private CacheEventListener _cacheEventListener;
+		private NotificationScope _notificationScope;
+
+	}
 
 }

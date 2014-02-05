@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatalists.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.dynamicdatalists.service.impl.DDLRecordSetServiceImpl
  * @generated
  */
+@ProviderType
 public class DDLRecordSetServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -80,6 +83,42 @@ public class DDLRecordSetServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getRecordSet(recordSetId);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
+		long companyId, long groupId, java.lang.String keywords, int scope,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .search(companyId, groupId, keywords, scope, start, end,
+			orderByComparator);
+	}
+
+	public static java.util.List<com.liferay.portlet.dynamicdatalists.model.DDLRecordSet> search(
+		long companyId, long groupId, java.lang.String name,
+		java.lang.String description, int scope, boolean andOperator,
+		int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .search(companyId, groupId, name, description, scope,
+			andOperator, start, end, orderByComparator);
+	}
+
+	public static int searchCount(long companyId, long groupId,
+		java.lang.String keywords, int scope)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().searchCount(companyId, groupId, keywords, scope);
+	}
+
+	public static int searchCount(long companyId, long groupId,
+		java.lang.String name, java.lang.String description, int scope,
+		boolean andOperator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .searchCount(companyId, groupId, name, description, scope,
+			andOperator);
 	}
 
 	public static com.liferay.portlet.dynamicdatalists.model.DDLRecordSet updateMinDisplayRows(
@@ -132,6 +171,7 @@ public class DDLRecordSetServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DDLRecordSetService service) {
 	}
 

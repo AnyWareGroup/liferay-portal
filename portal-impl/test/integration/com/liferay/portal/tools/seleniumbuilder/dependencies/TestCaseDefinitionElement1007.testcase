@@ -1,5 +1,5 @@
-<definition>
-	<command name="name">
+<definition component-name="portal-collaboration">
+	<command name="name" priority="5">
 		<execute macro="macro" />
 	</command>
-<definition>
+<definition component-name="portal-collaboration">

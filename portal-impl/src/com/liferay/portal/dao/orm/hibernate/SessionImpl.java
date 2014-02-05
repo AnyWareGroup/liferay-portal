@@ -84,9 +84,9 @@ public class SessionImpl implements Session {
 		try {
 			queryString = SQLTransformer.transformFromJpqlToHql(queryString);
 
-			return DoPrivilegedUtil.wrap(
-				new QueryImpl(_session.createQuery(queryString), strictName),
-				true);
+			return DoPrivilegedUtil.wrapWhenActive(
+				new QueryImpl(_session.createQuery(queryString), strictName)
+			);
 		}
 		catch (Exception e) {
 			throw ExceptionTranslator.translate(e);
@@ -105,10 +105,40 @@ public class SessionImpl implements Session {
 		try {
 			queryString = SQLTransformer.transformFromJpqlToHql(queryString);
 
-			return DoPrivilegedUtil.wrap(
+			return DoPrivilegedUtil.wrapWhenActive(
 				new SQLQueryImpl(
-					_session.createSQLQuery(queryString), strictName),
-				true);
+					_session.createSQLQuery(queryString), strictName)
+			);
+		}
+		catch (Exception e) {
+			throw ExceptionTranslator.translate(e);
+		}
+	}
+
+	@Override
+	public SQLQuery createSynchronizedSQLQuery(String queryString)
+		throws ORMException {
+
+		return createSynchronizedSQLQuery(queryString, true);
+	}
+
+	@Override
+	public SQLQuery createSynchronizedSQLQuery(
+			String queryString, boolean strictName)
+		throws ORMException {
+
+		try {
+			queryString = SQLTransformer.transformFromJpqlToHql(queryString);
+
+			SQLQuery sqlQuery = new SQLQueryImpl(
+				_session.createSQLQuery(queryString), strictName);
+
+			String[] tableNames = SQLQueryTableNamesUtil.getTableNames(
+				queryString);
+
+			sqlQuery.addSynchronizedQuerySpaces(tableNames);
+
+			return DoPrivilegedUtil.wrapWhenActive(sqlQuery);
 		}
 		catch (Exception e) {
 			throw ExceptionTranslator.translate(e);
@@ -162,8 +192,9 @@ public class SessionImpl implements Session {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
-	@Override
+	@Deprecated
 	@NotPrivileged
+	@Override
 	public Object get(Class<?> clazz, Serializable id, LockMode lockMode)
 		throws ORMException {
 
@@ -200,7 +231,7 @@ public class SessionImpl implements Session {
 			return _session.merge(object);
 		}
 		catch (Exception e) {
-			throw ExceptionTranslator.translate(e);
+			throw ExceptionTranslator.translate(e, _session, object);
 		}
 	}
 
@@ -222,7 +253,7 @@ public class SessionImpl implements Session {
 			_session.saveOrUpdate(object);
 		}
 		catch (Exception e) {
-			throw ExceptionTranslator.translate(e);
+			throw ExceptionTranslator.translate(e, _session, object);
 		}
 	}
 

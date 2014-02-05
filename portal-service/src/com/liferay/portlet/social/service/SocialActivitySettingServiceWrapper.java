@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialActivitySettingService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivitySettingService
+ * @author Brian Wing Shun Chan
+ * @see SocialActivitySettingService
  * @generated
  */
+@ProviderType
 public class SocialActivitySettingServiceWrapper
 	implements SocialActivitySettingService,
 		ServiceWrapper<SocialActivitySettingService> {
@@ -118,6 +121,7 @@ public class SocialActivitySettingServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivitySettingService getWrappedSocialActivitySettingService() {
 		return _socialActivitySettingService;
 	}
@@ -125,6 +129,7 @@ public class SocialActivitySettingServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivitySettingService(
 		SocialActivitySettingService socialActivitySettingService) {
 		_socialActivitySettingService = socialActivitySettingService;

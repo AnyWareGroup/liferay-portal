@@ -178,6 +178,9 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		attributes.put("defaultData", getDefaultData());
 		attributes.put("typeSettings", getTypeSettings());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -226,8 +229,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getColumnId() {
 		return _columnId;
 	}
@@ -237,8 +240,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		_columnId = columnId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -248,8 +251,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		_companyId = companyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getTableId() {
 		return _tableId;
 	}
@@ -271,8 +274,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		return _originalTableId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -297,8 +300,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		return GetterUtil.getString(_originalName);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getType() {
 		return _type;
 	}
@@ -308,8 +311,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		_type = type;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDefaultData() {
 		if (_defaultData == null) {
 			return StringPool.BLANK;
@@ -324,8 +327,8 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 		_defaultData = defaultData;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getTypeSettings() {
 		if (_typeSettings == null) {
 			return StringPool.BLANK;
@@ -409,6 +412,16 @@ public class ExpandoColumnModelImpl extends BaseModelImpl<ExpandoColumn>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

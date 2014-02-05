@@ -17,7 +17,13 @@ AUI.add(
 
 		var STR_EXPANDED = 'expanded';
 
+		var STR_MORE_RESULTS_LABEL = 'moreResultsLabel';
+
 		var STR_PREV_EXPANDED = '_LFR_prevExpanded';
+
+		var STR_MAX_ENTRIES = 'maxEntries';
+
+		var STR_START = 'start';
 
 		var TPL_CHECKED = ' checked="checked" ';
 
@@ -58,6 +64,7 @@ AUI.add(
 		 *
 		 * Optional
 		 * maxEntries {Number}: The maximum number of entries that will be loaded. The default value is -1, which will load all categories.
+		 * moreResultsLabel {String}: The localized label for link "Load more results".
 		 * portalModelResource {boolean}: Whether the asset model is on the portal level.
 		 */
 
@@ -98,11 +105,16 @@ AUI.add(
 						validator: Lang.isNumber,
 						value: -1
 					},
+					moreResultsLabel: {
+						validator: '_isValidString',
+						value: Liferay.Language.get('load-more-results')
+					},
 					singleSelect: {
 						validator: Lang.isBoolean,
 						value: false
 					},
 					title: {
+						validator: '_isValidString',
 						value: Liferay.Language.get('select-categories')
 					},
 					vocabularyIds: {
@@ -239,6 +251,7 @@ AUI.add(
 									id: treeId,
 									label: Liferay.Util.escapeHTML(item.titleCurrentValue),
 									leaf: !item.hasChildren,
+									paginator: instance._getPaginatorConfig(item),
 									type: type
 								};
 
@@ -286,8 +299,8 @@ AUI.add(
 									'$vocabularies = /assetvocabulary/get-vocabularies': {
 										vocabularyIds: vocabularyIds,
 
-										'$categoriesCount = /assetcategory/get-vocabulary-categories-count': {
-											'groupId': themeDisplay.getScopeGroupId(),
+										'$childrenCount = /assetcategory/get-vocabulary-root-categories-count': {
+											'@groupId': '$vocabularies.groupId',
 											'@vocabularyId': '$vocabularies.vocabularyId'
 										}
 									}
@@ -308,7 +321,7 @@ AUI.add(
 										groupIds: groupIds,
 										className: className,
 
-										'$categoriesCount = /assetcategory/get-vocabulary-categories-count': {
+										'$childrenCount = /assetcategory/get-vocabulary-root-categories-count': {
 											'groupId': '$vocabularies.groupId',
 											'@vocabularyId': '$vocabularies.vocabularyId'
 										}
@@ -317,6 +330,28 @@ AUI.add(
 								callback
 							);
 						}
+					},
+
+					_getPaginatorConfig: function(item) {
+						var instance = this;
+
+						var paginatorConfig = {
+							offsetParam: STR_START
+						};
+
+						var maxEntries = instance.get(STR_MAX_ENTRIES);
+
+						if (maxEntries > 0) {
+							paginatorConfig.limit = maxEntries;
+							paginatorConfig.moreResultsLabel = instance.get(STR_MORE_RESULTS_LABEL);
+							paginatorConfig.total = item.childrenCount;
+						}
+						else {
+							paginatorConfig.end = -1;
+							paginatorConfig.start = -1;
+						}
+
+						return paginatorConfig;
 					},
 
 					_getTreeNodeAssetId: function(treeNode) {
@@ -364,7 +399,7 @@ AUI.add(
 								processSearchResults
 							);
 
-							var input = popup.searchField.get('node');
+							var input = popup.searchField;
 
 							input.on('keyup', searchCategoriesTask);
 
@@ -378,6 +413,12 @@ AUI.add(
 						popup.entriesNode.append(searchResults);
 
 						instance._searchBuffer = [];
+					},
+
+					_isValidString: function(value) {
+						var instance = this;
+
+						return Lang.isString(value) && value.length;
 					},
 
 					_onBoundingBoxClick: EMPTY_FN,
@@ -408,6 +449,8 @@ AUI.add(
 						};
 
 						entry[matchKey] = entryMatchKey;
+
+						entry.value = A.Lang.String.unescapeHTML(entry.value);
 
 						instance.entries.add(entry);
 					},
@@ -570,7 +613,7 @@ AUI.add(
 
 						var popup = instance._popup;
 
-						popup.set('title', Liferay.Language.get('categories'));
+						popup.titleNode.html(Liferay.Language.get('categories'));
 
 						popup.entriesNode.addClass(CSS_TAGS_LIST);
 
@@ -596,9 +639,7 @@ AUI.add(
 							instance._bindSearchHandle.detach();
 						}
 
-						var searchField = popup.searchField.get(BOUNDING_BOX);
-
-						instance._bindSearchHandle = searchField.once('focus', instance._initSearch, instance);
+						instance._bindSearchHandle = popup.searchField.once('focus', instance._initSearch, instance);
 					},
 
 					_vocabulariesIterator: function(item, index, collection) {
@@ -619,24 +660,9 @@ AUI.add(
 							id: treeId,
 							label: vocabularyTitle,
 							leaf: false,
+							paginator: instance._getPaginatorConfig(item),
 							type: 'io'
 						};
-
-						var paginatorConfig = {
-							offsetParam: 'start'
-						};
-
-						var maxEntries = instance.get('maxEntries');
-
-						if (maxEntries > 0) {
-							paginatorConfig.limit = maxEntries;
-							paginatorConfig.moreResultsLabel = Liferay.Language.get('load-more-results');
-							paginatorConfig.total = item.categoriesCount;
-						}
-						else {
-							paginatorConfig.end = -1;
-							paginatorConfig.start = -1;
-						}
 
 						instance.TREEVIEWS[vocabularyId] = new A.TreeView(
 							{
@@ -662,8 +688,7 @@ AUI.add(
 									},
 									formatter: A.bind('_formatJSONResult', instance),
 									url: themeDisplay.getPathMain() + '/asset/get_categories'
-								},
-								paginator: paginatorConfig
+								}
 							}
 						).render(popup.entriesNode);
 					}

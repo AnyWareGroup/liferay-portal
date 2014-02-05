@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.asset.service.impl.AssetVocabularyServiceImpl
  * @generated
  */
+@ProviderType
 public class AssetVocabularyServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -57,8 +60,10 @@ public class AssetVocabularyServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 6.1.0
+	* @deprecated As of 6.1.0 {@link #addVocabulary(String, Map, Map, String,
+	ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetVocabulary addVocabulary(
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
@@ -90,6 +95,17 @@ public class AssetVocabularyServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().addVocabulary(title, serviceContext);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, Replaced by {@link #deleteVocabularies(long[],
+	ServiceContext)}
+	*/
+	@Deprecated
+	public static void deleteVocabularies(long[] vocabularyIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteVocabularies(vocabularyIds);
 	}
 
 	public static java.util.List<com.liferay.portlet.asset.model.AssetVocabulary> deleteVocabularies(
@@ -169,6 +185,17 @@ public class AssetVocabularyServiceUtil {
 
 	public static com.liferay.portlet.asset.model.AssetVocabularyDisplay getGroupVocabulariesDisplay(
 		long groupId, java.lang.String name, int start, int end,
+		boolean addDefaultVocabulary,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getGroupVocabulariesDisplay(groupId, name, start, end,
+			addDefaultVocabulary, obc);
+	}
+
+	public static com.liferay.portlet.asset.model.AssetVocabularyDisplay getGroupVocabulariesDisplay(
+		long groupId, java.lang.String name, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -176,6 +203,10 @@ public class AssetVocabularyServiceUtil {
 				   .getGroupVocabulariesDisplay(groupId, name, start, end, obc);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, with no direct replacement
+	*/
+	@Deprecated
 	public static com.liferay.portal.kernel.json.JSONObject getJSONGroupVocabularies(
 		long groupId, java.lang.String name, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
@@ -200,8 +231,10 @@ public class AssetVocabularyServiceUtil {
 	}
 
 	/**
-	* @deprecated As of 6.1.0
+	* @deprecated As of 6.1.0, {@link #updateVocabulary(long, String, Map, Map,
+	String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetVocabulary updateVocabulary(
 		long vocabularyId,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
@@ -242,6 +275,7 @@ public class AssetVocabularyServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AssetVocabularyService service) {
 	}
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.shopping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.shopping.service.impl.ShoppingCategoryServiceImpl
  * @generated
  */
+@ProviderType
 public class ShoppingCategoryServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -129,6 +132,7 @@ public class ShoppingCategoryServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(ShoppingCategoryService service) {
 	}
 

@@ -17,6 +17,8 @@ package com.liferay.portal.upgrade.v6_2_0;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.util.PortalUtil;
@@ -72,6 +74,11 @@ public class UpgradeSocial extends UpgradeProcess {
 
 			ps.executeUpdate();
 		}
+		catch (Exception e) {
+			if (_log.isWarnEnabled()) {
+				_log.warn("Unable to add activity " + activityId, e);
+			}
+		}
 		finally {
 			DataAccess.cleanUp(con, ps, rs);
 		}
@@ -80,6 +87,7 @@ public class UpgradeSocial extends UpgradeProcess {
 	@Override
 	protected void doUpgrade() throws Exception {
 		updateJournalActivities();
+		updateSOSocialActivities();
 		updateWikiPageActivities();
 	}
 
@@ -101,6 +109,44 @@ public class UpgradeSocial extends UpgradeProcess {
 
 			runSQL(sb.toString());
 		}
+	}
+
+	protected void updateSOSocialActivities() throws Exception {
+		if (!hasTable("SO_SocialActivity")) {
+			return;
+		}
+
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+
+		try {
+			con = DataAccess.getUpgradeOptimizedConnection();
+
+			ps = con.prepareStatement(
+				"select activityId, activitySetId from SO_SocialActivity");
+
+			rs = ps.executeQuery();
+
+			while (rs.next()) {
+				long activityId = rs.getLong("activityId");
+				long activitySetId = rs.getLong("activitySetId");
+
+				StringBundler sb = new StringBundler(4);
+
+				sb.append("update SocialActivity set activitySetId = ");
+				sb.append(activitySetId);
+				sb.append(" where activityId = ");
+				sb.append(activityId);
+
+				runSQL(sb.toString());
+			}
+		}
+		finally {
+			DataAccess.cleanUp(con, ps, rs);
+		}
+
+		runSQL("drop table SO_SocialActivity");
 	}
 
 	protected void updateWikiPageActivities() throws Exception {
@@ -150,5 +196,7 @@ public class UpgradeSocial extends UpgradeProcess {
 			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
+
+	private static Log _log = LogFactoryUtil.getLog(UpgradeSocial.class);
 
 }

@@ -21,7 +21,6 @@ import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.PasswordPolicyRel;
 import com.liferay.portal.service.base.PasswordPolicyRelLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
 
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class PasswordPolicyRelLocalServiceImpl
 			long passwordPolicyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		PasswordPolicyRel passwordPolicyRel =
 			passwordPolicyRelPersistence.fetchByC_C(classNameId, classPK);
@@ -46,9 +45,8 @@ public class PasswordPolicyRelLocalServiceImpl
 			if (passwordPolicyRel.getPasswordPolicyId() == passwordPolicyId) {
 				return null;
 			}
-			else {
-				passwordPolicyRelPersistence.remove(passwordPolicyRel);
-			}
+
+			passwordPolicyRelPersistence.remove(passwordPolicyRel);
 		}
 
 		long passwordPolicyRelId = counterLocalService.increment();
@@ -80,7 +78,7 @@ public class PasswordPolicyRelLocalServiceImpl
 			long passwordPolicyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		PasswordPolicyRel passwordPolicyRel =
 			passwordPolicyRelPersistence.fetchByC_C(classNameId, classPK);
@@ -90,7 +88,6 @@ public class PasswordPolicyRelLocalServiceImpl
 
 			passwordPolicyRelPersistence.remove(passwordPolicyRel);
 		}
-
 	}
 
 	@Override
@@ -98,7 +95,7 @@ public class PasswordPolicyRelLocalServiceImpl
 		throws SystemException {
 
 		try {
-			long classNameId = PortalUtil.getClassNameId(className);
+			long classNameId = classNameLocalService.getClassNameId(className);
 
 			PasswordPolicyRel passwordPolicyRel =
 				passwordPolicyRelPersistence.findByC_C(classNameId, classPK);
@@ -137,7 +134,7 @@ public class PasswordPolicyRelLocalServiceImpl
 			String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return passwordPolicyRelPersistence.fetchByC_C(classNameId, classPK);
 	}
@@ -147,7 +144,7 @@ public class PasswordPolicyRelLocalServiceImpl
 			long passwordPolicyId, String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		PasswordPolicyRel passwordPolicyRel =
 			passwordPolicyRelPersistence.fetchByC_C(classNameId, classPK);
@@ -177,7 +174,7 @@ public class PasswordPolicyRelLocalServiceImpl
 			String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return passwordPolicyRelPersistence.findByC_C(classNameId, classPK);
 	}
@@ -187,7 +184,7 @@ public class PasswordPolicyRelLocalServiceImpl
 			long passwordPolicyId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		PasswordPolicyRel passwordPolicyRel =
 			passwordPolicyRelPersistence.fetchByC_C(classNameId, classPK);

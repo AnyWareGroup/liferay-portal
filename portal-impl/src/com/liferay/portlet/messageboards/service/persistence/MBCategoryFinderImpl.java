@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -107,9 +108,7 @@ public class MBCategoryFinderImpl
 
 			String sql = CustomSQLUtil.get(COUNT_BY_S_G_U_P);
 
-			if ((parentCategoryIds == null) ||
-				(parentCategoryIds.length == 0)) {
-
+			if (ArrayUtil.isEmpty(parentCategoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(MBCategory.parentCategoryId = ?) AND",
 					StringPool.BLANK);
@@ -131,7 +130,7 @@ public class MBCategoryFinderImpl
 					groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -191,9 +190,7 @@ public class MBCategoryFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_S_G_U_P);
 
-			if ((parentCategoryIds == null) ||
-				(parentCategoryIds.length == 0)) {
-
+			if (ArrayUtil.isEmpty(parentCategoryIds)) {
 				sql = StringUtil.replace(
 					sql, "(MBCategory.parentCategoryId = ?) AND",
 					StringPool.BLANK);
@@ -215,7 +212,7 @@ public class MBCategoryFinderImpl
 					groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("MBCategory", MBCategoryImpl.class);
 
@@ -250,8 +247,9 @@ public class MBCategoryFinderImpl
 
 				MBCategory category = new MBCategoryImpl();
 
+				category.setGroupId(group.getGroupId());
 				category.setCompanyId(group.getCompanyId());
-				category.setName(group.getName());
+				category.setName(group.getDescriptiveName());
 				category.setDescription(group.getDescription());
 				category.setThreadCount(threadCount);
 				category.setMessageCount(messageCount);

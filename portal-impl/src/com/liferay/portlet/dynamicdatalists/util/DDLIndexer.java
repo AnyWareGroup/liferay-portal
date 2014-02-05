@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -114,7 +115,7 @@ public class DDLIndexer extends BaseIndexer {
 		else {
 			long[] groupIds = searchContext.getGroupIds();
 
-			if ((groupIds != null) && (groupIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(groupIds)) {
 				List<DDMStructure> ddmStructures =
 					DDMStructureLocalServiceUtil.getStructures(groupIds);
 
@@ -243,7 +244,7 @@ public class DDLIndexer extends BaseIndexer {
 
 			return LanguageUtil.format(
 				locale, "new-x-for-list-x",
-				new Object[] {ddmStructureName, recordSetName});
+				new Object[] {ddmStructureName, recordSetName}, false);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

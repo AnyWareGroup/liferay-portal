@@ -60,6 +60,7 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 	 */
 	public static final String TABLE_NAME = "Subscription";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "subscriptionId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
 			{ "userId", Types.BIGINT },
@@ -70,7 +71,7 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 			{ "classPK", Types.BIGINT },
 			{ "frequency", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table Subscription (subscriptionId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,frequency VARCHAR(75) null)";
+	public static final String TABLE_SQL_CREATE = "create table Subscription (mvccVersion LONG default 0,subscriptionId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,frequency VARCHAR(75) null)";
 	public static final String TABLE_SQL_DROP = "drop table Subscription";
 	public static final String ORDER_BY_JPQL = " ORDER BY subscription.subscriptionId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY Subscription.subscriptionId ASC";
@@ -131,6 +132,7 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("subscriptionId", getSubscriptionId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -141,11 +143,20 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 		attributes.put("classPK", getClassPK());
 		attributes.put("frequency", getFrequency());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long subscriptionId = (Long)attributes.get("subscriptionId");
 
 		if (subscriptionId != null) {
@@ -199,6 +210,16 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 		if (frequency != null) {
 			setFrequency(frequency);
 		}
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -410,6 +431,7 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 	public Object clone() {
 		SubscriptionImpl subscriptionImpl = new SubscriptionImpl();
 
+		subscriptionImpl.setMvccVersion(getMvccVersion());
 		subscriptionImpl.setSubscriptionId(getSubscriptionId());
 		subscriptionImpl.setCompanyId(getCompanyId());
 		subscriptionImpl.setUserId(getUserId());
@@ -468,6 +490,16 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		SubscriptionModelImpl subscriptionModelImpl = this;
 
@@ -493,6 +525,8 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 	@Override
 	public CacheModel<Subscription> toCacheModel() {
 		SubscriptionCacheModel subscriptionCacheModel = new SubscriptionCacheModel();
+
+		subscriptionCacheModel.mvccVersion = getMvccVersion();
 
 		subscriptionCacheModel.subscriptionId = getSubscriptionId();
 
@@ -543,9 +577,11 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{subscriptionId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", subscriptionId=");
 		sb.append(getSubscriptionId());
 		sb.append(", companyId=");
 		sb.append(getCompanyId());
@@ -570,12 +606,16 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(31);
+		StringBundler sb = new StringBundler(34);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.Subscription");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>subscriptionId</column-name><column-value><![CDATA[");
 		sb.append(getSubscriptionId());
@@ -622,6 +662,7 @@ public class SubscriptionModelImpl extends BaseModelImpl<Subscription>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			Subscription.class
 		};
+	private long _mvccVersion;
 	private long _subscriptionId;
 	private long _companyId;
 	private long _originalCompanyId;

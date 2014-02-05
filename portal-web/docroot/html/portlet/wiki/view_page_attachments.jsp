@@ -101,18 +101,28 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "att
 					cssClass="trash-attachments"
 					image="delete_attachment"
 					label="<%= true %>"
-					message='<%= LanguageUtil.format(pageContext, (deletedAttachmentsCount == 1) ? "x-recently-removed-attachment" : "x-recently-removed-attachments", deletedAttachmentsCount) %>'
+					message='<%= LanguageUtil.format(pageContext, (deletedAttachmentsCount == 1) ? "x-recently-removed-attachment" : "x-recently-removed-attachments", deletedAttachmentsCount, false) %>'
 					url="<%= viewTrashAttachmentsURL %>"
 				/>
 			</c:if>
 
-			<div>
-				<input onClick="location.href = '<portlet:renderURL><portlet:param name="struts_action" value="/wiki/edit_page_attachment" /><portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" /><portlet:param name="title" value="<%= wikiPage.getTitle() %>" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>';" type="button" value="<liferay-ui:message key="add-attachments" />" />
+			<portlet:renderURL var="addAttachmentsURL">
+				<portlet:param name="struts_action" value="/wiki/edit_page_attachment" />
+				<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
+				<portlet:param name="title" value="<%= wikiPage.getTitle() %>" />
+				<portlet:param name="redirect" value="<%= currentURL %>" />
+			</portlet:renderURL>
+
+			<div class="btn-toolbar">
+
+				<%
+				String taglibAddAttachments = "location.href = '" + addAttachmentsURL + "';";
+				%>
+
+				<aui:button onClick="<%= taglibAddAttachments %>" value="add-attachments" />
 			</div>
 		</c:otherwise>
 	</c:choose>
-
-	<br />
 </c:if>
 
 <%
@@ -165,26 +175,19 @@ iteratorURL.setParameter("viewTrashAttachments", String.valueOf(viewTrashAttachm
 		if (viewTrashAttachments) {
 			status = WorkflowConstants.STATUS_IN_TRASH;
 		}
+
+		String rowHREF = PortletFileRepositoryUtil.getPortletFileEntryURL(themeDisplay, fileEntry, "status=" + status);
 		%>
 
-		<liferay-portlet:actionURL varImpl="rowURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
-			<portlet:param name="struts_action" value="/wiki/get_page_attachment" />
-			<portlet:param name="redirect" value="<%= currentURL %>" />
-			<portlet:param name="nodeId" value="<%= String.valueOf(node.getNodeId()) %>" />
-			<portlet:param name="title" value="<%= wikiPage.getTitle() %>" />
-			<portlet:param name="fileName" value="<%= fileEntry.getTitle() %>" />
-			<portlet:param name="status" value="<%= String.valueOf(status) %>" />
-		</liferay-portlet:actionURL>
-
 		<liferay-ui:search-container-column-text
-			href="<%= rowURL %>"
+			href="<%= rowHREF %>"
 			name="file-name"
 		>
 			<img align="left" alt="" border="0" src="<%= themeDisplay.getPathThemeImages() %>/file_system/small/<%= DLUtil.getFileIcon(fileEntry.getExtension()) %>.png"> <%= TrashUtil.getOriginalTitle(fileEntry.getTitle()) %>
 		</liferay-ui:search-container-column-text>
 
 		<liferay-ui:search-container-column-text
-			href="<%= rowURL %>"
+			href="<%= rowHREF %>"
 			name="size"
 			value="<%= TextFormatter.formatStorageSize(fileEntry.getSize(), locale) %>"
 		/>

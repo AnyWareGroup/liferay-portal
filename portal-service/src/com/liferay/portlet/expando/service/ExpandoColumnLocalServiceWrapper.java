@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link ExpandoColumnLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoColumnLocalService
+ * @author Brian Wing Shun Chan
+ * @see ExpandoColumnLocalService
  * @generated
  */
+@ProviderType
 public class ExpandoColumnLocalServiceWrapper
 	implements ExpandoColumnLocalService,
 		ServiceWrapper<ExpandoColumnLocalService> {
@@ -165,6 +168,23 @@ public class ExpandoColumnLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _expandoColumnLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _expandoColumnLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -522,6 +542,7 @@ public class ExpandoColumnLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ExpandoColumnLocalService getWrappedExpandoColumnLocalService() {
 		return _expandoColumnLocalService;
 	}
@@ -529,6 +550,7 @@ public class ExpandoColumnLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedExpandoColumnLocalService(
 		ExpandoColumnLocalService expandoColumnLocalService) {
 		_expandoColumnLocalService = expandoColumnLocalService;

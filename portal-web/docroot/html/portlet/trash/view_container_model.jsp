@@ -17,10 +17,9 @@
 <%@ include file="/html/portlet/trash/init.jsp" %>
 
 <%
-String redirect = ParamUtil.getString(request, "redirect");
-
 String className = ParamUtil.getString(request, "className");
 long classPK = ParamUtil.getLong(request, "classPK");
+String eventName = ParamUtil.getString(request, "eventName", liferayPortletResponse.getNamespace() + "selectFolder");
 
 TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(className);
 
@@ -46,16 +45,31 @@ TrashUtil.addContainerModelBreadcrumbEntries(request, trashHandler.getContainerM
 %>
 
 <div class="alert alert-block">
-	<liferay-ui:message arguments="<%= new Object[] {trashHandler.getContainerModelName(), trashRenderer.getTitle(locale)} %>" key="the-original-x-does-not-exist-anymore" />
+	<liferay-ui:message arguments="<%= new Object[] {trashHandler.getContainerModelName(), HtmlUtil.escape(trashRenderer.getTitle(locale))} %>" key="the-original-x-does-not-exist-anymore" translateArguments="<%= false %>" />
 </div>
 
-<aui:form method="post" name="fm">
+<aui:form method="post" name="selectFolderFm">
 	<liferay-ui:header
 		showBackURL="<%= containerModel != null %>"
-		title='<%= LanguageUtil.format(pageContext, "select-x", trashHandler.getContainerModelName(), true) %>'
+		title='<%= LanguageUtil.format(pageContext, "select-x", trashHandler.getContainerModelName()) %>'
 	/>
 
 	<liferay-ui:breadcrumb showGuestGroup="<%= false %>" showLayout="<%= false %>" showParentGroups="<%= false %>" />
+
+	<aui:button-row>
+
+		<%
+		Map<String, Object> data = new HashMap<String, Object>();
+
+		data.put("classname", className);
+		data.put("classpk", classPK);
+		data.put("containermodelid", containerModelId);
+		%>
+
+		<aui:button cssClass="selector-button" data="<%= data %>" value='<%= LanguageUtil.format(pageContext, "choose-this-x", trashHandler.getContainerModelName()) %>' />
+	</aui:button-row>
+
+	<br />
 
 	<%
 	containerURL.setParameter("containerModelId", String.valueOf(containerModelId));
@@ -63,15 +77,11 @@ TrashUtil.addContainerModelBreadcrumbEntries(request, trashHandler.getContainerM
 
 	<liferay-ui:search-container
 		searchContainer="<%= new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, containerURL, null, null) %>"
+		total="<%= trashHandler.getContainerModelsCount(classPK, containerModelId) %>"
 	>
-		<liferay-ui:search-container-results>
-
-			<%
-			pageContext.setAttribute("results", trashHandler.getContainerModels(classPK, containerModelId, searchContainer.getStart(), searchContainer.getEnd()));
-			pageContext.setAttribute("total", trashHandler.getContainerModelsCount(classPK, containerModelId));
-			%>
-
-		</liferay-ui:search-container-results>
+		<liferay-ui:search-container-results
+			results="<%= trashHandler.getContainerModels(classPK, containerModelId, searchContainer.getStart(), searchContainer.getEnd()) %>"
+		/>
 
 		<liferay-ui:search-container-row
 			className="com.liferay.portal.model.ContainerModel"
@@ -95,7 +105,12 @@ TrashUtil.addContainerModelBreadcrumbEntries(request, trashHandler.getContainerM
 						TrashRenderer containerTrashRenderer = containerTrashHandler.getTrashRenderer(curContainerModel.getContainerModelId());
 						%>
 
-						<liferay-ui:icon label="<%= true %>" message="<%= curContainerModel.getContainerModelName() %>" src="<%= containerTrashRenderer.getIconPath(renderRequest) %>" url="<%= containerURL.toString() %>" />
+						<liferay-ui:icon
+							label="<%= true %>"
+							message="<%= curContainerModel.getContainerModelName() %>"
+							method="get" src="<%= containerTrashRenderer.getIconPath(renderRequest) %>"
+							url="<%= containerURL.toString() %>"
+						/>
 					</c:when>
 					<c:otherwise>
 						<%= curContainerModel.getContainerModelName() %>
@@ -104,53 +119,40 @@ TrashUtil.addContainerModelBreadcrumbEntries(request, trashHandler.getContainerM
 			</liferay-ui:search-container-column-text>
 
 			<liferay-ui:search-container-column-text
-				name='<%= LanguageUtil.format(pageContext, "num-of-x", trashHandler.getContainerModelName(), true) %>'
+				name='<%= LanguageUtil.format(pageContext, "num-of-x", trashHandler.getContainerModelName()) %>'
 				value="<%= String.valueOf(trashHandler.getContainerModelsCount(classPK, curContainerModel.getContainerModelId())) %>"
 			/>
 
-			<%
-			StringBundler sb = new StringBundler(9);
+			<liferay-ui:search-container-column-text>
 
-			sb.append(renderResponse.getNamespace());
-			sb.append("selectContainer('");
-			sb.append("'', '");
-			sb.append(className);
-			sb.append("', ");
-			sb.append(classPK);
-			sb.append(", ");
-			sb.append(curContainerModel.getContainerModelId());
-			sb.append(");");
-			%>
+				<%
+				Map<String, Object> data = new HashMap<String, Object>();
 
-			<liferay-ui:search-container-column-button
-				align="right"
-				href="<%= sb.toString() %>"
-				name="choose"
-			/>
+				data.put("classname", className);
+				data.put("classpk", classPK);
+				data.put("containermodelid", curContainerModel.getContainerModelId());
+				%>
+
+				<aui:button cssClass="selector-button" data="<%= data %>" value="choose" />
+			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>
-
-		<aui:button-row>
-
-			<%
-			String taglibSelectOnClick = renderResponse.getNamespace() + "selectContainer('', '" + className + "', " + classPK + ", " + containerModelId + ");";
-			%>
-
-			<aui:button
-				onClick="<%= taglibSelectOnClick %>"
-				value='<%= LanguageUtil.format(pageContext, "choose-this-x", trashHandler.getContainerModelName(), true) %>'
-			/>
-		</aui:button-row>
-
-		<div class="separator"><!-- --></div>
 
 		<liferay-ui:search-iterator />
 	</liferay-ui:search-container>
 </aui:form>
 
-<aui:script>
-	function <portlet:namespace />selectContainer(redirect, className, classPK, containerModelId) {
-		var topWindow = Liferay.Util.getTop();
+<aui:script use="aui-base">
+	var Util = Liferay.Util;
 
-		topWindow.<portlet:namespace />submitForm(redirect, className, classPK, containerModelId);
-	}
+	A.one('#<portlet:namespace />selectFolderFm').delegate(
+		'click',
+		function(event) {
+			var result = Util.getAttributes(event.currentTarget, 'data-');
+
+			Util.getOpener().Liferay.fire('<%= HtmlUtil.escapeJS(eventName) %>', result);
+
+			Util.getWindow().hide();
+		},
+		'.selector-button'
+	);
 </aui:script>

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,8 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.UserTrackerModelImpl
  * @generated
  */
-public interface UserTrackerModel extends BaseModel<UserTracker> {
+@ProviderType
+public interface UserTrackerModel extends BaseModel<UserTracker>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +60,22 @@ public interface UserTrackerModel extends BaseModel<UserTracker> {
 	 * @param primaryKey the primary key of this user tracker
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this user tracker.
+	 *
+	 * @return the mvcc version of this user tracker
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user tracker.
+	 *
+	 * @param mvccVersion the mvcc version of this user tracker
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the user tracker ID of this user tracker.

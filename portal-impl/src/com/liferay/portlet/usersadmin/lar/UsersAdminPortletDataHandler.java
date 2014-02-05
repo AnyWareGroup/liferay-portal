@@ -17,16 +17,15 @@ package com.liferay.portlet.usersadmin.lar;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.lar.BasePortletDataHandler;
 import com.liferay.portal.kernel.lar.DataLevel;
-import com.liferay.portal.kernel.lar.ManifestSummary;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.persistence.OrganizationExportActionableDynamicQuery;
-import com.liferay.portal.util.PortletKeys;
 
 import java.util.List;
 
@@ -41,13 +40,14 @@ public class UsersAdminPortletDataHandler extends BasePortletDataHandler {
 	public static final String NAMESPACE = "users_admin";
 
 	public UsersAdminPortletDataHandler() {
-		super();
-
 		setDataLevel(DataLevel.PORTAL);
-
+		setDeletionSystemEventStagedModelTypes(
+			new StagedModelType(Organization.class));
 		setExportControls(
 			new PortletDataHandlerBoolean(
-				NAMESPACE, "organizations", true, true));
+				NAMESPACE, "organizations", true, true, null,
+				Organization.class.getName()));
+		setSupportsDataStrategyCopyAsNew(false);
 	}
 
 	@Override
@@ -74,8 +74,7 @@ public class UsersAdminPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.addPermissions(
-			PortletKeys.PORTAL, portletDataContext.getCompanyId());
+		portletDataContext.addPortalPermissions();
 
 		Element rootElement = addExportDataRootElement(portletDataContext);
 
@@ -96,9 +95,7 @@ public class UsersAdminPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			PortletKeys.PORTAL, portletDataContext.getSourceCompanyId(),
-			portletDataContext.getCompanyId());
+		portletDataContext.importPortalPermissions();
 
 		Element organizationsElement =
 			portletDataContext.getImportDataGroupElement(Organization.class);
@@ -115,17 +112,14 @@ public class UsersAdminPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
-
-		ManifestSummary manifestSummary =
-			portletDataContext.getManifestSummary();
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			new OrganizationExportActionableDynamicQuery(portletDataContext);
 
-		manifestSummary.addModelCount(
-			Organization.class, actionableDynamicQuery.performCount());
+		actionableDynamicQuery.performCount();
 	}
 
 }

@@ -31,7 +31,6 @@ import com.liferay.portal.model.ModelHintsUtil;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.asset.AssetCategoryNameException;
 import com.liferay.portlet.asset.DuplicateCategoryException;
 import com.liferay.portlet.asset.model.AssetCategory;
@@ -73,7 +72,7 @@ public class AssetCategoryLocalServiceImpl
 		User user = userPersistence.findByPrimaryKey(userId);
 		long groupId = serviceContext.getScopeGroupId();
 
-		String name = titleMap.get(LocaleUtil.getDefault());
+		String name = titleMap.get(LocaleUtil.getSiteDefault());
 
 		name = ModelHintsUtil.trimString(
 			AssetCategory.class.getName(), "name", name);
@@ -130,7 +129,13 @@ public class AssetCategoryLocalServiceImpl
 
 		for (int i = 0; i < categoryProperties.length; i++) {
 			String[] categoryProperty = StringUtil.split(
-				categoryProperties[i], CharPool.COLON);
+				categoryProperties[i],
+				AssetCategoryConstants.PROPERTY_KEY_VALUE_SEPARATOR);
+
+			if (categoryProperty.length <= 1) {
+				categoryProperty = StringUtil.split(
+					categoryProperties[i], CharPool.COLON);
+			}
 
 			String key = StringPool.BLANK;
 			String value = StringPool.BLANK;
@@ -157,7 +162,7 @@ public class AssetCategoryLocalServiceImpl
 
 		Map<Locale, String> titleMap = new HashMap<Locale, String>();
 
-		Locale locale = LocaleUtil.getDefault();
+		Locale locale = LocaleUtil.getSiteDefault();
 
 		titleMap.put(locale, title);
 
@@ -257,7 +262,7 @@ public class AssetCategoryLocalServiceImpl
 	public List<AssetCategory> getCategories(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getCategories(classNameId, classPK);
 	}
@@ -471,7 +476,7 @@ public class AssetCategoryLocalServiceImpl
 
 		// Category
 
-		String name = titleMap.get(LocaleUtil.getDefault());
+		String name = titleMap.get(LocaleUtil.getSiteDefault());
 
 		name = ModelHintsUtil.trimString(
 			AssetCategory.class.getName(), "name", name);
@@ -515,9 +520,17 @@ public class AssetCategoryLocalServiceImpl
 		List<AssetCategoryProperty> oldCategoryProperties =
 			assetCategoryPropertyPersistence.findByCategoryId(categoryId);
 
+		oldCategoryProperties = ListUtil.copy(oldCategoryProperties);
+
 		for (int i = 0; i < categoryProperties.length; i++) {
 			String[] categoryProperty = StringUtil.split(
-				categoryProperties[i], CharPool.COLON);
+				categoryProperties[i],
+				AssetCategoryConstants.PROPERTY_KEY_VALUE_SEPARATOR);
+
+			if (categoryProperty.length <= 1) {
+				categoryProperty = StringUtil.split(
+					categoryProperties[i], CharPool.COLON);
+			}
 
 			String key = StringPool.BLANK;
 
@@ -534,18 +547,26 @@ public class AssetCategoryLocalServiceImpl
 			if (Validator.isNotNull(key)) {
 				boolean addCategoryProperty = true;
 
+				AssetCategoryProperty oldCategoryProperty = null;
+
 				Iterator<AssetCategoryProperty> iterator =
 					oldCategoryProperties.iterator();
 
 				while (iterator.hasNext()) {
-					AssetCategoryProperty oldCategoryProperty = iterator.next();
+					oldCategoryProperty = iterator.next();
 
-					if ((userId == oldCategoryProperty.getUserId()) &&
-						(categoryId == oldCategoryProperty.getCategoryId()) &&
-						key.equals(oldCategoryProperty.getKey()) &&
-						value.equals(oldCategoryProperty.getValue())) {
+					if ((categoryId == oldCategoryProperty.getCategoryId()) &&
+						key.equals(oldCategoryProperty.getKey())) {
 
 						addCategoryProperty = false;
+
+						if (!value.equals(oldCategoryProperty.getValue())) {
+							assetCategoryPropertyLocalService.
+								updateCategoryProperty(
+									userId,
+									oldCategoryProperty.getCategoryPropertyId(),
+									key, value);
+						}
 
 						iterator.remove();
 

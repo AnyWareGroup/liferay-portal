@@ -40,19 +40,18 @@
 			</c:if>
 
 			<aui:nav-item dropdown="<%= true %>" label="actions">
-				<aui:nav-item iconClass="icon-trash" id="deleteSelectedItems" label="delete" />
+				<aui:nav-item iconCssClass="icon-remove" id="deleteSelectedItems" label="delete" />
 			</aui:nav-item>
 		</aui:nav>
 
-		<div class="navbar-search pull-right">
+		<aui:nav-bar-search cssClass="pull-right">
 			<aui:select cssClass="categories-admin-select-search" label="" name="categoriesAdminSelectSearch">
 				<aui:option label="categories" />
 				<aui:option label="vocabularies" selected="<%= true %>" />
 			</aui:select>
-			<div class="form-search">
-				<input class="search-query span9" id="<portlet:namespace/>categoriesAdminSearchInput" name="<portlet:namespace/>tagsAdminSearchInput" type="text" />
-			</div>
-		</div>
+
+			<liferay-ui:input-search cssClass="form-search" id="categoriesAdminSearchInput" name="tagsAdminSearchInput" showButton="<%= false %>" />
+		</aui:nav-bar-search>
 	</aui:nav-bar>
 
 	<aui:row cssClass="categories-admin-content">
@@ -83,14 +82,7 @@
 		<aui:col cssClass="hide vocabulary-edit-category" width="<%= 35 %>">
 			<h3><%= LanguageUtil.get(pageContext, "category-details") %></h3>
 
-			<div class="category-view-close">
-				<span>
-					<liferay-ui:icon
-						id="category-view-close"
-						image="close"
-					/>
-				</span>
-			</div>
+			<aui:button cssClass="category-view-close close" icon="icon-remove" />
 
 			<div class="category-view"></div>
 		</aui:col>
@@ -100,6 +92,8 @@
 <aui:script use="liferay-category-admin">
 	new Liferay.Portlet.AssetCategoryAdmin(
 		{
+			baseActionURL: '<%= PortletURLFactoryUtil.create(request, portletDisplay.getId(), themeDisplay.getPlid(), PortletRequest.ACTION_PHASE) %>',
+			baseRenderURL: '<%= PortletURLFactoryUtil.create(request, portletDisplay.getId(), themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>',
 			itemsPerPage: <%= SearchContainer.DEFAULT_DELTA %>,
 			portletId: '<%= portletDisplay.getId() %>'
 		}

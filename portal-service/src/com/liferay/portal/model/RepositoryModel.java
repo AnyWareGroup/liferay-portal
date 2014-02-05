@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.RepositoryModelImpl
  * @generated
  */
-public interface RepositoryModel extends BaseModel<Repository>,
-	StagedGroupedModel {
+@ProviderType
+public interface RepositoryModel extends BaseModel<Repository>, MVCCModel,
+	StagedGroupedModel, TypedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -58,6 +61,22 @@ public interface RepositoryModel extends BaseModel<Repository>,
 	 * @param primaryKey the primary key of this repository
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this repository.
+	 *
+	 * @return the mvcc version of this repository
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this repository.
+	 *
+	 * @param mvccVersion the mvcc version of this repository
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this repository.
@@ -209,6 +228,7 @@ public interface RepositoryModel extends BaseModel<Repository>,
 	 *
 	 * @return the fully qualified class name of this repository
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -218,6 +238,7 @@ public interface RepositoryModel extends BaseModel<Repository>,
 	 *
 	 * @return the class name ID of this repository
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -225,6 +246,7 @@ public interface RepositoryModel extends BaseModel<Repository>,
 	 *
 	 * @param classNameId the class name ID of this repository
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**

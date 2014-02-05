@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DLFileShortcut}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileShortcut
+ * @author Brian Wing Shun Chan
+ * @see DLFileShortcut
  * @generated
  */
+@ProviderType
 public class DLFileShortcutWrapper implements DLFileShortcut,
 	ModelWrapper<DLFileShortcut> {
 	public DLFileShortcutWrapper(DLFileShortcut dlFileShortcut) {
@@ -60,6 +65,7 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("folderId", getFolderId());
 		attributes.put("toFileEntryId", getToFileEntryId());
+		attributes.put("treePath", getTreePath());
 		attributes.put("active", getActive());
 		attributes.put("status", getStatus());
 		attributes.put("statusByUserId", getStatusByUserId());
@@ -135,6 +141,12 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 
 		if (toFileEntryId != null) {
 			setToFileEntryId(toFileEntryId);
+		}
+
+		String treePath = (String)attributes.get("treePath");
+
+		if (treePath != null) {
+			setTreePath(treePath);
 		}
 
 		Boolean active = (Boolean)attributes.get("active");
@@ -431,6 +443,26 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	}
 
 	/**
+	* Returns the tree path of this document library file shortcut.
+	*
+	* @return the tree path of this document library file shortcut
+	*/
+	@Override
+	public java.lang.String getTreePath() {
+		return _dlFileShortcut.getTreePath();
+	}
+
+	/**
+	* Sets the tree path of this document library file shortcut.
+	*
+	* @param treePath the tree path of this document library file shortcut
+	*/
+	@Override
+	public void setTreePath(java.lang.String treePath) {
+		_dlFileShortcut.setTreePath(treePath);
+	}
+
+	/**
 	* Returns the active of this document library file shortcut.
 	*
 	* @return the active of this document library file shortcut
@@ -563,8 +595,69 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	}
 
 	/**
+	* Returns the trash entry created when this document library file shortcut was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this document library file shortcut.
+	*
+	* @return the trash entry created when this document library file shortcut was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcut.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this document library file shortcut.
+	*
+	* @return the class primary key of the trash entry for this document library file shortcut
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _dlFileShortcut.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this document library file shortcut.
+	*
+	* @return the trash handler for this document library file shortcut
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _dlFileShortcut.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file shortcut is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this document library file shortcut is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _dlFileShortcut.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this document library file shortcut is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this document library file shortcut is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _dlFileShortcut.isInTrashContainer();
+	}
+
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcut.isInTrashExplicitly();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _dlFileShortcut.getApproved();
@@ -628,16 +721,6 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	@Override
 	public boolean isIncomplete() {
 		return _dlFileShortcut.isIncomplete();
-	}
-
-	/**
-	* Returns <code>true</code> if this document library file shortcut is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this document library file shortcut is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _dlFileShortcut.isInTrash();
 	}
 
 	/**
@@ -766,7 +849,29 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	}
 
 	@Override
-	public com.liferay.portal.kernel.repository.model.Folder getFolder() {
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlFileShortcut.updateTreePath(treePath);
+	}
+
+	@Override
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcut.buildTreePath();
+	}
+
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder getDLFolder()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileShortcut.getDLFolder();
+	}
+
+	@Override
+	public com.liferay.portal.kernel.repository.model.Folder getFolder()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFileShortcut.getFolder();
 	}
 
@@ -776,23 +881,39 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	}
 
 	@Override
-	public com.liferay.portlet.documentlibrary.model.DLFolder getTrashContainer() {
-		return _dlFileShortcut.getTrashContainer();
-	}
-
-	@Override
 	public boolean isInHiddenFolder() {
 		return _dlFileShortcut.isInHiddenFolder();
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		return _dlFileShortcut.isInTrashContainer();
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLFileShortcutWrapper)) {
+			return false;
+		}
+
+		DLFileShortcutWrapper dlFileShortcutWrapper = (DLFileShortcutWrapper)obj;
+
+		if (Validator.equals(_dlFileShortcut,
+					dlFileShortcutWrapper._dlFileShortcut)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _dlFileShortcut.getStagedModelType();
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileShortcut getWrappedDLFileShortcut() {
 		return _dlFileShortcut;
 	}
@@ -800,6 +921,16 @@ public class DLFileShortcutWrapper implements DLFileShortcut,
 	@Override
 	public DLFileShortcut getWrappedModel() {
 		return _dlFileShortcut;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileShortcut.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileShortcut.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.mobiledevicerules.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.mobiledevicerules.service.impl.MDRRuleGroupLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class MDRRuleGroupLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,53 @@ public class MDRRuleGroupLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup fetchMDRRuleGroup(
 		long ruleGroupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchMDRRuleGroup(ruleGroupId);
+	}
+
+	/**
+	* Returns the m d r rule group with the matching UUID and company.
+	*
+	* @param uuid the m d r rule group's UUID
+	* @param companyId the primary key of the company
+	* @return the matching m d r rule group, or <code>null</code> if a matching m d r rule group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup fetchMDRRuleGroupByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchMDRRuleGroupByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the m d r rule group matching the UUID and group.
+	*
+	* @param uuid the m d r rule group's UUID
+	* @param groupId the primary key of the group
+	* @return the matching m d r rule group, or <code>null</code> if a matching m d r rule group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup fetchMDRRuleGroupByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchMDRRuleGroupByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -191,6 +237,22 @@ public class MDRRuleGroupLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the m d r rule group with the matching UUID and company.
+	*
+	* @param uuid the m d r rule group's UUID
+	* @param companyId the primary key of the company
+	* @return the matching m d r rule group
+	* @throws PortalException if a matching m d r rule group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup getMDRRuleGroupByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getMDRRuleGroupByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -347,6 +409,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, String,
 	LinkedHashMap, boolean, int, int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> search(
 		long groupId, java.lang.String name, boolean andOperator, int start,
 		int end) throws com.liferay.portal.kernel.exception.SystemException {
@@ -366,6 +429,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #searchByKeywords(long,
 	String, LinkedHashMap, boolean, int, int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.mobiledevicerules.model.MDRRuleGroup> searchByKeywords(
 		long groupId, java.lang.String keywords, boolean andOperator,
 		int start, int end)
@@ -388,6 +452,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #searchByKeywordsCount(long,
 	String, LinkedHashMap, boolean)}
 	*/
+	@Deprecated
 	public static int searchByKeywordsCount(long groupId,
 		java.lang.String keywords, boolean andOperator)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -407,6 +472,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #searchCount(long, String,
 	LinkedHashMap, boolean)}
 	*/
+	@Deprecated
 	public static int searchCount(long groupId, java.lang.String name,
 		boolean andOperator)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -446,6 +512,7 @@ public class MDRRuleGroupLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(MDRRuleGroupLocalService service) {
 	}
 

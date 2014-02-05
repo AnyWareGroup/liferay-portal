@@ -27,6 +27,9 @@ import com.liferay.portlet.dynamicdatamapping.storage.StorageEngineUtil;
 
 import java.io.Serializable;
 
+import java.util.List;
+import java.util.Locale;
+
 /**
  * @author Brian Wing Shun Chan
  * @author Eduardo Lundgren
@@ -72,7 +75,37 @@ public class DDLRecordImpl extends DDLRecordBaseImpl {
 	public Serializable getFieldValue(String fieldName) throws PortalException {
 		Field field = getField(fieldName);
 
+		if (field == null) {
+			return null;
+		}
+
 		return field.getValue();
+	}
+
+	@Override
+	public Serializable getFieldValue(String fieldName, Locale locale)
+		throws PortalException {
+
+		Field field = getField(fieldName);
+
+		if (field == null) {
+			return null;
+		}
+
+		return field.getValue(locale);
+	}
+
+	@Override
+	public List<Serializable> getFieldValues(String fieldName, Locale locale)
+		throws PortalException {
+
+		Field field = getField(fieldName);
+
+		if (field == null) {
+			return null;
+		}
+
+		return field.getValues(locale);
 	}
 
 	@Override

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link ExpandoValueService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoValueService
+ * @author Brian Wing Shun Chan
+ * @see ExpandoValueService
  * @generated
  */
+@ProviderType
 public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	ServiceWrapper<ExpandoValueService> {
 	public ExpandoValueServiceWrapper(ExpandoValueService expandoValueService) {
@@ -112,6 +115,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ExpandoValueService getWrappedExpandoValueService() {
 		return _expandoValueService;
 	}
@@ -119,6 +123,7 @@ public class ExpandoValueServiceWrapper implements ExpandoValueService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedExpandoValueService(
 		ExpandoValueService expandoValueService) {
 		_expandoValueService = expandoValueService;

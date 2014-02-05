@@ -14,8 +14,8 @@
 
 package com.liferay.portlet.portletdisplaytemplate.util;
 
+import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.template.TemplateVariableGroup;
-import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
 
 import java.util.List;
@@ -28,12 +28,18 @@ import javax.servlet.jsp.PageContext;
  */
 public interface PortletDisplayTemplate {
 
+	public static final String DISPLAY_STYLE_PREFIX = "ddmTemplate_";
+
 	public DDMTemplate fetchDDMTemplate(long groupId, String displayStyle);
 
-	public long getDDMTemplateGroupId(ThemeDisplay themeDisplay);
+	public long getDDMTemplateGroupId(long groupId);
+
+	public String getDDMTemplateUuid(String displayStyle);
 
 	public long getPortletDisplayTemplateDDMTemplateId(
-		ThemeDisplay themeDisplay, String displayStyle);
+		long groupId, String displayStyle);
+
+	public List<TemplateHandler> getPortletDisplayTemplateHandlers();
 
 	public Map<String, TemplateVariableGroup> getTemplateVariableGroups(
 		String language);

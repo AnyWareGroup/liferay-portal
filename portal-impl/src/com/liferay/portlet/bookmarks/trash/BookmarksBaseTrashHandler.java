@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.trash.BaseTrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
@@ -58,11 +59,9 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 			long classPK, long parentContainerModelId, int start, int end)
 		throws PortalException, SystemException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
-
 		List<BookmarksFolder> folders =
 			BookmarksFolderLocalServiceUtil.getFolders(
-				folder.getGroupId(), parentContainerModelId, start, end);
+				getGroupId(classPK), parentContainerModelId, start, end);
 
 		List<ContainerModel> containerModels = new ArrayList<ContainerModel>(
 			folders.size());
@@ -79,10 +78,8 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 			long classPK, long parentContainerModelId)
 		throws PortalException, SystemException {
 
-		BookmarksFolder folder = getBookmarksFolder(classPK);
-
 		return BookmarksFolderLocalServiceUtil.getFoldersCount(
-			folder.getGroupId(), parentContainerModelId);
+			getGroupId(classPK), parentContainerModelId);
 	}
 
 	@Override
@@ -131,7 +128,7 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 			classPK);
 
 		return BookmarksEntryLocalServiceUtil.getEntriesCount(
-			folder.getGroupId(), classPK);
+			folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -146,7 +143,8 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 
 		List<BookmarksEntry> entries =
 			BookmarksEntryLocalServiceUtil.getEntries(
-				folder.getGroupId(), classPK, start, end);
+				folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH,
+				start, end);
 
 		for (BookmarksEntry entry : entries) {
 			TrashHandler trashHandler =
@@ -175,7 +173,7 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 			classPK);
 
 		return BookmarksFolderLocalServiceUtil.getFoldersCount(
-			folder.getGroupId(), classPK);
+			folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -190,7 +188,8 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 
 		List<BookmarksFolder> folders =
 			BookmarksFolderLocalServiceUtil.getFolders(
-					folder.getGroupId(), classPK, start, end);
+				folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH,
+				start, end);
 
 		for (BookmarksFolder curFolder : folders) {
 			TrashHandler trashHandler =
@@ -211,7 +210,7 @@ public abstract class BookmarksBaseTrashHandler extends BaseTrashHandler {
 		return true;
 	}
 
-	protected abstract BookmarksFolder getBookmarksFolder(long classPK)
+	protected abstract long getGroupId(long classPK)
 		throws PortalException, SystemException;
 
 }

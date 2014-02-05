@@ -16,29 +16,15 @@
 
 <%@ include file="/html/portlet/init.jsp" %>
 
-<%@ page import="com.liferay.portal.kernel.template.TemplateHandler" %><%@
-page import="com.liferay.portal.kernel.template.TemplateHandlerRegistryUtil" %><%@
-page import="com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil" %><%@
-page import="com.liferay.portlet.asset.model.AssetRendererFactory" %><%@
-page import="com.liferay.portlet.asset.model.AssetTag" %><%@
-page import="com.liferay.portlet.asset.service.AssetTagServiceUtil" %><%@
-page import="com.liferay.portlet.asset.util.comparator.AssetTagCountComparator" %><%@
-page import="com.liferay.portlet.portletdisplaytemplate.util.PortletDisplayTemplateUtil" %>
+<%@ page import="com.liferay.portlet.asset.util.comparator.AssetTagCountComparator" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
-
-String portletResource = ParamUtil.getString(request, "portletResource");
-
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-}
-
-long classNameId = PrefsParamUtil.getLong(preferences, request, "classNameId");
-String displayStyle = PrefsParamUtil.getString(preferences, request, "displayStyle", "cloud");
-int maxAssetTags = PrefsParamUtil.getInteger(preferences, request, "maxAssetTags", 10);
-boolean showAssetCount = PrefsParamUtil.getBoolean(preferences, request, "showAssetCount");
-boolean showZeroAssetCount = PrefsParamUtil.getBoolean(preferences, request, "showZeroAssetCount");
+long classNameId = PrefsParamUtil.getLong(portletPreferences, request, "classNameId");
+String displayStyle = PrefsParamUtil.getString(portletPreferences, request, "displayStyle", "cloud");
+long displayStyleGroupId = PrefsParamUtil.getLong(portletPreferences, request, "displayStyleGroupId", themeDisplay.getScopeGroupId());
+int maxAssetTags = PrefsParamUtil.getInteger(portletPreferences, request, "maxAssetTags", 10);
+boolean showAssetCount = PrefsParamUtil.getBoolean(portletPreferences, request, "showAssetCount");
+boolean showZeroAssetCount = PrefsParamUtil.getBoolean(portletPreferences, request, "showZeroAssetCount");
 %>
 
 <%@ include file="/html/portlet/asset_tags_navigation/init-ext.jsp" %>

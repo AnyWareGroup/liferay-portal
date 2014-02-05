@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AnnouncementsDeliveryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsDeliveryService
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsDeliveryService
  * @generated
  */
+@ProviderType
 public class AnnouncementsDeliveryServiceWrapper
 	implements AnnouncementsDeliveryService,
 		ServiceWrapper<AnnouncementsDeliveryService> {
@@ -64,6 +67,7 @@ public class AnnouncementsDeliveryServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AnnouncementsDeliveryService getWrappedAnnouncementsDeliveryService() {
 		return _announcementsDeliveryService;
 	}
@@ -71,6 +75,7 @@ public class AnnouncementsDeliveryServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAnnouncementsDeliveryService(
 		AnnouncementsDeliveryService announcementsDeliveryService) {
 		_announcementsDeliveryService = announcementsDeliveryService;

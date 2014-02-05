@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
+import com.liferay.portal.security.lang.DoPrivilegedBean;
 import com.liferay.portal.service.ResourceService;
 import com.liferay.portal.service.persistence.ResourcePersistence;
 
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * @author Brian Wing Shun Chan
@@ -45,6 +47,18 @@ public class BeanLocatorImpl implements BeanLocator {
 
 		_classLoader = classLoader;
 		_applicationContext = applicationContext;
+	}
+
+	@Override
+	public void destroy() {
+		if (_applicationContext instanceof AbstractApplicationContext) {
+			AbstractApplicationContext abstractApplicationContext =
+				(AbstractApplicationContext)_applicationContext;
+
+			abstractApplicationContext.destroy();
+		}
+
+		_applicationContext = null;
 	}
 
 	public ApplicationContext getApplicationContext() {
@@ -126,6 +140,12 @@ public class BeanLocatorImpl implements BeanLocator {
 		_paclServletContextName = paclServletContextName;
 	}
 
+	public static interface PACL {
+
+		public Object getBean(Object bean, ClassLoader classLoader);
+
+	}
+
 	/**
 	 * This method ensures the calls stack is the proper length.
 	 */
@@ -175,6 +195,12 @@ public class BeanLocatorImpl implements BeanLocator {
 			return bean;
 		}
 
+		if (bean instanceof DoPrivilegedBean) {
+			PortalRuntimePermission.checkGetBeanProperty(bean.getClass());
+
+			return bean;
+		}
+
 		return _pacl.getBean(bean, _classLoader);
 	}
 
@@ -196,12 +222,6 @@ public class BeanLocatorImpl implements BeanLocator {
 		public Object getBean(Object bean, ClassLoader classLoader) {
 			return bean;
 		}
-
-	}
-
-	public static interface PACL {
-
-		public Object getBean(Object bean, ClassLoader classLoader);
 
 	}
 

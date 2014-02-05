@@ -39,6 +39,7 @@ import java.io.InputStream;
  * methods can be used in plugins and other portlets, as shown below.
  * </p>
  *
+ * <p>
  * <pre>
  * <code>
  * long repositoryId = CompanyConstants.SYSTEM;
@@ -54,6 +55,7 @@ import java.io.InputStream;
  * companyId, repositoryId, dirName + "/" + fileName, file);
  * </code>
  * </pre>
+ * </p>
  *
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
@@ -564,6 +566,10 @@ public class DLStoreUtil {
 			companyId, repositoryId, fileName, versionLabel);
 	}
 
+	public static boolean isValidName(String name) {
+		return getStore().isValidName(name);
+	}
+
 	/**
 	 * Moves an existing directory. Only implemented by {@link
 	 * JCRStore#move(String, String)}.
@@ -795,6 +801,12 @@ public class DLStoreUtil {
 
 		getStore().validate(
 			fileName, fileExtension, sourceFileName, validateFileExtension, is);
+	}
+
+	public static void validateDirectoryName(String directoryName)
+		throws PortalException {
+
+		getStore().validateDirectoryName(directoryName);
 	}
 
 	/**

@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ThemeService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ThemeService
+ * @author Brian Wing Shun Chan
+ * @see ThemeService
  * @generated
  */
+@ProviderType
 public class ThemeServiceWrapper implements ThemeService,
 	ServiceWrapper<ThemeService> {
 	public ThemeServiceWrapper(ThemeService themeService) {
@@ -61,6 +64,7 @@ public class ThemeServiceWrapper implements ThemeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ThemeService getWrappedThemeService() {
 		return _themeService;
 	}
@@ -68,6 +72,7 @@ public class ThemeServiceWrapper implements ThemeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedThemeService(ThemeService themeService) {
 		_themeService = themeService;
 	}

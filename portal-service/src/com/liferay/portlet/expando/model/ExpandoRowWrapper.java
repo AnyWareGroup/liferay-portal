@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.expando.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ExpandoRow}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoRow
+ * @author Brian Wing Shun Chan
+ * @see ExpandoRow
  * @generated
  */
+@ProviderType
 public class ExpandoRowWrapper implements ExpandoRow, ModelWrapper<ExpandoRow> {
 	public ExpandoRowWrapper(ExpandoRow expandoRow) {
 		_expandoRow = expandoRow;
@@ -315,9 +319,29 @@ public class ExpandoRowWrapper implements ExpandoRow, ModelWrapper<ExpandoRow> {
 		_expandoRow.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ExpandoRowWrapper)) {
+			return false;
+		}
+
+		ExpandoRowWrapper expandoRowWrapper = (ExpandoRowWrapper)obj;
+
+		if (Validator.equals(_expandoRow, expandoRowWrapper._expandoRow)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ExpandoRow getWrappedExpandoRow() {
 		return _expandoRow;
 	}
@@ -325,6 +349,16 @@ public class ExpandoRowWrapper implements ExpandoRow, ModelWrapper<ExpandoRow> {
 	@Override
 	public ExpandoRow getWrappedModel() {
 		return _expandoRow;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _expandoRow.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _expandoRow.isFinderCacheEnabled();
 	}
 
 	@Override

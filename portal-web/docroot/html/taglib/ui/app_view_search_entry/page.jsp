@@ -14,12 +14,13 @@
  */
 --%>
 
-<%@ include file="/html/taglib/ui/app_view_search_entry/init.jsp" %>
+<%@ include file="/html/taglib/init.jsp" %>
 
 <%
 String actionJsp = (String)request.getAttribute("liferay-ui:app-view-search-entry:actionJsp");
 String containerIcon = GetterUtil.getString(request.getAttribute("liferay-ui:app-view-search-entry:containerIcon"), "folder");
 String containerName = (String)request.getAttribute("liferay-ui:app-view-search-entry:containerName");
+String containerSrc = (String)request.getAttribute("liferay-ui:app-view-search-entry:containerSrc");
 String containerType = GetterUtil.getString(request.getAttribute("liferay-ui:app-view-search-entry:containerType"), LanguageUtil.get(locale, "folder"));
 String cssClass = GetterUtil.getString((String)request.getAttribute("liferay-ui:app-view-search-entry:cssClass"));
 String description = (String)request.getAttribute("liferay-ui:app-view-search-entry:description");
@@ -34,13 +35,14 @@ int status = GetterUtil.getInteger(request.getAttribute("liferay-ui:app-view-sea
 String thumbnailSrc = (String)request.getAttribute("liferay-ui:app-view-search-entry:thumbnailSrc");
 String title = (String)request.getAttribute("liferay-ui:app-view-search-entry:title");
 String url = (String)request.getAttribute("liferay-ui:app-view-search-entry:url");
+List<String> versions = (List<String>)request.getAttribute("liferay-ui:app-view-search-entry:versions");
 %>
 
 <div class="app-view-entry app-view-search-entry-taglib entry-display-style <%= showCheckbox ? "selectable" : StringPool.BLANK %> <%= cssClass %>" data-title="<%= HtmlUtil.escapeAttribute(StringUtil.shorten(title, 60)) %>">
 	<a class="entry-link" href="<%= url %>" title="<%= HtmlUtil.escapeAttribute(title + " - " + description) %>">
 		<c:if test="<%= Validator.isNotNull(thumbnailSrc) %>">
 			<div class="entry-thumbnail">
-				<img alt="" class="entry-thumbnail-image" src="<%= thumbnailSrc %>" />
+				<img alt="" border="no" class="img-polaroid" src="<%= HtmlUtil.escapeAttribute(thumbnailSrc) %>" />
 
 				<c:if test="<%= locked %>">
 					<img alt="<liferay-ui:message key="locked" />" class="locked-icon" src="<%= themeDisplay.getPathThemeImages() %>/file_system/large/overlay_lock.png" />
@@ -48,34 +50,63 @@ String url = (String)request.getAttribute("liferay-ui:app-view-search-entry:url"
 			</div>
 		</c:if>
 
-		<span class="entry-title">
-			<%= StringUtil.highlight(HtmlUtil.escape(title), queryTerms) %>
+		<div class="entry-metadata">
+			<span class="entry-title">
+				<%= StringUtil.highlight(HtmlUtil.escape(title), queryTerms) %>
 
-			<c:if test="<%= ((status == WorkflowConstants.STATUS_DRAFT) || (status == WorkflowConstants.STATUS_PENDING)) %>">
-
-				<%
-				String statusLabel = WorkflowConstants.toLabel(status);
-				%>
-
-				<span class="workflow-status-<%= statusLabel %>">
-					(<liferay-ui:message key="<%= statusLabel %>" />)
-				</span>
-			</c:if>
-		</span>
-
-		<c:if test="<%= Validator.isNotNull(containerName) %>">
-			<span class="entry-folder">
-				<liferay-ui:icon
-					image='<%= (Validator.isNotNull(containerIcon)) ? containerIcon : "folder" %>'
-					label="<%= true %>"
-					message='<%= LanguageUtil.format(locale, "found-in-x-x", new String[] {containerType, containerName}) %>'
-				/>
+				<c:if test="<%= (status != WorkflowConstants.STATUS_ANY) && (status != WorkflowConstants.STATUS_APPROVED) %>">
+					<aui:workflow-status showIcon="<%= false %>" showLabel="<%= false %>" status="<%= status %>" />
+				</c:if>
 			</span>
-		</c:if>
 
-		<span class="entry-description">
-			<%= StringUtil.highlight(HtmlUtil.escape(description), queryTerms) %>
-		</span>
+			<c:if test="<%= ((versions != null) && !versions.isEmpty()) || Validator.isNotNull(containerName) %>">
+				<small>
+					<dl>
+						<c:if test="<%= (versions != null) && !versions.isEmpty() %>">
+							<dt>
+								<liferay-ui:message key="versions" />:
+							</dt>
+							<dd>
+
+								<%= StringUtil.merge(versions, StringPool.COMMA_AND_SPACE) %>
+
+							</dd>
+						</c:if>
+
+						<c:if test="<%= Validator.isNotNull(containerName) %>">
+							<dt>
+								<c:choose>
+									<c:when test="<%= Validator.isNotNull(containerSrc) %>">
+										<liferay-ui:icon
+											label="<%= true %>"
+											message="<%= LanguageUtil.get(locale, containerType) %>"
+											src="<%= containerSrc %>"
+										/>
+									</c:when>
+									<c:otherwise>
+										<liferay-ui:icon
+											image='<%= (Validator.isNotNull(containerIcon)) ? containerIcon : "folder" %>'
+											label="<%= true %>"
+											message="<%= LanguageUtil.get(locale, containerType) %>"
+										/>
+									</c:otherwise>
+								</c:choose>
+								:
+							</dt>
+							<dd>
+
+								<%= HtmlUtil.escape(containerName) %>
+
+							</dd>
+						</c:if>
+					</dl>
+				</small>
+			</c:if>
+
+			<span class="entry-description">
+				<%= StringUtil.highlight(HtmlUtil.escape(description), queryTerms) %>
+			</span>
+		</div>
 	</a>
 
 	<c:if test="<%= fileEntryTuples != null %>">
@@ -96,7 +127,7 @@ String url = (String)request.getAttribute("liferay-ui:app-view-search-entry:url"
 							<liferay-ui:icon
 								image='<%= "../file_system/small/" + DLUtil.getFileIcon(fileEntry.getExtension()) %>'
 								label="<%= true %>"
-								message='<%= LanguageUtil.format(locale, "attachment-added-by-x", HtmlUtil.escape(fileEntry.getUserName())) %>'
+								message='<%= LanguageUtil.format(locale, "attachment-added-by-x", HtmlUtil.escape(fileEntry.getUserName()), false) %>'
 							/>
 						</span>
 
@@ -129,7 +160,7 @@ String url = (String)request.getAttribute("liferay-ui:app-view-search-entry:url"
 						<liferay-ui:icon
 							image="message"
 							label="<%= true %>"
-							message='<%= LanguageUtil.format(locale, "comment-by-x", HtmlUtil.escape(userDisplay.getFullName())) %>'
+							message='<%= LanguageUtil.format(locale, "comment-by-x", HtmlUtil.escape(userDisplay.getFullName()), false) %>'
 						/>
 					</span>
 

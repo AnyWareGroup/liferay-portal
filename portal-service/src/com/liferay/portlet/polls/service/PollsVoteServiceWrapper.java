@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.polls.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link PollsVoteService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsVoteService
+ * @author Brian Wing Shun Chan
+ * @see PollsVoteService
  * @generated
  */
+@ProviderType
 public class PollsVoteServiceWrapper implements PollsVoteService,
 	ServiceWrapper<PollsVoteService> {
 	public PollsVoteServiceWrapper(PollsVoteService pollsVoteService) {
@@ -60,6 +63,7 @@ public class PollsVoteServiceWrapper implements PollsVoteService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PollsVoteService getWrappedPollsVoteService() {
 		return _pollsVoteService;
 	}
@@ -67,6 +71,7 @@ public class PollsVoteServiceWrapper implements PollsVoteService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPollsVoteService(PollsVoteService pollsVoteService) {
 		_pollsVoteService = pollsVoteService;
 	}

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AssetTagService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagService
+ * @author Brian Wing Shun Chan
+ * @see AssetTagService
  * @generated
  */
+@ProviderType
 public class AssetTagServiceWrapper implements AssetTagService,
 	ServiceWrapper<AssetTagService> {
 	public AssetTagServiceWrapper(AssetTagService assetTagService) {
@@ -111,6 +114,7 @@ public class AssetTagServiceWrapper implements AssetTagService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupTagsDisplay(long,
 	String, int, int)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONGroupTags(
 		long groupId, java.lang.String name, int start, int end)
@@ -230,6 +234,7 @@ public class AssetTagServiceWrapper implements AssetTagService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetTagService getWrappedAssetTagService() {
 		return _assetTagService;
 	}
@@ -237,6 +242,7 @@ public class AssetTagServiceWrapper implements AssetTagService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetTagService(AssetTagService assetTagService) {
 		_assetTagService = assetTagService;
 	}

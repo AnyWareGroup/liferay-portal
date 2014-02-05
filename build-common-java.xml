@@ -61,7 +61,7 @@
 	</target>
 
 	<target name="compile-java">
-		<copy todir="${javac.destdir}">
+		<copy todir="${javac.destdir}" preservelastmodified="true">
 			<fileset dir="${javac.srcdir}" excludes="**/*.java" />
 		</copy>
 
@@ -88,7 +88,7 @@
 				</uptodate>
 			</not>
 			<then>
-				<copy file="${jar.file}.jar" todir="${deploy.dir}" />
+				<copy file="${jar.file}.jar" todir="${deploy.dir}" preservelastmodified="true" />
 			</then>
 		</if>
 	</target>
@@ -97,30 +97,20 @@
 		<if>
 			<not>
 				<uptodate targetfile="${jar.file}.jar">
-					<srcfiles dir="classes" includes="**/*.*"/>
+					<srcfiles dir="classes" includes="**/*.*" />
 				</uptodate>
 			</not>
 			<then>
 				<if>
 					<available file="bnd.bnd" />
 					<then>
-						<manifest-helper />
-
-						<bndexpand propertyfile="${project.dir}/common.bnd" />
-
-						<bnd
-							eclipse="false"
-							exceptions="true"
-							failok="false"
-							inherit="true"
-							output="${jar.file}.jar"
-							sourcepath="."
-						>
-							<bndfiles path="bnd.bnd" />
-							<classpath>
-								<pathelement location="classes" />
-							</classpath>
-						</bnd>
+						<baseline-jar-macro
+							bndRootFile="${project.dir}/common.bnd"
+							file="bnd.bnd"
+							outputPath="."
+							rootProjectDir="${project.dir}"
+							sourcePath="."
+						/>
 					</then>
 					<else>
 						<antcall target="manifest" />
@@ -157,7 +147,8 @@
 			breakiterator="yes"
 			classpathref="project.classpath"
 			destdir="${doc.dir}/${ant.project.name}/javadocs"
-			maxmemory="768m"
+			encoding="UTF-8"
+			maxmemory="2048m"
 			packagenames="*.*"
 			sourcepath="src"
 			stylesheetfile="${project.dir}/tools/javadoc.css"
@@ -227,6 +218,18 @@
 						</manifest>
 					</then>
 				</if>
+			</then>
+		</if>
+	</target>
+
+	<target name="release" depends="jar">
+		<if>
+			<available file="bnd.bnd" />
+			<then>
+				<release-to-repo-macro
+					bndRootFile="${project.dir}/common.bnd"
+					file="${jar.file}.jar"
+				/>
 			</then>
 		</if>
 	</target>

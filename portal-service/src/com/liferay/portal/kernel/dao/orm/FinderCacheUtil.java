@@ -50,6 +50,7 @@ public class FinderCacheUtil {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static Object getResult(
 		String className, String methodName, String[] params, Object[] args,
 		SessionFactory sessionFactory) {
@@ -68,6 +69,7 @@ public class FinderCacheUtil {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void putResult(
 		boolean classNameCacheEnabled, String className, String methodName,
 		String[] params, Object[] args, Object result) {
@@ -81,6 +83,12 @@ public class FinderCacheUtil {
 		FinderPath finderPath, Object[] args, Object result) {
 
 		getFinderCache().putResult(finderPath, args, result);
+	}
+
+	public static void putResult(
+		FinderPath finderPath, Object[] args, Object result, boolean quiet) {
+
+		getFinderCache().putResult(finderPath, args, result, quiet);
 	}
 
 	public static void removeCache(String className) {

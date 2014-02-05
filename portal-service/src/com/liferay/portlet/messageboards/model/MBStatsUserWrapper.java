@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MBStatsUser}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBStatsUser
+ * @author Brian Wing Shun Chan
+ * @see MBStatsUser
  * @generated
  */
+@ProviderType
 public class MBStatsUserWrapper implements MBStatsUser,
 	ModelWrapper<MBStatsUser> {
 	public MBStatsUserWrapper(MBStatsUser mbStatsUser) {
@@ -360,9 +364,29 @@ public class MBStatsUserWrapper implements MBStatsUser,
 		_mbStatsUser.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBStatsUserWrapper)) {
+			return false;
+		}
+
+		MBStatsUserWrapper mbStatsUserWrapper = (MBStatsUserWrapper)obj;
+
+		if (Validator.equals(_mbStatsUser, mbStatsUserWrapper._mbStatsUser)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBStatsUser getWrappedMBStatsUser() {
 		return _mbStatsUser;
 	}
@@ -370,6 +394,16 @@ public class MBStatsUserWrapper implements MBStatsUser,
 	@Override
 	public MBStatsUser getWrappedModel() {
 		return _mbStatsUser;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbStatsUser.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbStatsUser.isFinderCacheEnabled();
 	}
 
 	@Override

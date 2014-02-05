@@ -20,9 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class is used by SOAP remote services.
+ * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.social.service.http.SocialActivityServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.social.service.http.SocialActivityServiceSoap
  * @generated
  */
 public class SocialActivitySoap implements Serializable {
@@ -38,6 +39,8 @@ public class SocialActivitySoap implements Serializable {
 		soapModel.setMirrorActivityId(model.getMirrorActivityId());
 		soapModel.setClassNameId(model.getClassNameId());
 		soapModel.setClassPK(model.getClassPK());
+		soapModel.setParentClassNameId(model.getParentClassNameId());
+		soapModel.setParentClassPK(model.getParentClassPK());
 		soapModel.setType(model.getType());
 		soapModel.setExtraData(model.getExtraData());
 		soapModel.setReceiverUserId(model.getReceiverUserId());
@@ -165,6 +168,22 @@ public class SocialActivitySoap implements Serializable {
 		_classPK = classPK;
 	}
 
+	public long getParentClassNameId() {
+		return _parentClassNameId;
+	}
+
+	public void setParentClassNameId(long parentClassNameId) {
+		_parentClassNameId = parentClassNameId;
+	}
+
+	public long getParentClassPK() {
+		return _parentClassPK;
+	}
+
+	public void setParentClassPK(long parentClassPK) {
+		_parentClassPK = parentClassPK;
+	}
+
 	public int getType() {
 		return _type;
 	}
@@ -198,6 +217,8 @@ public class SocialActivitySoap implements Serializable {
 	private long _mirrorActivityId;
 	private long _classNameId;
 	private long _classPK;
+	private long _parentClassNameId;
+	private long _parentClassPK;
 	private int _type;
 	private String _extraData;
 	private long _receiverUserId;

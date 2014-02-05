@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.ratings.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link RatingsEntryLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       RatingsEntryLocalService
+ * @author Brian Wing Shun Chan
+ * @see RatingsEntryLocalService
  * @generated
  */
+@ProviderType
 public class RatingsEntryLocalServiceWrapper implements RatingsEntryLocalService,
 	ServiceWrapper<RatingsEntryLocalService> {
 	public RatingsEntryLocalServiceWrapper(
@@ -164,6 +167,23 @@ public class RatingsEntryLocalServiceWrapper implements RatingsEntryLocalService
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _ratingsEntryLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ratingsEntryLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -328,6 +348,7 @@ public class RatingsEntryLocalServiceWrapper implements RatingsEntryLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RatingsEntryLocalService getWrappedRatingsEntryLocalService() {
 		return _ratingsEntryLocalService;
 	}
@@ -335,6 +356,7 @@ public class RatingsEntryLocalServiceWrapper implements RatingsEntryLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRatingsEntryLocalService(
 		RatingsEntryLocalService ratingsEntryLocalService) {
 		_ratingsEntryLocalService = ratingsEntryLocalService;

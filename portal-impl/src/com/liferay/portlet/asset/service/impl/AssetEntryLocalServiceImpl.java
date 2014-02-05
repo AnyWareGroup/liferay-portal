@@ -36,14 +36,14 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.model.Group;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
-import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.NoSuchEntryException;
-import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.model.AssetLink;
 import com.liferay.portlet.asset.model.AssetLinkConstants;
@@ -85,6 +85,12 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 
 		assetEntryPersistence.remove(entry);
 
+		// System event
+
+		systemEventLocalService.addSystemEvent(
+			0, entry.getGroupId(), entry.getClassName(), entry.getClassPK(),
+			entry.getClassUuid(), null, SystemEventConstants.TYPE_DELETE, null);
+
 		// Links
 
 		assetLinkLocalService.deleteLinks(entry.getEntryId());
@@ -116,7 +122,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public void deleteEntry(String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
 			classNameId, classPK);
@@ -142,7 +148,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public AssetEntry fetchEntry(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return assetEntryPersistence.fetchByC_C(classNameId, classPK);
 	}
@@ -227,7 +233,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	public AssetEntry getEntry(String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return assetEntryPersistence.findByC_C(classNameId, classPK);
 	}
@@ -329,7 +335,8 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		long[] classNameIds = new long[className.length];
 
 		for (int i = 0; i < className.length; i++) {
-			classNameIds[i] = PortalUtil.getClassNameId(className[i]);
+			classNameIds[i] = classNameLocalService.getClassNameId(
+				className[i]);
 		}
 
 		AssetEntryQuery entryQuery = new AssetEntryQuery();
@@ -368,28 +375,26 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	@BufferedIncrement(
 		configuration = "AssetEntry", incrementClass = NumberIncrement.class)
 	@Override
-	public AssetEntry incrementViewCounter(
+	public void incrementViewCounter(
 			long userId, String className, long classPK, int increment)
 		throws SystemException {
 
-		if (classPK <= 0) {
-			return null;
+		if (ExportImportThreadLocal.isImportInProcess() || (classPK <= 0)) {
+			return;
 		}
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
 			classNameId, classPK);
 
 		if (entry == null) {
-			return null;
+			return;
 		}
 
 		entry.setViewCount(entry.getViewCount() + increment);
 
 		assetEntryPersistence.update(entry);
-
-		return entry;
 	}
 
 	@Override
@@ -407,6 +412,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #search(long, long[], long,
 	 *             String, String, int, int, int)}
 	 */
+	@Deprecated
 	@Override
 	public Hits search(
 			long companyId, long[] groupIds, long userId, String className,
@@ -472,6 +478,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	 *             String, String, String, String, String, String, int, boolean,
 	 *             int, int)}
 	 */
+	@Deprecated
 	@Override
 	public Hits search(
 			long companyId, long[] groupIds, long userId, String className,
@@ -547,6 +554,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	 * @deprecated As of 6.2.0, replaced by {@link #search(long, long[], long,
 	 *             String, String, int, int, int)}
 	 */
+	@Deprecated
 	@Override
 	public Hits search(
 			long companyId, long[] groupIds, String className, String keywords,
@@ -572,7 +580,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		// Entry
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		validate(groupId, className, categoryIds, tagNames);
 
@@ -650,31 +658,10 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		if (tagNames != null) {
 			long siteGroupId = PortalUtil.getSiteGroupId(groupId);
 
-			List<AssetTag> tags = new ArrayList<AssetTag>(tagNames.length);
+			Group siteGroup = groupLocalService.getGroup(siteGroupId);
 
-			for (String tagName : tagNames) {
-				AssetTag tag = null;
-
-				try {
-					tag = assetTagLocalService.getTag(siteGroupId, tagName);
-				}
-				catch (NoSuchTagException nste) {
-					ServiceContext serviceContext = new ServiceContext();
-
-					serviceContext.setAddGroupPermissions(true);
-					serviceContext.setAddGuestPermissions(true);
-					serviceContext.setScopeGroupId(siteGroupId);
-
-					tag = assetTagLocalService.addTag(
-						user.getUserId(), tagName,
-						PropsValues.ASSET_TAG_PROPERTIES_DEFAULT,
-						serviceContext);
-				}
-
-				if (tag != null) {
-					tags.add(tag);
-				}
-			}
+			List<AssetTag> tags = assetTagLocalService.checkTags(
+				userId, siteGroup, tagNames);
 
 			List<AssetTag> oldTags = assetEntryPersistence.getAssetTags(
 				entry.getEntryId());
@@ -788,7 +775,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long[] categoryIds, String[] tagNames)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		AssetEntry entry = assetEntryPersistence.fetchByC_C(
 			classNameId, classPK);
@@ -818,6 +805,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	 *             Date, Date, String, String, String, String, String, String,
 	 *             int, int, Integer, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public AssetEntry updateEntry(
 			long userId, long groupId, String className, long classPK,
@@ -842,6 +830,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 	 *             boolean, Date, Date, Date, String, String, String, String,
 	 *             String, String, int, int, Integer, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public AssetEntry updateEntry(
 			long userId, long groupId, String className, long classPK,
@@ -864,18 +853,14 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			String className, long classPK, Date publishDate, boolean visible)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		AssetEntry entry = assetEntryPersistence.findByC_C(
 			classNameId, classPK);
 
 		entry.setPublishDate(publishDate);
 
-		updateVisible(entry, visible);
-
-		assetEntryPersistence.update(entry);
-
-		return entry;
+		return updateVisible(entry, visible);
 	}
 
 	@Override
@@ -884,7 +869,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			Date expirationDate, boolean visible)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		AssetEntry entry = assetEntryPersistence.findByC_C(
 			classNameId, classPK);
@@ -892,11 +877,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		entry.setExpirationDate(expirationDate);
 		entry.setPublishDate(publishDate);
 
-		updateVisible(entry, visible);
-
-		assetEntryPersistence.update(entry);
-
-		return entry;
+		return updateVisible(entry, visible);
 	}
 
 	@Override
@@ -904,16 +885,12 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			String className, long classPK, boolean visible)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		AssetEntry entry = assetEntryPersistence.findByC_C(
 			classNameId, classPK);
 
-		updateVisible(entry, visible);
-
-		assetEntryPersistence.update(entry);
-
-		return entry;
+		return updateVisible(entry, visible);
 	}
 
 	@Override
@@ -936,21 +913,20 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		if (Validator.isNotNull(className)) {
 			return new String[] {className};
 		}
-		else {
-			List<AssetRendererFactory> rendererFactories =
-				AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
-					companyId);
 
-			String[] classNames = new String[rendererFactories.size()];
+		List<AssetRendererFactory> rendererFactories =
+			AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
+				companyId);
 
-			for (int i = 0; i < rendererFactories.size(); i++) {
-				AssetRendererFactory rendererFactory = rendererFactories.get(i);
+		String[] classNames = new String[rendererFactories.size()];
 
-				classNames[i] = rendererFactory.getClassName();
-			}
+		for (int i = 0; i < rendererFactories.size(); i++) {
+			AssetRendererFactory rendererFactory = rendererFactories.get(i);
 
-			return classNames;
+			classNames[i] = rendererFactory.getClassName();
 		}
+
+		return classNames;
 	}
 
 	protected AssetEntry getEntry(Document document)
@@ -962,7 +938,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long entryId = GetterUtil.getLong(
 				document.get(Field.ENTRY_CLASS_PK));
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				BlogsEntry.class.getName());
 			long classPK = entryId;
 
@@ -972,7 +948,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long entryId = GetterUtil.getLong(
 				document.get(Field.ENTRY_CLASS_PK));
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				BookmarksEntry.class.getName());
 			long classPK = entryId;
 
@@ -982,7 +958,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long fileEntryId = GetterUtil.getLong(
 				document.get(Field.ENTRY_CLASS_PK));
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				DLFileEntry.class.getName());
 			long classPK = fileEntryId;
 
@@ -997,7 +973,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 				journalArticleResourceLocalService.getArticleResourcePrimKey(
 					groupId, articleId);
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				JournalArticle.class.getName());
 			long classPK = articleResourcePrimKey;
 
@@ -1007,7 +983,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 			long messageId = GetterUtil.getLong(
 				document.get(Field.ENTRY_CLASS_PK));
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				MBMessage.class.getName());
 			long classPK = messageId;
 
@@ -1022,7 +998,7 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 				wikiPageResourceLocalService.getPageResourcePrimKey(
 					nodeId, title);
 
-			long classNameId = PortalUtil.getClassNameId(
+			long classNameId = classNameLocalService.getClassNameId(
 				WikiPage.class.getName());
 			long classPK = pageResourcePrimKey;
 
@@ -1032,12 +1008,16 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 		return null;
 	}
 
-	protected void updateVisible(AssetEntry entry, boolean visible)
+	protected AssetEntry updateVisible(AssetEntry entry, boolean visible)
 		throws PortalException, SystemException {
 
 		if (visible == entry.isVisible()) {
-			return;
+			return assetEntryPersistence.update(entry);
 		}
+
+		entry.setVisible(visible);
+
+		assetEntryPersistence.update(entry);
 
 		List<AssetTag> tags = assetEntryPersistence.getAssetTags(
 			entry.getEntryId());
@@ -1047,15 +1027,21 @@ public class AssetEntryLocalServiceImpl extends AssetEntryLocalServiceBaseImpl {
 				assetTagLocalService.incrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
+
+			socialActivityCounterLocalService.enableActivityCounters(
+				entry.getClassNameId(), entry.getClassPK());
 		}
 		else {
 			for (AssetTag tag : tags) {
 				assetTagLocalService.decrementAssetCount(
 					tag.getTagId(), entry.getClassNameId());
 			}
+
+			socialActivityCounterLocalService.disableActivityCounters(
+				entry.getClassNameId(), entry.getClassPK());
 		}
 
-		entry.setVisible(visible);
+		return entry;
 	}
 
 }

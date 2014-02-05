@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.wiki.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link WikiPageResource}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiPageResource
+ * @author Brian Wing Shun Chan
+ * @see WikiPageResource
  * @generated
  */
+@ProviderType
 public class WikiPageResourceWrapper implements WikiPageResource,
 	ModelWrapper<WikiPageResource> {
 	public WikiPageResourceWrapper(WikiPageResource wikiPageResource) {
@@ -288,9 +292,30 @@ public class WikiPageResourceWrapper implements WikiPageResource,
 		_wikiPageResource.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof WikiPageResourceWrapper)) {
+			return false;
+		}
+
+		WikiPageResourceWrapper wikiPageResourceWrapper = (WikiPageResourceWrapper)obj;
+
+		if (Validator.equals(_wikiPageResource,
+					wikiPageResourceWrapper._wikiPageResource)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WikiPageResource getWrappedWikiPageResource() {
 		return _wikiPageResource;
 	}
@@ -298,6 +323,16 @@ public class WikiPageResourceWrapper implements WikiPageResource,
 	@Override
 	public WikiPageResource getWrappedModel() {
 		return _wikiPageResource;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _wikiPageResource.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _wikiPageResource.isFinderCacheEnabled();
 	}
 
 	@Override

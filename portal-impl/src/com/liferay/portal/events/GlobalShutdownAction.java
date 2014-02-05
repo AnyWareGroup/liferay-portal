@@ -14,6 +14,7 @@
 
 package com.liferay.portal.events;
 
+import com.liferay.portal.deploy.RequiredPluginsUtil;
 import com.liferay.portal.im.AIMConnector;
 import com.liferay.portal.im.ICQConnector;
 import com.liferay.portal.im.MSNConnector;
@@ -33,6 +34,7 @@ import com.liferay.portal.kernel.javadoc.JavadocManagerUtil;
 import com.liferay.portal.kernel.log.Jdk14LogFactoryImpl;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.resiliency.mpi.MPIHelperUtil;
 import com.liferay.portal.kernel.scheduler.SchedulerEngineHelperUtil;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
@@ -55,6 +57,10 @@ public class GlobalShutdownAction extends SimpleAction {
 
 	@Override
 	public void run(String[] ids) {
+
+		// Portal Resiliency
+
+		MPIHelperUtil.shutdown();
 
 		// Auto deploy
 
@@ -139,6 +145,10 @@ public class GlobalShutdownAction extends SimpleAction {
 		// OpenOffice
 
 		DocumentConversionUtil.disconnect();
+
+		// Plugins
+
+		RequiredPluginsUtil.stopCheckingRequiredPlugins();
 
 		// Thread local registry
 

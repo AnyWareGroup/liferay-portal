@@ -34,12 +34,18 @@ else {
 
 	folderIds.add(new Long(searchFolderIds));
 
-	BookmarksFolderServiceUtil.getSubfolderIds(folderIds, scopeGroupId, searchFolderIds);
+	BookmarksFolderServiceUtil.getSubfolderIds(folderIds, scopeGroupId, searchFolderIds, true);
 
 	folderIdsArray = StringUtil.split(StringUtil.merge(folderIds), 0L);
 }
 
 String keywords = ParamUtil.getString(request, "keywords");
+
+if (searchFolderId > 0) {
+	BookmarksUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
+}
+
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
 %>
 
 <liferay-portlet:renderURL varImpl="searchURL">
@@ -70,7 +76,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 	%>
 
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>") %>'
+		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
 		iteratorURL="<%= portletURL %>"
 	>
 
@@ -86,11 +92,12 @@ String keywords = ParamUtil.getString(request, "keywords");
 		searchContext.setStart(searchContainer.getStart());
 
 		Hits hits = indexer.search(searchContext);
+
+		searchContainer.setTotal(hits.getLength());
 		%>
 
 		<liferay-ui:search-container-results
 			results="<%= BookmarksUtil.getEntries(hits) %>"
-			total="<%= hits.getLength() %>"
 		/>
 
 		<liferay-ui:search-container-row
@@ -167,7 +174,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 						<liferay-ui:icon
 							image='<%= (BookmarksFolderLocalServiceUtil.getFoldersAndEntriesCount(folder.getGroupId(), folder.getFolderId(), WorkflowConstants.STATUS_ANY) > 0) ? "folder_full_document" : "folder_empty" %>'
 							label="<%= true %>"
-							message="<%= folder.getName() %>"
+							message="<%= HtmlUtil.escape(folder.getName()) %>"
 							url="<%= rowURL %>"
 						/>
 					</liferay-ui:search-container-column-text>
@@ -195,28 +202,10 @@ String keywords = ParamUtil.getString(request, "keywords");
 			</c:choose>
 		</liferay-ui:search-container-row>
 
-		<span class="form-search">
-			<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-bookmarks" type="text" value="<%= keywords %>" />
-
-			<aui:button type="submit" value="search" />
-		</span>
-
-		<br /><br />
+		<div class="form-search">
+			<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-categories") %>' />
+		</div>
 
 		<liferay-ui:search-iterator type="more" />
 	</liferay-ui:search-container>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>
-
-<%
-if (searchFolderId > 0) {
-	BookmarksUtil.addPortletBreadcrumbEntries(searchFolderId, request, renderResponse);
-}
-
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(pageContext, "search") + ": " + keywords, currentURL);
-%>

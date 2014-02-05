@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.0.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_0_0.dtd">
 
 <service-builder package-path="com.liferay.portlet.asset">
 	<namespace>Asset</namespace>
@@ -75,7 +75,7 @@
 		</finder>
 		<finder name="G_LikeN_V" return-type="Collection">
 			<finder-column name="groupId" />
-			<finder-column name="name" comparator="LIKE" />
+			<finder-column name="name" case-sensitive="false" comparator="LIKE" />
 			<finder-column name="vocabularyId" arrayable-operator="OR" />
 		</finder>
 		<finder name="P_N_V" return-type="AssetCategory" unique="true">
@@ -208,6 +208,7 @@
 
 		<reference package-path="com.liferay.portal" entity="Company" />
 		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference package-path="com.liferay.portal" entity="SystemEvent" />
 		<reference package-path="com.liferay.portlet.blogs" entity="BlogsEntry" />
 		<reference package-path="com.liferay.portlet.bookmarks" entity="BookmarksEntry" />
 		<reference package-path="com.liferay.portlet.documentlibrary" entity="DLApp" />
@@ -316,6 +317,10 @@
 			<finder-column name="groupId" />
 			<finder-column name="name" />
 		</finder>
+
+		<!-- References -->
+
+		<reference package-path="com.liferay.portal" entity="Group" />
 	</entity>
 	<entity name="AssetTagProperty" local-service="true" remote-service="true">
 
@@ -435,6 +440,10 @@
 			<finder-column name="groupId" />
 			<finder-column name="name" />
 		</finder>
+		<finder name="G_LikeN" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="name" case-sensitive="false" comparator="LIKE" />
+		</finder>
 
 		<!-- References -->
 
@@ -449,6 +458,7 @@
 		<exception>CategoryPropertyKey</exception>
 		<exception>CategoryPropertyValue</exception>
 		<exception>DuplicateCategory</exception>
+		<exception>DuplicateQueryRule</exception>
 		<exception>DuplicateTag</exception>
 		<exception>DuplicateVocabulary</exception>
 		<exception>TagPropertyKey</exception>

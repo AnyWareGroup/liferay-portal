@@ -191,6 +191,9 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		attributes.put("active", getActive());
 		attributes.put("recommended", getRecommended());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -233,8 +236,8 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getLicenseId() {
 		return _licenseId;
 	}
@@ -244,8 +247,8 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		_licenseId = licenseId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -262,8 +265,8 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		_name = name;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUrl() {
 		if (_url == null) {
 			return StringPool.BLANK;
@@ -278,8 +281,8 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		_url = url;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getOpenSource() {
 		return _openSource;
 	}
@@ -294,8 +297,8 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		_openSource = openSource;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getActive() {
 		return _active;
 	}
@@ -322,8 +325,8 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 		return _originalActive;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getRecommended() {
 		return _recommended;
 	}
@@ -431,6 +434,16 @@ public class SCLicenseModelImpl extends BaseModelImpl<SCLicense>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

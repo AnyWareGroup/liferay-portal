@@ -56,8 +56,8 @@ public class GetArticleAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		try {
@@ -149,12 +149,11 @@ public class GetArticleAction extends Action {
 			return;
 		}
 
-		DDMTemplate ddmTemplate = null;
-
 		try {
-			ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(
+			DDMTemplate ddmTemplate = DDMTemplateLocalServiceUtil.getTemplate(
 				article.getGroupId(),
-				PortalUtil.getClassNameId(DDMStructure.class), templateId);
+				PortalUtil.getClassNameId(DDMStructure.class), templateId,
+				true);
 
 			if (Validator.equals(
 					ddmTemplate.getLanguage(),

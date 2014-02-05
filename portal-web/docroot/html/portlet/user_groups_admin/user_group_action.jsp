@@ -50,18 +50,21 @@ UserGroup userGroup = (UserGroup)row.getObject();
 			modelResourceDescription="<%= userGroup.getName() %>"
 			resourcePrimKey="<%= String.valueOf(userGroup.getUserGroupId()) %>"
 			var="permissionsURL"
+			windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 		/>
 
 		<liferay-ui:icon
 			image="permissions"
+			method="get"
 			url="<%= permissionsURL %>"
+			useDialog="<%= true %>"
 		/>
 	</c:if>
 
 	<c:if test="<%= hasPermissionsPermission %>">
 		<liferay-security:permissionsURL
 			modelResource="<%= Group.class.getName() %>"
-			modelResourceDescription='<%= LanguageUtil.format(pageContext, "site-for-user-group-x", userGroup.getName()) %>'
+			modelResourceDescription='<%= LanguageUtil.format(pageContext, "site-for-user-group-x", userGroup.getName(), false) %>'
 			resourcePrimKey="<%= String.valueOf(userGroup.getGroup().getGroupId()) %>"
 			var="permissionsURL"
 		/>
@@ -77,7 +80,7 @@ UserGroup userGroup = (UserGroup)row.getObject();
 	Group userGroupGroup = userGroup.getGroup();
 	%>
 
-	<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, userGroupGroup.getGroupId(), ActionKeys.MANAGE_LAYOUTS) %>">
+	<c:if test="<%= GroupPermissionUtil.contains(permissionChecker, userGroupGroup, ActionKeys.MANAGE_LAYOUTS) %>">
 		<portlet:renderURL var="managePagesURL">
 			<portlet:param name="struts_action" value="/users_admin/edit_layouts" />
 			<portlet:param name="redirect" value="<%= redirect %>" />
@@ -92,7 +95,7 @@ UserGroup userGroup = (UserGroup)row.getObject();
 	</c:if>
 
 	<%
-	boolean hasViewPermission = GroupPermissionUtil.contains(permissionChecker, userGroupGroup.getGroupId(), ActionKeys.VIEW);
+	boolean hasViewPermission = GroupPermissionUtil.contains(permissionChecker, userGroupGroup, ActionKeys.VIEW);
 	%>
 
 	<c:if test="<%= hasViewPermission && (userGroupGroup.getPublicLayoutsPageCount() > 0) %>">

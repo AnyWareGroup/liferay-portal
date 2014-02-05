@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.UserGroupModelImpl
  * @generated
  */
+@ProviderType
 public interface UserGroup extends UserGroupModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -39,6 +42,10 @@ public interface UserGroup extends UserGroupModel, PersistedModel {
 		};
 
 	public com.liferay.portal.model.Group getGroup()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException;
+
+	public long getGroupId()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 

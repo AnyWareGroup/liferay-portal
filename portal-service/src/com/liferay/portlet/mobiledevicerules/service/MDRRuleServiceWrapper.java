@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.mobiledevicerules.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link MDRRuleService}.
  *
- * @author    Edward C. Han
- * @see       MDRRuleService
+ * @author Edward C. Han
+ * @see MDRRuleService
  * @generated
  */
+@ProviderType
 public class MDRRuleServiceWrapper implements MDRRuleService,
 	ServiceWrapper<MDRRuleService> {
 	public MDRRuleServiceWrapper(MDRRuleService mdrRuleService) {
@@ -127,6 +130,7 @@ public class MDRRuleServiceWrapper implements MDRRuleService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MDRRuleService getWrappedMDRRuleService() {
 		return _mdrRuleService;
 	}
@@ -134,6 +138,7 @@ public class MDRRuleServiceWrapper implements MDRRuleService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMDRRuleService(MDRRuleService mdrRuleService) {
 		_mdrRuleService = mdrRuleService;
 	}

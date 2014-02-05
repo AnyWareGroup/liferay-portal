@@ -14,15 +14,11 @@
 
 package com.liferay.portlet.journal.action;
 
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -34,9 +30,10 @@ import com.liferay.portlet.journal.NoSuchFolderException;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.service.JournalFolderServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -55,8 +52,9 @@ public class EditFolderAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -66,15 +64,10 @@ public class EditFolderAction extends PortletAction {
 				updateFolder(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteFolders(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteFolders(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteFolders(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
-			}
-			else if (cmd.equals(Constants.RESTORE)) {
-				restoreFolderFromTrash(actionRequest);
+				deleteFolders(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.MOVE)) {
 				moveFolder(actionRequest);
@@ -103,8 +96,9 @@ public class EditFolderAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -116,19 +110,18 @@ public class EditFolderAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.journal.error");
+				return actionMapping.findForward("portlet.journal.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.journal.edit_folder"));
 	}
 
 	protected void deleteFolders(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
@@ -144,9 +137,14 @@ public class EditFolderAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "folderIds"), 0L);
 		}
 
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
 		for (long deleteFolderId : deleteFolderIds) {
 			if (moveToTrash) {
-				JournalFolderServiceUtil.moveFolderToTrash(deleteFolderId);
+				JournalFolder folder =
+					JournalFolderServiceUtil.moveFolderToTrash(deleteFolderId);
+
+				trashedModels.add(folder);
 			}
 			else {
 				JournalFolderServiceUtil.deleteFolder(deleteFolderId);
@@ -156,21 +154,10 @@ public class EditFolderAction extends PortletAction {
 				actionRequest, JournalArticle.class.getName(), deleteFolderId);
 		}
 
-		if (moveToTrash && (deleteFolderIds.length > 0)) {
-			Map<String, String[]> data = new HashMap<String, String[]>();
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
 
-			data.put(
-				"restoreFolderIds", ArrayUtil.toStringArray(deleteFolderIds));
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -187,17 +174,6 @@ public class EditFolderAction extends PortletAction {
 			folderId, parentFolderId, serviceContext);
 	}
 
-	protected void restoreFolderFromTrash(ActionRequest actionRequest)
-		throws PortalException, SystemException {
-
-		long[] restoreEntryIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreFolderIds"), 0L);
-
-		for (long restoreEntryId : restoreEntryIds) {
-			JournalFolderServiceUtil.restoreFolderFromTrash(restoreEntryId);
-		}
-	}
-
 	protected void updateFolder(ActionRequest actionRequest) throws Exception {
 		long folderId = ParamUtil.getLong(actionRequest, "folderId");
 
@@ -205,6 +181,9 @@ public class EditFolderAction extends PortletAction {
 			actionRequest, "parentFolderId");
 		String name = ParamUtil.getString(actionRequest, "name");
 		String description = ParamUtil.getString(actionRequest, "description");
+
+		boolean mergeWithParentFolder = ParamUtil.getBoolean(
+			actionRequest, "mergeWithParentFolder");
 
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			JournalFolder.class.getName(), actionRequest);
@@ -222,8 +201,8 @@ public class EditFolderAction extends PortletAction {
 			// Update folder
 
 			JournalFolderServiceUtil.updateFolder(
-				folderId, parentFolderId, name, description, false,
-				serviceContext);
+				folderId, parentFolderId, name, description,
+				mergeWithParentFolder, serviceContext);
 		}
 	}
 

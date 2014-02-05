@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialActivityLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityLocalService
  * @generated
  */
+@ProviderType
 public class SocialActivityLocalServiceWrapper
 	implements SocialActivityLocalService,
 		ServiceWrapper<SocialActivityLocalService> {
@@ -165,6 +168,23 @@ public class SocialActivityLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _socialActivityLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialActivityLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -419,12 +439,20 @@ public class SocialActivityLocalServiceWrapper
 		_socialActivityLocalService.deleteActivities(assetEntry);
 	}
 
+	@Override
+	public void deleteActivities(long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_socialActivityLocalService.deleteActivities(groupId);
+	}
+
 	/**
 	* Removes stored activities for the asset identified by the class name and
 	* class primary key.
 	*
 	* @param className the target asset's class name
 	* @param classPK the primary key of the target asset
+	* @throws PortalException if the user's activity counters could not be
+	deleted
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
@@ -452,6 +480,8 @@ public class SocialActivityLocalServiceWrapper
 	* Removes the stored activity and its mirror activity from the database.
 	*
 	* @param activity the activity to be removed
+	* @throws PortalException if the user's activity counters could not be
+	deleted or if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
 	@Override
@@ -1151,6 +1181,7 @@ public class SocialActivityLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivityLocalService getWrappedSocialActivityLocalService() {
 		return _socialActivityLocalService;
 	}
@@ -1158,6 +1189,7 @@ public class SocialActivityLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivityLocalService(
 		SocialActivityLocalService socialActivityLocalService) {
 		_socialActivityLocalService = socialActivityLocalService;

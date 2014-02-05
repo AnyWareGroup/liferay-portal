@@ -22,12 +22,14 @@ import com.liferay.portal.kernel.process.ProcessExecutor.ShutdownHook;
 import com.liferay.portal.kernel.process.log.ProcessOutputStream;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
-import com.liferay.portal.kernel.util.SocketUtil.ServerSocketConfigurator;
 import com.liferay.portal.kernel.util.SocketUtil;
+import com.liferay.portal.kernel.util.SocketUtil.ServerSocketConfigurator;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.ByteArrayOutputStream;
@@ -49,7 +51,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -115,7 +116,8 @@ public class ProcessExecutorTest {
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
-				InetAddress.getLocalHost(), 12342, _serverSocketConfigurator);
+				InetAddressUtil.getLoopbackInetAddress(), 12342,
+				_serverSocketConfigurator);
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
 
@@ -163,7 +165,8 @@ public class ProcessExecutorTest {
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
-				InetAddress.getLocalHost(), 12342, _serverSocketConfigurator);
+				InetAddressUtil.getLoopbackInetAddress(), 12342,
+				_serverSocketConfigurator);
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
 
@@ -220,7 +223,8 @@ public class ProcessExecutorTest {
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
-				InetAddress.getLocalHost(), 12342, _serverSocketConfigurator);
+				InetAddressUtil.getLoopbackInetAddress(), 12342,
+				_serverSocketConfigurator);
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
 
@@ -244,7 +248,9 @@ public class ProcessExecutorTest {
 
 			ServerThread.exit(parentSocket);
 
-			_log.info("Waiting subprocess to exit...");
+			if (_log.isInfoEnabled()) {
+				_log.info("Waiting subprocess to exit...");
+			}
 
 			long startTime = System.currentTimeMillis();
 
@@ -252,9 +258,12 @@ public class ProcessExecutorTest {
 				Thread.sleep(10);
 
 				if (!ServerThread.isAlive(childSocket)) {
-					_log.info(
-						"Subprocess exited. Waited " +
-							(System.currentTimeMillis() - startTime) + " ms");
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Subprocess exited. Waited " +
+								(System.currentTimeMillis() - startTime) +
+									" ms");
+					}
 
 					return;
 				}
@@ -272,7 +281,8 @@ public class ProcessExecutorTest {
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
-				InetAddress.getLocalHost(), 12342, _serverSocketConfigurator);
+				InetAddressUtil.getLoopbackInetAddress(), 12342,
+				_serverSocketConfigurator);
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
 
@@ -312,7 +322,8 @@ public class ProcessExecutorTest {
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
-				InetAddress.getLocalHost(), 12342, _serverSocketConfigurator);
+				InetAddressUtil.getLoopbackInetAddress(), 12342,
+				_serverSocketConfigurator);
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
 
@@ -352,7 +363,8 @@ public class ProcessExecutorTest {
 
 		ServerSocketChannel serverSocketChannel =
 			SocketUtil.createServerSocketChannel(
-				InetAddress.getLocalHost(), 12342, _serverSocketConfigurator);
+				InetAddressUtil.getLoopbackInetAddress(), 12342,
+				_serverSocketConfigurator);
 
 		ServerSocket serverSocket = serverSocketChannel.socket();
 
@@ -876,7 +888,7 @@ public class ProcessExecutorTest {
 		signalFile.delete();
 
 		try {
-			String logMessage= "Log Message";
+			String logMessage = "Log Message";
 
 			final LoggingProcessCallable loggingProcessCallable =
 				new LoggingProcessCallable(logMessage, signalFile);
@@ -910,6 +922,16 @@ public class ProcessExecutorTest {
 
 			_waitForSignalFile(signalFile, false);
 
+			Assert.assertTrue(signalFile.createNewFile());
+
+			thread.join();
+
+			Exception e = exceptionAtomicReference.get();
+
+			if (e != null) {
+				throw e;
+			}
+
 			String outByteArrayOutputStreamString =
 				outByteArrayOutputStream.toString();
 
@@ -921,15 +943,6 @@ public class ProcessExecutorTest {
 
 			Assert.assertTrue(
 				errByteArrayOutputStreamString.contains(logMessage));
-			Assert.assertTrue(signalFile.createNewFile());
-
-			thread.join();
-
-			Exception e = exceptionAtomicReference.get();
-
-			if (e != null) {
-				throw e;
-			}
 		}
 		finally {
 			System.setOut(oldOutPrintStream);
@@ -1052,6 +1065,9 @@ public class ProcessExecutorTest {
 
 	private static List<String> _createArguments(String jpdaOptions) {
 		List<String> arguments = new ArrayList<String>();
+
+		arguments.add(
+			"-D" + SystemProperties.SYSTEM_PROPERTIES_QUIET + "=true");
 
 		boolean coberturaParentDynamicallyInstrumented = Boolean.getBoolean(
 			"cobertura.parent.dynamically.instrumented");
@@ -1988,7 +2004,8 @@ public class ProcessExecutorTest {
 			throws Exception {
 
 			_mainThread = mainThread;
-			_socket = new Socket(InetAddress.getLocalHost(), serverPort);
+			_socket = new Socket(
+				InetAddressUtil.getLoopbackInetAddress(), serverPort);
 
 			setName(name);
 		}

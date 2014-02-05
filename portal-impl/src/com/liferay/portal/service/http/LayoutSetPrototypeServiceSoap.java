@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
@@ -58,12 +60,13 @@ import java.util.Map;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetPrototypeServiceHttp
- * @see       com.liferay.portal.model.LayoutSetPrototypeSoap
- * @see       com.liferay.portal.service.LayoutSetPrototypeServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetPrototypeServiceHttp
+ * @see com.liferay.portal.model.LayoutSetPrototypeSoap
+ * @see com.liferay.portal.service.LayoutSetPrototypeServiceUtil
  * @generated
  */
+@ProviderType
 public class LayoutSetPrototypeServiceSoap {
 	public static com.liferay.portal.model.LayoutSetPrototypeSoap addLayoutSetPrototype(
 		java.lang.String[] nameMapLanguageIds,

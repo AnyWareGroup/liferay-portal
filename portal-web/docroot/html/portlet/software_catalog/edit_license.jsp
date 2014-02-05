@@ -44,7 +44,7 @@ long licenseId = BeanParamUtil.getLong(license, request, "licenseId");
 		<liferay-ui:message key="name" />
 	</td>
 	<td>
-		<liferay-ui:input-field bean="<%= license %>" field="name" model="<%= SCLicense.class %>" />
+		<liferay-ui:input-field autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" bean="<%= license %>" field="name" model="<%= SCLicense.class %>" />
 	</td>
 </tr>
 <tr>
@@ -81,23 +81,23 @@ long licenseId = BeanParamUtil.getLong(license, request, "licenseId");
 </tr>
 </table>
 
-<br />
+<div class="btn-toolbar">
+	<aui:button cssClass="btn-primary" type="submit" value="save" />
 
-<input type="submit" value="<liferay-ui:message key="save" />" />
+	<%
+	String taglibCancel = "location.href = '" + HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) + "';";
+	%>
 
-<input onClick="location.href = '<%= HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) %>';" type="button" value="<liferay-ui:message key="cancel" />" />
-
+	<aui:button onClick="<%= taglibCancel %>" value="cancel" />
+</div>
 </form>
 
 <aui:script>
 	function <portlet:namespace />saveLicense() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (license == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

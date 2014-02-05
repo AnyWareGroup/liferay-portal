@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.sql.Blob;
@@ -26,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DLContent}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLContent
+ * @author Brian Wing Shun Chan
+ * @see DLContent
  * @generated
  */
+@ProviderType
 public class DLContentWrapper implements DLContent, ModelWrapper<DLContent> {
 	public DLContentWrapper(DLContent dlContent) {
 		_dlContent = dlContent;
@@ -397,9 +401,29 @@ public class DLContentWrapper implements DLContent, ModelWrapper<DLContent> {
 		_dlContent.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLContentWrapper)) {
+			return false;
+		}
+
+		DLContentWrapper dlContentWrapper = (DLContentWrapper)obj;
+
+		if (Validator.equals(_dlContent, dlContentWrapper._dlContent)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLContent getWrappedDLContent() {
 		return _dlContent;
 	}
@@ -407,6 +431,16 @@ public class DLContentWrapper implements DLContent, ModelWrapper<DLContent> {
 	@Override
 	public DLContent getWrappedModel() {
 		return _dlContent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlContent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlContent.isFinderCacheEnabled();
 	}
 
 	@Override

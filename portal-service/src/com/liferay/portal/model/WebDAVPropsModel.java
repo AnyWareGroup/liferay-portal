@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -36,7 +38,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.WebDAVPropsModelImpl
  * @generated
  */
-public interface WebDAVPropsModel extends AttachedModel, BaseModel<WebDAVProps> {
+@ProviderType
+public interface WebDAVPropsModel extends AttachedModel, BaseModel<WebDAVProps>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -56,6 +60,22 @@ public interface WebDAVPropsModel extends AttachedModel, BaseModel<WebDAVProps> 
 	 * @param primaryKey the primary key of this web d a v props
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this web d a v props.
+	 *
+	 * @return the mvcc version of this web d a v props
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this web d a v props.
+	 *
+	 * @param mvccVersion the mvcc version of this web d a v props
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the web dav props ID of this web d a v props.

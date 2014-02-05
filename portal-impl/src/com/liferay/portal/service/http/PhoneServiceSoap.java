@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.PhoneServiceUtil;
@@ -54,17 +56,19 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PhoneServiceHttp
- * @see       com.liferay.portal.model.PhoneSoap
- * @see       com.liferay.portal.service.PhoneServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PhoneServiceHttp
+ * @see com.liferay.portal.model.PhoneSoap
+ * @see com.liferay.portal.service.PhoneServiceUtil
  * @generated
  */
+@ProviderType
 public class PhoneServiceSoap {
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addPhone( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addPhone(String, long,
 	String, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.PhoneSoap addPhone(
 		java.lang.String className, long classPK, java.lang.String number,
 		java.lang.String extension, int typeId, boolean primary)

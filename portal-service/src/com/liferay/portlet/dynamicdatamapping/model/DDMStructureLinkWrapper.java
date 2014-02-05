@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DDMStructureLink}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDMStructureLink
+ * @author Brian Wing Shun Chan
+ * @see DDMStructureLink
  * @generated
  */
+@ProviderType
 public class DDMStructureLinkWrapper implements DDMStructureLink,
 	ModelWrapper<DDMStructureLink> {
 	public DDMStructureLinkWrapper(DDMStructureLink ddmStructureLink) {
@@ -310,9 +314,30 @@ public class DDMStructureLinkWrapper implements DDMStructureLink,
 		return _ddmStructureLink.getStructure();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDMStructureLinkWrapper)) {
+			return false;
+		}
+
+		DDMStructureLinkWrapper ddmStructureLinkWrapper = (DDMStructureLinkWrapper)obj;
+
+		if (Validator.equals(_ddmStructureLink,
+					ddmStructureLinkWrapper._ddmStructureLink)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDMStructureLink getWrappedDDMStructureLink() {
 		return _ddmStructureLink;
 	}
@@ -320,6 +345,16 @@ public class DDMStructureLinkWrapper implements DDMStructureLink,
 	@Override
 	public DDMStructureLink getWrappedModel() {
 		return _ddmStructureLink;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddmStructureLink.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddmStructureLink.isFinderCacheEnabled();
 	}
 
 	@Override

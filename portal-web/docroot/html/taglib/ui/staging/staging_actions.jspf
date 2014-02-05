@@ -15,8 +15,12 @@
 --%>
 
 <c:choose>
-	<c:when test="<%= group.isCompany() && GroupPermissionUtil.contains(permissionChecker, group.getGroupId(), ActionKeys.PUBLISH_STAGING) %>">
-		<aui:nav-item anchorId='<%= groupId + "publishGlobalLink" %>' href="<%= publishRenderURL.toString() %>" label="<%= publishDialogTitle %>" />
+	<c:when test="<%= group.isCompany() && GroupPermissionUtil.contains(permissionChecker, group, ActionKeys.PUBLISH_STAGING) %>">
+		<liferay-ui:icon
+			id='<%= groupId + "publishGlobalLink" %>'
+			message="<%= publishDialogTitle %>"
+			url="<%= publishRenderURL.toString() %>"
+		/>
 
 		<aui:script use="aui-base">
 			var publishGlobalLink = A.one('#<portlet:namespace /><%= groupId + "publishGlobalLink" %>');
@@ -41,7 +45,12 @@
 		</aui:script>
 	</c:when>
 	<c:otherwise>
-		<c:if test="<%= (liveGroup != null) && (stagingGroup.isStagedRemotely() || GroupPermissionUtil.contains(permissionChecker, liveGroup.getGroupId(), ActionKeys.PUBLISH_STAGING)) %>">
+
+		<%
+		Group groupType = layout.getGroup();
+		%>
+
+		<c:if test="<%= (liveGroup != null) && GroupPermissionUtil.contains(permissionChecker, liveGroup, ActionKeys.PUBLISH_STAGING) %>">
 
 			<%
 			if (groupId == 0) {
@@ -58,7 +67,7 @@
 					publishRenderURL.setParameter("layoutSetBranchId", String.valueOf(layoutSetBranchId));
 					publishRenderURL.setParameter("layoutSetBranchName", layoutSetBranch.getName());
 
-					publishMessage = LanguageUtil.format(pageContext, publishDialogTitle, HtmlUtil.escape(layoutSetBranch.getName()));
+					publishMessage = LanguageUtil.format(pageContext, publishDialogTitle, HtmlUtil.escape(layoutSetBranch.getName()), false);
 					%>
 
 				</c:when>
@@ -75,7 +84,31 @@
 				</c:otherwise>
 			</c:choose>
 
-			<aui:nav-item anchorId='<%= layoutSetBranchId + "publishLink" %>' href="<%= publishRenderURL.toString() %>" label="<%= publishMessage %>" />
+			<liferay-util:buffer var="publishLink">
+
+				<%
+				String linkCssClass = StringPool.BLANK;
+
+				if (!groupType.isControlPanel()) {
+					linkCssClass = "btn btn-success";
+				}
+				%>
+
+				<aui:a cssClass='<%= linkCssClass + " publish-link" %>' href="<%= publishRenderURL.toString() %>" id='<%= layoutSetBranchId + "publishLink" %>' label="<%= publishMessage %>" />
+			</liferay-util:buffer>
+
+			<c:choose>
+				<c:when test="<%= !onlyActions %>">
+					<li class="publish-link-container">
+						<%= publishLink %>
+					</li>
+				</c:when>
+				<c:otherwise>
+					<div class="<%= cssClass %> publish-link-container">
+						<%= publishLink %>
+					</div>
+				</c:otherwise>
+			</c:choose>
 
 			<aui:script use="aui-base">
 				var publishLink = A.one('#<portlet:namespace /><%= layoutSetBranchId + "publishLink" %>');
@@ -108,7 +141,22 @@
 				<portlet:param name="selPlid" value="<%= String.valueOf(selPlid) %>" />
 			</portlet:renderURL>
 
-			<aui:nav-item anchorId="manageLayoutSetBranches" cssClass="manage-layout-set-branches" href="<%= layoutSetBranchesURL %>" label="manage-site-pages-variations" />
+			<liferay-util:buffer var="manageSitePagesVariationsLink">
+				<aui:a cssClass="manage-layout-set-branches" href="<%= layoutSetBranchesURL %>" id="manageLayoutSetBranches" label="manage-site-pages-variations" />
+			</liferay-util:buffer>
+
+			<c:choose>
+				<c:when test="<%= groupType.isControlPanel() %>">
+					<li class="publish-link-container">
+						<%= manageSitePagesVariationsLink %>
+					</li>
+				</c:when>
+				<c:otherwise>
+					<div class="<%= cssClass %> publish-link-container">
+						<%= manageSitePagesVariationsLink %>
+					</div>
+				</c:otherwise>
+			</c:choose>
 
 			<aui:script use="aui-base">
 				var layoutSetBranchesLink = A.one('#<portlet:namespace />manageLayoutSetBranches');

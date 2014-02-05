@@ -76,7 +76,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 	headerNames.add("price");
 	headerNames.add(StringPool.BLANK);
 
-	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>"));
+	SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, headerNames, LanguageUtil.format(pageContext, "no-entries-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false));
 
 	int total = ShoppingItemLocalServiceUtil.searchCount(scopeGroupId, categoryIdsArray, keywords);
 
@@ -103,7 +103,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 
 		// SKU and small image
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(10);
 
 		if (item.isSmallImage()) {
 			sb.append("<br />");
@@ -183,7 +183,7 @@ String keywords = ParamUtil.getString(request, "keywords");
 	%>
 
 	<aui:fieldset>
-		<aui:input label="" name="keywords" size="30" title="search" value="<%= keywords %>" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" label="" name="keywords" size="30" title="search" value="<%= keywords %>" />
 	</aui:fieldset>
 
 	<aui:button-row>
@@ -192,9 +192,3 @@ String keywords = ParamUtil.getString(request, "keywords");
 
 	<liferay-ui:search-iterator searchContainer="<%= searchContainer %>" />
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>

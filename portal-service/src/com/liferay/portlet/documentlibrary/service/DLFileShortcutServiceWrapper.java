@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DLFileShortcutService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileShortcutService
+ * @author Brian Wing Shun Chan
+ * @see DLFileShortcutService
  * @generated
  */
+@ProviderType
 public class DLFileShortcutServiceWrapper implements DLFileShortcutService,
 	ServiceWrapper<DLFileShortcutService> {
 	public DLFileShortcutServiceWrapper(
@@ -88,6 +91,7 @@ public class DLFileShortcutServiceWrapper implements DLFileShortcutService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFileShortcutService getWrappedDLFileShortcutService() {
 		return _dlFileShortcutService;
 	}
@@ -95,6 +99,7 @@ public class DLFileShortcutServiceWrapper implements DLFileShortcutService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFileShortcutService(
 		DLFileShortcutService dlFileShortcutService) {
 		_dlFileShortcutService = dlFileShortcutService;

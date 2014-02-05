@@ -34,9 +34,11 @@ import java.io.ObjectOutput;
 public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(33);
+		StringBundler sb = new StringBundler(41);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -62,10 +64,16 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 		sb.append(type);
 		sb.append(", typeSettings=");
 		sb.append(typeSettings);
+		sb.append(", manualMembership=");
+		sb.append(manualMembership);
+		sb.append(", membershipRestriction=");
+		sb.append(membershipRestriction);
 		sb.append(", friendlyURL=");
 		sb.append(friendlyURL);
 		sb.append(", site=");
 		sb.append(site);
+		sb.append(", remoteStagingGroupCount=");
+		sb.append(remoteStagingGroupCount);
 		sb.append(", active=");
 		sb.append(active);
 		sb.append("}");
@@ -76,6 +84,8 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 	@Override
 	public Group toEntityModel() {
 		GroupImpl groupImpl = new GroupImpl();
+
+		groupImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			groupImpl.setUuid(StringPool.BLANK);
@@ -122,6 +132,9 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 			groupImpl.setTypeSettings(typeSettings);
 		}
 
+		groupImpl.setManualMembership(manualMembership);
+		groupImpl.setMembershipRestriction(membershipRestriction);
+
 		if (friendlyURL == null) {
 			groupImpl.setFriendlyURL(StringPool.BLANK);
 		}
@@ -130,6 +143,7 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 		}
 
 		groupImpl.setSite(site);
+		groupImpl.setRemoteStagingGroupCount(remoteStagingGroupCount);
 		groupImpl.setActive(active);
 
 		groupImpl.resetOriginalValues();
@@ -139,6 +153,7 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		groupId = objectInput.readLong();
 		companyId = objectInput.readLong();
@@ -152,14 +167,19 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 		description = objectInput.readUTF();
 		type = objectInput.readInt();
 		typeSettings = objectInput.readUTF();
+		manualMembership = objectInput.readBoolean();
+		membershipRestriction = objectInput.readInt();
 		friendlyURL = objectInput.readUTF();
 		site = objectInput.readBoolean();
+		remoteStagingGroupCount = objectInput.readInt();
 		active = objectInput.readBoolean();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -205,6 +225,9 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 			objectOutput.writeUTF(typeSettings);
 		}
 
+		objectOutput.writeBoolean(manualMembership);
+		objectOutput.writeInt(membershipRestriction);
+
 		if (friendlyURL == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -213,9 +236,11 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 		}
 
 		objectOutput.writeBoolean(site);
+		objectOutput.writeInt(remoteStagingGroupCount);
 		objectOutput.writeBoolean(active);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long groupId;
 	public long companyId;
@@ -229,7 +254,10 @@ public class GroupCacheModel implements CacheModel<Group>, Externalizable {
 	public String description;
 	public int type;
 	public String typeSettings;
+	public boolean manualMembership;
+	public int membershipRestriction;
 	public String friendlyURL;
 	public boolean site;
+	public int remoteStagingGroupCount;
 	public boolean active;
 }

@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.journal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link JournalArticleImage}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalArticleImage
+ * @author Brian Wing Shun Chan
+ * @see JournalArticleImage
  * @generated
  */
+@ProviderType
 public class JournalArticleImageWrapper implements JournalArticleImage,
 	ModelWrapper<JournalArticleImage> {
 	public JournalArticleImageWrapper(JournalArticleImage journalArticleImage) {
@@ -406,9 +410,30 @@ public class JournalArticleImageWrapper implements JournalArticleImage,
 		_journalArticleImage.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalArticleImageWrapper)) {
+			return false;
+		}
+
+		JournalArticleImageWrapper journalArticleImageWrapper = (JournalArticleImageWrapper)obj;
+
+		if (Validator.equals(_journalArticleImage,
+					journalArticleImageWrapper._journalArticleImage)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public JournalArticleImage getWrappedJournalArticleImage() {
 		return _journalArticleImage;
 	}
@@ -416,6 +441,16 @@ public class JournalArticleImageWrapper implements JournalArticleImage,
 	@Override
 	public JournalArticleImage getWrappedModel() {
 		return _journalArticleImage;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _journalArticleImage.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _journalArticleImage.isFinderCacheEnabled();
 	}
 
 	@Override

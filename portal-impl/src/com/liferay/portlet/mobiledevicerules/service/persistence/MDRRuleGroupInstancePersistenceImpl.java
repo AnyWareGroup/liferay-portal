@@ -365,6 +365,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRuleGroupInstance> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1188,6 +1192,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRuleGroupInstance> list = findByUuid_C(uuid, companyId,
 				count - 1, count, orderByComparator);
 
@@ -1721,6 +1729,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRuleGroupInstance> list = findByGroupId(groupId, count - 1,
 				count, orderByComparator);
 
@@ -1984,7 +1996,7 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, MDRRuleGroupInstanceImpl.class);
@@ -2161,7 +2173,7 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 				MDRRuleGroupInstance.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2290,7 +2302,7 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2578,6 +2590,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 	public MDRRuleGroupInstance fetchByRuleGroupId_Last(long ruleGroupId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByRuleGroupId(ruleGroupId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<MDRRuleGroupInstance> list = findByRuleGroupId(ruleGroupId,
 				count - 1, count, orderByComparator);
@@ -3092,6 +3108,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 	public MDRRuleGroupInstance fetchByC_C_Last(long classNameId, long classPK,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_C(classNameId, classPK);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<MDRRuleGroupInstance> list = findByC_C(classNameId, classPK,
 				count - 1, count, orderByComparator);
@@ -3646,6 +3666,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		throws SystemException {
 		int count = countByG_C_C(groupId, classNameId, classPK);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MDRRuleGroupInstance> list = findByG_C_C(groupId, classNameId,
 				classPK, count - 1, count, orderByComparator);
 
@@ -3932,7 +3956,7 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, MDRRuleGroupInstanceImpl.class);
@@ -4122,7 +4146,7 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 				MDRRuleGroupInstance.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -4276,7 +4300,7 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -4565,6 +4589,10 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 	private static final String _FINDER_COLUMN_C_C_R_CLASSNAMEID_2 = "mdrRuleGroupInstance.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_R_CLASSPK_2 = "mdrRuleGroupInstance.classPK = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_R_RULEGROUPID_2 = "mdrRuleGroupInstance.ruleGroupId = ?";
+
+	public MDRRuleGroupInstancePersistenceImpl() {
+		setModelClass(MDRRuleGroupInstance.class);
+	}
 
 	/**
 	 * Caches the m d r rule group instance in the entity cache if it is enabled.
@@ -5041,10 +5069,12 @@ public class MDRRuleGroupInstancePersistenceImpl extends BasePersistenceImpl<MDR
 
 		EntityCacheUtil.putResult(MDRRuleGroupInstanceModelImpl.ENTITY_CACHE_ENABLED,
 			MDRRuleGroupInstanceImpl.class,
-			mdrRuleGroupInstance.getPrimaryKey(), mdrRuleGroupInstance);
+			mdrRuleGroupInstance.getPrimaryKey(), mdrRuleGroupInstance, false);
 
 		clearUniqueFindersCache(mdrRuleGroupInstance);
 		cacheUniqueFindersCache(mdrRuleGroupInstance);
+
+		mdrRuleGroupInstance.resetOriginalValues();
 
 		return mdrRuleGroupInstance;
 	}

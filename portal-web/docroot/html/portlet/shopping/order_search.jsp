@@ -24,12 +24,16 @@ OrderDisplayTerms displayTerms = (OrderDisplayTerms)searchContainer.getDisplayTe
 
 <aui:fieldset column="<%= true %>">
 	<aui:col width="<%= 33 %>">
-		<aui:input name="<%= displayTerms.NUMBER %>" size="20" type="text" value="<%= displayTerms.getNumber() %>" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<%= displayTerms.NUMBER %>" size="20" type="text" value="<%= displayTerms.getNumber() %>" />
 
 		<aui:select label="" name="<%= displayTerms.AND_OPERATOR %>">
 			<aui:option label="and" selected="<%= displayTerms.isAndOperator() %>" value="1" />
 			<aui:option label="or" selected="<%= !displayTerms.isAndOperator() %>" value="0" />
 		</aui:select>
+	</aui:col>
+
+	<aui:col width="<%= 33 %>">
+		<%@ include file="/html/portlet/shopping/order_search_user_name.jspf" %>
 	</aui:col>
 
 	<aui:col width="<%= 33 %>">
@@ -47,12 +51,6 @@ OrderDisplayTerms displayTerms = (OrderDisplayTerms)searchContainer.getDisplayTe
 
 		</aui:select>
 
-		<aui:input name="<%= displayTerms.FIRST_NAME %>" size="20" type="text" value="<%= displayTerms.getFirstName() %>" />
-	</aui:col>
-
-	<aui:col width="<%= 33 %>">
-		<aui:input name="<%= displayTerms.LAST_NAME %>" size="20" type="text" value="<%= displayTerms.getLastName() %>" />
-
 		<aui:input name="<%= displayTerms.EMAIL_ADDRESS %>" size="20" type="text" value="<%= displayTerms.getEmailAddress() %>" />
 	</aui:col>
 </aui:fieldset>
@@ -60,9 +58,3 @@ OrderDisplayTerms displayTerms = (OrderDisplayTerms)searchContainer.getDisplayTe
 <aui:button-row>
 	<aui:button type="submit" value="search" />
 </aui:button-row>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace /><%= displayTerms.NUMBER %>);
-	</aui:script>
-</c:if>

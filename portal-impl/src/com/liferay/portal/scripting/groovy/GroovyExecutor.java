@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.scripting.BaseScriptingExecutor;
 import com.liferay.portal.kernel.scripting.ExecutionException;
 import com.liferay.portal.kernel.scripting.ScriptingException;
 import com.liferay.portal.kernel.util.AggregateClassLoader;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.util.ClassLoaderUtil;
 
 import groovy.lang.Binding;
@@ -98,7 +99,7 @@ public class GroovyExecutor extends BaseScriptingExecutor {
 	}
 
 	protected GroovyShell getGroovyShell(ClassLoader[] classLoaders) {
-		if ((classLoaders == null) || (classLoaders.length == 0)) {
+		if (ArrayUtil.isEmpty(classLoaders)) {
 			if (_groovyShell == null) {
 				synchronized (this) {
 					if (_groovyShell == null) {
@@ -114,11 +115,13 @@ public class GroovyExecutor extends BaseScriptingExecutor {
 			AggregateClassLoader.getAggregateClassLoader(
 				ClassLoaderUtil.getPortalClassLoader(), classLoaders);
 
-		GroovyShell groovyShell = null;
+		GroovyShell groovyShell = _groovyShells.get(aggregateClassLoader);
 
-		if (!_groovyShells.containsKey(aggregateClassLoader)) {
+		if (groovyShell == null) {
 			synchronized (this) {
-				if (!_groovyShells.containsKey(aggregateClassLoader)) {
+				groovyShell = _groovyShells.get(aggregateClassLoader);
+
+				if (groovyShell == null) {
 					groovyShell = new GroovyShell(aggregateClassLoader);
 
 					_groovyShells.put(aggregateClassLoader, groovyShell);

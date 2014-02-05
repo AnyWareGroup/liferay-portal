@@ -45,8 +45,9 @@ public class EditUserRolesAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -75,8 +76,9 @@ public class EditUserRolesAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -86,10 +88,10 @@ public class EditUserRolesAction extends PortletAction {
 			Role role = (Role)renderRequest.getAttribute(WebKeys.ROLE);
 
 			if (role != null) {
-				String name = role.getName();
+				String roleName = role.getName();
 
-				if (name.equals(RoleConstants.ORGANIZATION_USER) ||
-					name.equals(RoleConstants.SITE_MEMBER)) {
+				if (roleName.equals(RoleConstants.ORGANIZATION_USER) ||
+					roleName.equals(RoleConstants.SITE_MEMBER)) {
 
 					throw new NoSuchRoleException();
 				}
@@ -102,14 +104,14 @@ public class EditUserRolesAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.sites_admin.error");
+				return actionMapping.findForward("portlet.sites_admin.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.sites_admin.edit_user_roles"));
 	}
 

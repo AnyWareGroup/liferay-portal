@@ -15,9 +15,16 @@
 package com.liferay.portlet.journal.trash;
 
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.ClassedModel;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.WorkflowedModel;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
@@ -25,10 +32,15 @@ import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.Sync;
 import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
 import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portlet.dynamicdatamapping.model.DDMStructure;
+import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
+import com.liferay.portlet.dynamicdatamapping.util.DDMStructureTestUtil;
+import com.liferay.portlet.dynamicdatamapping.util.DDMTemplateTestUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleResource;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.model.JournalFolderConstants;
+import com.liferay.portlet.journal.service.JournalArticleImageLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleResourceLocalServiceUtil;
 import com.liferay.portlet.journal.service.JournalArticleServiceUtil;
@@ -37,6 +49,12 @@ import com.liferay.portlet.journal.util.JournalTestUtil;
 import com.liferay.portlet.trash.BaseTrashHandlerTestCase;
 import com.liferay.portlet.trash.util.TrashUtil;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Assert;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -51,6 +69,68 @@ import org.junit.runner.RunWith;
 @Sync
 public class JournalArticleTrashHandlerTest extends BaseTrashHandlerTestCase {
 
+	@Test
+	@Transactional
+	public void testArticleImages() throws Exception {
+		ServiceContext serviceContext = ServiceTestUtil.getServiceContext(
+			group.getGroupId());
+
+		int initialArticleImagesCount =
+			JournalArticleImageLocalServiceUtil.getArticleImagesCount(
+				group.getGroupId());
+
+		Class<?> clazz = getClass();
+
+		ClassLoader classLoader = clazz.getClassLoader();
+
+		String xsd = StringUtil.read(
+			classLoader,
+			"com/liferay/portlet/journal/dependencies" +
+				"/test-ddm-structure-image-field.xml");
+
+		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
+			serviceContext.getScopeGroupId(), JournalArticle.class.getName(),
+			xsd);
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			serviceContext.getScopeGroupId(), ddmStructure.getStructureId());
+
+		String content = StringUtil.read(
+			classLoader,
+			"com/liferay/portlet/journal/dependencies" +
+				"/test-journal-content-image-field.xml");
+
+		Map<String, byte[]> images = new HashMap<String, byte[]>();
+
+		images.put(
+			"_image_1_0_en_US",
+			FileUtil.getBytes(
+				clazz,
+				"/com/liferay/portlet/journal/dependencies/liferay.png"));
+
+		baseModel = JournalTestUtil.addArticleWithXMLContent(
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID, content,
+			ddmStructure.getStructureKey(), ddmTemplate.getTemplateKey(),
+			images, serviceContext);
+
+		Assert.assertEquals(
+			initialArticleImagesCount + 1,
+			JournalArticleImageLocalServiceUtil.getArticleImagesCount(
+				group.getGroupId()));
+
+		moveBaseModelToTrash((Long)baseModel.getPrimaryKeyObj());
+
+		TrashHandler trashHandler = TrashHandlerRegistryUtil.getTrashHandler(
+			getBaseModelClassName());
+
+		trashHandler.deleteTrashEntry(getTrashEntryClassPK(baseModel));
+
+		Assert.assertEquals(
+			initialArticleImagesCount,
+			JournalArticleImageLocalServiceUtil.getArticleImagesCount(
+				group.getGroupId()));
+	}
+
 	@Override
 	protected BaseModel<?> addBaseModelWithWorkflow(
 			BaseModel<?> parentBaseModel, boolean approved,
@@ -62,6 +142,39 @@ public class JournalArticleTrashHandlerTest extends BaseTrashHandlerTestCase {
 		return JournalTestUtil.addArticleWithWorkflow(
 			serviceContext.getScopeGroupId(), folder.getFolderId(),
 			getSearchKeywords(), getSearchKeywords(), approved);
+	}
+
+	@Override
+	protected BaseModel<?> addBaseModelWithWorkflow(
+			boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		return JournalTestUtil.addArticleWithWorkflow(
+			serviceContext.getScopeGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			getSearchKeywords(), getSearchKeywords(), approved);
+	}
+
+	@Override
+	protected void deleteParentBaseModel(
+			BaseModel<?> parentBaseModel, boolean includeTrashedEntries)
+		throws Exception {
+
+		JournalFolder folder = (JournalFolder)parentBaseModel;
+
+		JournalFolderServiceUtil.deleteFolder(folder.getFolderId(), false);
+	}
+
+	@Override
+	protected BaseModel<?> expireBaseModel(
+			BaseModel<?> baseModel, ServiceContext serviceContext)
+		throws Exception {
+
+		JournalArticle article = (JournalArticle)baseModel;
+
+		return JournalArticleLocalServiceUtil.expireArticle(
+			article.getUserId(), article.getGroupId(), article.getArticleId(),
+			article.getVersion(), StringPool.BLANK, serviceContext);
 	}
 
 	@Override
@@ -95,6 +208,17 @@ public class JournalArticleTrashHandlerTest extends BaseTrashHandlerTestCase {
 		JournalArticle article = (JournalArticle)classedModel;
 
 		return article.getArticleId();
+	}
+
+	@Override
+	protected List<? extends WorkflowedModel> getChildrenWorkflowedModels(
+			BaseModel<?> parentBaseModel)
+		throws Exception {
+
+		JournalFolder folder = (JournalFolder)parentBaseModel;
+
+		return JournalArticleLocalServiceUtil.getArticles(
+			folder.getGroupId(), folder.getFolderId());
 	}
 
 	@Override
@@ -190,6 +314,13 @@ public class JournalArticleTrashHandlerTest extends BaseTrashHandlerTestCase {
 	}
 
 	@Override
+	protected void restoreParentBaseModelFromTrash(long primaryKey)
+		throws Exception {
+
+		JournalFolderServiceUtil.restoreFolderFromTrash(primaryKey);
+	}
+
+	@Override
 	protected BaseModel<?> updateBaseModel(
 			long primaryKey, ServiceContext serviceContext)
 		throws Exception {
@@ -199,7 +330,7 @@ public class JournalArticleTrashHandlerTest extends BaseTrashHandlerTestCase {
 
 		return JournalTestUtil.updateArticle(
 			article, "Content: Enterprise. Open Source. For Life.",
-			article.getContent());
+			article.getContent(), serviceContext);
 	}
 
 	private static final int _FOLDER_NAME_MAX_LENGTH = 100;

@@ -14,8 +14,12 @@
 
 package com.liferay.portal.kernel.lar;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.xml.Element;
+
+import java.io.Serializable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,19 +28,21 @@ import java.util.Set;
 /**
  * @author Zsolt Berentey
  */
-public class MissingReference {
+@ProviderType
+public class MissingReference implements Serializable {
 
 	public MissingReference(Element element) {
 		_className = element.attributeValue("class-name");
+		_classPK = element.attributeValue("class-pk");
 		_displayName = GetterUtil.getString(
 			element.attributeValue("display-name"));
+		_referrerClassName = element.attributeValue("referrer-class-name");
+		_type = GetterUtil.getString(element.attributeValue("type"));
 
-		String referrerClassName = element.attributeValue(
-			"referrer-class-name");
 		String referrerDisplayName = GetterUtil.getString(
 			element.attributeValue("referrer-display-name"));
 
-		addReferrer(referrerClassName, referrerDisplayName);
+		addReferrer(_referrerClassName, referrerDisplayName);
 	}
 
 	public void addReferrer(
@@ -53,8 +59,16 @@ public class MissingReference {
 		return _className;
 	}
 
+	public String getClassPK() {
+		return _classPK;
+	}
+
 	public String getDisplayName() {
 		return _displayName;
+	}
+
+	public String getReferrerClassName() {
+		return _referrerClassName;
 	}
 
 	public Set<String> getReferrerDisplayNames() {
@@ -65,8 +79,15 @@ public class MissingReference {
 		return _referrers;
 	}
 
+	public String getType() {
+		return _type;
+	}
+
 	private String _className;
+	private String _classPK;
 	private String _displayName;
+	private String _referrerClassName;
 	private Map<String, String> _referrers = new HashMap<String, String>();
+	private String _type;
 
 }

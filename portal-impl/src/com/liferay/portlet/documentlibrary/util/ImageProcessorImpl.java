@@ -140,6 +140,10 @@ public class ImageProcessorImpl
 			return false;
 		}
 
+		if (fileVersion.getSize() == 0) {
+			return false;
+		}
+
 		boolean hasImages = false;
 
 		try {
@@ -390,7 +394,6 @@ public class ImageProcessorImpl
 
 		sendGenerationMessage(
 			DestinationNames.DOCUMENT_LIBRARY_IMAGE_PROCESSOR,
-			PropsValues.DL_FILE_ENTRY_PROCESSORS_TRIGGER_SYNCHRONOUSLY,
 			sourceFileVersion, destinationFileVersion);
 	}
 
@@ -442,8 +445,10 @@ public class ImageProcessorImpl
 			sb.append(2);
 		}
 
-		sb.append(StringPool.PERIOD);
-		sb.append(type);
+		if (Validator.isNotNull(type)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(type);
+		}
 
 		String filePath = sb.toString();
 

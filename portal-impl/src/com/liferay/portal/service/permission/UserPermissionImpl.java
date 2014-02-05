@@ -40,6 +40,7 @@ public class UserPermissionImpl implements UserPermission {
 	 * @deprecated As of 6.2.0, replaced by {@link #check(PermissionChecker,
 	 *             long, long[], String)}
 	 */
+	@Deprecated
 	@Override
 	public void check(
 			PermissionChecker permissionChecker, long userId,
@@ -76,6 +77,7 @@ public class UserPermissionImpl implements UserPermission {
 	 * @deprecated As of 6.2.0, replaced by {@link #contains(PermissionChecker,
 	 *             long, long[], String)}
 	 */
+	@Deprecated
 	@Override
 	public boolean contains(
 		PermissionChecker permissionChecker, long userId, long organizationId,
@@ -133,17 +135,17 @@ public class UserPermissionImpl implements UserPermission {
 			}
 
 			for (long organizationId : organizationIds) {
+				Organization organization =
+					OrganizationLocalServiceUtil.getOrganization(
+						organizationId);
+
 				if (OrganizationPermissionUtil.contains(
-						permissionChecker, organizationId,
+						permissionChecker, organization,
 						ActionKeys.MANAGE_USERS)) {
 
 					if (permissionChecker.getUserId() == user.getUserId()) {
 						return true;
 					}
-
-					Organization organization =
-						OrganizationLocalServiceUtil.getOrganization(
-							organizationId);
 
 					Group organizationGroup = organization.getGroup();
 

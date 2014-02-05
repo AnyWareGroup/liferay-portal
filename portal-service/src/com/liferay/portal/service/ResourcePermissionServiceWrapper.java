@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourcePermissionService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourcePermissionService
+ * @author Brian Wing Shun Chan
+ * @see ResourcePermissionService
  * @generated
  */
+@ProviderType
 public class ResourcePermissionServiceWrapper
 	implements ResourcePermissionService,
 		ServiceWrapper<ResourcePermissionService> {
@@ -239,6 +242,7 @@ public class ResourcePermissionServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourcePermissionService getWrappedResourcePermissionService() {
 		return _resourcePermissionService;
 	}
@@ -246,6 +250,7 @@ public class ResourcePermissionServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourcePermissionService(
 		ResourcePermissionService resourcePermissionService) {
 		_resourcePermissionService = resourcePermissionService;

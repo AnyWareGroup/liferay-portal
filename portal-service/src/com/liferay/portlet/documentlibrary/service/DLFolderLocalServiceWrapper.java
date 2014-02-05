@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DLFolderLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFolderLocalService
+ * @author Brian Wing Shun Chan
+ * @see DLFolderLocalService
  * @generated
  */
+@ProviderType
 public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	ServiceWrapper<DLFolderLocalService> {
 	public DLFolderLocalServiceWrapper(
@@ -166,11 +169,58 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 		return _dlFolderLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFolder fetchDLFolder(
 		long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.fetchDLFolder(folderId);
+	}
+
+	/**
+	* Returns the document library folder with the matching UUID and company.
+	*
+	* @param uuid the document library folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching document library folder, or <code>null</code> if a matching document library folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder fetchDLFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.fetchDLFolderByUuidAndCompanyId(uuid,
+			companyId);
+	}
+
+	/**
+	* Returns the document library folder matching the UUID and group.
+	*
+	* @param uuid the document library folder's UUID
+	* @param groupId the primary key of the group
+	* @return the matching document library folder, or <code>null</code> if a matching document library folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder fetchDLFolderByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.fetchDLFolderByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -195,6 +245,24 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the document library folder with the matching UUID and company.
+	*
+	* @param uuid the document library folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching document library folder
+	* @throws PortalException if a matching document library folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder getDLFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.getDLFolderByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -462,10 +530,11 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	}
 
 	/**
-	* @deprecated As of 6.2, replaced by more general {@link #addFolder(long,
+	* @deprecated As of 6.2.0, replaced by more general {@link #addFolder(long,
 	long, long, boolean, long, String, String, boolean,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFolder addFolder(
 		long userId, long groupId, long repositoryId, boolean mountPoint,
@@ -531,6 +600,13 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 
 	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFolder fetchFolder(
+		long folderId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.fetchFolder(folderId);
+	}
+
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFolder fetchFolder(
 		long groupId, long parentFolderId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.fetchFolder(groupId, parentFolderId, name);
@@ -553,6 +629,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link
 	#getFileEntriesAndFileShortcuts(long, long, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<java.lang.Object> getFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, int start, int end)
@@ -575,6 +652,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	#getFileEntriesAndFileShortcutsCount(long, long,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getFileEntriesAndFileShortcutsCount(long groupId, long folderId,
 		int status) throws com.liferay.portal.kernel.exception.SystemException {
@@ -650,6 +728,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	#getFoldersAndFileEntriesAndFileShortcuts(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, boolean includeMountFolders,
@@ -664,6 +743,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	#getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<java.lang.Object> getFoldersAndFileEntriesAndFileShortcuts(
 		long groupId, long folderId, int status, java.lang.String[] mimeTypes,
@@ -689,6 +769,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	#getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(long groupId,
 		long folderId, int status, boolean includeMountFolders)
@@ -702,6 +783,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	#getFoldersAndFileEntriesAndFileShortcutsCount(long, long,
 	String[], boolean, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(long groupId,
 		long folderId, int status, java.lang.String[] mimeTypes,
@@ -733,6 +815,14 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _dlFolderLocalService.getFoldersCount(groupId, parentFolderId,
 			includeMountfolders);
+	}
+
+	@Override
+	public int getFoldersCount(long groupId, long parentFolderId, int status,
+		boolean includeMountfolders)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFolderLocalService.getFoldersCount(groupId, parentFolderId,
+			status, includeMountfolders);
 	}
 
 	@Override
@@ -805,6 +895,12 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	}
 
 	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlFolderLocalService.rebuildTree(companyId);
+	}
+
+	@Override
 	public void unlockFolder(long groupId, long parentFolderId,
 		java.lang.String name, java.lang.String lockUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -863,9 +959,6 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 			serviceContext);
 	}
 
-	/**
-	* @deprecated As of 6.2.0
-	*/
 	@Override
 	public void updateLastPostDate(long folderId, java.util.Date lastPostDate)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -887,6 +980,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFolderLocalService getWrappedDLFolderLocalService() {
 		return _dlFolderLocalService;
 	}
@@ -894,6 +988,7 @@ public class DLFolderLocalServiceWrapper implements DLFolderLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFolderLocalService(
 		DLFolderLocalService dlFolderLocalService) {
 		_dlFolderLocalService = dlFolderLocalService;

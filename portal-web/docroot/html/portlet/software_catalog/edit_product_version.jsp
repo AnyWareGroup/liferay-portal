@@ -81,7 +81,7 @@ editProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 			<liferay-ui:message key="version-name" />
 		</td>
 		<td>
-			<liferay-ui:input-field bean="<%= productVersion %>" field="version" model="<%= SCProductVersion.class %>" />
+			<liferay-ui:input-field autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" bean="<%= productVersion %>" field="version" model="<%= SCProductVersion.class %>" />
 		</td>
 	</tr>
 	<tr>
@@ -170,17 +170,21 @@ editProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 	</table>
 </fieldset>
 
-<br />
+<div class="btn-toolbar">
+	<aui:button cssClass="btn-primary" type="submit" value="save" />
 
-<input type="submit" value="<liferay-ui:message key="save" />" />
+	<%
+	String taglibCancel = "location.href = '" + HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) + "';";
+	%>
 
-<input onClick="location.href = '<%= HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) %>';" type="button" value="<liferay-ui:message key="cancel" />" />
-
+	<aui:button onClick="<%= taglibCancel %>" value="cancel" />
+</div>
 </form>
 
 <aui:script>
 	function <portlet:namespace />saveEntry() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (productVersion == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
@@ -205,10 +209,6 @@ editProductEntryURL.setParameter("productEntryId", String.valueOf(productEntryId
 			}
 		}
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />version);
-	</c:if>
 
 	document.<portlet:namespace />fm.<portlet:namespace />directDownloadURL.onkeyup = <portlet:namespace />toggleSelectBoxes;
 

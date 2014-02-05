@@ -44,6 +44,7 @@
 
 package com.liferay.util.cal;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -59,6 +60,7 @@ import java.util.Date;
  * @deprecated As of 6.2.0, moved to {@link
  *             com.liferay.portal.kernel.cal.Recurrence}
  */
+@Deprecated
 public class Recurrence implements Serializable {
 
 	/**
@@ -935,7 +937,7 @@ public class Recurrence implements Serializable {
 	 * @return boolean
 	 */
 	protected boolean matchesByDay(Calendar candidate) {
-		if ((byDay == null) || (byDay.length == 0)) {
+		if (ArrayUtil.isEmpty(byDay)) {
 
 			/* No byDay rules, so it matches trivially */
 
@@ -961,7 +963,7 @@ public class Recurrence implements Serializable {
 	protected boolean matchesByField(
 		int[] array, int field, Calendar candidate, boolean allowNegative) {
 
-		if ((array == null) || (array.length == 0)) {
+		if (ArrayUtil.isEmpty(array)) {
 
 			/* No rules, so it matches trivially */
 

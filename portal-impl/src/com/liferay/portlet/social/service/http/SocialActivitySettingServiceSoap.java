@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivitySettingServiceHttp
- * @see       com.liferay.portlet.social.model.SocialActivitySettingSoap
- * @see       com.liferay.portlet.social.service.SocialActivitySettingServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see SocialActivitySettingServiceHttp
+ * @see com.liferay.portlet.social.model.SocialActivitySettingSoap
+ * @see com.liferay.portlet.social.service.SocialActivitySettingServiceUtil
  * @generated
  */
+@ProviderType
 public class SocialActivitySettingServiceSoap {
 	public static com.liferay.portlet.social.model.SocialActivitySettingSoap[] getActivitySettings(
 		long groupId) throws RemoteException {

@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetCategoryProperty}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetCategoryProperty
+ * @author Brian Wing Shun Chan
+ * @see AssetCategoryProperty
  * @generated
  */
+@ProviderType
 public class AssetCategoryPropertyWrapper implements AssetCategoryProperty,
 	ModelWrapper<AssetCategoryProperty> {
 	public AssetCategoryPropertyWrapper(
@@ -447,9 +451,30 @@ public class AssetCategoryPropertyWrapper implements AssetCategoryProperty,
 		_assetCategoryProperty.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetCategoryPropertyWrapper)) {
+			return false;
+		}
+
+		AssetCategoryPropertyWrapper assetCategoryPropertyWrapper = (AssetCategoryPropertyWrapper)obj;
+
+		if (Validator.equals(_assetCategoryProperty,
+					assetCategoryPropertyWrapper._assetCategoryProperty)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetCategoryProperty getWrappedAssetCategoryProperty() {
 		return _assetCategoryProperty;
 	}
@@ -457,6 +482,16 @@ public class AssetCategoryPropertyWrapper implements AssetCategoryProperty,
 	@Override
 	public AssetCategoryProperty getWrappedModel() {
 		return _assetCategoryProperty;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetCategoryProperty.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetCategoryProperty.isFinderCacheEnabled();
 	}
 
 	@Override

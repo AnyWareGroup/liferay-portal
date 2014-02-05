@@ -14,10 +14,12 @@
 
 package com.liferay.portal.jsonwebservice;
 
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.service.ServiceContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +42,28 @@ public class FooService {
 		List<Long> longs, int[] ints, Map<String, Long> map) {
 
 		return longs.size() + ints.length + map.size();
+	}
+
+	public static String complexWithArrays(
+		List<Long[]> longArrays, Map<String, String[]> mapNames) {
+
+		StringBundler sb = new StringBundler();
+
+		for (Long[] longArray : longArrays) {
+			sb.append(Arrays.toString(longArray));
+			sb.append('|');
+		}
+
+		sb.append('*');
+
+		for (Map.Entry<String, String[]> entry : mapNames.entrySet()) {
+			sb.append(entry.getKey());
+			sb.append("=");
+			sb.append(Arrays.toString(entry.getValue()));
+			sb.append('|');
+		}
+
+		return sb.toString();
 	}
 
 	public static FooData getFooData(int id) {
@@ -92,6 +116,16 @@ public class FooService {
 		fooDataArray[0] = getFooData(1);
 		fooDataArray[1] = getFooData(2);
 		fooDataArray[2] = getFooData(3);
+
+		return fooDataArray;
+	}
+
+	public static int[] getFooDatas3() {
+		int[] fooDataArray = new int[3];
+
+		fooDataArray[0] = 1;
+		fooDataArray[1] = 2;
+		fooDataArray[2] = 3;
 
 		return fooDataArray;
 	}

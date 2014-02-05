@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.expando.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ExpandoValue}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoValue
+ * @author Brian Wing Shun Chan
+ * @see ExpandoValue
  * @generated
  */
+@ProviderType
 public class ExpandoValueWrapper implements ExpandoValue,
 	ModelWrapper<ExpandoValue> {
 	public ExpandoValueWrapper(ExpandoValue expandoValue) {
@@ -759,9 +763,29 @@ public class ExpandoValueWrapper implements ExpandoValue,
 		_expandoValue.setStringMap(dataMap, defaultLocale);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ExpandoValueWrapper)) {
+			return false;
+		}
+
+		ExpandoValueWrapper expandoValueWrapper = (ExpandoValueWrapper)obj;
+
+		if (Validator.equals(_expandoValue, expandoValueWrapper._expandoValue)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ExpandoValue getWrappedExpandoValue() {
 		return _expandoValue;
 	}
@@ -769,6 +793,16 @@ public class ExpandoValueWrapper implements ExpandoValue,
 	@Override
 	public ExpandoValue getWrappedModel() {
 		return _expandoValue;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _expandoValue.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _expandoValue.isFinderCacheEnabled();
 	}
 
 	@Override

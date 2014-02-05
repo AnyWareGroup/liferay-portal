@@ -16,6 +16,8 @@ package com.liferay.portal.jsonwebservice;
 
 import com.liferay.portal.jsonwebservice.action.JSONWebServiceInvokerAction;
 import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.service.ServiceContext;
@@ -45,12 +47,21 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Igor Spasic
  */
-@PrepareForTest(ServiceContextFactory.class)
+@PrepareForTest({ServiceContextFactory.class, PropsUtil.class})
 @RunWith(PowerMockRunner.class)
 public class JSONWebServiceInvokerTest extends BaseJSONWebServiceTestCase {
 
 	@BeforeClass
-	public static void init() throws Exception {
+	public static void setUpClass() throws Exception {
+		mockStatic(PropsUtil.class);
+
+		when(
+			PropsUtil.getArray(
+				PropsKeys.JSONWS_WEB_SERVICE_INVALID_HTTP_METHODS)
+		).thenReturn(
+			null
+		);
+
 		initPortalServices();
 
 		registerActionClass(FooService.class);
@@ -172,9 +183,32 @@ public class JSONWebServiceInvokerTest extends BaseJSONWebServiceTestCase {
 		result = invokerResult.getResult();
 
 		Assert.assertTrue(result instanceof List);
-
 		Assert.assertEquals(
 			"[{\"id\":1},{\"id\":2},{\"id\":3}]", toJSON(result));
+	}
+
+	@Test
+	public void testFilteringPrimitivesList() throws Exception {
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+
+		map.put("$datas[id] = /foo/get-foo-datas3", params);
+
+		String json = toJSON(map);
+
+		JSONWebServiceAction jsonWebServiceAction = prepareInvokerAction(json);
+
+		Object result = jsonWebServiceAction.invoke();
+
+		JSONWebServiceInvokerAction.InvokerResult invokerResult =
+			(JSONWebServiceInvokerAction.InvokerResult)result;
+
+		result = invokerResult.getResult();
+
+		Assert.assertTrue(result instanceof List);
+		Assert.assertEquals(
+			"[{\"id\":null},{\"id\":null},{\"id\":null}]", toJSON(result));
 	}
 
 	@Test
@@ -207,7 +241,7 @@ public class JSONWebServiceInvokerTest extends BaseJSONWebServiceTestCase {
 
 		Assert.assertTrue(result instanceof Map);
 		Assert.assertEquals(
-			"{\"id\":173,\"height\":177,\"name\":\"John Doe\",\"value\":" +
+			"{\"height\":177,\"id\":173,\"name\":\"John Doe\",\"value\":" +
 				"\"foo!\",\"world\":\"Welcome 173 to Jupiter\"}",
 			toJSON(invokerResult));
 	}
@@ -256,11 +290,11 @@ public class JSONWebServiceInvokerTest extends BaseJSONWebServiceTestCase {
 
 		StringBundler sb = new StringBundler(5);
 
-		sb.append("{\"id\":173,\"height\":177,\"spy\":{\"id\":7,\"height\":");
-		sb.append("173,\"name\":\"James Bond\",\"value\":\"licensed\",");
-		sb.append("\"thief\":{\"id\":-13,\"height\":59,\"name\":\"Dr. Evil\",");
-		sb.append("\"value\":\"fun\",\"world\":\"Welcome -13 to Jupiter\"}},");
-		sb.append("\"name\":\"John Doe\",\"value\":\"foo!\"}");
+		sb.append("{\"height\":177,\"id\":173,\"name\":\"John Doe\",");
+		sb.append("\"spy\":{\"height\":173,\"id\":7,\"name\":\"James Bond\",");
+		sb.append("\"thief\":{\"height\":59,\"id\":-13,\"name\":\"Dr. Evil\",");
+		sb.append("\"value\":\"fun\",\"world\":\"Welcome -13 to Jupiter\"},");
+		sb.append("\"value\":\"licensed\"},\"value\":\"foo!\"}");
 
 		Assert.assertEquals(sb.toString(), toJSON(invokerResult));
 	}
@@ -490,6 +524,37 @@ public class JSONWebServiceInvokerTest extends BaseJSONWebServiceTestCase {
 			(JSONWebServiceInvokerAction.InvokerResult)result;
 
 		Assert.assertEquals("6", toJSON(invokerResult));
+	}
+
+	@Test
+	public void testSerializationComplexObjects4() throws Exception {
+		Map<String, Object> map = new LinkedHashMap<String, Object>();
+
+		Map<String, Object> params = new LinkedHashMap<String, Object>();
+
+		map.put("/foo/complex-with-arrays", params);
+
+		params.put(
+			"longArrays",
+			new long[][] {new long[] {1, 2, 3}, new long[] {8, 9}});
+
+		Map<String, String[]> names = new HashMap<String, String[]>();
+
+		names.put("p1", new String[] {"one", "two"});
+
+		params.put("mapNames", names);
+
+		String json = toJSON(map, "*.longArrays", "*.mapNames.*");
+
+		JSONWebServiceAction jsonWebServiceAction = prepareInvokerAction(json);
+
+		Object result = jsonWebServiceAction.invoke();
+
+		JSONWebServiceInvokerAction.InvokerResult invokerResult =
+			(JSONWebServiceInvokerAction.InvokerResult)result;
+
+		Assert.assertEquals(
+			"\"[1, 2, 3]|[8, 9]|*p1=[one, two]|\"", toJSON(invokerResult));
 	}
 
 	@Test

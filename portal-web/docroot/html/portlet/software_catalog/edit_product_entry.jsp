@@ -72,7 +72,7 @@ int screenshotsCount = ParamUtil.getInteger(request, "screenshotsCount", product
 		<liferay-ui:message key="name" />
 	</td>
 	<td>
-		<liferay-ui:input-field bean="<%= productEntry %>" field="name" model="<%= SCProductEntry.class %>" />
+		<liferay-ui:input-field autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" bean="<%= productEntry %>" field="name" model="<%= SCProductEntry.class %>" />
 	</td>
 </tr>
 <tr>
@@ -275,40 +275,56 @@ int screenshotsCount = ParamUtil.getInteger(request, "screenshotsCount", product
 
 			</table>
 
-			<input onClick="<portlet:namespace />addScreenShot();" type="button" value="<liferay-ui:message key="add-screenshot" />" />
+			<div class="btn-toolbar">
 
-			<c:if test="<%= screenshotsCount > 0 %>">
-				<input onClick="<portlet:namespace />removeScreenShot();" type="button" value="<liferay-ui:message key="remove-screenshot" />" />
-			</c:if>
+				<%
+				String taglibAddScreenshot = renderResponse.getNamespace() + "addScreenShot();";
+				%>
+
+				<aui:button onClick="<%= taglibAddScreenshot %>" value="add-screenshot" />
+
+				<c:if test="<%= screenshotsCount > 0 %>">
+
+					<%
+					String taglibRemoveScreenshot = renderResponse.getNamespace() + "removeScreenShot();";
+					%>
+
+					<aui:button onClick="<%= taglibRemoveScreenshot %>" value="remove-screenshot" />
+				</c:if>
+			</div>
 		</liferay-ui:panel>
 	</liferay-ui:panel-container>
 </div>
 
-<input type="submit" value="<liferay-ui:message key="save" />" />
+<div class="btn-toolbar">
+	<aui:button cssClass="btn-primary" type="submit" value="save" />
 
-<input onClick="location.href = '<%= HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) %>';" type="button" value="<liferay-ui:message key="cancel" />" />
+	<%
+	String taglibCancel = "location.href = '" + HtmlUtil.escape(PortalUtil.escapeRedirect(redirect)) + "';";
+	%>
 
+	<aui:button onClick="<%= taglibCancel %>" value="cancel" />
+</div>
 </form>
 
 <aui:script>
 	function <portlet:namespace />addScreenShot() {
 		document.<portlet:namespace />fm.<portlet:namespace />screenshotsCount.value = "<%= screenshotsCount + 1 %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />removeScreenShot() {
 		document.<portlet:namespace />fm.<portlet:namespace />screenshotsCount.value = "<%= screenshotsCount - 1 %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
 	function <portlet:namespace />saveProductEntry() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (productEntry == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

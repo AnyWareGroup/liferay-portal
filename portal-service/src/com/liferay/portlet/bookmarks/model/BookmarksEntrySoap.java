@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.bookmarks.service.http.BookmarksEntryServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portlet.bookmarks.service.http.BookmarksEntryServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.bookmarks.service.http.BookmarksEntryServiceSoap
  * @generated
  */
 public class BookmarksEntrySoap implements Serializable {
@@ -41,6 +41,7 @@ public class BookmarksEntrySoap implements Serializable {
 		soapModel.setModifiedDate(model.getModifiedDate());
 		soapModel.setResourceBlockId(model.getResourceBlockId());
 		soapModel.setFolderId(model.getFolderId());
+		soapModel.setTreePath(model.getTreePath());
 		soapModel.setName(model.getName());
 		soapModel.setUrl(model.getUrl());
 		soapModel.setDescription(model.getDescription());
@@ -182,6 +183,14 @@ public class BookmarksEntrySoap implements Serializable {
 		_folderId = folderId;
 	}
 
+	public String getTreePath() {
+		return _treePath;
+	}
+
+	public void setTreePath(String treePath) {
+		_treePath = treePath;
+	}
+
 	public String getName() {
 		return _name;
 	}
@@ -264,6 +273,7 @@ public class BookmarksEntrySoap implements Serializable {
 	private Date _modifiedDate;
 	private long _resourceBlockId;
 	private long _folderId;
+	private String _treePath;
 	private String _name;
 	private String _url;
 	private String _description;

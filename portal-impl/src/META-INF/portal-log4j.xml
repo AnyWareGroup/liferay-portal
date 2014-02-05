@@ -8,13 +8,23 @@
 		</layout>
 	</appender>
 
-	<appender name="FILE" class="org.apache.log4j.rolling.RollingFileAppender">
+	<appender name="TEXT_FILE" class="org.apache.log4j.rolling.RollingFileAppender">
 		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
-			<param name="FileNamePattern" value="@liferay.home@/logs/liferay.%d{yyyy-MM-dd}.log" />
+			<param name="FileNamePattern" value="@liferay.home@/logs/liferay@spi.id@.%d{yyyy-MM-dd}.log" />
 		</rollingPolicy>
 
 		<layout class="org.apache.log4j.EnhancedPatternLayout">
 			<param name="ConversionPattern" value="%d{ABSOLUTE} %-5p [%t][%c{1}:%L] %m%n" />
+		</layout>
+	</appender>
+
+	<appender name="XML_FILE" class="org.apache.log4j.rolling.RollingFileAppender">
+		<rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+			<param name="FileNamePattern" value="@liferay.home@/logs/liferay@spi.id@.%d{yyyy-MM-dd}.xml" />
+		</rollingPolicy>
+
+		<layout class="org.apache.log4j.xml.XMLLayout">
+			<param name="LocationInfo" value="true" />
 		</layout>
 	</appender>
 
@@ -302,6 +312,10 @@
 		<priority value="ERROR" />
 	</category>
 
+	<category name="com.liferay.portal.kernel.messaging.proxy.ProxyMessageListener">
+		<priority value="WARN" />
+	</category>
+
 	<category name="com.liferay.portal.kernel.portlet.RestrictPortletServletRequest">
 		<priority value="ERROR" />
 	</category>
@@ -315,6 +329,14 @@
 	</category>
 
 	<category name="com.liferay.portal.kernel.messaging.config.AbstractMessagingConfigurator">
+		<priority value="INFO" />
+	</category>
+
+	<category name="com.liferay.portal.kernel.resiliency">
+		<priority value="INFO" />
+	</category>
+
+	<category name="com.liferay.portal.kernel.search.BaseSpellCheckIndexWriter">
 		<priority value="INFO" />
 	</category>
 
@@ -386,6 +408,10 @@
 		<priority value="INFO" />
 	</category>
 
+	<category name="com.liferay.portal.metadata.TikaRawMetadataProcessor">
+		<priority value="WARN" />
+	</category>
+
 	<category name="com.liferay.portal.model.Image">
 		<priority value="ERROR" />
 	</category>
@@ -423,7 +449,7 @@
 	</category>
 
 	<category name="com.liferay.portal.search.lucene">
-		<priority value="INFO" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.search.lucene.LuceneFileExtractor">
@@ -527,7 +553,7 @@
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.FileChecker">
-		<priority value="WARN" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.MBeanChecker">
@@ -555,11 +581,11 @@
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.ReflectChecker">
-		<priority value="WARN" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.RuntimeChecker">
-		<priority value="WARN" />
+		<priority value="ERROR" />
 	</category>
 
 	<category name="com.liferay.portal.security.pacl.checker.SecurityChecker">
@@ -694,10 +720,6 @@
 		<priority value="ERROR" />
 	</category>
 
-	<category name="com.liferay.portal.servlet.filters.doubleclick">
-		<priority value="ERROR" />
-	</category>
-
 	<category name="com.liferay.portal.servlet.filters.dynamiccss">
 		<priority value="ERROR" />
 	</category>
@@ -746,6 +768,10 @@
 		<priority value="ERROR" />
 	</category>
 
+	<category name="com.liferay.portal.setup.SetupWizardSampleDataUtil">
+		<priority value="INFO" />
+	</category>
+
 	<category name="com.liferay.portal.sharepoint">
 		<priority value="ERROR" />
 	</category>
@@ -771,14 +797,6 @@
 	</category>
 
 	<category name="com.liferay.portal.spring.hibernate.DialectDetector">
-		<priority value="INFO" />
-	</category>
-
-	<category name="com.liferay.portal.spring.jpa.DatabaseDetector">
-		<priority value="INFO" />
-	</category>
-
-	<category name="com.liferay.portal.spring.jpa.LocalContainerEntityManagerFactoryBean">
 		<priority value="INFO" />
 	</category>
 
@@ -936,6 +954,10 @@
 
 	<category name="com.liferay.portlet.RenderResponseFactory">
 		<priority value="ERROR" />
+	</category>
+
+	<category name="com.liferay.portlet.SecurityPortletContainerWrapper">
+		<priority value="WARN" />
 	</category>
 
 	<category name="com.liferay.portlet.admin">
@@ -1110,6 +1132,10 @@
 		<priority value="INFO" />
 	</category>
 
+	<category name="com.liferay.util.resiliency">
+		<priority value="INFO" />
+	</category>
+
 	<category name="com.mchange">
 		<priority value="WARN" />
 	</category>
@@ -1202,10 +1228,6 @@
 		<priority value="ERROR" />
 	</category>
 
-	<category name="org.apache.myfaces">
-		<priority value="ERROR" />
-	</category>
-
 	<category name="org.apache.pdfbox">
 		<priority value="ERROR" />
 	</category>
@@ -1285,6 +1307,7 @@
 	<root>
 		<priority value="INFO" />
 		<appender-ref ref="CONSOLE" />
-		<appender-ref ref="FILE" />
+		<appender-ref ref="TEXT_FILE" />
+		<appender-ref ref="XML_FILE" />
 	</root>
 </log4j:configuration>

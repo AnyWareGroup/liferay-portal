@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.lar;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -21,13 +23,15 @@ import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.StreamUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portlet.documentlibrary.lar.FileEntryUtil;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.messageboards.model.MBCategory;
 import com.liferay.portlet.messageboards.model.MBCategoryConstants;
@@ -35,7 +39,6 @@ import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBThreadLocalServiceUtil;
-import com.liferay.portlet.messageboards.service.persistence.MBMessageUtil;
 
 import java.io.InputStream;
 
@@ -53,6 +56,20 @@ public class MBMessageStagedModelDataHandler
 	public static final String[] CLASS_NAMES = {MBMessage.class.getName()};
 
 	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws PortalException, SystemException {
+
+		MBMessage message =
+			MBMessageLocalServiceUtil.fetchMBMessageByUuidAndGroupId(
+				uuid, groupId);
+
+		if (message != null) {
+			MBMessageLocalServiceUtil.deleteMessage(message);
+		}
+	}
+
+	@Override
 	public String[] getClassNames() {
 		return CLASS_NAMES;
 	}
@@ -67,15 +84,15 @@ public class MBMessageStagedModelDataHandler
 			PortletDataContext portletDataContext, MBMessage message)
 		throws Exception {
 
-		if ((message.getStatus() != WorkflowConstants.STATUS_APPROVED) ||
-			(message.getCategoryId() ==
-				MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+		if (message.getCategoryId() ==
+				MBCategoryConstants.DISCUSSION_CATEGORY_ID) {
 
 			return;
 		}
 
-		StagedModelDataHandlerUtil.exportStagedModel(
-			portletDataContext, message.getCategory());
+		StagedModelDataHandlerUtil.exportReferenceStagedModel(
+			portletDataContext, message, message.getCategory(),
+			PortletDataContext.REFERENCE_TYPE_PARENT);
 
 		Element messageElement = portletDataContext.getExportDataElement(
 			message);
@@ -94,23 +111,11 @@ public class MBMessageStagedModelDataHandler
 			"hasAttachmentsFileEntries",
 			String.valueOf(hasAttachmentsFileEntries));
 
-		if (portletDataContext.getBooleanParameter(
-				MBPortletDataHandler.NAMESPACE, "attachments") &&
-			hasAttachmentsFileEntries) {
-
+		if (hasAttachmentsFileEntries) {
 			for (FileEntry fileEntry : message.getAttachmentsFileEntries()) {
-				String name = fileEntry.getTitle();
-				String binPath = ExportImportPathUtil.getModelPath(
-					message, name);
-
-				Element attachmentElement = messageElement.addElement(
-					"attachment");
-
-				attachmentElement.addAttribute("name", name);
-				attachmentElement.addAttribute("bin-path", binPath);
-
-				portletDataContext.addZipEntry(
-					binPath, fileEntry.getContentStream());
+				StagedModelDataHandlerUtil.exportReferenceStagedModel(
+					portletDataContext, message, MBMessage.class, fileEntry,
+					FileEntry.class, PortletDataContext.REFERENCE_TYPE_WEAK);
 			}
 
 			long folderId = message.getAttachmentsFolderId();
@@ -121,8 +126,8 @@ public class MBMessageStagedModelDataHandler
 		}
 
 		portletDataContext.addClassedModel(
-			messageElement, ExportImportPathUtil.getModelPath(message), message,
-			MBPortletDataHandler.NAMESPACE);
+			messageElement, ExportImportPathUtil.getModelPath(message),
+			message);
 	}
 
 	@Override
@@ -163,13 +168,7 @@ public class MBMessageStagedModelDataHandler
 
 		try {
 			ServiceContext serviceContext =
-				portletDataContext.createServiceContext(
-					message, MBPortletDataHandler.NAMESPACE);
-
-			if (message.getStatus() != WorkflowConstants.STATUS_APPROVED) {
-				serviceContext.setWorkflowAction(
-					WorkflowConstants.ACTION_SAVE_DRAFT);
-			}
+				portletDataContext.createServiceContext(message);
 
 			if ((parentCategoryId !=
 					MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) &&
@@ -177,16 +176,9 @@ public class MBMessageStagedModelDataHandler
 					MBCategoryConstants.DISCUSSION_CATEGORY_ID) &&
 				(parentCategoryId == message.getCategoryId())) {
 
-				String categoryPath = ExportImportPathUtil.getModelPath(
-					portletDataContext, MBCategory.class.getName(),
+				StagedModelDataHandlerUtil.importReferenceStagedModel(
+					portletDataContext, message, MBCategory.class,
 					parentCategoryId);
-
-				MBCategory category =
-					(MBCategory)portletDataContext.getZipEntryAsObject(
-						categoryPath);
-
-				StagedModelDataHandlerUtil.importStagedModel(
-					portletDataContext, category);
 
 				parentCategoryId = MapUtil.getLong(
 					categoryIds, message.getCategoryId(),
@@ -196,8 +188,10 @@ public class MBMessageStagedModelDataHandler
 			MBMessage importedMessage = null;
 
 			if (portletDataContext.isDataStrategyMirror()) {
-				MBMessage existingMessage = MBMessageUtil.fetchByUUID_G(
-					message.getUuid(), portletDataContext.getScopeGroupId());
+				MBMessage existingMessage =
+					MBMessageLocalServiceUtil.fetchMBMessageByUuidAndGroupId(
+						message.getUuid(),
+						portletDataContext.getScopeGroupId());
 
 				if (existingMessage == null) {
 					serviceContext.setUuid(message.getUuid());
@@ -239,8 +233,7 @@ public class MBMessageStagedModelDataHandler
 
 			threadIds.put(message.getThreadId(), importedMessage.getThreadId());
 
-			portletDataContext.importClassedModel(
-				message, importedMessage, MBPortletDataHandler.NAMESPACE);
+			portletDataContext.importClassedModel(message, importedMessage);
 		}
 		finally {
 			for (ObjectValuePair<String, InputStream> inputStreamOVP :
@@ -253,6 +246,42 @@ public class MBMessageStagedModelDataHandler
 		}
 	}
 
+	@Override
+	protected void doRestoreStagedModel(
+			PortletDataContext portletDataContext, MBMessage message)
+		throws Exception {
+
+		long userId = portletDataContext.getUserId(message.getUserUuid());
+
+		MBMessage existingMessage =
+			MBMessageLocalServiceUtil.fetchMBMessageByUuidAndGroupId(
+				message.getUuid(), portletDataContext.getScopeGroupId());
+
+		if (existingMessage == null) {
+			return;
+		}
+
+		if (existingMessage.isInTrash()) {
+			TrashHandler trashHandler = existingMessage.getTrashHandler();
+
+			if (trashHandler.isRestorable(existingMessage.getMessageId())) {
+				trashHandler.restoreTrashEntry(
+					userId, existingMessage.getMessageId());
+			}
+		}
+
+		if (existingMessage.isInTrashContainer()) {
+			MBThread existingThread = existingMessage.getThread();
+
+			TrashHandler trashHandler = existingThread.getTrashHandler();
+
+			if (trashHandler.isRestorable(existingThread.getThreadId())) {
+				trashHandler.restoreTrashEntry(
+					userId, existingThread.getThreadId());
+			}
+		}
+	}
+
 	protected List<ObjectValuePair<String, InputStream>> getAttachments(
 		PortletDataContext portletDataContext, Element messageElement,
 		MBMessage message) {
@@ -260,32 +289,55 @@ public class MBMessageStagedModelDataHandler
 		boolean hasAttachmentsFileEntries = GetterUtil.getBoolean(
 			messageElement.attributeValue("hasAttachmentsFileEntries"));
 
-		if (!hasAttachmentsFileEntries &&
-			portletDataContext.getBooleanParameter(
-				MBPortletDataHandler.NAMESPACE, "attachments")) {
-
+		if (!hasAttachmentsFileEntries) {
 			return Collections.emptyList();
 		}
 
 		List<ObjectValuePair<String, InputStream>> inputStreamOVPs =
 			new ArrayList<ObjectValuePair<String, InputStream>>();
 
-		List<Element> attachmentElements = messageElement.elements(
-			"attachment");
+		List<Element> attachmentElements =
+			portletDataContext.getReferenceDataElements(
+				messageElement, FileEntry.class,
+				PortletDataContext.REFERENCE_TYPE_WEAK);
 
 		for (Element attachmentElement : attachmentElements) {
-			String name = attachmentElement.attributeValue("name");
+			String path = attachmentElement.attributeValue("path");
+
+			FileEntry fileEntry =
+				(FileEntry)portletDataContext.getZipEntryAsObject(path);
+
+			InputStream inputStream = null;
+
 			String binPath = attachmentElement.attributeValue("bin-path");
 
-			InputStream inputStream =
-				portletDataContext.getZipEntryAsInputStream(binPath);
+			if (Validator.isNull(binPath) &&
+				portletDataContext.isPerformDirectBinaryImport()) {
+
+				try {
+					inputStream = FileEntryUtil.getContentStream(fileEntry);
+				}
+				catch (Exception e) {
+				}
+			}
+			else {
+				inputStream = portletDataContext.getZipEntryAsInputStream(
+					binPath);
+			}
 
 			if (inputStream == null) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to import attachment for file entry " +
+							fileEntry.getFileEntryId());
+				}
+
 				continue;
 			}
 
 			ObjectValuePair<String, InputStream> inputStreamOVP =
-				new ObjectValuePair<String, InputStream>(name, inputStream);
+				new ObjectValuePair<String, InputStream>(
+					fileEntry.getTitle(), inputStream);
 
 			inputStreamOVPs.add(inputStreamOVP);
 		}

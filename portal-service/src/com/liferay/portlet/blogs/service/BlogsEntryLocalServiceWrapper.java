@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.blogs.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link BlogsEntryLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       BlogsEntryLocalService
+ * @author Brian Wing Shun Chan
+ * @see BlogsEntryLocalService
  * @generated
  */
+@ProviderType
 public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	ServiceWrapper<BlogsEntryLocalService> {
 	public BlogsEntryLocalServiceWrapper(
@@ -166,11 +169,60 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 		return _blogsEntryLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _blogsEntryLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.blogs.model.BlogsEntry fetchBlogsEntry(
 		long entryId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _blogsEntryLocalService.fetchBlogsEntry(entryId);
+	}
+
+	/**
+	* Returns the blogs entry with the matching UUID and company.
+	*
+	* @param uuid the blogs entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching blogs entry, or <code>null</code> if a matching blogs entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.blogs.model.BlogsEntry fetchBlogsEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _blogsEntryLocalService.fetchBlogsEntryByUuidAndCompanyId(uuid,
+			companyId);
+	}
+
+	/**
+	* Returns the blogs entry matching the UUID and group.
+	*
+	* @param uuid the blogs entry's UUID
+	* @param groupId the primary key of the group
+	* @return the matching blogs entry, or <code>null</code> if a matching blogs entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.blogs.model.BlogsEntry fetchBlogsEntryByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _blogsEntryLocalService.fetchBlogsEntryByUuidAndGroupId(uuid,
+			groupId);
 	}
 
 	/**
@@ -195,6 +247,24 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _blogsEntryLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the blogs entry with the matching UUID and company.
+	*
+	* @param uuid the blogs entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching blogs entry
+	* @throws PortalException if a matching blogs entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.blogs.model.BlogsEntry getBlogsEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _blogsEntryLocalService.getBlogsEntryByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -369,6 +439,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getCompanyEntries(long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getCompanyEntries(
 		long companyId, java.util.Date displayDate, int status, int start,
@@ -381,6 +452,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getCompanyEntries(long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getCompanyEntries(
 		long companyId, java.util.Date displayDate, int status, int start,
@@ -403,6 +475,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getCompanyEntriesCount(long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getCompanyEntriesCount(long companyId,
 		java.util.Date displayDate, int status)
@@ -447,6 +520,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long, Date,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
 		long groupId, java.util.Date displayDate, int status, int start, int end)
@@ -459,6 +533,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long, Date,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
 		long groupId, java.util.Date displayDate, int status, int start,
@@ -481,6 +556,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
 		long groupId, int status, int start, int end)
@@ -493,6 +569,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupEntries(long,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupEntries(
 		long groupId, int status, int start, int end,
@@ -514,6 +591,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupEntriesCount(long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getGroupEntriesCount(long groupId, java.util.Date displayDate,
 		int status) throws com.liferay.portal.kernel.exception.SystemException {
@@ -533,6 +611,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupEntriesCount(long,
 	QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getGroupEntriesCount(long groupId, int status)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -551,6 +630,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupsEntries(long, long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupsEntries(
 		long companyId, long groupId, java.util.Date displayDate, int status,
@@ -573,6 +653,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupUserEntries(long,
 	long, Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupUserEntries(
 		long groupId, long userId, java.util.Date displayDate, int status,
@@ -586,6 +667,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getGroupUserEntries(long,
 	long, Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getGroupUserEntries(
 		long groupId, long userId, java.util.Date displayDate, int status,
@@ -608,6 +690,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link
 	#getGroupUserEntriesCount(long, long, Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getGroupUserEntriesCount(long groupId, long userId,
 		java.util.Date displayDate, int status)
@@ -635,6 +718,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getOrganizationEntries(long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getOrganizationEntries(
 		long organizationId, java.util.Date displayDate, int status, int start,
@@ -647,6 +731,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getOrganizationEntries(long,
 	Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.blogs.model.BlogsEntry> getOrganizationEntries(
 		long organizationId, java.util.Date displayDate, int status, int start,
@@ -669,6 +754,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link
 	#getOrganizationEntriesCount(long, Date, QueryDefinition)}
 	*/
+	@Deprecated
 	@Override
 	public int getOrganizationEntriesCount(long organizationId,
 		java.util.Date displayDate, int status)
@@ -818,6 +904,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public BlogsEntryLocalService getWrappedBlogsEntryLocalService() {
 		return _blogsEntryLocalService;
 	}
@@ -825,6 +912,7 @@ public class BlogsEntryLocalServiceWrapper implements BlogsEntryLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedBlogsEntryLocalService(
 		BlogsEntryLocalService blogsEntryLocalService) {
 		_blogsEntryLocalService = blogsEntryLocalService;

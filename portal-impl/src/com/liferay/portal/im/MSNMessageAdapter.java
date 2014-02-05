@@ -43,13 +43,15 @@ public class MSNMessageAdapter extends MsnAdapter {
 			}
 		}
 		catch (Exception e) {
-			_log.warn(e);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e);
+			}
 		}
 
 		_msn.removeMsnListener(this);
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(MSNConnector.class);
+	private static Log _log = LogFactoryUtil.getLog(MSNMessageAdapter.class);
 
 	private String _msg;
 	private MSNMessenger _msn;

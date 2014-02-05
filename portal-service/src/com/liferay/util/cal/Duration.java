@@ -53,6 +53,7 @@ import java.io.Serializable;
  * @deprecated As of 6.2.0, moved to {@link
  *             com.liferay.portal.kernel.cal.Duration}
  */
+@Deprecated
 public class Duration implements Cloneable, Serializable {
 
 	/**
@@ -60,7 +61,7 @@ public class Duration implements Cloneable, Serializable {
 	 */
 	public Duration() {
 
-		/* Zero-initialization of all fields happens by default */
+		// Zero-initialization of all fields happens by default
 
 	}
 

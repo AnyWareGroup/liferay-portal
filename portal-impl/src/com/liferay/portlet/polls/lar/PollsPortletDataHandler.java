@@ -16,10 +16,11 @@ package com.liferay.portlet.polls.lar;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.lar.BasePortletDataHandler;
-import com.liferay.portal.kernel.lar.ManifestSummary;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataHandlerBoolean;
+import com.liferay.portal.kernel.lar.PortletDataHandlerControl;
 import com.liferay.portal.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portlet.polls.model.PollsChoice;
 import com.liferay.portlet.polls.model.PollsQuestion;
@@ -45,9 +46,18 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 
 	public PollsPortletDataHandler() {
 		setDataLocalized(true);
+		setDeletionSystemEventStagedModelTypes(
+			new StagedModelType(PollsQuestion.class));
 		setExportControls(
-			new PortletDataHandlerBoolean(NAMESPACE, "questions", true, true),
-			new PortletDataHandlerBoolean(NAMESPACE, "votes"));
+			new PortletDataHandlerBoolean(
+				NAMESPACE, "questions", true, false,
+				new PortletDataHandlerControl[] {
+					new PortletDataHandlerBoolean(
+						NAMESPACE, "votes", true, false, null,
+						PollsVote.class.getName())
+				},
+				PollsQuestion.class.getName()));
+		setImportControls(getExportControls());
 	}
 
 	@Override
@@ -74,32 +84,36 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences)
 		throws Exception {
 
-		portletDataContext.addPermissions(
-			PollsPermission.RESOURCE_NAME,
-			portletDataContext.getScopeGroupId());
+		portletDataContext.addPortletPermissions(PollsPermission.RESOURCE_NAME);
 
 		Element rootElement = addExportDataRootElement(portletDataContext);
 
 		rootElement.addAttribute(
 			"group-id", String.valueOf(portletDataContext.getScopeGroupId()));
 
-		ActionableDynamicQuery questionActionableDynamicQuery =
-			new PollsQuestionExportActionableDynamicQuery(portletDataContext);
-
-		questionActionableDynamicQuery.performActions();
-
-		ActionableDynamicQuery choiceActionableDynamicQuery =
-			new PollsChoiceExportActionableDynamicQuery(portletDataContext);
-
-		choiceActionableDynamicQuery.performActions();
-
 		if (portletDataContext.getBooleanParameter(
-				PollsPortletDataHandler.NAMESPACE, "votes")) {
+				PollsPortletDataHandler.NAMESPACE, "questions")) {
 
-			ActionableDynamicQuery voteActionableDynamicQuery =
-				new PollsVoteExportActionableDynamicQuery(portletDataContext);
+			ActionableDynamicQuery questionActionableDynamicQuery =
+				new PollsQuestionExportActionableDynamicQuery(
+					portletDataContext);
 
-			voteActionableDynamicQuery.performActions();
+			questionActionableDynamicQuery.performActions();
+
+			ActionableDynamicQuery choiceActionableDynamicQuery =
+				new PollsChoiceExportActionableDynamicQuery(portletDataContext);
+
+			choiceActionableDynamicQuery.performActions();
+
+			if (portletDataContext.getBooleanParameter(
+					PollsPortletDataHandler.NAMESPACE, "votes")) {
+
+				ActionableDynamicQuery voteActionableDynamicQuery =
+					new PollsVoteExportActionableDynamicQuery(
+						portletDataContext);
+
+				voteActionableDynamicQuery.performActions();
+			}
 		}
 
 		return getExportDataRootElementString(rootElement);
@@ -111,29 +125,31 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 			PortletPreferences portletPreferences, String data)
 		throws Exception {
 
-		portletDataContext.importPermissions(
-			PollsPermission.RESOURCE_NAME,
-			portletDataContext.getSourceGroupId(),
-			portletDataContext.getScopeGroupId());
+		portletDataContext.importPortletPermissions(
+			PollsPermission.RESOURCE_NAME);
 
 		Element questionsElement = portletDataContext.getImportDataGroupElement(
 			PollsQuestion.class);
 
-		List<Element> questionElements = questionsElement.elements();
+		if (portletDataContext.getBooleanParameter(
+				PollsPortletDataHandler.NAMESPACE, "questions")) {
 
-		for (Element questionElement : questionElements) {
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, questionElement);
-		}
+			List<Element> questionElements = questionsElement.elements();
 
-		Element choicesElement = portletDataContext.getImportDataGroupElement(
-			PollsChoice.class);
+			for (Element questionElement : questionElements) {
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, questionElement);
+			}
 
-		List<Element> choiceElements = choicesElement.elements();
+			Element choicesElement =
+				portletDataContext.getImportDataGroupElement(PollsChoice.class);
 
-		for (Element choiceElement : choiceElements) {
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, choiceElement);
+			List<Element> choiceElements = choicesElement.elements();
+
+			for (Element choiceElement : choiceElements) {
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, choiceElement);
+			}
 		}
 
 		if (portletDataContext.getBooleanParameter(NAMESPACE, "votes")) {
@@ -153,29 +169,24 @@ public class PollsPortletDataHandler extends BasePortletDataHandler {
 
 	@Override
 	protected void doPrepareManifestSummary(
-			PortletDataContext portletDataContext)
+			PortletDataContext portletDataContext,
+			PortletPreferences portletPreferences)
 		throws Exception {
-
-		ManifestSummary manifestSummary =
-			portletDataContext.getManifestSummary();
 
 		ActionableDynamicQuery choiceActionableDynamicQuery =
 			new PollsChoiceExportActionableDynamicQuery(portletDataContext);
 
-		manifestSummary.addModelCount(
-			PollsChoice.class, choiceActionableDynamicQuery.performCount());
+		choiceActionableDynamicQuery.performCount();
 
 		ActionableDynamicQuery questionActionableDynamicQuery =
 			new PollsQuestionExportActionableDynamicQuery(portletDataContext);
 
-		manifestSummary.addModelCount(
-			PollsQuestion.class, questionActionableDynamicQuery.performCount());
+		questionActionableDynamicQuery.performCount();
 
 		ActionableDynamicQuery voteActionableDynamicQuery =
 			new PollsVoteExportActionableDynamicQuery(portletDataContext);
 
-		manifestSummary.addModelCount(
-			PollsVote.class, voteActionableDynamicQuery.performCount());
+		voteActionableDynamicQuery.performCount();
 	}
 
 }

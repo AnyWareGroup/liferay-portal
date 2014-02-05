@@ -30,7 +30,12 @@
 </tr>
 <tr>
 	<td>SAVE_BUTTON</td>
-	<td>//input[@value='Save']</td>
+	<td>//button[contains(.,'Save')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>BACK</td>
+	<td>//a[@id='_125_TabsBack']</td>
 	<td></td>
 </tr>
 <tr>

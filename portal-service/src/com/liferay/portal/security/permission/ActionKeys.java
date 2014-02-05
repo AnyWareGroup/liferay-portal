@@ -61,6 +61,9 @@ public class ActionKeys {
 
 	public static final String ADD_FRAMEWORK_VERSION = "ADD_FRAMEWORK_VERSION";
 
+	public static final String ADD_GENERAL_ANNOUNCEMENTS =
+		"ADD_GENERAL_ANNOUNCEMENTS";
+
 	public static final String ADD_IMAGE = "ADD_IMAGE";
 
 	public static final String ADD_INSTANCE = "ADD_INSTANCE";
@@ -217,6 +220,8 @@ public class ActionKeys {
 
 	public static final String PREFERENCES = "PREFERENCES";
 
+	public static final String PREVIEW_IN_DEVICE = "PREVIEW_IN_DEVICE";
+
 	public static final String PRINT = "PRINT";
 
 	public static final String PUBLISH_STAGING = "PUBLISH_STAGING";
@@ -248,6 +253,9 @@ public class ActionKeys {
 	public static final String VIEW_CONTROL_PANEL = "VIEW_CONTROL_PANEL";
 
 	public static final String VIEW_MEMBERS = "VIEW_MEMBERS";
+
+	public static final String VIEW_SITE_ADMINISTRATION =
+		"VIEW_SITE_ADMINISTRATION";
 
 	public static final String VIEW_STAGING = "VIEW_STAGING";
 

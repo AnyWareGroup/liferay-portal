@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.asset.service.impl.AssetEntryServiceImpl
  * @generated
  */
+@ProviderType
 public class AssetEntryServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -120,6 +123,7 @@ public class AssetEntryServiceUtil {
 	Date, String, String, String, String, String, String, int,
 	int, Integer, boolean)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetEntry updateEntry(
 		long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,
@@ -141,10 +145,11 @@ public class AssetEntryServiceUtil {
 
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link #updateEntry(long, Date,
-	Date. String, long, String, long, long[], String[], boolean,
+	Date, String, long, String, long, long[], String[], boolean,
 	Date, Date, Date, String, String, String, String, String,
 	String, int, int, Integer, boolean)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetEntry updateEntry(
 		long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,
@@ -177,6 +182,7 @@ public class AssetEntryServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AssetEntryService service) {
 	}
 

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides the SOAP utility for the
  * {@link com.liferay.portal.service.AccountServiceUtil} service utility. The
@@ -48,11 +50,12 @@ package com.liferay.portal.service.http;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AccountServiceHttp
- * @see       com.liferay.portal.model.AccountSoap
- * @see       com.liferay.portal.service.AccountServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AccountServiceHttp
+ * @see com.liferay.portal.model.AccountSoap
+ * @see com.liferay.portal.service.AccountServiceUtil
  * @generated
  */
+@ProviderType
 public class AccountServiceSoap {
 }

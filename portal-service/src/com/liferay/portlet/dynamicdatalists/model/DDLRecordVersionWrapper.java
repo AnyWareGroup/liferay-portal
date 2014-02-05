@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.dynamicdatalists.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DDLRecordVersion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDLRecordVersion
+ * @author Brian Wing Shun Chan
+ * @see DDLRecordVersion
  * @generated
  */
+@ProviderType
 public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	ModelWrapper<DDLRecordVersion> {
 	public DDLRecordVersionWrapper(DDLRecordVersion ddlRecordVersion) {
@@ -528,6 +532,7 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _ddlRecordVersion.getApproved();
@@ -591,16 +596,6 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	@Override
 	public boolean isIncomplete() {
 		return _ddlRecordVersion.isIncomplete();
-	}
-
-	/**
-	* Returns <code>true</code> if this d d l record version is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this d d l record version is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _ddlRecordVersion.isInTrash();
 	}
 
 	/**
@@ -736,9 +731,30 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 		return _ddlRecordVersion.getRecordSet();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDLRecordVersionWrapper)) {
+			return false;
+		}
+
+		DDLRecordVersionWrapper ddlRecordVersionWrapper = (DDLRecordVersionWrapper)obj;
+
+		if (Validator.equals(_ddlRecordVersion,
+					ddlRecordVersionWrapper._ddlRecordVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDLRecordVersion getWrappedDDLRecordVersion() {
 		return _ddlRecordVersion;
 	}
@@ -746,6 +762,16 @@ public class DDLRecordVersionWrapper implements DDLRecordVersion,
 	@Override
 	public DDLRecordVersion getWrappedModel() {
 		return _ddlRecordVersion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddlRecordVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddlRecordVersion.isFinderCacheEnabled();
 	}
 
 	@Override

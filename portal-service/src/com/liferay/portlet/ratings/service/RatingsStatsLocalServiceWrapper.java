@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.ratings.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link RatingsStatsLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       RatingsStatsLocalService
+ * @author Brian Wing Shun Chan
+ * @see RatingsStatsLocalService
  * @generated
  */
+@ProviderType
 public class RatingsStatsLocalServiceWrapper implements RatingsStatsLocalService,
 	ServiceWrapper<RatingsStatsLocalService> {
 	public RatingsStatsLocalServiceWrapper(
@@ -166,6 +169,23 @@ public class RatingsStatsLocalServiceWrapper implements RatingsStatsLocalService
 		return _ratingsStatsLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _ratingsStatsLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.ratings.model.RatingsStats fetchRatingsStats(
 		long statsId)
@@ -299,6 +319,7 @@ public class RatingsStatsLocalServiceWrapper implements RatingsStatsLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public RatingsStatsLocalService getWrappedRatingsStatsLocalService() {
 		return _ratingsStatsLocalService;
 	}
@@ -306,6 +327,7 @@ public class RatingsStatsLocalServiceWrapper implements RatingsStatsLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedRatingsStatsLocalService(
 		RatingsStatsLocalService ratingsStatsLocalService) {
 		_ratingsStatsLocalService = ratingsStatsLocalService;

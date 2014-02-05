@@ -14,7 +14,10 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
+import com.liferay.portal.model.TreeModel;
 
 /**
  * The extended model interface for the DLFolder service. Represents a row in the &quot;DLFolder&quot; database table, with each column mapped to a property of this class.
@@ -25,7 +28,8 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl
  * @generated
  */
-public interface DLFolder extends DLFolderModel, PersistedModel {
+@ProviderType
+public interface DLFolder extends DLFolderModel, PersistedModel, TreeModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -51,15 +55,11 @@ public interface DLFolder extends DLFolderModel, PersistedModel {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
 
-	public com.liferay.portlet.documentlibrary.model.DLFolder getTrashContainer();
-
 	public boolean hasInheritableLock();
 
 	public boolean hasLock();
 
 	public boolean isInHiddenFolder();
-
-	public boolean isInTrashContainer();
 
 	public boolean isLocked();
 

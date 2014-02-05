@@ -312,6 +312,10 @@ public class WebDAVPropsPersistenceImpl extends BasePersistenceImpl<WebDAVProps>
 	private static final String _FINDER_COLUMN_C_C_CLASSNAMEID_2 = "webDAVProps.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_CLASSPK_2 = "webDAVProps.classPK = ?";
 
+	public WebDAVPropsPersistenceImpl() {
+		setModelClass(WebDAVProps.class);
+	}
+
 	/**
 	 * Caches the web d a v props in the entity cache if it is enabled.
 	 *
@@ -589,10 +593,13 @@ public class WebDAVPropsPersistenceImpl extends BasePersistenceImpl<WebDAVProps>
 		}
 
 		EntityCacheUtil.putResult(WebDAVPropsModelImpl.ENTITY_CACHE_ENABLED,
-			WebDAVPropsImpl.class, webDAVProps.getPrimaryKey(), webDAVProps);
+			WebDAVPropsImpl.class, webDAVProps.getPrimaryKey(), webDAVProps,
+			false);
 
 		clearUniqueFindersCache(webDAVProps);
 		cacheUniqueFindersCache(webDAVProps);
+
+		webDAVProps.resetOriginalValues();
 
 		return webDAVProps;
 	}
@@ -607,6 +614,7 @@ public class WebDAVPropsPersistenceImpl extends BasePersistenceImpl<WebDAVProps>
 		webDAVPropsImpl.setNew(webDAVProps.isNew());
 		webDAVPropsImpl.setPrimaryKey(webDAVProps.getPrimaryKey());
 
+		webDAVPropsImpl.setMvccVersion(webDAVProps.getMvccVersion());
 		webDAVPropsImpl.setWebDavPropsId(webDAVProps.getWebDavPropsId());
 		webDAVPropsImpl.setCompanyId(webDAVProps.getCompanyId());
 		webDAVPropsImpl.setCreateDate(webDAVProps.getCreateDate());

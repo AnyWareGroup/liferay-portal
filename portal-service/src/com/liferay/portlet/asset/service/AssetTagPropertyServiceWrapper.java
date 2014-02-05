@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AssetTagPropertyService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagPropertyService
+ * @author Brian Wing Shun Chan
+ * @see AssetTagPropertyService
  * @generated
  */
+@ProviderType
 public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	ServiceWrapper<AssetTagPropertyService> {
 	public AssetTagPropertyServiceWrapper(
@@ -137,6 +140,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetTagPropertyService getWrappedAssetTagPropertyService() {
 		return _assetTagPropertyService;
 	}
@@ -144,6 +148,7 @@ public class AssetTagPropertyServiceWrapper implements AssetTagPropertyService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetTagPropertyService(
 		AssetTagPropertyService assetTagPropertyService) {
 		_assetTagPropertyService = assetTagPropertyService;

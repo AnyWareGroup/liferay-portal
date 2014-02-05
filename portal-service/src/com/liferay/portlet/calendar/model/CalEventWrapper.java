@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.calendar.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link CalEvent}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       CalEvent
+ * @author Brian Wing Shun Chan
+ * @see CalEvent
  * @generated
  */
+@ProviderType
 public class CalEventWrapper implements CalEvent, ModelWrapper<CalEvent> {
 	public CalEventWrapper(CalEvent calEvent) {
 		_calEvent = calEvent;
@@ -863,9 +868,34 @@ public class CalEventWrapper implements CalEvent, ModelWrapper<CalEvent> {
 		_calEvent.setRecurrenceObj(recurrenceObj);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CalEventWrapper)) {
+			return false;
+		}
+
+		CalEventWrapper calEventWrapper = (CalEventWrapper)obj;
+
+		if (Validator.equals(_calEvent, calEventWrapper._calEvent)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _calEvent.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public CalEvent getWrappedCalEvent() {
 		return _calEvent;
 	}
@@ -873,6 +903,16 @@ public class CalEventWrapper implements CalEvent, ModelWrapper<CalEvent> {
 	@Override
 	public CalEvent getWrappedModel() {
 		return _calEvent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _calEvent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _calEvent.isFinderCacheEnabled();
 	}
 
 	@Override

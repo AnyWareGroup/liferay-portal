@@ -39,7 +39,9 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 	public String toString() {
 		StringBundler sb = new StringBundler(43);
 
-		sb.append("{layoutSetBranchId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", layoutSetBranchId=");
 		sb.append(layoutSetBranchId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -61,8 +63,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		sb.append(description);
 		sb.append(", master=");
 		sb.append(master);
-		sb.append(", logo=");
-		sb.append(logo);
 		sb.append(", logoId=");
 		sb.append(logoId);
 		sb.append(", themeId=");
@@ -90,6 +90,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 	public LayoutSetBranch toEntityModel() {
 		LayoutSetBranchImpl layoutSetBranchImpl = new LayoutSetBranchImpl();
 
+		layoutSetBranchImpl.setMvccVersion(mvccVersion);
 		layoutSetBranchImpl.setLayoutSetBranchId(layoutSetBranchId);
 		layoutSetBranchImpl.setGroupId(groupId);
 		layoutSetBranchImpl.setCompanyId(companyId);
@@ -133,7 +134,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		}
 
 		layoutSetBranchImpl.setMaster(master);
-		layoutSetBranchImpl.setLogo(logo);
 		layoutSetBranchImpl.setLogoId(logoId);
 
 		if (themeId == null) {
@@ -194,6 +194,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		layoutSetBranchId = objectInput.readLong();
 		groupId = objectInput.readLong();
 		companyId = objectInput.readLong();
@@ -205,7 +206,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		name = objectInput.readUTF();
 		description = objectInput.readUTF();
 		master = objectInput.readBoolean();
-		logo = objectInput.readBoolean();
 		logoId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
@@ -220,6 +220,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
 		objectOutput.writeLong(layoutSetBranchId);
 		objectOutput.writeLong(groupId);
 		objectOutput.writeLong(companyId);
@@ -251,7 +252,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		}
 
 		objectOutput.writeBoolean(master);
-		objectOutput.writeBoolean(logo);
 		objectOutput.writeLong(logoId);
 
 		if (themeId == null) {
@@ -306,6 +306,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		objectOutput.writeBoolean(layoutSetPrototypeLinkEnabled);
 	}
 
+	public long mvccVersion;
 	public long layoutSetBranchId;
 	public long groupId;
 	public long companyId;
@@ -317,7 +318,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 	public String name;
 	public String description;
 	public boolean master;
-	public boolean logo;
 	public long logoId;
 	public String themeId;
 	public String colorSchemeId;

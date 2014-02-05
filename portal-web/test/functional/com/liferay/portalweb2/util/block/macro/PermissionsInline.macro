@@ -1,0 +1,119 @@
+<definition>
+	<command name="gotoBlogsConfiguration">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+		</execute>
+
+		<execute action="PGBlogs#click" locator-key1="OPTIONS" />
+		<execute action="PGBlogs#assertClick" locator-key1="OPTIONS_MENULIST_CONFIGURATION" value1="Configuration" />
+
+		<execute action="PGBlogsConfiguration#selectFrame" locator-key1="CONFIGURATION_IFRAME" />
+		<execute action="PGBlogsConfiguration#assertClick" locator-key1="NAVIGATION_PERMISSIONS" value1="Permissions" />
+	</command>
+
+	<command name="gotoBlogsEntryCP">
+		<execute macro="Page#gotoContentCP">
+			<var name="pageName" value="${pageName}" />
+			<var name="portletName" value="${portletName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURLTemp}" />
+		</execute>
+
+		<var name="key_entryTitle" value="${entryTitle}" />
+
+		<execute action="CPBlogs#assertClick" locator-key1="ENTRY_TABLE_ACTIONS" value1="Actions" />
+		<execute action="CPBlogs#assertClick" locator-key1="ENTRY_MENULIST_PERMISSIONS" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
+	<command name="gotoBlogsEntryPG">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURLTemp}" />
+		</execute>
+
+		<var name="key_entryTitle" value="${entryTitle}" />
+
+		<execute action="PGBlogs#assertClick" locator-key1="ENTRY_PERMISSIONS" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
+	<command name="gotoBlogsPG">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURLTemp}" />
+		</execute>
+
+		<execute action="PGBlogs#assertClick" locator-key1="PERMISSIONS_BUTTON" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
+	<command name="gotoConfigurationPG">
+		<execute macro="Portlet#gotoPortletOptions">
+			<var name="portletOption" value="Configuration" />
+		</execute>
+
+		<execute action="BasePortletConfiguration#selectFrame" locator-key1="CONFIGURATION_IFRAME" />
+		<execute action="BasePortletConfiguration#assertClick" locator-key1="NAVIGATION_PERMISSIONS" value1="Permissions" />
+	</command>
+
+	<command name="gotoDMFolderPG">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURLTemp}" />
+		</execute>
+
+		<execute action="PGDocumentsandmedia#click" locator-key1="ENTRIES_FOLDER_ACTIONS" />
+		<execute action="PGDocumentsandmedia#assertClick" locator-key1="FOLDER_MENULIST_PERMISSIONS" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
+	<command name="gotoDocumentsAndMediaPG">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURLTemp}" />
+		</execute>
+
+		<execute action="PGDocumentsandmedia#click" locator-key1="FILTER_HOME_ACTIONS" />
+		<execute action="PGDocumentsandmedia#assertClick" locator-key1="HOME_MENULIST_PERMISSIONS" value1="Permissions" />
+	</command>
+
+	<command name="gotoPagePG">
+		<execute macro="Page#gotoPG">
+			<var name="pageName" value="${pageName}" />
+			<var name="siteName" value="${siteName}" />
+			<var name="siteURL" value="${siteURLTemp}" />
+		</execute>
+
+		<execute action="Dockbar#click" locator-key1="EDIT" />
+		<execute action="Dockbar#click" locator-key1="EDIT_NAVBAR_PERMISSIONS" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+	</command>
+
+	<command name="gotoWCArticle">
+		<var name="key_webContentTitle" value="${webContentTitle}" />
+
+		<execute action="CPWebcontent#mouseOver" locator-key1="ENTRY_DESCRIPTIVE_THUMBNAIL" />
+		<execute action="CPWebcontent#assertClick" locator-key1="ENTRY_DESCRIPTIVE_MENULIST_ARROW" />
+		<execute action="CPWebcontent#assertClick" locator-key1="ENTRY_MENULIST_PERMISSIONS" value1="Permissions" />
+
+		<execute action="Permissions#selectFrame" locator-key1="PERMISSIONS_IFRAME" />
+		<execute action="Permissions#assertTextEquals" locator-key1="HEADER_TITLE" value1="${webContentTitle}" />
+	</command>
+
+	<command name="viewPermissionsRemoved">
+		<var name="key_roleName" value="${roleName?replace(' ', '-')}" />
+		<var name="key_roleName" value="${key_roleName?lowercase()}" />
+
+		<execute action="Permissions#assertNotChecked" locator-key1="${permissionDefinitionKey}" />
+	</command>
+</definition>

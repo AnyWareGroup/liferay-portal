@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -63,7 +64,7 @@ public class ShoppingItemFinderImpl
 			query.append("WHERE ");
 			query.append("ShoppingItem.groupId = ? AND (");
 
-			if ((categoryIds != null) && (categoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(categoryIds)) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
 				for (int i = 0; i < categoryIds.length; i++) {
@@ -80,7 +81,7 @@ public class ShoppingItemFinderImpl
 			query.append("ShoppingItem.featured = ? AND ");
 			query.append("ShoppingItem.smallImage = ?");
 
-			SQLQuery q = session.createSQLQuery(query.toString());
+			SQLQuery q = session.createSynchronizedSQLQuery(query.toString());
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -131,7 +132,7 @@ public class ShoppingItemFinderImpl
 			query.append("WHERE ");
 			query.append("ShoppingItem.groupId = ? AND (");
 
-			if ((categoryIds != null) && (categoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(categoryIds)) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
 				for (int i = 0; i < categoryIds.length; i++) {
@@ -151,7 +152,7 @@ public class ShoppingItemFinderImpl
 
 			keywords = '%' + keywords + '%';
 
-			SQLQuery q = session.createSQLQuery(query.toString());
+			SQLQuery q = session.createSynchronizedSQLQuery(query.toString());
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -202,7 +203,7 @@ public class ShoppingItemFinderImpl
 			query.append("WHERE ");
 			query.append("ShoppingItem.groupId = ? AND (");
 
-			if ((categoryIds != null) && (categoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(categoryIds)) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
 				for (int i = 0; i < categoryIds.length; i++) {
@@ -219,7 +220,7 @@ public class ShoppingItemFinderImpl
 			query.append("ShoppingItem.sale = ? AND ");
 			query.append("ShoppingItem.smallImage = ?");
 
-			SQLQuery q = session.createSQLQuery(query.toString());
+			SQLQuery q = session.createSynchronizedSQLQuery(query.toString());
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -279,7 +280,7 @@ public class ShoppingItemFinderImpl
 			query.append("WHERE ");
 			query.append("ShoppingItem.groupId = ? AND (");
 
-			if ((categoryIds != null) && (categoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(categoryIds)) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
 				for (int i = 0; i < categoryIds.length; i++) {
@@ -296,7 +297,7 @@ public class ShoppingItemFinderImpl
 			query.append("ShoppingItem.featured = ? AND ");
 			query.append("ShoppingItem.smallImage = ?");
 
-			SQLQuery q = session.createSQLQuery(query.toString());
+			SQLQuery q = session.createSynchronizedSQLQuery(query.toString());
 
 			q.addEntity("ShoppingItem", ShoppingItemImpl.class);
 
@@ -339,7 +340,7 @@ public class ShoppingItemFinderImpl
 			query.append("WHERE ");
 			query.append("ShoppingItem.groupId = ? AND (");
 
-			if ((categoryIds != null) && (categoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(categoryIds)) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
 				for (int i = 0; i < categoryIds.length; i++) {
@@ -359,7 +360,7 @@ public class ShoppingItemFinderImpl
 
 			keywords = '%' + keywords + '%';
 
-			SQLQuery q = session.createSQLQuery(query.toString());
+			SQLQuery q = session.createSynchronizedSQLQuery(query.toString());
 
 			q.addEntity("ShoppingItem", ShoppingItemImpl.class);
 
@@ -404,7 +405,7 @@ public class ShoppingItemFinderImpl
 			query.append("WHERE ");
 			query.append("ShoppingItem.groupId = ? AND (");
 
-			if ((categoryIds != null) && (categoryIds.length > 0)) {
+			if (ArrayUtil.isNotEmpty(categoryIds)) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
 				for (int i = 0; i < categoryIds.length; i++) {
@@ -421,7 +422,7 @@ public class ShoppingItemFinderImpl
 			query.append("ShoppingItem.sale = ? AND ");
 			query.append("ShoppingItem.smallImage = ?");
 
-			SQLQuery q = session.createSQLQuery(query.toString());
+			SQLQuery q = session.createSynchronizedSQLQuery(query.toString());
 
 			q.addEntity("ShoppingItem", ShoppingItemImpl.class);
 
@@ -467,7 +468,7 @@ public class ShoppingItemFinderImpl
 			sql = StringUtil.replace(
 				sql, "[$CATEGORY_ID$]", getCategoryIds(categoryIds));
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 

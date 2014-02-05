@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DLFileEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileEntryService
+ * @author Brian Wing Shun Chan
+ * @see DLFileEntryService
  * @generated
  */
+@ProviderType
 public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	ServiceWrapper<DLFileEntryService> {
 	public DLFileEntryServiceWrapper(DLFileEntryService dlFileEntryService) {
@@ -87,6 +90,7 @@ public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	String, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public void checkInFileEntry(long fileEntryId, java.lang.String lockUuid)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -107,6 +111,7 @@ public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	* @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFileEntry checkOutFileEntry(
 		long fileEntryId)
@@ -128,6 +133,7 @@ public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	* @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	String, long, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFileEntry checkOutFileEntry(
 		long fileEntryId, java.lang.String owner, long expirationTime)
@@ -390,6 +396,25 @@ public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntryService.search(groupId, creatorUserId, status,
+			start, end);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, long folderId, java.lang.String[] mimeTypes,
+		int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntryService.search(groupId, creatorUserId, folderId,
+			mimeTypes, status, start, end);
+	}
+
+	@Override
 	public com.liferay.portlet.documentlibrary.model.DLFileEntry updateFileEntry(
 		long fileEntryId, java.lang.String sourceFileName,
 		java.lang.String mimeType, java.lang.String title,
@@ -424,6 +449,7 @@ public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFileEntryService getWrappedDLFileEntryService() {
 		return _dlFileEntryService;
 	}
@@ -431,6 +457,7 @@ public class DLFileEntryServiceWrapper implements DLFileEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFileEntryService(
 		DLFileEntryService dlFileEntryService) {
 		_dlFileEntryService = dlFileEntryService;

@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.shopping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ShoppingCoupon}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCoupon
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCoupon
  * @generated
  */
+@ProviderType
 public class ShoppingCouponWrapper implements ShoppingCoupon,
 	ModelWrapper<ShoppingCoupon> {
 	public ShoppingCouponWrapper(ShoppingCoupon shoppingCoupon) {
@@ -714,9 +718,30 @@ public class ShoppingCouponWrapper implements ShoppingCoupon,
 		return _shoppingCoupon.hasValidStartDate();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShoppingCouponWrapper)) {
+			return false;
+		}
+
+		ShoppingCouponWrapper shoppingCouponWrapper = (ShoppingCouponWrapper)obj;
+
+		if (Validator.equals(_shoppingCoupon,
+					shoppingCouponWrapper._shoppingCoupon)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ShoppingCoupon getWrappedShoppingCoupon() {
 		return _shoppingCoupon;
 	}
@@ -724,6 +749,16 @@ public class ShoppingCouponWrapper implements ShoppingCoupon,
 	@Override
 	public ShoppingCoupon getWrappedModel() {
 		return _shoppingCoupon;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _shoppingCoupon.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _shoppingCoupon.isFinderCacheEnabled();
 	}
 
 	@Override

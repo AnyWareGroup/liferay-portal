@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutSetPrototypeLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetPrototypeLocalService
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetPrototypeLocalService
  * @generated
  */
+@ProviderType
 public class LayoutSetPrototypeLocalServiceWrapper
 	implements LayoutSetPrototypeLocalService,
 		ServiceWrapper<LayoutSetPrototypeLocalService> {
@@ -168,11 +171,44 @@ public class LayoutSetPrototypeLocalServiceWrapper
 		return _layoutSetPrototypeLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetPrototypeLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.LayoutSetPrototype fetchLayoutSetPrototype(
 		long layoutSetPrototypeId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _layoutSetPrototypeLocalService.fetchLayoutSetPrototype(layoutSetPrototypeId);
+	}
+
+	/**
+	* Returns the layout set prototype with the matching UUID and company.
+	*
+	* @param uuid the layout set prototype's UUID
+	* @param companyId the primary key of the company
+	* @return the matching layout set prototype, or <code>null</code> if a matching layout set prototype could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.LayoutSetPrototype fetchLayoutSetPrototypeByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetPrototypeLocalService.fetchLayoutSetPrototypeByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -197,6 +233,24 @@ public class LayoutSetPrototypeLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _layoutSetPrototypeLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the layout set prototype with the matching UUID and company.
+	*
+	* @param uuid the layout set prototype's UUID
+	* @param companyId the primary key of the company
+	* @return the matching layout set prototype
+	* @throws PortalException if a matching layout set prototype could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.LayoutSetPrototype getLayoutSetPrototypeByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetPrototypeLocalService.getLayoutSetPrototypeByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -285,18 +339,11 @@ public class LayoutSetPrototypeLocalServiceWrapper
 		_layoutSetPrototypeLocalService.deleteNondefaultLayoutSetPrototypes(companyId);
 	}
 
-	@Override
-	public com.liferay.portal.model.LayoutSetPrototype fetchLayoutSetPrototypeByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _layoutSetPrototypeLocalService.fetchLayoutSetPrototypeByUuidAndCompanyId(uuid,
-			companyId);
-	}
-
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link
 	#getLayoutSetPrototypeByUuidAndCompanyId(String, long)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.LayoutSetPrototype getLayoutSetPrototypeByUuid(
 		java.lang.String uuid)
@@ -306,12 +353,10 @@ public class LayoutSetPrototypeLocalServiceWrapper
 	}
 
 	@Override
-	public com.liferay.portal.model.LayoutSetPrototype getLayoutSetPrototypeByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _layoutSetPrototypeLocalService.getLayoutSetPrototypeByUuidAndCompanyId(uuid,
-			companyId);
+	public java.util.List<com.liferay.portal.model.LayoutSetPrototype> getLayoutSetPrototypes(
+		long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetPrototypeLocalService.getLayoutSetPrototypes(companyId);
 	}
 
 	@Override
@@ -354,6 +399,7 @@ public class LayoutSetPrototypeLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutSetPrototypeLocalService getWrappedLayoutSetPrototypeLocalService() {
 		return _layoutSetPrototypeLocalService;
 	}
@@ -361,6 +407,7 @@ public class LayoutSetPrototypeLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutSetPrototypeLocalService(
 		LayoutSetPrototypeLocalService layoutSetPrototypeLocalService) {
 		_layoutSetPrototypeLocalService = layoutSetPrototypeLocalService;

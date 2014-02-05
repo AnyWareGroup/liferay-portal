@@ -65,18 +65,22 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 %>
 
 <c:choose>
-	<c:when test="<%= selUser == null %>">
-		<liferay-ui:header
-			backURL="<%= redirect %>"
-			escapeXml="<%= false %>"
-			localizeTitle="<%= false %>"
-			showBackURL="<%= showBackURL %>"
-			title="<%= HtmlUtil.escape(group.getDescriptiveName(locale)) %>"
-		/>
-
-		<liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_toolbar.jsp">
-			<liferay-util:param name="toolbarItem" value='<%= tabs2.equals("available") ? "add-role" : null %>' />
-		</liferay-util:include>
+	<c:when test="<%= (selUser == null) && (userGroupId == 0) %>">
+		<c:choose>
+			<c:when test='<%= tabs2.equals("available") %>'>
+				<liferay-ui:header
+					backURL="<%= redirect %>"
+					escapeXml="<%= false %>"
+					localizeTitle="<%= false %>"
+					title='<%= LanguageUtil.get(pageContext, "add-members") + ": " + LanguageUtil.get(pageContext, tabs1) %>'
+				/>
+			</c:when>
+			<c:otherwise>
+				<liferay-util:include page="/html/portlet/sites_admin/edit_site_assignments_toolbar.jsp">
+					<liferay-util:param name="toolbarItem" value='<%= tabs2.equals("available") ? "add-role" : null %>' />
+				</liferay-util:include>
+			</c:otherwise>
+		</c:choose>
 
 		<c:if test='<%= tabs1.equals("summary") || tabs2.equals("current") %>'>
 			<liferay-ui:tabs
@@ -86,13 +90,6 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 			/>
 		</c:if>
 	</c:when>
-	<c:otherwise>
-		<liferay-ui:header
-			backURL="<%= redirect %>"
-			showBackURL="<%= showBackURL %>"
-			title="roles"
-		/>
-	</c:otherwise>
 </c:choose>
 
 <aui:form action="<%= portletURL.toString() %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "submit();" %>'>
@@ -133,7 +130,7 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 						<liferay-ui:icon
 							image="manage_task"
 							label="<%= true %>"
-							message='<%= LanguageUtil.format(pageContext, "there-are-x-membership-requests-pending", String.valueOf(pendingRequests)) %>'
+							message='<%= LanguageUtil.format(pageContext, "there-are-x-membership-requests-pending", String.valueOf(pendingRequests), false) %>'
 							url="<%= viewMembershipRequestsURL %>"
 						/>
 					</c:if>
@@ -212,8 +209,9 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "group_organizations";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addOrganizationIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeOrganizationIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addOrganizationIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeOrganizationIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']
@@ -225,8 +223,9 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "group_user_groups";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addUserGroupIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeUserGroupIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addUserGroupIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeUserGroupIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']
@@ -238,8 +237,9 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "group_users";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']
@@ -251,8 +251,9 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "user_group_group_role";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addRoleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeRoleIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addRoleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeRoleIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']
@@ -264,8 +265,9 @@ request.setAttribute("edit_site_assignments.jsp-portletURL", portletURL);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "user_group_role";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addRoleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeRoleIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addRoleIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeRoleIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm, "<portlet:actionURL><portlet:param name="struts_action" value="/sites_admin/edit_site_assignments" /></portlet:actionURL>");
 		},
 		['liferay-util-list-fields']

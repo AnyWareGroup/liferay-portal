@@ -23,14 +23,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.ImageServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.ImageServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.ImageServiceSoap
  * @generated
  */
 public class ImageSoap implements Serializable {
 	public static ImageSoap toSoapModel(Image model) {
 		ImageSoap soapModel = new ImageSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setImageId(model.getImageId());
 		soapModel.setModifiedDate(model.getModifiedDate());
 		soapModel.setType(model.getType());
@@ -89,6 +90,14 @@ public class ImageSoap implements Serializable {
 		setImageId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getImageId() {
 		return _imageId;
 	}
@@ -137,6 +146,7 @@ public class ImageSoap implements Serializable {
 		_size = size;
 	}
 
+	private long _mvccVersion;
 	private long _imageId;
 	private Date _modifiedDate;
 	private String _type;

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.asset.service.impl.AssetTagLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class AssetTagLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -163,6 +166,21 @@ public class AssetTagLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portlet.asset.model.AssetTag fetchAssetTag(
@@ -415,6 +433,35 @@ public class AssetTagLocalServiceUtil {
 		getService().addTagResources(tag, groupPermissions, guestPermissions);
 	}
 
+	/**
+	* Returns the tags matching the group and names, creating new tags with the
+	* names if the group doesn't already have them.
+	*
+	* <p>
+	* For each name, if a tag with that name doesn't already exist for the
+	* group, this method creates a new tag with that name for the group. If a
+	* tag with that name already exists in the company group, this method
+	* copies that company group's tag's properties to the group's new tag.
+	* </p>
+	*
+	* @param userId the primary key of the user
+	* @param group ID the primary key of the tag's group
+	* @param names the tag names
+	* @return the tags matching the group and names and new tags matching the
+	names that don't already exist for the group
+	* @throws PortalException if a matching group could not be found, if the
+	tag's key or value were invalid, or if a portal exception
+	occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portlet.asset.model.AssetTag> checkTags(
+		long userId, com.liferay.portal.model.Group group,
+		java.lang.String[] names)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().checkTags(userId, group, names);
+	}
+
 	public static void checkTags(long userId, long groupId,
 		java.lang.String[] names)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -427,6 +474,12 @@ public class AssetTagLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().decrementAssetCount(tagId, classNameId);
+	}
+
+	public static void deleteGroupTags(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		getService().deleteGroupTags(groupId);
 	}
 
 	public static void deleteTag(com.liferay.portlet.asset.model.AssetTag tag)
@@ -628,6 +681,7 @@ public class AssetTagLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AssetTagLocalService service) {
 	}
 

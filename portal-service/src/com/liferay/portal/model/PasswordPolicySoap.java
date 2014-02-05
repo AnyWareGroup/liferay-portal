@@ -23,14 +23,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.PasswordPolicyServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.PasswordPolicyServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.PasswordPolicyServiceSoap
  * @generated
  */
 public class PasswordPolicySoap implements Serializable {
 	public static PasswordPolicySoap toSoapModel(PasswordPolicy model) {
 		PasswordPolicySoap soapModel = new PasswordPolicySoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setPasswordPolicyId(model.getPasswordPolicyId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -115,6 +116,14 @@ public class PasswordPolicySoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setPasswordPolicyId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -425,6 +434,7 @@ public class PasswordPolicySoap implements Serializable {
 		_resetTicketMaxAge = resetTicketMaxAge;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _passwordPolicyId;
 	private long _companyId;

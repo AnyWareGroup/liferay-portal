@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -64,6 +65,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	 */
 	public static final String TABLE_NAME = "UserGroup";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "userGroupId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
@@ -76,7 +78,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 			{ "description", Types.VARCHAR },
 			{ "addedByLDAPImport", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table UserGroup (uuid_ VARCHAR(75) null,userGroupId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentUserGroupId LONG,name VARCHAR(75) null,description STRING null,addedByLDAPImport BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table UserGroup (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,userGroupId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,parentUserGroupId LONG,name VARCHAR(75) null,description STRING null,addedByLDAPImport BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table UserGroup";
 	public static final String ORDER_BY_JPQL = " ORDER BY userGroup.name ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY UserGroup.name ASC";
@@ -110,6 +112,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 
 		UserGroup model = new UserGroupImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setUserGroupId(soapModel.getUserGroupId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -158,7 +161,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 			{ "userGroupId", Types.BIGINT },
 			{ "teamId", Types.BIGINT }
 		};
-	public static final String MAPPING_TABLE_USERGROUPS_TEAMS_SQL_CREATE = "create table UserGroups_Teams (userGroupId LONG not null,teamId LONG not null,primary key (userGroupId, teamId))";
+	public static final String MAPPING_TABLE_USERGROUPS_TEAMS_SQL_CREATE = "create table UserGroups_Teams (teamId LONG not null,userGroupId LONG not null,primary key (teamId, userGroupId))";
 	public static final boolean FINDER_CACHE_ENABLED_USERGROUPS_TEAMS = GetterUtil.getBoolean(com.liferay.portal.util.PropsUtil.get(
 				"value.object.finder.cache.enabled.UserGroups_Teams"), true);
 	public static final String MAPPING_TABLE_USERS_USERGROUPS_NAME = "Users_UserGroups";
@@ -166,7 +169,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 			{ "userGroupId", Types.BIGINT },
 			{ "userId", Types.BIGINT }
 		};
-	public static final String MAPPING_TABLE_USERS_USERGROUPS_SQL_CREATE = "create table Users_UserGroups (userGroupId LONG not null,userId LONG not null,primary key (userGroupId, userId))";
+	public static final String MAPPING_TABLE_USERS_USERGROUPS_SQL_CREATE = "create table Users_UserGroups (userId LONG not null,userGroupId LONG not null,primary key (userId, userGroupId))";
 	public static final boolean FINDER_CACHE_ENABLED_USERS_USERGROUPS = GetterUtil.getBoolean(com.liferay.portal.util.PropsUtil.get(
 				"value.object.finder.cache.enabled.Users_UserGroups"), true);
 	public static final long LOCK_EXPIRATION_TIME = GetterUtil.getLong(com.liferay.portal.util.PropsUtil.get(
@@ -209,6 +212,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("userGroupId", getUserGroupId());
 		attributes.put("companyId", getCompanyId());
@@ -221,11 +225,20 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		attributes.put("description", getDescription());
 		attributes.put("addedByLDAPImport", getAddedByLDAPImport());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -293,8 +306,19 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -317,8 +341,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserGroupId() {
 		return _userGroupId;
 	}
@@ -328,8 +352,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_userGroupId = userGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -351,8 +375,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -372,8 +396,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_userUuid = userUuid;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -388,8 +412,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -399,8 +423,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -410,8 +434,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_modifiedDate = modifiedDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getParentUserGroupId() {
 		return _parentUserGroupId;
 	}
@@ -433,8 +457,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return _originalParentUserGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -459,8 +483,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		return GetterUtil.getString(_originalName);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getDescription() {
 		if (_description == null) {
 			return StringPool.BLANK;
@@ -475,8 +499,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 		_description = description;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getAddedByLDAPImport() {
 		return _addedByLDAPImport;
 	}
@@ -489,6 +513,12 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	@Override
 	public void setAddedByLDAPImport(boolean addedByLDAPImport) {
 		_addedByLDAPImport = addedByLDAPImport;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				UserGroup.class.getName()));
 	}
 
 	public long getColumnBitmask() {
@@ -522,6 +552,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	public Object clone() {
 		UserGroupImpl userGroupImpl = new UserGroupImpl();
 
+		userGroupImpl.setMvccVersion(getMvccVersion());
 		userGroupImpl.setUuid(getUuid());
 		userGroupImpl.setUserGroupId(getUserGroupId());
 		userGroupImpl.setCompanyId(getCompanyId());
@@ -580,6 +611,16 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		UserGroupModelImpl userGroupModelImpl = this;
 
@@ -601,6 +642,8 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	@Override
 	public CacheModel<UserGroup> toCacheModel() {
 		UserGroupCacheModel userGroupCacheModel = new UserGroupCacheModel();
+
+		userGroupCacheModel.mvccVersion = getMvccVersion();
 
 		userGroupCacheModel.uuid = getUuid();
 
@@ -667,9 +710,11 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(23);
+		StringBundler sb = new StringBundler(25);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", userGroupId=");
 		sb.append(getUserGroupId());
@@ -698,12 +743,16 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(37);
+		StringBundler sb = new StringBundler(40);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.UserGroup");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -758,6 +807,7 @@ public class UserGroupModelImpl extends BaseModelImpl<UserGroup>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			UserGroup.class
 		};
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _userGroupId;

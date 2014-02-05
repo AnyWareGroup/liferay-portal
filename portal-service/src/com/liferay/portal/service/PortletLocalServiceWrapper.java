@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PortletLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortletLocalService
+ * @author Brian Wing Shun Chan
+ * @see PortletLocalService
  * @generated
  */
+@ProviderType
 public class PortletLocalServiceWrapper implements PortletLocalService,
 	ServiceWrapper<PortletLocalService> {
 	public PortletLocalServiceWrapper(PortletLocalService portletLocalService) {
@@ -161,6 +164,22 @@ public class PortletLocalServiceWrapper implements PortletLocalService,
 		return _portletLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portletLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.Portlet fetchPortlet(long id)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -287,6 +306,7 @@ public class PortletLocalServiceWrapper implements PortletLocalService,
 	/**
 	* @deprecated As of 6.1.0, replaced by {@link #clonePortlet(String)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Portlet clonePortlet(long companyId,
 		java.lang.String portletId) {
@@ -467,6 +487,7 @@ public class PortletLocalServiceWrapper implements PortletLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortletLocalService getWrappedPortletLocalService() {
 		return _portletLocalService;
 	}
@@ -474,6 +495,7 @@ public class PortletLocalServiceWrapper implements PortletLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortletLocalService(
 		PortletLocalService portletLocalService) {
 		_portletLocalService = portletLocalService;

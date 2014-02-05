@@ -16,6 +16,8 @@ package com.liferay.portlet.documentlibrary.model.impl;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -127,30 +129,8 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	}
 
 	@Override
-	public DLFolder getTrashContainer() {
-		DLFolder dlFolder = null;
-
-		try {
-			dlFolder = getParentFolder();
-		}
-		catch (Exception e) {
-			return null;
-		}
-
-		while (dlFolder != null) {
-			if (dlFolder.isInTrash()) {
-				return dlFolder;
-			}
-
-			try {
-				dlFolder = dlFolder.getParentFolder();
-			}
-			catch (Exception e) {
-				return null;
-			}
-		}
-
-		return null;
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(Folder.class);
 	}
 
 	@Override
@@ -191,16 +171,6 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 		}
 
 		return false;
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
 	}
 
 	@Override

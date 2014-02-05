@@ -23,11 +23,23 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface AuthToken {
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #checkCSRFToken(HttpServletRequest, String)}
+	 */
+	@Deprecated
 	public void check(HttpServletRequest request) throws PortalException;
+
+	public void checkCSRFToken(HttpServletRequest request, String origin)
+		throws PrincipalException;
 
 	public String getToken(HttpServletRequest request);
 
 	public String getToken(
 		HttpServletRequest request, long plid, String portletId);
+
+	public boolean isValidPortletInvocationToken(
+		HttpServletRequest request, long plid, String portletId,
+		String strutsAction, String tokenValue);
 
 }

@@ -24,10 +24,9 @@ import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.UserTestUtil;
 import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
+import com.liferay.portlet.social.util.SocialActivityHierarchyEntryThreadLocal;
 import com.liferay.portlet.social.util.SocialActivityTestUtil;
 import com.liferay.portlet.social.util.SocialConfigurationUtil;
-
-import java.io.InputStream;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,33 +38,35 @@ import org.junit.BeforeClass;
 public class BaseSocialActivityTestCase {
 
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUpClass() throws Exception {
 		_userClassNameId = PortalUtil.getClassNameId(User.class.getName());
 
 		Class<?> clazz = SocialActivitySettingLocalServiceTest.class;
 
-		InputStream inputStream = clazz.getResourceAsStream(
-			"dependencies/liferay-social.xml");
-
-		String xml = new String(FileUtil.getBytes(inputStream));
+		String xml = new String(
+			FileUtil.getBytes(clazz, "dependencies/liferay-social.xml"));
 
 		SocialConfigurationUtil.read(
 			clazz.getClassLoader(), new String[] {xml});
 	}
 
 	@Before
-	public void beforeTest() throws Exception {
+	public void setUp() throws Exception {
 		_group = GroupTestUtil.addGroup();
 
 		_actorUser = UserTestUtil.addUser("actor", _group.getGroupId());
 		_creatorUser = UserTestUtil.addUser("creator", _group.getGroupId());
 
-		_assetEntry = SocialActivityTestUtil.addAsset(
+		_assetEntry = SocialActivityTestUtil.addAssetEntry(
 			_creatorUser, _group, null);
+
+		SocialActivityHierarchyEntryThreadLocal.clear();
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		SocialActivityHierarchyEntryThreadLocal.clear();
+
 		if (_actorUser != null) {
 			UserLocalServiceUtil.deleteUser(_actorUser);
 

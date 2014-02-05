@@ -1,12 +1,7 @@
-Bundle-SymbolicName: portal-impl
-Export-Package:\
-	com.liferay.*,\
-	content,\
-	custom-sql,\
-	ehcache,\
-	resource-actions
-Import-Package: *;resolution:=optional
+Bundle-Version: 6.2.0
+Import-Package: *
 Include-Resource: classes
-Private-Package:\
-	com.liferay.portal.module.framework,\
-	*
+Private-Package: com.liferay.*
+
+-baseline:
+-donotcopy: (log4j\.properties|logging\.properties|portal-.*\.properties|system-.*\.properties|\.touch)

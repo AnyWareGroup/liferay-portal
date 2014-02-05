@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.expando.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ExpandoColumn}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoColumn
+ * @author Brian Wing Shun Chan
+ * @see ExpandoColumn
  * @generated
  */
+@ProviderType
 public class ExpandoColumnWrapper implements ExpandoColumn,
 	ModelWrapper<ExpandoColumn> {
 	public ExpandoColumnWrapper(ExpandoColumn expandoColumn) {
@@ -390,9 +394,29 @@ public class ExpandoColumnWrapper implements ExpandoColumn,
 		_expandoColumn.setTypeSettingsProperties(typeSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ExpandoColumnWrapper)) {
+			return false;
+		}
+
+		ExpandoColumnWrapper expandoColumnWrapper = (ExpandoColumnWrapper)obj;
+
+		if (Validator.equals(_expandoColumn, expandoColumnWrapper._expandoColumn)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ExpandoColumn getWrappedExpandoColumn() {
 		return _expandoColumn;
 	}
@@ -400,6 +424,16 @@ public class ExpandoColumnWrapper implements ExpandoColumn,
 	@Override
 	public ExpandoColumn getWrappedModel() {
 		return _expandoColumn;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _expandoColumn.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _expandoColumn.isFinderCacheEnabled();
 	}
 
 	@Override

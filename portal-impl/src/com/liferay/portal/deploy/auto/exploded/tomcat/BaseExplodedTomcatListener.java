@@ -59,12 +59,12 @@ public abstract class BaseExplodedTomcatListener implements AutoDeployListener {
 	}
 
 	@Override
-	public void deploy(AutoDeploymentContext autoDeploymentContext)
+	public int deploy(AutoDeploymentContext autoDeploymentContext)
 		throws AutoDeployException {
 
 		File file = autoDeploymentContext.getFile();
 
-		deploy(file);
+		return deploy(file);
 	}
 
 	public File getDocBaseDir(File file, String checkXmlFile)
@@ -137,17 +137,15 @@ public abstract class BaseExplodedTomcatListener implements AutoDeployListener {
 
 			return true;
 		}
-		else {
-			if (_log.isDebugEnabled()) {
-				_log.debug(
-					file.getPath() + " does not have a matching extension");
-			}
 
-			return false;
+		if (_log.isDebugEnabled()) {
+			_log.debug(file.getPath() + " does not have a matching extension");
 		}
+
+		return false;
 	}
 
-	protected abstract void deploy(File file) throws AutoDeployException;
+	protected abstract int deploy(File file) throws AutoDeployException;
 
 	private static Log _log = LogFactoryUtil.getLog(
 		BaseExplodedTomcatListener.class);

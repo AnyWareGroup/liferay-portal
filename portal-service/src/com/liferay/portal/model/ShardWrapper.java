@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Shard}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Shard
+ * @author Brian Wing Shun Chan
+ * @see Shard
  * @generated
  */
+@ProviderType
 public class ShardWrapper implements Shard, ModelWrapper<Shard> {
 	public ShardWrapper(Shard shard) {
 		_shard = shard;
@@ -45,6 +50,7 @@ public class ShardWrapper implements Shard, ModelWrapper<Shard> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("shardId", getShardId());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
@@ -55,6 +61,12 @@ public class ShardWrapper implements Shard, ModelWrapper<Shard> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long shardId = (Long)attributes.get("shardId");
 
 		if (shardId != null) {
@@ -98,6 +110,26 @@ public class ShardWrapper implements Shard, ModelWrapper<Shard> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_shard.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this shard.
+	*
+	* @return the mvcc version of this shard
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _shard.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this shard.
+	*
+	* @param mvccVersion the mvcc version of this shard
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_shard.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -299,9 +331,29 @@ public class ShardWrapper implements Shard, ModelWrapper<Shard> {
 		_shard.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShardWrapper)) {
+			return false;
+		}
+
+		ShardWrapper shardWrapper = (ShardWrapper)obj;
+
+		if (Validator.equals(_shard, shardWrapper._shard)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Shard getWrappedShard() {
 		return _shard;
 	}
@@ -309,6 +361,16 @@ public class ShardWrapper implements Shard, ModelWrapper<Shard> {
 	@Override
 	public Shard getWrappedModel() {
 		return _shard;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _shard.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _shard.isFinderCacheEnabled();
 	}
 
 	@Override

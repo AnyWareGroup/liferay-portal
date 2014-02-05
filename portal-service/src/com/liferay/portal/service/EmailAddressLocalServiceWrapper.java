@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link EmailAddressLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       EmailAddressLocalService
+ * @author Brian Wing Shun Chan
+ * @see EmailAddressLocalService
  * @generated
  */
+@ProviderType
 public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService,
 	ServiceWrapper<EmailAddressLocalService> {
 	public EmailAddressLocalServiceWrapper(
@@ -164,11 +167,44 @@ public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService
 		return _emailAddressLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _emailAddressLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.EmailAddress fetchEmailAddress(
 		long emailAddressId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _emailAddressLocalService.fetchEmailAddress(emailAddressId);
+	}
+
+	/**
+	* Returns the email address with the matching UUID and company.
+	*
+	* @param uuid the email address's UUID
+	* @param companyId the primary key of the company
+	* @return the matching email address, or <code>null</code> if a matching email address could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.EmailAddress fetchEmailAddressByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _emailAddressLocalService.fetchEmailAddressByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -193,6 +229,24 @@ public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _emailAddressLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the email address with the matching UUID and company.
+	*
+	* @param uuid the email address's UUID
+	* @param companyId the primary key of the company
+	* @return the matching email address
+	* @throws PortalException if a matching email address could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.EmailAddress getEmailAddressByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _emailAddressLocalService.getEmailAddressByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -264,6 +318,7 @@ public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService
 	* @deprecated As of 6.2.0, replaced by {@link #addEmailAddress(long,
 	String, long, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.EmailAddress addEmailAddress(long userId,
 		java.lang.String className, long classPK, java.lang.String address,
@@ -294,14 +349,6 @@ public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService
 	}
 
 	@Override
-	public com.liferay.portal.model.EmailAddress fetchEmailAddressByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _emailAddressLocalService.fetchEmailAddressByUuidAndCompanyId(uuid,
-			companyId);
-	}
-
-	@Override
 	public java.util.List<com.liferay.portal.model.EmailAddress> getEmailAddresses()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _emailAddressLocalService.getEmailAddresses();
@@ -328,6 +375,7 @@ public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public EmailAddressLocalService getWrappedEmailAddressLocalService() {
 		return _emailAddressLocalService;
 	}
@@ -335,6 +383,7 @@ public class EmailAddressLocalServiceWrapper implements EmailAddressLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedEmailAddressLocalService(
 		EmailAddressLocalService emailAddressLocalService) {
 		_emailAddressLocalService = emailAddressLocalService;

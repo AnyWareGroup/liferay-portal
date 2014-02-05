@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.shopping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ShoppingCategory}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ShoppingCategory
+ * @author Brian Wing Shun Chan
+ * @see ShoppingCategory
  * @generated
  */
+@ProviderType
 public class ShoppingCategoryWrapper implements ShoppingCategory,
 	ModelWrapper<ShoppingCategory> {
 	public ShoppingCategoryWrapper(ShoppingCategory shoppingCategory) {
@@ -478,9 +482,30 @@ public class ShoppingCategoryWrapper implements ShoppingCategory,
 		return _shoppingCategory.isRoot();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ShoppingCategoryWrapper)) {
+			return false;
+		}
+
+		ShoppingCategoryWrapper shoppingCategoryWrapper = (ShoppingCategoryWrapper)obj;
+
+		if (Validator.equals(_shoppingCategory,
+					shoppingCategoryWrapper._shoppingCategory)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ShoppingCategory getWrappedShoppingCategory() {
 		return _shoppingCategory;
 	}
@@ -488,6 +513,16 @@ public class ShoppingCategoryWrapper implements ShoppingCategory,
 	@Override
 	public ShoppingCategory getWrappedModel() {
 		return _shoppingCategory;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _shoppingCategory.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _shoppingCategory.isFinderCacheEnabled();
 	}
 
 	@Override

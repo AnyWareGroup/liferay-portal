@@ -17,6 +17,7 @@ package com.liferay.portal.model.impl;
 import com.liferay.portal.kernel.bean.AutoEscapeBeanHandler;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSON;
+import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -66,6 +67,7 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 	 */
 	public static final String TABLE_NAME = "EmailAddress";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "uuid_", Types.VARCHAR },
 			{ "emailAddressId", Types.BIGINT },
 			{ "companyId", Types.BIGINT },
@@ -79,7 +81,7 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 			{ "typeId", Types.INTEGER },
 			{ "primary_", Types.BOOLEAN }
 		};
-	public static final String TABLE_SQL_CREATE = "create table EmailAddress (uuid_ VARCHAR(75) null,emailAddressId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,address VARCHAR(75) null,typeId INTEGER,primary_ BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table EmailAddress (mvccVersion LONG default 0,uuid_ VARCHAR(75) null,emailAddressId LONG not null primary key,companyId LONG,userId LONG,userName VARCHAR(75) null,createDate DATE null,modifiedDate DATE null,classNameId LONG,classPK LONG,address VARCHAR(75) null,typeId INTEGER,primary_ BOOLEAN)";
 	public static final String TABLE_SQL_DROP = "drop table EmailAddress";
 	public static final String ORDER_BY_JPQL = " ORDER BY emailAddress.createDate ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY EmailAddress.createDate ASC";
@@ -116,6 +118,7 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 
 		EmailAddress model = new EmailAddressImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setUuid(soapModel.getUuid());
 		model.setEmailAddressId(soapModel.getEmailAddressId());
 		model.setCompanyId(soapModel.getCompanyId());
@@ -192,6 +195,7 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("emailAddressId", getEmailAddressId());
 		attributes.put("companyId", getCompanyId());
@@ -205,11 +209,20 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		attributes.put("typeId", getTypeId());
 		attributes.put("primary", getPrimary());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -283,8 +296,19 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
+	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -307,8 +331,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getEmailAddressId() {
 		return _emailAddressId;
 	}
@@ -318,8 +342,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		_emailAddressId = emailAddressId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -341,8 +365,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -374,8 +398,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		return _originalUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUserName() {
 		if (_userName == null) {
 			return StringPool.BLANK;
@@ -390,8 +414,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		_userName = userName;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getCreateDate() {
 		return _createDate;
 	}
@@ -403,8 +427,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public Date getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -434,8 +458,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -457,8 +481,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		return _originalClassNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
@@ -480,8 +504,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		return _originalClassPK;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getAddress() {
 		if (_address == null) {
 			return StringPool.BLANK;
@@ -496,8 +520,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		_address = address;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getTypeId() {
 		return _typeId;
 	}
@@ -507,8 +531,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 		_typeId = typeId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getPrimary() {
 		return _primary;
 	}
@@ -533,6 +557,12 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 
 	public boolean getOriginalPrimary() {
 		return _originalPrimary;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(PortalUtil.getClassNameId(
+				EmailAddress.class.getName()), getClassNameId());
 	}
 
 	public long getColumnBitmask() {
@@ -566,6 +596,7 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 	public Object clone() {
 		EmailAddressImpl emailAddressImpl = new EmailAddressImpl();
 
+		emailAddressImpl.setMvccVersion(getMvccVersion());
 		emailAddressImpl.setUuid(getUuid());
 		emailAddressImpl.setEmailAddressId(getEmailAddressId());
 		emailAddressImpl.setCompanyId(getCompanyId());
@@ -625,6 +656,16 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		EmailAddressModelImpl emailAddressModelImpl = this;
 
@@ -656,6 +697,8 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 	@Override
 	public CacheModel<EmailAddress> toCacheModel() {
 		EmailAddressCacheModel emailAddressCacheModel = new EmailAddressCacheModel();
+
+		emailAddressCacheModel.mvccVersion = getMvccVersion();
 
 		emailAddressCacheModel.uuid = getUuid();
 
@@ -718,9 +761,11 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(25);
+		StringBundler sb = new StringBundler(27);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", uuid=");
 		sb.append(getUuid());
 		sb.append(", emailAddressId=");
 		sb.append(getEmailAddressId());
@@ -751,12 +796,16 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(40);
+		StringBundler sb = new StringBundler(43);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.EmailAddress");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>uuid</column-name><column-value><![CDATA[");
 		sb.append(getUuid());
@@ -815,6 +864,7 @@ public class EmailAddressModelImpl extends BaseModelImpl<EmailAddress>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			EmailAddress.class
 		};
+	private long _mvccVersion;
 	private String _uuid;
 	private String _originalUuid;
 	private long _emailAddressId;

@@ -39,11 +39,13 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.QName;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutTypePortlet;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletApp;
 import com.liferay.portal.model.PublicRenderParameter;
 import com.liferay.portal.model.impl.VirtualLayout;
 import com.liferay.portal.security.auth.AuthTokenUtil;
+import com.liferay.portal.security.auth.AuthTokenWhitelistUtil;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.PortletLocalServiceUtil;
@@ -209,7 +211,7 @@ public class PortletURLImpl
 	public String getParameter(String name) {
 		String[] values = _params.get(name);
 
-		if ((values != null) && (values.length > 0)) {
+		if (ArrayUtil.isNotEmpty(values)) {
 			return values[0];
 		}
 		else {
@@ -251,10 +253,11 @@ public class PortletURLImpl
 		Portlet portlet = getPortlet();
 
 		if (portlet != null) {
-			FriendlyURLMapper mapper = portlet.getFriendlyURLMapperInstance();
+			FriendlyURLMapper friendlyURLMapper =
+				portlet.getFriendlyURLMapperInstance();
 
-			if (mapper != null) {
-				portletFriendlyURLPath = mapper.buildPath(this);
+			if (friendlyURLMapper != null) {
+				portletFriendlyURLPath = friendlyURLMapper.buildPath(this);
 
 				if (_log.isDebugEnabled()) {
 					_log.debug(
@@ -409,8 +412,14 @@ public class PortletURLImpl
 			throw new IllegalArgumentException();
 		}
 
+		Portlet portlet = getPortlet();
+
+		if (portlet == null) {
+			return;
+		}
+
 		PublicRenderParameter publicRenderParameter =
-			_portlet.getPublicRenderParameter(name);
+			portlet.getPublicRenderParameter(name);
 
 		if (publicRenderParameter == null) {
 			if (_log.isWarnEnabled()) {
@@ -633,7 +642,10 @@ public class PortletURLImpl
 		throws PortletModeException {
 
 		if (_portletRequest != null) {
-			if (!getPortlet().hasPortletMode(
+			Portlet portlet = getPortlet();
+
+			if ((portlet != null) &&
+				!portlet.hasPortletMode(
 					_portletRequest.getResponseContentType(), portletMode)) {
 
 				throw new PortletModeException(
@@ -753,10 +765,17 @@ public class PortletURLImpl
 			return;
 		}
 
-		Set<String> authTokenIgnorePortlets =
-			PortalUtil.getAuthTokenIgnorePortlets();
+		Portlet portlet = getPortlet();
 
-		if (authTokenIgnorePortlets.contains(_portletId)) {
+		if (portlet == null) {
+			return;
+		}
+
+		String strutsAction = getParameter("struts_action");
+
+		if (AuthTokenWhitelistUtil.isPortletCSRFWhitelisted(
+				portlet.getCompanyId(), _portletId, strutsAction)) {
+
 			return;
 		}
 
@@ -771,49 +790,47 @@ public class PortletURLImpl
 			return;
 		}
 
-		HttpServletRequest request = PortalUtil.getOriginalServletRequest(
-			_request);
+		Portlet portlet = getPortlet();
 
-		String ppauth = ParamUtil.getString(request, "p_p_auth");
+		if (portlet == null) {
+			return;
+		}
 
-		String actualPortletAuthenticationToken = AuthTokenUtil.getToken(
-			_request, _plid, _portletId);
+		if (!portlet.isAddDefaultResource()) {
+			return;
+		}
 
-		if (Validator.isNotNull(ppauth) &&
-			ppauth.equals(actualPortletAuthenticationToken)) {
+		String strutsAction = getParameter("struts_action");
 
-			sb.append("p_p_auth");
-			sb.append(StringPool.EQUAL);
-			sb.append(processValue(key, ppauth));
-			sb.append(StringPool.AMPERSAND);
+		if (AuthTokenWhitelistUtil.isPortletInvocationWhitelisted(
+				portlet.getCompanyId(), _portletId, strutsAction)) {
 
 			return;
 		}
 
-		Portlet portlet = (Portlet)_request.getAttribute(
-			WebKeys.RENDER_PORTLET);
+		try {
+			LayoutTypePortlet targetLayoutTypePortlet =
+				(LayoutTypePortlet)getLayout().getLayoutType();
 
-		if (portlet != null) {
-			String portletId = portlet.getPortletId();
-
-			if (portletId.equals(_portletId) ||
-				portletId.equals(PortletKeys.CONTROL_PANEL_MENU) ||
-				!_portlet.isAddDefaultResource()) {
-
+			if (targetLayoutTypePortlet.hasPortletId(_portletId)) {
 				return;
 			}
 		}
+		catch (Exception e) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(e.getMessage(), e);
+			}
+		}
 
-		Set<String> portletAddDefaultResourceCheckWhiteList =
-			PortalUtil.getPortletAddDefaultResourceCheckWhitelist();
-
-		if (portletAddDefaultResourceCheckWhiteList.contains(_portletId)) {
+		if (_portletId.equals(PortletKeys.CONTROL_PANEL_MENU)) {
 			return;
 		}
 
 		sb.append("p_p_auth");
 		sb.append(StringPool.EQUAL);
-		sb.append(processValue(key, actualPortletAuthenticationToken));
+		sb.append(
+			processValue(
+				key, AuthTokenUtil.getToken(_request, _plid, _portletId)));
 		sb.append(StringPool.AMPERSAND);
 	}
 
@@ -849,7 +866,8 @@ public class PortletURLImpl
 
 					if (_secure) {
 						_layoutFriendlyURL = HttpUtil.protocolize(
-							_layoutFriendlyURL, true);
+							_layoutFriendlyURL,
+							PropsValues.WEB_SERVER_HTTPS_PORT, true);
 					}
 				}
 			}
@@ -1087,7 +1105,9 @@ public class PortletURLImpl
 		}
 
 		if (_encrypt) {
-			sb.append(StringPool.AMPERSAND + WebKeys.ENCRYPT + "=1");
+			sb.append(StringPool.AMPERSAND);
+			sb.append(WebKeys.ENCRYPT);
+			sb.append("=1");
 		}
 
 		if (PropsValues.PORTLET_URL_ANCHOR_ENABLE) {
@@ -1375,13 +1395,12 @@ public class PortletURLImpl
 		if (key == null) {
 			return HttpUtil.encodeURL(value);
 		}
-		else {
-			try {
-				return HttpUtil.encodeURL(Encryptor.encrypt(key, value));
-			}
-			catch (EncryptorException ee) {
-				return value;
-			}
+
+		try {
+			return HttpUtil.encodeURL(Encryptor.encrypt(key, value));
+		}
+		catch (EncryptorException ee) {
+			return value;
 		}
 	}
 

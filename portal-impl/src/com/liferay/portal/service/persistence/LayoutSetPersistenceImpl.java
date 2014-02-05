@@ -341,6 +341,10 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutSet> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -856,6 +860,10 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 		throws SystemException {
 		int count = countByLayoutSetPrototypeUuid(layoutSetPrototypeUuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<LayoutSet> list = findByLayoutSetPrototypeUuid(layoutSetPrototypeUuid,
 				count - 1, count, orderByComparator);
 
@@ -1350,6 +1358,10 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 	private static final String _FINDER_COLUMN_G_P_GROUPID_2 = "layoutSet.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_P_PRIVATELAYOUT_2 = "layoutSet.privateLayout = ?";
 
+	public LayoutSetPersistenceImpl() {
+		setModelClass(LayoutSet.class);
+	}
+
 	/**
 	 * Caches the layout set in the entity cache if it is enabled.
 	 *
@@ -1667,10 +1679,12 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 		}
 
 		EntityCacheUtil.putResult(LayoutSetModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutSetImpl.class, layoutSet.getPrimaryKey(), layoutSet);
+			LayoutSetImpl.class, layoutSet.getPrimaryKey(), layoutSet, false);
 
 		clearUniqueFindersCache(layoutSet);
 		cacheUniqueFindersCache(layoutSet);
+
+		layoutSet.resetOriginalValues();
 
 		return layoutSet;
 	}
@@ -1685,13 +1699,13 @@ public class LayoutSetPersistenceImpl extends BasePersistenceImpl<LayoutSet>
 		layoutSetImpl.setNew(layoutSet.isNew());
 		layoutSetImpl.setPrimaryKey(layoutSet.getPrimaryKey());
 
+		layoutSetImpl.setMvccVersion(layoutSet.getMvccVersion());
 		layoutSetImpl.setLayoutSetId(layoutSet.getLayoutSetId());
 		layoutSetImpl.setGroupId(layoutSet.getGroupId());
 		layoutSetImpl.setCompanyId(layoutSet.getCompanyId());
 		layoutSetImpl.setCreateDate(layoutSet.getCreateDate());
 		layoutSetImpl.setModifiedDate(layoutSet.getModifiedDate());
 		layoutSetImpl.setPrivateLayout(layoutSet.isPrivateLayout());
-		layoutSetImpl.setLogo(layoutSet.isLogo());
 		layoutSetImpl.setLogoId(layoutSet.getLogoId());
 		layoutSetImpl.setThemeId(layoutSet.getThemeId());
 		layoutSetImpl.setColorSchemeId(layoutSet.getColorSchemeId());

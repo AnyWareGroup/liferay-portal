@@ -128,6 +128,9 @@ public class ExpandoTableModelImpl extends BaseModelImpl<ExpandoTable>
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("name", getName());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -158,8 +161,8 @@ public class ExpandoTableModelImpl extends BaseModelImpl<ExpandoTable>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getTableId() {
 		return _tableId;
 	}
@@ -169,8 +172,8 @@ public class ExpandoTableModelImpl extends BaseModelImpl<ExpandoTable>
 		_tableId = tableId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -212,8 +215,8 @@ public class ExpandoTableModelImpl extends BaseModelImpl<ExpandoTable>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -235,8 +238,8 @@ public class ExpandoTableModelImpl extends BaseModelImpl<ExpandoTable>
 		return _originalClassNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getName() {
 		if (_name == null) {
 			return StringPool.BLANK;
@@ -329,6 +332,16 @@ public class ExpandoTableModelImpl extends BaseModelImpl<ExpandoTable>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
@@ -41,6 +43,7 @@ import java.util.Date;
  * @see com.liferay.portlet.documentlibrary.model.impl.DLFileVersionModelImpl
  * @generated
  */
+@ProviderType
 public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	StagedGroupedModel, WorkflowedModel {
 	/*
@@ -249,6 +252,21 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 * @param fileEntryId the file entry ID of this document library file version
 	 */
 	public void setFileEntryId(long fileEntryId);
+
+	/**
+	 * Returns the tree path of this document library file version.
+	 *
+	 * @return the tree path of this document library file version
+	 */
+	@AutoEscape
+	public String getTreePath();
+
+	/**
+	 * Sets the tree path of this document library file version.
+	 *
+	 * @param treePath the tree path of this document library file version
+	 */
+	public void setTreePath(String treePath);
 
 	/**
 	 * Returns the extension of this document library file version.
@@ -483,6 +501,7 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved();
 
@@ -533,14 +552,6 @@ public interface DLFileVersionModel extends BaseModel<DLFileVersion>,
 	 */
 	@Override
 	public boolean isIncomplete();
-
-	/**
-	 * Returns <code>true</code> if this document library file version is in the Recycle Bin.
-	 *
-	 * @return <code>true</code> if this document library file version is in the Recycle Bin; <code>false</code> otherwise
-	 */
-	@Override
-	public boolean isInTrash();
 
 	/**
 	 * Returns <code>true</code> if this document library file version is pending.

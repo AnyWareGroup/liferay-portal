@@ -14,6 +14,8 @@
 
 package com.liferay.portal.util;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -28,6 +30,8 @@ import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutFriendlyURLComposite;
+import com.liferay.portal.model.LayoutQueryStringComposite;
 import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.ResourcePermission;
@@ -78,6 +82,7 @@ import javax.servlet.jsp.PageContext;
  * @author Eduardo Lundgren
  * @author Juan Fernández
  */
+@ProviderType
 public class PortalUtil {
 
 	/**
@@ -174,6 +179,10 @@ public class PortalUtil {
 		return getPortal().addPreservedParameters(themeDisplay, url);
 	}
 
+	public static void addUserLocaleOptionsMessage(HttpServletRequest request) {
+		getPortal().addUserLocaleOptionsMessage(request);
+	}
+
 	public static void clearRequestParameters(RenderRequest renderRequest) {
 		getPortal().clearRequestParameters(renderRequest);
 	}
@@ -194,6 +203,22 @@ public class PortalUtil {
 		return getPortal().generateRandomKey(request, input);
 	}
 
+	public static String getAbsoluteURL(
+		HttpServletRequest request, String url) {
+
+		return getPortal().getAbsoluteURL(request, url);
+	}
+
+	public static LayoutQueryStringComposite
+		getActualLayoutQueryStringComposite(
+			long groupId, boolean privateLayout, String friendlyURL,
+			Map<String, String[]> params, Map<String, Object> requestContext)
+		throws PortalException, SystemException {
+
+		return getPortal().getActualLayoutQueryStringComposite(
+			groupId, privateLayout, friendlyURL, params, requestContext);
+	}
+
 	public static String getActualURL(
 			long groupId, boolean privateLayout, String mainPath,
 			String friendlyURL, Map<String, String[]> params,
@@ -205,22 +230,56 @@ public class PortalUtil {
 			requestContext);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.kernel.language.LanguageUtil#getAvailableLocales}
+	 */
+	@Deprecated
 	public static Locale[] getAlternateLocales(HttpServletRequest request)
 		throws PortalException, SystemException {
 
 		return getPortal().getAlternateLocales(request);
 	}
 
+	/**
+	 * Returns the alternate URL for the requested canonical URL in the given
+	 * locale. The alternate URL lets search engines know that an equivalent
+	 * page is available for the given locale. For more information, see <a
+	 * href="https://support.google.com/webmasters/answer/189077?hl=en">https://support.google.com/webmasters/answer/189077?hl=en</a>.
+	 *
+	 * @param  canonicalURL the canonical URL being requested. For more
+	 *         information, see {@link #getCanonicalURL}.
+	 * @param  themeDisplay the theme display
+	 * @param  locale the locale of the alternate URL being generated
+	 * @param  layout the page being requested
+	 * @return the alternate URL for the requested canonical URL in the given
+	 *         locale
+	 * @throws PortalException if a portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
 	public static String getAlternateURL(
-		String canonicalURL, ThemeDisplay themeDisplay, Locale locale) {
+			String canonicalURL, ThemeDisplay themeDisplay, Locale locale,
+			Layout layout)
+		throws PortalException, SystemException {
 
-		return getPortal().getAlternateURL(canonicalURL, themeDisplay, locale);
+		return getPortal().getAlternateURL(
+			canonicalURL, themeDisplay, locale, layout);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelistActions}
+	 */
+	@Deprecated
 	public static Set<String> getAuthTokenIgnoreActions() {
 		return getPortal().getAuthTokenIgnoreActions();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletCSRFWhitelist}
+	 */
+	@Deprecated
 	public static Set<String> getAuthTokenIgnorePortlets() {
 		return getPortal().getAuthTokenIgnorePortlets();
 	}
@@ -251,6 +310,28 @@ public class PortalUtil {
 		return getPortal().getBasicAuthUserId(request, companyId);
 	}
 
+	/**
+	 * Returns the canonical URL for the requested complete URL. A canonical URL
+	 * for the page is the preferred version of a set of pages with similar or
+	 * identical content.
+	 *
+	 * <p>
+	 * The canonical URL is used to inform search engines that several URLs
+	 * point to the same page using the tag <code>&#60;link rel="canonical"
+	 * /></code>. It is also used to generate the URLs for site maps, the URLs
+	 * that social bookmarks publish (Twitter, Facebook links, etc.), and the
+	 * URLs in sent email. For more information, see <a
+	 * href="https://support.google.com/webmasters/answer/139394?hl=en">https://support.google.com/webmasters/answer/139394?hl=en</a>.
+	 * </p>
+	 *
+	 * @param  completeURL the original URL being requested
+	 * @param  themeDisplay the theme display
+	 * @param  layout the page being requested
+	 * @return the canonical URL for the requested complete URL
+	 * @throws PortalException if a friendly URL could not be retrieved or if a
+	 *         portal exception occurred
+	 * @throws SystemException if a system exception occurred
+	 */
 	public static String getCanonicalURL(
 			String completeURL, ThemeDisplay themeDisplay, Layout layout)
 		throws PortalException, SystemException {
@@ -270,6 +351,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getCDNHost(boolean)}
 	 */
+	@Deprecated
 	public static String getCDNHost() {
 		return getPortal().getCDNHost();
 	}
@@ -338,6 +420,13 @@ public class PortalUtil {
 
 	public static String getComputerName() {
 		return getPortal().getComputerName();
+	}
+
+	public static Map<String, List<Portlet>> getControlPanelCategoriesMap(
+			HttpServletRequest request)
+		throws SystemException {
+
+		return getPortal().getControlPanelCategoriesMap(request);
 	}
 
 	public static String getControlPanelCategory(
@@ -463,6 +552,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link DBFactoryUtil#getDB()}
 	 */
+	@Deprecated
 	public static DB getDB() {
 		return DBFactoryUtil.getDB();
 	}
@@ -537,6 +627,12 @@ public class PortalUtil {
 			portlet, facebookCanvasPageURL, themeDisplay);
 	}
 
+	public static Portlet getFirstMyAccountPortlet(ThemeDisplay themeDisplay)
+		throws SystemException {
+
+		return getPortal().getFirstMyAccountPortlet(themeDisplay);
+	}
+
 	public static String getFirstPageLayoutTypes(PageContext pageContext) {
 		return getPortal().getFirstPageLayoutTypes(pageContext);
 	}
@@ -580,6 +676,10 @@ public class PortalUtil {
 
 		return getPortal().getGroupFriendlyURL(
 			group, privateLayoutSet, themeDisplay, locale);
+	}
+
+	public static int[] getGroupFriendlyURLIndex(String requestURI) {
+		return getPortal().getGroupFriendlyURLIndex(requestURI);
 	}
 
 	public static String[] getGroupPermissions(HttpServletRequest request) {
@@ -648,6 +748,13 @@ public class PortalUtil {
 		return getPortal().getHttpServletResponse(portletResponse);
 	}
 
+	public static String getI18nPathLanguageId(
+		Locale locale, String defaultI18nPathLanguageId) {
+
+		return getPortal().getI18nPathLanguageId(
+			locale, defaultI18nPathLanguageId);
+	}
+
 	public static String getJournalArticleActualURL(
 			long groupId, boolean privateLayout, String mainPath,
 			String friendlyURL, Map<String, String[]> params,
@@ -657,6 +764,14 @@ public class PortalUtil {
 		return getPortal().getJournalArticleActualURL(
 			groupId, privateLayout, mainPath, friendlyURL, params,
 			requestContext);
+	}
+
+	public static Layout getJournalArticleLayout(
+			long groupId, boolean privateLayout, String friendlyURL)
+		throws PortalException, SystemException {
+
+		return getPortal().getJournalArticleLayout(
+			groupId, privateLayout, friendlyURL);
 	}
 
 	public static String getJsSafePortletId(String portletId) {
@@ -711,6 +826,15 @@ public class PortalUtil {
 		throws PortalException, SystemException {
 
 		return getPortal().getLayoutFriendlyURL(layout, themeDisplay, locale);
+	}
+
+	public static LayoutFriendlyURLComposite getLayoutFriendlyURLComposite(
+			long groupId, boolean privateLayout, String friendlyURL,
+			Map<String, String[]> params, Map<String, Object> requestContext)
+		throws PortalException, SystemException {
+
+		return getPortal().getLayoutFriendlyURLComposite(
+			groupId, privateLayout, friendlyURL, params, requestContext);
 	}
 
 	public static String getLayoutFullURL(
@@ -770,6 +894,13 @@ public class PortalUtil {
 		return getPortal().getLayoutURL(layout, themeDisplay, doAsUser);
 	}
 
+	public static String getLayoutURL(
+			Layout layout, ThemeDisplay themeDisplay, Locale locale)
+		throws PortalException, SystemException {
+
+		return getPortal().getLayoutURL(layout, themeDisplay, locale);
+	}
+
 	public static String getLayoutURL(ThemeDisplay themeDisplay)
 		throws PortalException, SystemException {
 
@@ -807,8 +938,17 @@ public class PortalUtil {
 		return getPortal().getLocale(request, response, initialize);
 	}
 
-	public static Locale getLocale(RenderRequest renderRequest) {
-		return getPortal().getLocale(renderRequest);
+	public static Locale getLocale(PortletRequest portletRequest) {
+		return getPortal().getLocale(portletRequest);
+	}
+
+	public static String getLocalizedFriendlyURL(
+			HttpServletRequest request, Layout layout, Locale locale,
+			Locale originalLocale)
+		throws Exception {
+
+		return getPortal().getLocalizedFriendlyURL(
+			request, layout, locale, originalLocale);
 	}
 
 	public static String getMailId(
@@ -821,6 +961,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.1.0, replaced by {@link
 	 *             #getBaseModel(ResourcePermission)}
 	 */
+	@Deprecated
 	public static BaseModel<?> getModel(ResourcePermission resourcePermission)
 		throws PortalException, SystemException {
 
@@ -831,6 +972,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.1.0, replaced by {@link #getBaseModel(String,
 	 *             String)}
 	 */
+	@Deprecated
 	public static BaseModel<?> getModel(String modelName, String primKey)
 		throws PortalException, SystemException {
 
@@ -858,8 +1000,9 @@ public class PortalUtil {
 	}
 
 	/**
-	 * @deprecated As of 6.2 renamed to {@link #getSiteGroupId(long)}
+	 * @deprecated As of 6.2.0 renamed to {@link #getSiteGroupId(long)}
 	 */
+	@Deprecated
 	public static long getParentGroupId(long scopeGroupId)
 		throws PortalException, SystemException {
 
@@ -868,6 +1011,18 @@ public class PortalUtil {
 
 	public static String getPathContext() {
 		return getPortal().getPathContext();
+	}
+
+	public static String getPathContext(HttpServletRequest request) {
+		return getPortal().getPathContext(request);
+	}
+
+	public static String getPathContext(PortletRequest portletRequest) {
+		return getPortal().getPathContext(portletRequest);
+	}
+
+	public static String getPathContext(String contextPath) {
+		return getPortal().getPathContext(contextPath);
 	}
 
 	public static String getPathFriendlyURLPrivateGroup() {
@@ -931,6 +1086,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getPortalPort(boolean)}
 	 */
+	@Deprecated
 	public static int getPortalPort() {
 		return getPortal().getPortalPort();
 	}
@@ -985,10 +1141,20 @@ public class PortalUtil {
 		return getPortal().getPortalWebDir();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelist}
+	 */
+	@Deprecated
 	public static Set<String> getPortletAddDefaultResourceCheckWhitelist() {
 		return getPortal().getPortletAddDefaultResourceCheckWhitelist();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#getPortletInvocationWhitelistActions}
+	 */
+	@Deprecated
 	public static Set<String>
 		getPortletAddDefaultResourceCheckWhitelistActions() {
 
@@ -999,6 +1165,7 @@ public class PortalUtil {
 	 * @deprecated As of 6.1.0, replaced by {@link
 	 *             #getPortletBreadcrumbs(HttpServletRequest)}
 	 */
+	@Deprecated
 	public static List<BreadcrumbEntry> getPortletBreadcrumbList(
 		HttpServletRequest request) {
 
@@ -1223,6 +1390,32 @@ public class PortalUtil {
 		return getPortal().getSelectedUser(portletRequest, checkPermission);
 	}
 
+	public static String getServletContextName() {
+		return getPortal().getServletContextName();
+	}
+
+	public static Map<String, List<Portlet>> getSiteAdministrationCategoriesMap(
+			HttpServletRequest request)
+		throws SystemException {
+
+		return getPortal().getSiteAdministrationCategoriesMap(request);
+	}
+
+	public static PortletURL getSiteAdministrationURL(
+			HttpServletRequest request, ThemeDisplay themeDisplay)
+		throws SystemException {
+
+		return getPortal().getSiteAdministrationURL(request, themeDisplay);
+	}
+
+	public static PortletURL getSiteAdministrationURL(
+		HttpServletRequest request, ThemeDisplay themeDisplay,
+		String portletName) {
+
+		return getPortal().getSiteAdministrationURL(
+			request, themeDisplay, portletName);
+	}
+
 	public static PortletURL getSiteAdministrationURL(
 			PortletResponse portletResponse, ThemeDisplay themeDisplay)
 		throws SystemException {
@@ -1249,6 +1442,12 @@ public class PortalUtil {
 		throws PortalException, SystemException {
 
 		return getPortal().getSiteAndCompanyGroupIds(themeDisplay);
+	}
+
+	public static Locale getSiteDefaultLocale(long groupId)
+		throws PortalException, SystemException {
+
+		return getPortal().getSiteDefaultLocale(groupId);
 	}
 
 	public static long getSiteGroupId(long scopeGroupId)
@@ -1420,6 +1619,10 @@ public class PortalUtil {
 		return getPortal().getValidUserId(companyId, userId);
 	}
 
+	public static String getVirtualHostname(LayoutSet layoutSet) {
+		return getPortal().getVirtualHostname(layoutSet);
+	}
+
 	public static String getVirtualLayoutActualURL(
 			long groupId, boolean privateLayout, String mainPath,
 			String friendlyURL, Map<String, String[]> params,
@@ -1429,6 +1632,16 @@ public class PortalUtil {
 		return getPortal().getVirtualLayoutActualURL(
 			groupId, privateLayout, mainPath, friendlyURL, params,
 			requestContext);
+	}
+
+	public static LayoutFriendlyURLComposite
+		getVirtualLayoutFriendlyURLComposite(
+			boolean privateLayout, String friendlyURL,
+			Map<String, String[]> params, Map<String, Object> requestContext)
+		throws PortalException, SystemException {
+
+		return getPortal().getVirtualLayoutFriendlyURLComposite(
+			privateLayout, friendlyURL, params, requestContext);
 	}
 
 	public static String getWidgetURL(
@@ -1455,6 +1668,10 @@ public class PortalUtil {
 			portletConfig, actionRequest, actionResponse);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 with no direct replacement
+	 */
+	@Deprecated
 	public static boolean isAllowAddPortletDefaultResource(
 			HttpServletRequest request, Portlet portlet)
 		throws PortalException, SystemException {
@@ -1474,8 +1691,9 @@ public class PortalUtil {
 	}
 
 	/**
-	 * @deprecated As of 6.1, renamed to {@link #isGroupAdmin(User, long)}
+	 * @deprecated As of 6.1.0, renamed to {@link #isGroupAdmin(User, long)}
 	 */
+	@Deprecated
 	public static boolean isCommunityAdmin(User user, long groupId)
 		throws Exception {
 
@@ -1483,8 +1701,9 @@ public class PortalUtil {
 	}
 
 	/**
-	 * @deprecated As of 6.1, renamed to {@link #isGroupOwner(User, long)}
+	 * @deprecated As of 6.1.0, renamed to {@link #isGroupOwner(User, long)}
 	 */
+	@Deprecated
 	public static boolean isCommunityOwner(User user, long groupId)
 		throws Exception {
 
@@ -1586,6 +1805,12 @@ public class PortalUtil {
 		return getPortal().isLayoutSitemapable(layout);
 	}
 
+	public static boolean isLoginRedirectRequired(HttpServletRequest request)
+		throws SystemException {
+
+		return getPortal().isLoginRedirectRequired(request);
+	}
+
 	public static boolean isMethodGet(PortletRequest portletRequest) {
 		return getPortal().isMethodGet(portletRequest);
 	}
@@ -1604,6 +1829,10 @@ public class PortalUtil {
 
 	public static boolean isReservedParameter(String name) {
 		return getPortal().isReservedParameter(name);
+	}
+
+	public static boolean isRightToLeft(HttpServletRequest request) {
+		return getPortal().isRightToLeft(request);
 	}
 
 	public static boolean isRSSFeedsEnabled() {
@@ -1634,10 +1863,20 @@ public class PortalUtil {
 		getPortal().resetCDNHosts();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelist}
+	 */
+	@Deprecated
 	public static Set<String> resetPortletAddDefaultResourceCheckWhitelist() {
 		return getPortal().resetPortletAddDefaultResourceCheckWhitelist();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 replaced by {@link
+	 *             com.liferay.portal.security.auth.AuthTokenWhitelistUtil#resetPortletInvocationWhitelistActions}
+	 */
+	@Deprecated
 	public static Set<String>
 		resetPortletAddDefaultResourceCheckWhitelistActions() {
 
@@ -1648,6 +1887,7 @@ public class PortalUtil {
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link DB#runSQL(String)}
 	 */
+	@Deprecated
 	public static void runSQL(String sql) throws IOException, SQLException {
 		DBFactoryUtil.getDB().runSQL(sql);
 	}
@@ -1757,6 +1997,15 @@ public class PortalUtil {
 
 	public static String transformSQL(String sql) {
 		return getPortal().transformSQL(sql);
+	}
+
+	public static void updateImageId(
+			BaseModel<?> baseModel, boolean image, byte[] bytes,
+			String fieldName, long maxSize, int maxHeight, int maxWidth)
+		throws PortalException, SystemException {
+
+		getPortal().updateImageId(
+			baseModel, image, bytes, fieldName, maxSize, maxHeight, maxWidth);
 	}
 
 	public static PortletMode updatePortletMode(

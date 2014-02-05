@@ -45,7 +45,7 @@ BlogsEntry entry = (BlogsEntry)request.getAttribute(WebKeys.BLOGS_ENTRY);
 
 long entryId = BeanParamUtil.getLong(entry, request, "entryId");
 
-pageDisplayStyle = BlogsUtil.DISPLAY_STYLE_FULL_CONTENT;
+displayStyle = BlogsUtil.DISPLAY_STYLE_FULL_CONTENT;
 
 AssetEntry assetEntry = AssetEntryLocalServiceUtil.getEntry(BlogsEntry.class.getName(), entry.getEntryId());
 
@@ -122,7 +122,7 @@ request.setAttribute("view_entry_content.jsp-assetEntry", assetEntry);
 <c:if test="<%= enableComments %>">
 	<liferay-ui:panel-container extended="<%= false %>" id="blogsCommentsPanelContainer" persistState="<%= true %>">
 		<liferay-ui:panel collapsible="<%= true %>" extended="<%= true %>" id="blogsCommentsPanel" persistState="<%= true %>" title="comments">
-			<c:if test="<%= PropsValues.BLOGS_TRACKBACK_ENABLED && entry.isAllowTrackbacks() %>">
+			<c:if test="<%= PropsValues.BLOGS_TRACKBACK_ENABLED && entry.isAllowTrackbacks() && !portletId.equals(PortletKeys.BLOGS_ADMIN) %>">
 				<liferay-ui:message key="trackback-url" />:
 
 				<liferay-ui:input-resource
@@ -143,7 +143,6 @@ request.setAttribute("view_entry_content.jsp-assetEntry", assetEntry);
 				formName="fm2"
 				ratingsEnabled="<%= enableCommentRatings %>"
 				redirect="<%= currentURL %>"
-				subject="<%= entry.getTitle() %>"
 				userId="<%= entry.getUserId() %>"
 			/>
 		</liferay-ui:panel>

@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.softwarecatalog.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SCProductVersion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SCProductVersion
+ * @author Brian Wing Shun Chan
+ * @see SCProductVersion
  * @generated
  */
+@ProviderType
 public class SCProductVersionWrapper implements SCProductVersion,
 	ModelWrapper<SCProductVersion> {
 	public SCProductVersionWrapper(SCProductVersion scProductVersion) {
@@ -548,9 +552,30 @@ public class SCProductVersionWrapper implements SCProductVersion,
 		return _scProductVersion.getProductEntry();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SCProductVersionWrapper)) {
+			return false;
+		}
+
+		SCProductVersionWrapper scProductVersionWrapper = (SCProductVersionWrapper)obj;
+
+		if (Validator.equals(_scProductVersion,
+					scProductVersionWrapper._scProductVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SCProductVersion getWrappedSCProductVersion() {
 		return _scProductVersion;
 	}
@@ -558,6 +583,16 @@ public class SCProductVersionWrapper implements SCProductVersion,
 	@Override
 	public SCProductVersion getWrappedModel() {
 		return _scProductVersion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _scProductVersion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _scProductVersion.isFinderCacheEnabled();
 	}
 
 	@Override

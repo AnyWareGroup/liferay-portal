@@ -358,6 +358,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<WikiNode> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1176,6 +1180,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<WikiNode> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1703,6 +1711,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<WikiNode> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1964,7 +1976,7 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, WikiNodeImpl.class);
@@ -2138,7 +2150,7 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 				WikiNode.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2267,7 +2279,7 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2550,6 +2562,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 	public WikiNode fetchByCompanyId_Last(long companyId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<WikiNode> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
@@ -3320,6 +3336,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_S(groupId, status);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<WikiNode> list = findByG_S(groupId, status, count - 1, count,
 				orderByComparator);
 
@@ -3591,7 +3611,7 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, WikiNodeImpl.class);
@@ -3771,7 +3791,7 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 				WikiNode.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -3912,7 +3932,7 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -4222,6 +4242,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_S(companyId, status);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<WikiNode> list = findByC_S(companyId, status, count - 1, count,
 				orderByComparator);
 
@@ -4459,6 +4483,10 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 
 	private static final String _FINDER_COLUMN_C_S_COMPANYID_2 = "wikiNode.companyId = ? AND ";
 	private static final String _FINDER_COLUMN_C_S_STATUS_2 = "wikiNode.status = ?";
+
+	public WikiNodePersistenceImpl() {
+		setModelClass(WikiNode.class);
+	}
 
 	/**
 	 * Caches the wiki node in the entity cache if it is enabled.
@@ -4897,10 +4925,12 @@ public class WikiNodePersistenceImpl extends BasePersistenceImpl<WikiNode>
 		}
 
 		EntityCacheUtil.putResult(WikiNodeModelImpl.ENTITY_CACHE_ENABLED,
-			WikiNodeImpl.class, wikiNode.getPrimaryKey(), wikiNode);
+			WikiNodeImpl.class, wikiNode.getPrimaryKey(), wikiNode, false);
 
 		clearUniqueFindersCache(wikiNode);
 		cacheUniqueFindersCache(wikiNode);
+
+		wikiNode.resetOriginalValues();
 
 		return wikiNode;
 	}

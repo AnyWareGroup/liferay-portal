@@ -19,14 +19,10 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.IPDetector;
-import com.liferay.portal.kernel.util.OSDetector;
+import com.liferay.portal.kernel.util.InetAddressUtil;
 import com.liferay.portal.kernel.util.SocketUtil;
-import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.util.PropsValues;
-
-import java.io.IOException;
 
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -50,28 +46,14 @@ public abstract class ClusterBase {
 		}
 
 		if (!_initialized) {
-			if (OSDetector.isUnix() && IPDetector.isSupportsV6() &&
-				!IPDetector.isPrefersV4() && _log.isWarnEnabled()) {
-
-				StringBundler sb = new StringBundler(4);
-
-				sb.append(
-					"You are on an Unix server with IPv6 enabled. JGroups ");
-				sb.append("may not work with IPv6. If you see a multicast ");
-				sb.append("error, try adding java.net.preferIPv4Stack=true ");
-				sb.append("as a JVM startup parameter.");
-
-				_log.warn(sb.toString());
-			}
-
 			initSystemProperties();
 
 			try {
 				initBindAddress();
 			}
-			catch (IOException ioe) {
+			catch (Exception e) {
 				if (_log.isWarnEnabled()) {
-					_log.warn("Failed to initialize outgoing IP address", ioe);
+					_log.warn("Failed to initialize outgoing IP address", e);
 				}
 			}
 
@@ -136,10 +118,12 @@ public abstract class ClusterBase {
 		return addresses;
 	}
 
-	protected void initBindAddress() throws IOException {
+	protected void initBindAddress() throws Exception {
 		String autodetectAddress = PropsValues.CLUSTER_LINK_AUTODETECT_ADDRESS;
 
 		if (Validator.isNull(autodetectAddress)) {
+			bindInetAddress = InetAddressUtil.getLocalInetAddress();
+
 			return;
 		}
 
@@ -203,7 +187,7 @@ public abstract class ClusterBase {
 		}
 	}
 
-	protected InetAddress bindInetAddress;
+	protected static InetAddress bindInetAddress;
 
 	private static Log _log = LogFactoryUtil.getLog(ClusterBase.class);
 

@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -41,9 +42,11 @@ public class MoveMethodImpl implements Method {
 		String destination = WebDAVUtil.getDestination(
 			request, storage.getRootPath());
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = null;
 
 		if (_log.isInfoEnabled()) {
+			sb = new StringBundler(4);
+
 			sb.append("Destination is ");
 			sb.append(destination);
 		}

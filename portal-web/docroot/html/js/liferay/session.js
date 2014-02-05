@@ -469,7 +469,7 @@ AUI.add(
 								{
 									closeText: instance._extendText,
 									content: instance._warningText,
-									noticeClass: 'hide',
+									noticeClass: 'popup-alert-notice',
 									onClose: function() {
 										instance._host.extend();
 									},
@@ -513,6 +513,8 @@ AUI.add(
 						banner.html(instance._expiredText);
 
 						banner.replaceClass('popup-alert-notice', 'popup-alert-warning');
+
+						banner.addClass('alert-error');
 
 						banner.show();
 
@@ -575,6 +577,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-io-request', 'aui-task-manager', 'aui-timer', 'cookie', 'liferay-notice']
+		requires: ['aui-io-request', 'aui-timer', 'cookie', 'liferay-notice']
 	}
 );

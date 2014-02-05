@@ -1,5 +1,7 @@
 package ${packagePath}.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.bean.PortletBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
@@ -18,6 +20,9 @@ import com.liferay.portal.service.Invokable${sessionTypeName}Service;
  * @see ${entity.name}LocalService
  * @see ${packagePath}.service.base.${entity.name}LocalServiceBaseImpl
  * @see ${packagePath}.service.impl.${entity.name}LocalServiceImpl
+<#if classDeprecated>
+ * @deprecated ${classDeprecatedComment}
+</#if>
  * @generated
  */
 <#else>
@@ -33,9 +38,21 @@ import com.liferay.portal.service.Invokable${sessionTypeName}Service;
  * @see ${entity.name}Service
  * @see ${packagePath}.service.base.${entity.name}ServiceBaseImpl
  * @see ${packagePath}.service.impl.${entity.name}ServiceImpl
+<#if classDeprecated>
+ * @deprecated ${classDeprecatedComment}
+</#if>
  * @generated
  */
 </#if>
+
+<#if classDeprecated>
+	@Deprecated
+</#if>
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public class ${entity.name}${sessionTypeName}ServiceUtil {
 
 	/*
@@ -47,6 +64,10 @@ public class ${entity.name}${sessionTypeName}ServiceUtil {
 	<#list methods as method>
 		<#if !method.isConstructor() && !method.isStatic() && method.isPublic() && serviceBuilder.isCustomMethod(method)>
 			${serviceBuilder.getJavadocComment(method)}
+
+			<#if serviceBuilder.hasAnnotation(method, "Deprecated")>
+				@Deprecated
+			</#if>
 
 			<#if method.name = "dynamicQuery" && (method.parameters?size != 0)>
 				@SuppressWarnings("rawtypes")
@@ -126,6 +147,7 @@ public class ${entity.name}${sessionTypeName}ServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(${entity.name}${sessionTypeName}Service service) {
 	}
 

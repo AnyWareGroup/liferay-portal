@@ -9,10 +9,10 @@
 		<tag-class>com.liferay.taglib.ddm.HTMLTag</tag-class>
 		<body-content>JSP</body-content>
 		<attribute>
-			<name>fieldName</name>
+			<name>checkRequired</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
-			<type>java.lang.String</type>
+			<type>boolean</type>
 		</attribute>
 		<attribute>
 			<name>classNameId</name>
@@ -25,6 +25,12 @@
 			<required>true</required>
 			<rtexprvalue>true</rtexprvalue>
 			<type>long</type>
+		</attribute>
+		<attribute>
+			<name>fieldName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+			<type>java.lang.String</type>
 		</attribute>
 		<attribute>
 			<name>fields</name>
@@ -68,12 +74,6 @@
 		<name>html-field</name>
 		<tag-class>com.liferay.taglib.ddm.HTMLFieldTag</tag-class>
 		<body-content>JSP</body-content>
-		<attribute>
-			<name>fieldName</name>
-			<required>false</required>
-			<rtexprvalue>true</rtexprvalue>
-			<type>java.lang.String</type>
-		</attribute>
 		<attribute>
 			<name>classNameId</name>
 			<required>true</required>

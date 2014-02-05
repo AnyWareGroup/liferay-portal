@@ -48,6 +48,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Subscription;
+import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.SubscriptionLocalServiceUtil;
 import com.liferay.portal.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.theme.PortletDisplay;
@@ -58,6 +59,7 @@ import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletURLFactoryUtil;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
+import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryTypeConstants;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
@@ -342,26 +344,26 @@ public class DLImpl implements DL {
 			return themeDisplay.translate("home");
 		}
 
-		DLFolder dlFolder = DLFolderLocalServiceUtil.getFolder(folderId);
+		Folder folder = DLAppLocalServiceUtil.getFolder(folderId);
 
-		List<DLFolder> dlFolders = dlFolder.getAncestors();
+		List<Folder> folders = folder.getAncestors();
 
-		Collections.reverse(dlFolders);
+		Collections.reverse(folders);
 
-		StringBundler sb = new StringBundler((dlFolders.size() * 3) + 5);
+		StringBundler sb = new StringBundler((folders.size() * 3) + 5);
 
 		sb.append(themeDisplay.translate("home"));
 		sb.append(StringPool.SPACE);
 
-		for (DLFolder curDLFolder : dlFolders) {
-			sb.append(StringPool.RAQUO);
+		for (Folder curFolder : folders) {
+			sb.append(StringPool.RAQUO_CHAR);
 			sb.append(StringPool.SPACE);
-			sb.append(curDLFolder.getName());
+			sb.append(curFolder.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append(StringPool.RAQUO_CHAR);
 		sb.append(StringPool.SPACE);
-		sb.append(dlFolder.getName());
+		sb.append(folder.getName());
 
 		return sb.toString();
 	}
@@ -378,7 +380,8 @@ public class DLImpl implements DL {
 
 	@Override
 	public String getDDMStructureKey(String fileEntryTypeUuid) {
-		return _STRUCTURE_KEY_PREFIX + fileEntryTypeUuid.toUpperCase();
+		return _STRUCTURE_KEY_PREFIX +
+			StringUtil.toUpperCase(fileEntryTypeUuid);
 	}
 
 	@Override
@@ -414,7 +417,27 @@ public class DLImpl implements DL {
 	}
 
 	@Override
-	public String getDLControlPanelLink(
+	public String getDLFileEntryControlPanelLink(
+			PortletRequest portletRequest, long fileEntryId)
+		throws PortalException, SystemException {
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)portletRequest.getAttribute(
+			WebKeys.THEME_DISPLAY);
+
+		PortletURL portletURL = PortletURLFactoryUtil.create(
+			portletRequest, PortletKeys.DOCUMENT_LIBRARY,
+			PortalUtil.getControlPanelPlid(themeDisplay.getCompanyId()),
+			PortletRequest.RENDER_PHASE);
+
+		portletURL.setParameter(
+			"struts_action", "/document_library/view_file_entry");
+		portletURL.setParameter("fileEntryId", String.valueOf(fileEntryId));
+
+		return portletURL.toString();
+	}
+
+	@Override
+	public String getDLFolderControlPanelLink(
 			PortletRequest portletRequest, long folderId)
 		throws PortalException, SystemException {
 
@@ -439,7 +462,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryAddedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -477,7 +500,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryAddedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -500,7 +523,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryUpdatedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -538,7 +561,7 @@ public class DLImpl implements DL {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailFileEntryUpdatedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -725,6 +748,7 @@ public class DLImpl implements DL {
 	 * @deprecated As of 6.2.0, replaced by {@link #getPreviewURL(FileEntry,
 	 *             FileVersion, ThemeDisplay, String, boolean, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
@@ -756,14 +780,14 @@ public class DLImpl implements DL {
 
 		String title = fileEntry.getTitle();
 
-		if (fileVersion.isInTrash()) {
+		if (fileEntry.isInTrash()) {
 			title = TrashUtil.getOriginalTitle(fileEntry.getTitle());
 		}
 
 		sb.append(HttpUtil.encodeURL(HtmlUtil.unescape(title)));
 
 		sb.append(StringPool.SLASH);
-		sb.append(fileEntry.getUuid());
+		sb.append(HttpUtil.encodeURL(fileEntry.getUuid()));
 
 		if (appendVersion) {
 			sb.append("?version=");
@@ -945,7 +969,7 @@ public class DLImpl implements DL {
 	@Override
 	public String getTitleWithExtension(String title, String extension) {
 		if (Validator.isNotNull(extension)) {
-			String periodAndExtension = StringPool.PERIOD + extension;
+			String periodAndExtension = StringPool.PERIOD.concat(extension);
 
 			if (!title.endsWith(periodAndExtension)) {
 				title += periodAndExtension;
@@ -1003,6 +1027,8 @@ public class DLImpl implements DL {
 
 		String fileEntryTitle = null;
 
+		Group group = null;
+
 		if (fileEntry != null) {
 			String extension = fileEntry.getExtension();
 
@@ -1015,9 +1041,12 @@ public class DLImpl implements DL {
 
 				fileEntryTitle += StringPool.PERIOD + extension;
 			}
-		}
 
-		Group group = themeDisplay.getScopeGroup();
+			group = GroupLocalServiceUtil.getGroup(fileEntry.getGroupId());
+		}
+		else {
+			group = themeDisplay.getScopeGroup();
+		}
 
 		webDavURL.append(group.getFriendlyURL());
 		webDavURL.append("/document_library");
@@ -1101,18 +1130,7 @@ public class DLImpl implements DL {
 
 	@Override
 	public boolean isOfficeExtension(String extension) {
-		if (extension.equalsIgnoreCase("doc") ||
-			extension.equalsIgnoreCase("docx") ||
-			extension.equalsIgnoreCase("dot") ||
-			extension.equalsIgnoreCase("ppt") ||
-			extension.equalsIgnoreCase("pptx") ||
-			extension.equalsIgnoreCase("xls") ||
-			extension.equalsIgnoreCase("xlsx")) {
-
-			return true;
-		}
-
-		return false;
+		return ArrayUtil.contains(_MICROSOFT_OFFICE_EXTENSIONS, extension);
 	}
 
 	@Override
@@ -1168,6 +1186,27 @@ public class DLImpl implements DL {
 			companyId, userId, Folder.class.getName(), folderIdsArray);
 	}
 
+	@Override
+	public boolean isValidVersion(String version) {
+		if (version.equals(DLFileEntryConstants.PRIVATE_WORKING_COPY_VERSION)) {
+			return true;
+		}
+
+		String[] versionParts = StringUtil.split(version, StringPool.PERIOD);
+
+		if (versionParts.length != 2) {
+			return false;
+		}
+
+		if (Validator.isNumber(versionParts[0]) &&
+			Validator.isNumber(versionParts[1])) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	protected long getDefaultFolderId(HttpServletRequest request)
 		throws Exception {
 
@@ -1217,6 +1256,20 @@ public class DLImpl implements DL {
 	private static final String _DEFAULT_GENERIC_NAME = "default";
 
 	private static final long _DIVISOR = 256;
+
+	private static final String[] _MICROSOFT_OFFICE_EXTENSIONS = {
+		"accda", "accdb", "accdc", "accde", "accdp", "accdr", "accdt", "accdu",
+		"acl", "ade", "adp", "asd", "cnv", "crtx", "doc", "docm", "docx", "dot",
+		"dotm", "dotx", "grv", "iaf", "laccdb", "maf", "mam", "maq", "mar",
+		"mat", "mda", "mdb", "mde", "mdt", "mdw", "mpd", "mpp", "mpt", "oab",
+		"obi", "oft", "olm", "one", "onepkg", "ops", "ost", "pa", "pip", "pot",
+		"potm", "potx", "ppa", "ppam", "pps", "ppsm", "ppsx", "ppt", "pptm",
+		"pptx", "prf", "pst", "pub", "puz", "rpmsg", "sldm", "sldx", "slk",
+		"snp", "svd", "thmx", "vdx", "vrge08message", "vsd", "vss", "vst",
+		"vsx", "vtx", "wbk", "wll", "xar", "xl", "xla", "xlam", "xlb", "xlc",
+		"xll", "xlm", "xls", "xlsb", "xlsm", "xlsx", "xlt", "xltm", "xltx",
+		"xlw", "xsf", "xsn"
+	};
 
 	private static final String _STRUCTURE_KEY_PREFIX = "AUTO_";
 

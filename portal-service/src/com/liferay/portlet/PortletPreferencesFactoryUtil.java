@@ -14,12 +14,15 @@
 
 package com.liferay.portlet;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletPreferencesIds;
+import com.liferay.portal.theme.ThemeDisplay;
 
 import java.util.Map;
 
@@ -33,12 +36,28 @@ import javax.servlet.http.HttpSession;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class PortletPreferencesFactoryUtil {
+
+	public static void checkControlPanelPortletPreferences(
+			ThemeDisplay themeDisplay, Portlet portlet)
+		throws PortalException, SystemException {
+
+		getPortletPreferencesFactory().checkControlPanelPortletPreferences(
+			themeDisplay, portlet);
+	}
 
 	public static PortletPreferences fromDefaultXML(String xml)
 		throws SystemException {
 
 		return getPortletPreferencesFactory().fromDefaultXML(xml);
+	}
+
+	public static PortalPreferences fromXML(
+			long ownerId, int ownerType, String xml)
+		throws SystemException {
+
+		return getPortletPreferencesFactory().fromXML(ownerId, ownerType, xml);
 	}
 
 	public static PortletPreferences fromXML(
@@ -50,6 +69,10 @@ public class PortletPreferencesFactoryUtil {
 			companyId, ownerId, ownerType, plid, portletId, xml);
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #fromXML(long, int, String)}
+	 */
+	@Deprecated
 	public static PortalPreferences fromXML(
 			long companyId, long ownerId, int ownerType, String xml)
 		throws SystemException {
@@ -74,6 +97,19 @@ public class PortletPreferencesFactoryUtil {
 	}
 
 	public static PortalPreferences getPortalPreferences(
+			HttpSession session, long userId, boolean signedIn)
+		throws SystemException {
+
+		return getPortletPreferencesFactory().getPortalPreferences(
+			session, userId, signedIn);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #getPortalPreferences(HttpSession, long, boolean)}
+	 */
+	@Deprecated
+	public static PortalPreferences getPortalPreferences(
 			HttpSession session, long companyId, long userId, boolean signedIn)
 		throws SystemException {
 
@@ -81,6 +117,19 @@ public class PortletPreferencesFactoryUtil {
 			session, companyId, userId, signedIn);
 	}
 
+	public static PortalPreferences getPortalPreferences(
+			long userId, boolean signedIn)
+		throws SystemException {
+
+		return getPortletPreferencesFactory().getPortalPreferences(
+			userId, signedIn);
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link #getPortalPreferences(long,
+	 *             boolean)}
+	 */
+	@Deprecated
 	public static PortalPreferences getPortalPreferences(
 			long companyId, long userId, boolean signedIn)
 		throws SystemException {

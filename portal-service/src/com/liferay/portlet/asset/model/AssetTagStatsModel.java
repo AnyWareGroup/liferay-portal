@@ -14,8 +14,11 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.BaseModel;
 import com.liferay.portal.model.CacheModel;
+import com.liferay.portal.model.TypedModel;
 import com.liferay.portal.service.ServiceContext;
 
 import com.liferay.portlet.expando.model.ExpandoBridge;
@@ -35,7 +38,8 @@ import java.io.Serializable;
  * @see com.liferay.portlet.asset.model.impl.AssetTagStatsModelImpl
  * @generated
  */
-public interface AssetTagStatsModel extends BaseModel<AssetTagStats> {
+@ProviderType
+public interface AssetTagStatsModel extends BaseModel<AssetTagStats>, TypedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -89,6 +93,7 @@ public interface AssetTagStatsModel extends BaseModel<AssetTagStats> {
 	 *
 	 * @return the fully qualified class name of this asset tag stats
 	 */
+	@Override
 	public String getClassName();
 
 	public void setClassName(String className);
@@ -98,6 +103,7 @@ public interface AssetTagStatsModel extends BaseModel<AssetTagStats> {
 	 *
 	 * @return the class name ID of this asset tag stats
 	 */
+	@Override
 	public long getClassNameId();
 
 	/**
@@ -105,6 +111,7 @@ public interface AssetTagStatsModel extends BaseModel<AssetTagStats> {
 	 *
 	 * @param classNameId the class name ID of this asset tag stats
 	 */
+	@Override
 	public void setClassNameId(long classNameId);
 
 	/**

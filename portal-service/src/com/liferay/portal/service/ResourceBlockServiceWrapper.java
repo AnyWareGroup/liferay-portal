@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourceBlockService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceBlockService
+ * @author Brian Wing Shun Chan
+ * @see ResourceBlockService
  * @generated
  */
+@ProviderType
 public class ResourceBlockServiceWrapper implements ResourceBlockService,
 	ServiceWrapper<ResourceBlockService> {
 	public ResourceBlockServiceWrapper(
@@ -159,6 +162,7 @@ public class ResourceBlockServiceWrapper implements ResourceBlockService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceBlockService getWrappedResourceBlockService() {
 		return _resourceBlockService;
 	}
@@ -166,6 +170,7 @@ public class ResourceBlockServiceWrapper implements ResourceBlockService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceBlockService(
 		ResourceBlockService resourceBlockService) {
 		_resourceBlockService = resourceBlockService;

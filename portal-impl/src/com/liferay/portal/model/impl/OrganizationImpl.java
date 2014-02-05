@@ -25,18 +25,14 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.SetUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.model.Address;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.model.LayoutSet;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
 import com.liferay.portal.service.AddressLocalServiceUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.PortalPreferencesLocalServiceUtil;
 import com.liferay.portal.util.PortletKeys;
@@ -93,15 +89,6 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 	}
 
 	public OrganizationImpl() {
-	}
-
-	@Override
-	public String buildTreePath() throws PortalException, SystemException {
-		StringBundler sb = new StringBundler();
-
-		buildTreePath(sb, this);
-
-		return sb.toString();
 	}
 
 	@Override
@@ -189,33 +176,6 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 	}
 
 	@Override
-	public long getLogoId() {
-		long logoId = 0;
-
-		try {
-			Group group = getGroup();
-
-			LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
-				group.getGroupId(), false);
-
-			logoId = publicLayoutSet.getLogoId();
-
-			if (logoId == 0) {
-				LayoutSet privateLayoutSet =
-					LayoutSetLocalServiceUtil.getLayoutSet(
-						group.getGroupId(), true);
-
-				logoId = privateLayoutSet.getLogoId();
-			}
-		}
-		catch (Exception e) {
-			_log.error(e);
-		}
-
-		return logoId;
-	}
-
-	@Override
 	public Organization getParentOrganization()
 		throws PortalException, SystemException {
 
@@ -231,12 +191,11 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 
 	@Override
 	public PortletPreferences getPreferences() throws SystemException {
-		long companyId = getCompanyId();
 		long ownerId = getOrganizationId();
 		int ownerType = PortletKeys.PREFS_OWNER_TYPE_ORGANIZATION;
 
 		return PortalPreferencesLocalServiceUtil.getPreferences(
-			companyId, ownerId, ownerType);
+			ownerId, ownerType);
 	}
 
 	@Override
@@ -370,20 +329,6 @@ public class OrganizationImpl extends OrganizationBaseImpl {
 		return false;
 	}
 
-	protected void buildTreePath(StringBundler sb, Organization organization)
-		throws PortalException, SystemException {
-
-		if (organization == null) {
-			sb.append(StringPool.SLASH);
-		}
-		else {
-			buildTreePath(sb, organization.getParentOrganization());
-
-			sb.append(organization.getOrganizationId());
-			sb.append(StringPool.SLASH);
-		}
-	}
-
-	private static Log _log = LogFactoryUtil.getLog(Organization.class);
+	private static Log _log = LogFactoryUtil.getLog(OrganizationImpl.class);
 
 }

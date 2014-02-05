@@ -23,8 +23,6 @@ WorkflowInstance workflowInstance = (WorkflowInstance)request.getAttribute(WebKe
 
 Map<String, Serializable> workflowContext = workflowInstance.getWorkflowContext();
 
-long companyId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_COMPANY_ID));
-long groupId = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_GROUP_ID));
 String className = (String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME);
 long classPK = GetterUtil.getLong((String)workflowContext.get(WorkflowConstants.CONTEXT_ENTRY_CLASS_PK));
 
@@ -78,7 +76,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 			<aui:col width="<%= 60 %>">
 				<div class="lfr-asset-status">
 					<aui:field-wrapper label="state">
-						<%= LanguageUtil.get(pageContext, workflowInstance.getState()) %>
+						<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, workflowInstance.getState()) %>" />
 					</aui:field-wrapper>
 				</div>
 			</aui:col>
@@ -86,7 +84,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 			<aui:col width="<%= 33 %>">
 				<div class="lfr-asset-date">
 					<aui:field-wrapper label="end-date">
-						<%= (workflowInstance.getEndDate() == null) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>
+						<liferay-ui:input-resource url='<%= (workflowInstance.getEndDate() == null) ? LanguageUtil.get(pageContext, "never") : dateFormatDateTime.format(workflowInstance.getEndDate()) %>' />
 					</aui:field-wrapper>
 				</div>
 			</aui:col>
@@ -95,7 +93,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 		<liferay-ui:panel-container cssClass="task-panel-container" extended="<%= true %>" id="preview">
 
 			<c:if test="<%= assetRenderer != null %>">
-				<liferay-ui:panel defaultState="open" title='<%= LanguageUtil.format(pageContext, "preview-of-x", ResourceActionsUtil.getModelResource(locale, className)) %>'>
+				<liferay-ui:panel defaultState="open" title='<%= LanguageUtil.format(pageContext, "preview-of-x", ResourceActionsUtil.getModelResource(locale, className), false) %>'>
 					<div class="task-content-actions">
 						<liferay-ui:icon-list>
 							<c:if test="<%= assetRenderer.hasViewPermission(permissionChecker) %>">
@@ -117,7 +115,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 
 					<c:choose>
 						<c:when test="<%= path == null %>">
-							<%= workflowHandler.getSummary(classPK, locale) %>
+							<%= HtmlUtil.escape(workflowHandler.getSummary(classPK, locale)) %>
 						</c:when>
 						<c:otherwise>
 							<liferay-util:include page="<%= path %>" portletId="<%= assetRendererFactory.getPortletId() %>" />
@@ -125,8 +123,6 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 					</c:choose>
 
 					<%
-					String selectionStyle = "manual";
-
 					String[] metadataFields = new String[] {"author", "categories", "tags"};
 					%>
 
@@ -181,7 +177,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 								buffer.append("<span class=\"task-name\" id=\"");
 								buffer.append(workflowTask.getWorkflowTaskId());
 								buffer.append("\">");
-								buffer.append(LanguageUtil.get(pageContext, workflowTask.getName()));
+								buffer.append(LanguageUtil.get(pageContext, HtmlUtil.escape(workflowTask.getName())));
 								buffer.append("</span>");
 								%>
 
@@ -246,7 +242,6 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 					formName="fm1"
 					ratingsEnabled="<%= false %>"
 					redirect="<%= currentURL %>"
-					subject="<%= workflowInstance.getWorkflowDefinitionName() %>"
 					userId="<%= user.getUserId() %>"
 				/>
 			</liferay-ui:panel>
@@ -262,7 +257,7 @@ request.setAttribute(WebKeys.WORKFLOW_ASSET_PREVIEW, Boolean.TRUE);
 			/>
 
 			<div class="lfr-asset-name">
-				<%= workflowInstance.getWorkflowDefinitionName() %>
+				<%= HtmlUtil.escape(workflowInstance.getWorkflowDefinitionName()) %>
 			</div>
 		</div>
 

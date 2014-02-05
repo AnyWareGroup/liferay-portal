@@ -21,7 +21,9 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MathUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -59,7 +61,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -681,18 +682,17 @@ public class ShoppingUtil {
 
 			return cart;
 		}
-		else {
-			ShoppingCart cart = (ShoppingCart)portletSession.getAttribute(
-				sessionCartId);
 
-			if (cart == null) {
-				cart = getCart(themeDisplay);
+		ShoppingCart cart = (ShoppingCart)portletSession.getAttribute(
+			sessionCartId);
 
-				portletSession.setAttribute(sessionCartId, cart);
-			}
+		if (cart == null) {
+			cart = getCart(themeDisplay);
 
-			return cart;
+			portletSession.setAttribute(sessionCartId, cart);
 		}
+
+		return cart;
 	}
 
 	public static ShoppingCart getCart(ThemeDisplay themeDisplay) {
@@ -718,10 +718,9 @@ public class ShoppingUtil {
 		for (String fields : fieldsArray) {
 			int pos = fields.indexOf("=");
 
-			String fieldValue = fields.substring(
-				pos + 1, fields.length()).trim();
+			String fieldValue = fields.substring(pos + 1, fields.length());
 
-			fieldsValues.add(fieldValue);
+			fieldsValues.add(fieldValue.trim());
 		}
 
 		List<String> names = new ArrayList<String>();
@@ -858,7 +857,7 @@ public class ShoppingUtil {
 			preferences.getPayPalEmailAddress());
 
 		NumberFormat doubleFormat = NumberFormat.getNumberInstance(
-			Locale.ENGLISH);
+			LocaleUtil.ENGLISH);
 
 		doubleFormat.setMaximumFractionDigits(2);
 		doubleFormat.setMinimumFractionDigits(2);
@@ -919,10 +918,10 @@ public class ShoppingUtil {
 			ppPaymentStatus = "checkout";
 		}
 		else {
-			ppPaymentStatus = ppPaymentStatus.toLowerCase();
+			ppPaymentStatus = StringUtil.toLowerCase(ppPaymentStatus);
 		}
 
-		return LanguageUtil.get(pageContext, ppPaymentStatus);
+		return LanguageUtil.get(pageContext, HtmlUtil.escape(ppPaymentStatus));
 	}
 
 	public static String getPpPaymentStatus(String ppPaymentStatus) {

@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LockLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LockLocalService
+ * @author Brian Wing Shun Chan
+ * @see LockLocalService
  * @generated
  */
+@ProviderType
 public class LockLocalServiceWrapper implements LockLocalService,
 	ServiceWrapper<LockLocalService> {
 	public LockLocalServiceWrapper(LockLocalService lockLocalService) {
@@ -161,10 +164,41 @@ public class LockLocalServiceWrapper implements LockLocalService,
 		return _lockLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _lockLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.Lock fetchLock(long lockId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _lockLocalService.fetchLock(lockId);
+	}
+
+	/**
+	* Returns the lock with the matching UUID and company.
+	*
+	* @param uuid the lock's UUID
+	* @param companyId the primary key of the company
+	* @return the matching lock, or <code>null</code> if a matching lock could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Lock fetchLockByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _lockLocalService.fetchLockByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -188,6 +222,23 @@ public class LockLocalServiceWrapper implements LockLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _lockLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the lock with the matching UUID and company.
+	*
+	* @param uuid the lock's UUID
+	* @param companyId the primary key of the company
+	* @return the matching lock
+	* @throws PortalException if a matching lock could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Lock getLockByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _lockLocalService.getLockByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -277,14 +328,6 @@ public class LockLocalServiceWrapper implements LockLocalService,
 	}
 
 	@Override
-	public com.liferay.portal.model.Lock getLockByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _lockLocalService.getLockByUuidAndCompanyId(uuid, companyId);
-	}
-
-	@Override
 	public boolean hasLock(long userId, java.lang.String className, long key)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _lockLocalService.hasLock(userId, className, key);
@@ -331,11 +374,37 @@ public class LockLocalServiceWrapper implements LockLocalService,
 
 	@Override
 	public com.liferay.portal.model.Lock lock(java.lang.String className,
+		java.lang.String key, java.lang.String owner)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _lockLocalService.lock(className, key, owner);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #lock(String, String,
+	String)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portal.model.Lock lock(java.lang.String className,
 		java.lang.String key, java.lang.String owner, boolean retrieveFromCache)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _lockLocalService.lock(className, key, owner, retrieveFromCache);
 	}
 
+	@Override
+	public com.liferay.portal.model.Lock lock(java.lang.String className,
+		java.lang.String key, java.lang.String expectedOwner,
+		java.lang.String updatedOwner)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _lockLocalService.lock(className, key, expectedOwner,
+			updatedOwner);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #lock(String, String, String,
+	String)}
+	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Lock lock(java.lang.String className,
 		java.lang.String key, java.lang.String expectedOwner,
@@ -367,6 +436,18 @@ public class LockLocalServiceWrapper implements LockLocalService,
 
 	@Override
 	public void unlock(java.lang.String className, java.lang.String key,
+		java.lang.String owner)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_lockLocalService.unlock(className, key, owner);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #unlock(String, String,
+	String)}
+	*/
+	@Deprecated
+	@Override
+	public void unlock(java.lang.String className, java.lang.String key,
 		java.lang.String owner, boolean retrieveFromCache)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_lockLocalService.unlock(className, key, owner, retrieveFromCache);
@@ -375,6 +456,7 @@ public class LockLocalServiceWrapper implements LockLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LockLocalService getWrappedLockLocalService() {
 		return _lockLocalService;
 	}
@@ -382,6 +464,7 @@ public class LockLocalServiceWrapper implements LockLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLockLocalService(LockLocalService lockLocalService) {
 		_lockLocalService = lockLocalService;
 	}

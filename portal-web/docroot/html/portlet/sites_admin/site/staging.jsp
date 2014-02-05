@@ -23,7 +23,80 @@ UnicodeProperties liveGroupTypeSettings = (UnicodeProperties)request.getAttribut
 
 LayoutSet privateLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.getGroupId(), true);
 LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.getGroupId(), false);
+
+boolean stagedLocally = liveGroup.isStaged() && !liveGroup.isStagedRemotely();
+boolean stagedRemotely = liveGroup.isStaged() && !stagedLocally;
+
+Group stagingGroup = null;
+long stagingGroupId = 0;
+
+if (stagedLocally) {
+	stagingGroup = liveGroup.getStagingGroup();
+	stagingGroupId = stagingGroup.getGroupId();
+}
+
+BackgroundTask lastCompletedInitialPublicationBackgroundTask = BackgroundTaskLocalServiceUtil.fetchFirstBackgroundTask(liveGroupId, LayoutStagingBackgroundTaskExecutor.class.getName(), true, new BackgroundTaskCreateDateComparator(false));
 %>
+
+<h3><liferay-ui:message key="staging" /></h3>
+
+<c:if test="<%= (lastCompletedInitialPublicationBackgroundTask != null) && (lastCompletedInitialPublicationBackgroundTask.getStatus() == BackgroundTaskConstants.STATUS_FAILED) %>">
+	<div class="alert alert-error">
+		<liferay-ui:message key="an-unexpected-error-occurred--with-the-initial-staging-publication" />
+
+		<liferay-portlet:actionURL portletName="<%= PortletKeys.GROUP_PAGES %>" var="deleteBackgroundTaskURL">
+			<portlet:param name="struts_action" value="/group_pages/delete_background_task" />
+			<portlet:param name="redirect" value="<%= currentURL %>" />
+			<portlet:param name="backgroundTaskId" value="<%= String.valueOf(lastCompletedInitialPublicationBackgroundTask.getBackgroundTaskId()) %>" />
+		</liferay-portlet:actionURL>
+
+		<liferay-ui:icon-delete
+			confirmation="are-you-sure-you-want-to-remove-the-initial-staging-publication"
+			label="true"
+			message="clear"
+			url="<%= deleteBackgroundTaskURL %>"
+		/>
+	</div>
+
+	<liferay-util:include page="/html/portlet/layouts_admin/publish_process_message_task_details.jsp">
+		<liferay-util:param name="backgroundTaskId" value="<%= String.valueOf(lastCompletedInitialPublicationBackgroundTask.getBackgroundTaskId()) %>" />
+	</liferay-util:include>
+</c:if>
+
+<c:if test="<%= stagedLocally && (BackgroundTaskLocalServiceUtil.getBackgroundTasksCount(liveGroupId, LayoutStagingBackgroundTaskExecutor.class.getName(), false) > 0) %>">
+	<liferay-portlet:renderURL portletName="<%= PortletKeys.LAYOUTS_ADMIN %>" var="publishProcessesURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+		<portlet:param name="<%= Constants.CMD %>" value="view_processes" />
+		<portlet:param name="struts_action" value="/layouts_admin/publish_layouts" />
+		<portlet:param name="<%= SearchContainer.DEFAULT_CUR_PARAM %>" value="<%= ParamUtil.getString(request, SearchContainer.DEFAULT_CUR_PARAM) %>" />
+		<portlet:param name="<%= SearchContainer.DEFAULT_DELTA_PARAM %>" value="<%= ParamUtil.getString(request, SearchContainer.DEFAULT_DELTA_PARAM) %>" />
+		<portlet:param name="groupId" value="<%= String.valueOf(stagingGroupId) %>" />
+		<portlet:param name="liveGroupId" value="<%= String.valueOf(liveGroupId) %>" />
+		<portlet:param name="localPublishing" value="<%= String.valueOf(stagedLocally) %>" />
+	</liferay-portlet:renderURL>
+
+	<div class="alert alert-block">
+		<liferay-ui:message key="an-inital-staging-publication-is-in-progress" />
+
+		<a id="<portlet:namespace />publishProcessesLink"><liferay-ui:message key="the-status-of-the-publication-can-be-checked-on-the-publish-screen" /></a>
+	</div>
+
+	<aui:script use="aui-base">
+		var publishProcessesLink = A.one('#<portlet:namespace />publishProcessesLink');
+
+		publishProcessesLink.on(
+			'click',
+			function(event) {
+				Liferay.Util.openWindow(
+					{
+						id: 'publishProcesses',
+						title: Liferay.Language.get('initial-publication'),
+						uri: '<%= HtmlUtil.escapeJS(publishProcessesURL.toString()) %>'
+					}
+				);
+			}
+		);
+	</aui:script>
+</c:if>
 
 <liferay-ui:error-marker key="errorSection" value="staging" />
 
@@ -41,7 +114,7 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 			</c:choose>
 		</div>
 	</c:when>
-	<c:when test="<%= GroupPermissionUtil.contains(permissionChecker, liveGroupId, ActionKeys.MANAGE_STAGING) %>">
+	<c:when test="<%= GroupPermissionUtil.contains(permissionChecker, liveGroup, ActionKeys.MANAGE_STAGING) %>">
 
 		<liferay-ui:error exception="<%= LocaleException.class %>">
 
@@ -49,7 +122,9 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 			LocaleException le = (LocaleException)errorException;
 			%>
 
-			<liferay-ui:message arguments="<%= new String[] {StringUtil.merge(le.getSourceAvailableLocales(), StringPool.COMMA_AND_SPACE), StringUtil.merge(le.getTargetAvailableLocales(), StringPool.COMMA_AND_SPACE)} %>" key="the-default-language-x-does-not-match-the-portal's-available-languages-x" />
+			<c:if test="<%= le.getType() == LocaleException.TYPE_EXPORT_IMPORT %>">
+				<liferay-ui:message arguments="<%= new String[] {StringUtil.merge(le.getSourceAvailableLocales(), StringPool.COMMA_AND_SPACE), StringUtil.merge(le.getTargetAvailableLocales(), StringPool.COMMA_AND_SPACE)} %>" key="the-default-language-x-does-not-match-the-portal's-available-languages-x" translateArguments="<%= false %>" />
+			</c:if>
 		</liferay-ui:error>
 
 		<liferay-ui:error exception="<%= SystemException.class %>">
@@ -65,16 +140,14 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 			<aui:field-wrapper label="staging-type">
 				<aui:input checked="<%= !liveGroup.isStaged() %>" id="none" label="none" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_NOT_STAGED %>" />
 
-				<c:if test="<%= !liveGroup.isCompany() %>">
-					<aui:input checked="<%= liveGroup.isStaged() && !liveGroup.isStagedRemotely() %>" helpMessage="staging-type-local" id="local" label="local-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_LOCAL_STAGING %>" />
-				</c:if>
+				<aui:input checked="<%= stagedLocally %>" helpMessage="staging-type-local" id="local" label="local-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_LOCAL_STAGING %>" />
 
-				<aui:input checked="<%= liveGroup.isStaged() && liveGroup.isStagedRemotely() %>" helpMessage="staging-type-remote" id="remote" label="remote-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_REMOTE_STAGING %>" />
+				<aui:input checked="<%= stagedRemotely %>" helpMessage="staging-type-remote" id="remote" label="remote-live" name="stagingType" type="radio" value="<%= StagingConstants.TYPE_REMOTE_STAGING %>" />
 			</aui:field-wrapper>
 		</div>
 
 		<%
-		boolean showRemoteOptions = liveGroup.isStaged() && liveGroup.isStagedRemotely();
+		boolean showRemoteOptions = stagedRemotely;
 
 		int stagingType = ParamUtil.getInteger(request, "stagingType");
 
@@ -86,48 +159,12 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 		<div class="<%= showRemoteOptions ? StringPool.BLANK : "hide" %> staging-section" id="<portlet:namespace />remoteStagingOptions">
 			<br />
 
-			<liferay-ui:error exception="<%= RemoteExportException.class %>">
+			<%@ include file="/html/portlet/layouts_admin/error_auth_exception.jspf" %>
 
-				<%
-				RemoteExportException ree = (RemoteExportException)errorException;
-				%>
-
-				<c:if test="<%= ree.getType() == RemoteExportException.BAD_CONNECTION %>">
-					<liferay-ui:message arguments="<%= ree.getURL() %>" key="there-was-a-bad-connection-with-the-remote-server-at-x" />
-				</c:if>
-
-				<c:if test="<%= ree.getType() == RemoteExportException.NO_GROUP %>">
-					<liferay-ui:message arguments="<%= ree.getGroupId() %>" key="no-site-exists-on-the-remote-server-with-site-id-x" />
-				</c:if>
-
-				<c:if test="<%= ree.getType() == RemoteExportException.NO_PERMISSIONS %>">
-					<liferay-ui:message arguments="<%= ree.getGroupId() %>" key="you-do-not-have-permissions-to-edit-the-site-with-id-x-on-the-remote-server" />
-				</c:if>
-			</liferay-ui:error>
+			<%@ include file="/html/portlet/layouts_admin/error_remote_export_exception.jspf" %>
 
 			<aui:fieldset label="remote-live-connection-settings">
-				<liferay-ui:error exception="<%= RemoteOptionsException.class %>">
-
-					<%
-					RemoteOptionsException roe = (RemoteOptionsException)errorException;
-					%>
-
-					<c:if test="<%= roe.getType() == RemoteOptionsException.REMOTE_ADDRESS %>">
-						<liferay-ui:message arguments="<%= roe.getRemoteAddress() %>" key="the-remote-address-x-is-not-valid" />
-					</c:if>
-
-					<c:if test="<%= roe.getType() == RemoteOptionsException.REMOTE_GROUP_ID %>">
-						<liferay-ui:message arguments="<%= roe.getRemoteGroupId() %>" key="the-remote-site-id-x-is-not-valid" />
-					</c:if>
-
-					<c:if test="<%= roe.getType() == RemoteOptionsException.REMOTE_PATH_CONTEXT %>">
-						<liferay-ui:message arguments="<%= roe.getRemotePathContext() %>" key="the-remote-path-context-x-is-not-valid" />
-					</c:if>
-
-					<c:if test="<%= roe.getType() == RemoteOptionsException.REMOTE_PORT %>">
-						<liferay-ui:message arguments="<%= roe.getRemotePort() %>" key="the-remote-port-x-is-not-valid" />
-					</c:if>
-				</liferay-ui:error>
+				<%@ include file="/html/portlet/layouts_admin/error_remote_options_exception.jspf" %>
 
 				<div class="alert alert-info">
 					<liferay-ui:message key="remote-publish-help" />
@@ -145,7 +182,7 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 			</aui:fieldset>
 		</div>
 
-		<div class="<%= (liveGroup.isStaged() ? StringPool.BLANK : "hide") %> staging-section" id="<portlet:namespace />stagedPortlets">
+		<div class="<%= ((liveGroup.isStaged() || (stagingType != StagingConstants.TYPE_NOT_STAGED)) ? StringPool.BLANK : "hide") %> staging-section" id="<portlet:namespace />stagedPortlets">
 			<br />
 
 			<c:if test="<%= !liveGroup.isCompany() %>">
@@ -180,10 +217,10 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 
 					PortletDataHandler portletDataHandler = curPortlet.getPortletDataHandlerInstance();
 
-					boolean staged = GetterUtil.getBoolean(liveGroupTypeSettings.getProperty(StagingConstants.STAGED_PORTLET + curPortlet.getRootPortletId()), portletDataHandler.isPublishToLiveByDefault());
+					boolean staged = GetterUtil.getBoolean(liveGroupTypeSettings.getProperty(StagingUtil.getStagedPortletId(curPortlet.getRootPortletId())), portletDataHandler.isPublishToLiveByDefault());
 				%>
 
-					<aui:input label="<%= PortalUtil.getPortletTitle(curPortlet, application, locale) %>" name="<%= StagingConstants.STAGED_PORTLET + curPortlet.getRootPortletId() %>" type="checkbox" value="<%= staged %>" />
+					<aui:input label="<%= PortalUtil.getPortletTitle(curPortlet, application, locale) %>" name="<%= StagingUtil.getStagedPortletId(curPortlet.getRootPortletId()) %>" type="checkbox" value="<%= staged %>" />
 
 				<%
 				}
@@ -196,17 +233,18 @@ LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroup.get
 			var remoteStagingOptions = A.one('#<portlet:namespace />remoteStagingOptions');
 			var stagedPortlets = A.one('#<portlet:namespace />stagedPortlets');
 
-			var stagingTypes = A.all('#<portlet:namespace />stagingTypes input');
+			var stagingTypes = A.one('#<portlet:namespace />stagingTypes');
 
-			stagingTypes.on(
-				'change',
+			stagingTypes.delegate(
+				'click',
 				function(event) {
 					var value = event.currentTarget.val();
 
 					stagedPortlets.toggle(value != '<%= StagingConstants.TYPE_NOT_STAGED %>');
 
 					remoteStagingOptions.toggle(value == '<%= StagingConstants.TYPE_REMOTE_STAGING %>');
-				}
+				},
+				'input'
 			);
 		</aui:script>
 	</c:when>

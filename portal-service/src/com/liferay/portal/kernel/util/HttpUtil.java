@@ -184,6 +184,10 @@ public class HttpUtil {
 		return getHttp().isProxyHost(host);
 	}
 
+	public static boolean isSecure(String url) {
+		return getHttp().isSecure(url);
+	}
+
 	public static Map<String, String[]> parameterMapFromString(
 		String queryString) {
 
@@ -214,6 +218,10 @@ public class HttpUtil {
 		return getHttp().protocolize(url, request);
 	}
 
+	public static String protocolize(String url, int port, boolean secure) {
+		return getHttp().protocolize(url, port, secure);
+	}
+
 	public static String protocolize(String url, RenderRequest renderRequest) {
 		return getHttp().protocolize(url, renderRequest);
 	}
@@ -226,8 +234,16 @@ public class HttpUtil {
 		return getHttp().removeParameter(url, name);
 	}
 
+	public static String removePathParameters(String uri) {
+		return getHttp().removePathParameters(uri);
+	}
+
 	public static String removeProtocol(String url) {
 		return getHttp().removeProtocol(url);
+	}
+
+	public static String sanitizeHeader(String header) {
+		return getHttp().sanitizeHeader(header);
 	}
 
 	public static String setParameter(String url, String name, boolean value) {

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link JournalArticleImageLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalArticleImageLocalService
+ * @author Brian Wing Shun Chan
+ * @see JournalArticleImageLocalService
  * @generated
  */
+@ProviderType
 public class JournalArticleImageLocalServiceWrapper
 	implements JournalArticleImageLocalService,
 		ServiceWrapper<JournalArticleImageLocalService> {
@@ -166,6 +169,23 @@ public class JournalArticleImageLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalArticleImageLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleImageLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -339,9 +359,24 @@ public class JournalArticleImageLocalServiceWrapper
 		return _journalArticleImageLocalService.getArticleImages(groupId);
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.journal.model.JournalArticleImage> getArticleImages(
+		long groupId, java.lang.String articleId, double version)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleImageLocalService.getArticleImages(groupId,
+			articleId, version);
+	}
+
+	@Override
+	public int getArticleImagesCount(long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalArticleImageLocalService.getArticleImagesCount(groupId);
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalArticleImageLocalService getWrappedJournalArticleImageLocalService() {
 		return _journalArticleImageLocalService;
 	}
@@ -349,6 +384,7 @@ public class JournalArticleImageLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalArticleImageLocalService(
 		JournalArticleImageLocalService journalArticleImageLocalService) {
 		_journalArticleImageLocalService = journalArticleImageLocalService;

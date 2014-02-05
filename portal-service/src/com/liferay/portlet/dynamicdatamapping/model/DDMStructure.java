@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -25,14 +27,13 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl
  * @generated
  */
+@ProviderType
 public interface DDMStructure extends DDMStructureModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
 	 * Never modify this interface directly. Add methods to {@link com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureImpl} and rerun ServiceBuilder to automatically copy the method declarations to this interface.
 	 */
-	public java.util.List<java.lang.String> getAvailableLanguageIds();
-
 	public java.util.List<java.lang.String> getChildrenFieldNames(
 		java.lang.String fieldName)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -41,8 +42,6 @@ public interface DDMStructure extends DDMStructureModel, PersistedModel {
 	public java.lang.String getCompleteXsd()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException;
-
-	public java.lang.String getDefaultLanguageId();
 
 	public com.liferay.portal.kernel.xml.Document getDocument();
 

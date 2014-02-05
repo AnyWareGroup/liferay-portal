@@ -22,14 +22,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.ClassNameServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.ClassNameServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.ClassNameServiceSoap
  * @generated
  */
 public class ClassNameSoap implements Serializable {
 	public static ClassNameSoap toSoapModel(ClassName model) {
 		ClassNameSoap soapModel = new ClassNameSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setClassNameId(model.getClassNameId());
 		soapModel.setValue(model.getValue());
 
@@ -84,6 +85,14 @@ public class ClassNameSoap implements Serializable {
 		setClassNameId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -100,6 +109,7 @@ public class ClassNameSoap implements Serializable {
 		_value = value;
 	}
 
+	private long _mvccVersion;
 	private long _classNameId;
 	private String _value;
 }

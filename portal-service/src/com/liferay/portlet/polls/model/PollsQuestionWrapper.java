@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.polls.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link PollsQuestion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsQuestion
+ * @author Brian Wing Shun Chan
+ * @see PollsQuestion
  * @generated
  */
+@ProviderType
 public class PollsQuestionWrapper implements PollsQuestion,
 	ModelWrapper<PollsQuestion> {
 	public PollsQuestionWrapper(PollsQuestion pollsQuestion) {
@@ -723,6 +728,22 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _pollsQuestion.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _pollsQuestion.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_pollsQuestion.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -783,6 +804,19 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	}
 
 	@Override
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getVotes()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _pollsQuestion.getVotes();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.polls.model.PollsVote> getVotes(
+		int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _pollsQuestion.getVotes(start, end);
+	}
+
+	@Override
 	public int getVotesCount()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _pollsQuestion.getVotesCount();
@@ -800,9 +834,34 @@ public class PollsQuestionWrapper implements PollsQuestion,
 		return _pollsQuestion.isExpired(serviceContext, defaultCreateDate);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PollsQuestionWrapper)) {
+			return false;
+		}
+
+		PollsQuestionWrapper pollsQuestionWrapper = (PollsQuestionWrapper)obj;
+
+		if (Validator.equals(_pollsQuestion, pollsQuestionWrapper._pollsQuestion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _pollsQuestion.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PollsQuestion getWrappedPollsQuestion() {
 		return _pollsQuestion;
 	}
@@ -810,6 +869,16 @@ public class PollsQuestionWrapper implements PollsQuestion,
 	@Override
 	public PollsQuestion getWrappedModel() {
 		return _pollsQuestion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _pollsQuestion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _pollsQuestion.isFinderCacheEnabled();
 	}
 
 	@Override

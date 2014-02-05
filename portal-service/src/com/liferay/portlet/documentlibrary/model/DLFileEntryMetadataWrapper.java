@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DLFileEntryMetadata}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileEntryMetadata
+ * @author Brian Wing Shun Chan
+ * @see DLFileEntryMetadata
  * @generated
  */
+@ProviderType
 public class DLFileEntryMetadataWrapper implements DLFileEntryMetadata,
 	ModelWrapper<DLFileEntryMetadata> {
 	public DLFileEntryMetadataWrapper(DLFileEntryMetadata dlFileEntryMetadata) {
@@ -390,9 +394,30 @@ public class DLFileEntryMetadataWrapper implements DLFileEntryMetadata,
 		return _dlFileEntryMetadata.getFileVersion();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLFileEntryMetadataWrapper)) {
+			return false;
+		}
+
+		DLFileEntryMetadataWrapper dlFileEntryMetadataWrapper = (DLFileEntryMetadataWrapper)obj;
+
+		if (Validator.equals(_dlFileEntryMetadata,
+					dlFileEntryMetadataWrapper._dlFileEntryMetadata)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileEntryMetadata getWrappedDLFileEntryMetadata() {
 		return _dlFileEntryMetadata;
 	}
@@ -400,6 +425,16 @@ public class DLFileEntryMetadataWrapper implements DLFileEntryMetadata,
 	@Override
 	public DLFileEntryMetadata getWrappedModel() {
 		return _dlFileEntryMetadata;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileEntryMetadata.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileEntryMetadata.isFinderCacheEnabled();
 	}
 
 	@Override

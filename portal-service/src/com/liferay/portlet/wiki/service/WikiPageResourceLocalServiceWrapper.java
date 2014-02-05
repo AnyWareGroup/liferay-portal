@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.wiki.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link WikiPageResourceLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiPageResourceLocalService
+ * @author Brian Wing Shun Chan
+ * @see WikiPageResourceLocalService
  * @generated
  */
+@ProviderType
 public class WikiPageResourceLocalServiceWrapper
 	implements WikiPageResourceLocalService,
 		ServiceWrapper<WikiPageResourceLocalService> {
@@ -168,6 +171,23 @@ public class WikiPageResourceLocalServiceWrapper
 		return _wikiPageResourceLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPageResourceLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.wiki.model.WikiPageResource fetchWikiPageResource(
 		long resourcePrimKey)
@@ -286,6 +306,13 @@ public class WikiPageResourceLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portlet.wiki.model.WikiPageResource fetchPageResource(
+		java.lang.String uuid)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPageResourceLocalService.fetchPageResource(uuid);
+	}
+
+	@Override
 	public com.liferay.portlet.wiki.model.WikiPageResource getPageResource(
 		long pageResourcePrimKey)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -311,6 +338,7 @@ public class WikiPageResourceLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public WikiPageResourceLocalService getWrappedWikiPageResourceLocalService() {
 		return _wikiPageResourceLocalService;
 	}
@@ -318,6 +346,7 @@ public class WikiPageResourceLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedWikiPageResourceLocalService(
 		WikiPageResourceLocalService wikiPageResourceLocalService) {
 		_wikiPageResourceLocalService = wikiPageResourceLocalService;

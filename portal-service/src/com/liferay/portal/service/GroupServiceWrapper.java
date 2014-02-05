@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link GroupService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       GroupService
+ * @author Brian Wing Shun Chan
+ * @see GroupService
  * @generated
  */
+@ProviderType
 public class GroupServiceWrapper implements GroupService,
 	ServiceWrapper<GroupService> {
 	public GroupServiceWrapper(GroupService groupService) {
@@ -56,7 +59,11 @@ public class GroupServiceWrapper implements GroupService,
 	* @param description the group's description (optionally
 	<code>null</code>)
 	* @param type the group's type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
+	* @param manualMembership whether manual membership is allowed for the
+	group
+	* @param membershipRestriction the group's membership restriction. For
+	more information see {@link GroupConstants}.
 	* @param friendlyURL the group's friendlyURL (optionally
 	<code>null</code>)
 	* @param site whether the group is to be associated with a main site
@@ -74,12 +81,14 @@ public class GroupServiceWrapper implements GroupService,
 	@Override
 	public com.liferay.portal.model.Group addGroup(long parentGroupId,
 		long liveGroupId, java.lang.String name, java.lang.String description,
-		int type, java.lang.String friendlyURL, boolean site, boolean active,
+		int type, boolean manualMembership, int membershipRestriction,
+		java.lang.String friendlyURL, boolean site, boolean active,
 		com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _groupService.addGroup(parentGroupId, liveGroupId, name,
-			description, type, friendlyURL, site, active, serviceContext);
+			description, type, manualMembership, membershipRestriction,
+			friendlyURL, site, active, serviceContext);
 	}
 
 	/**
@@ -90,7 +99,7 @@ public class GroupServiceWrapper implements GroupService,
 	* @param description the group's description (optionally
 	<code>null</code>)
 	* @param type the group's type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
 	* @param friendlyURL the group's friendlyURL
 	* @param site whether the group is to be associated with a main site
 	* @param active whether the group is active
@@ -105,8 +114,10 @@ public class GroupServiceWrapper implements GroupService,
 	if a valid friendly URL could not be created for the group
 	* @throws SystemException if a system exception occurred
 	* @deprecated As of 6.2.0, replaced by {@link #addGroup(long, long, String,
-	String, int, String, boolean, boolean, ServiceContext)}
+	String, int, boolean, int, String, boolean, boolean,
+	ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Group addGroup(long parentGroupId,
 		java.lang.String name, java.lang.String description, int type,
@@ -122,6 +133,7 @@ public class GroupServiceWrapper implements GroupService,
 	* @deprecated As of 6.2.0, replaced by {@link #addGroup(long, String,
 	String, int, String, boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Group addGroup(java.lang.String name,
 		java.lang.String description, int type, java.lang.String friendlyURL,
@@ -190,6 +202,35 @@ public class GroupServiceWrapper implements GroupService,
 		_groupService.deleteGroup(groupId);
 	}
 
+	@Override
+	public void disableStaging(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_groupService.disableStaging(groupId);
+	}
+
+	@Override
+	public void enableStaging(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_groupService.enableStaging(groupId);
+	}
+
+	/**
+	* Returns the company group.
+	*
+	* @param companyId the primary key of the company
+	* @return the group associated with the company
+	* @throws PortalException if a matching group could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Group getCompanyGroup(long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getCompanyGroup(companyId);
+	}
+
 	/**
 	* Returns the group with the primary key.
 	*
@@ -226,6 +267,26 @@ public class GroupServiceWrapper implements GroupService,
 	}
 
 	/**
+	* Returns all the groups that are direct children of the parent group.
+	*
+	* @param companyId the primary key of the company
+	* @param parentGroupId the primary key of the parent group
+	* @param site whether the group is to be associated with a main site
+	* @return the matching groups, or <code>null</code> if no matches were
+	found
+	* @throws PortalException if the user did not have permission to view the
+	group or if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getGroups(
+		long companyId, long parentGroupId, boolean site)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getGroups(companyId, parentGroupId, site);
+	}
+
+	/**
 	* Returns a range of all the site groups for which the user has control
 	* panel access.
 	*
@@ -237,6 +298,29 @@ public class GroupServiceWrapper implements GroupService,
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
 	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getManageableSiteGroups(
+		java.util.Collection<com.liferay.portal.model.Portlet> portlets, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getManageableSiteGroups(portlets, max);
+	}
+
+	/**
+	* Returns a range of all the site groups for which the user has control
+	* panel access.
+	*
+	* @param portlets the portlets to manage
+	* @param max the upper bound of the range of groups to consider (not
+	inclusive)
+	* @return the range of site groups for which the user has Control Panel
+	access
+	* @throws PortalException if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link
+	#getManageableSiteGroups(Collection, int)}
+	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getManageableSites(
 		java.util.Collection<com.liferay.portal.model.Portlet> portlets, int max)
@@ -329,6 +413,11 @@ public class GroupServiceWrapper implements GroupService,
 		return _groupService.getUserOrganizationsGroups(userId, start, end);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getUserSitesGroups(long,
+	String[], boolean, int)}
+	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getUserPlaces(
 		long userId, java.lang.String[] classNames,
@@ -340,7 +429,7 @@ public class GroupServiceWrapper implements GroupService,
 	}
 
 	/**
-	* Returns the user's group &quot;places&quot; associated with the group
+	* Returns the user's groups &quot;sites&quot; associated with the group
 	* entity class names, including the Control Panel group if the user is
 	* permitted to view the Control Panel.
 	*
@@ -367,12 +456,15 @@ public class GroupServiceWrapper implements GroupService,
 	* @param userId the primary key of the user
 	* @param classNames the group entity class names (optionally
 	<code>null</code>). For more information see {@link
-	#getUserPlaces(long, String[], int)}
+	#getUserSitesGroups(long, String[], int)}.
 	* @param max the maximum number of groups to return
-	* @return the user's group &quot;places&quot;
+	* @return the user's groups &quot;sites&quot;
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #getUserSitesGroups(long,
+	String[], int)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getUserPlaces(
 		long userId, java.lang.String[] classNames, int max)
@@ -381,18 +473,8 @@ public class GroupServiceWrapper implements GroupService,
 		return _groupService.getUserPlaces(userId, classNames, max);
 	}
 
-	@Override
-	public java.util.List<com.liferay.portal.model.Group> getUserPlaces(
-		long userId, java.lang.String[] classNames, java.lang.String name,
-		boolean active, boolean includeControlPanel, int start, int end)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		return _groupService.getUserPlaces(userId, classNames, name, active,
-			includeControlPanel, start, end);
-	}
-
 	/**
-	* Returns the guest or current user's group &quot;places&quot; associated
+	* Returns the guest or current user's groups &quot;sites&quot; associated
 	* with the group entity class names, including the Control Panel group if
 	* the user is permitted to view the Control Panel.
 	*
@@ -418,12 +500,15 @@ public class GroupServiceWrapper implements GroupService,
 	*
 	* @param classNames the group entity class names (optionally
 	<code>null</code>). For more information see {@link
-	#getUserPlaces(String[], int)}
+	#getUserSitesGroups(String[], int)}.
 	* @param max the maximum number of groups to return
-	* @return the user's group &quot;places&quot;
+	* @return the user's groups &quot;sites&quot;
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #getUserSitesGroups(String[],
+	int)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getUserPlaces(
 		java.lang.String[] classNames, int max)
@@ -433,15 +518,17 @@ public class GroupServiceWrapper implements GroupService,
 	}
 
 	/**
-	* Returns the number of the guest or current user's group
-	* &quot;places&quot; associated with the group entity class names,
-	* including the Control Panel group if the user is permitted to view the
-	* Control Panel.
+	* Returns the number of the guest or current user's groups
+	* &quot;sites&quot; associated with the group entity class names, including
+	* the Control Panel group if the user is permitted to view the Control
+	* Panel.
 	*
-	* @return the number of user's group &quot;places&quot;
+	* @return the number of user's groups &quot;sites&quot;
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #getUserSitesGroupsCount()}
 	*/
+	@Deprecated
 	@Override
 	public int getUserPlacesCount()
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -453,16 +540,135 @@ public class GroupServiceWrapper implements GroupService,
 	* Returns the guest or current user's layout set group, organization
 	* groups, inherited organization groups, and site groups.
 	*
-	* @return the user's layout set group, organization groups, and inherited
-	organization groups, and site groups
+	* @return the user's layout set group, organization groups, and
+	inherited organization groups, and site groups
 	* @throws PortalException if a portal exception occurred
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #getUserSitesGroups}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portal.model.Group> getUserSites()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _groupService.getUserSites();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getUserSitesGroups()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getUserSitesGroups();
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getUserSitesGroups(
+		long userId, java.lang.String[] classNames,
+		boolean includeControlPanel, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getUserSitesGroups(userId, classNames,
+			includeControlPanel, max);
+	}
+
+	/**
+	* Returns the user's groups &quot;sites&quot; associated with the group
+	* entity class names, including the Control Panel group if the user is
+	* permitted to view the Control Panel.
+	*
+	* <ul>
+	* <li>
+	* Class name &quot;User&quot; includes the user's layout set
+	* group.
+	* </li>
+	* <li>
+	* Class name &quot;Organization&quot; includes the user's
+	* immediate organization groups and inherited organization groups.
+	* </li>
+	* <li>
+	* Class name &quot;Group&quot; includes the user's immediate
+	* organization groups and site groups.
+	* </li>
+	* <li>
+	* A <code>classNames</code>
+	* value of <code>null</code> includes the user's layout set group,
+	* organization groups, inherited organization groups, and site groups.
+	* </li>
+	* </ul>
+	*
+	* @param userId the primary key of the user
+	* @param classNames the group entity class names (optionally
+	<code>null</code>). For more information see {@link
+	#getUserSitesGroups(long, String[], boolean, int)}.
+	* @param max the maximum number of groups to return
+	* @return the user's groups &quot;sites&quot;
+	* @throws PortalException if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getUserSitesGroups(
+		long userId, java.lang.String[] classNames, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getUserSitesGroups(userId, classNames, max);
+	}
+
+	/**
+	* Returns the guest or current user's groups &quot;sites&quot; associated
+	* with the group entity class names, including the Control Panel group if
+	* the user is permitted to view the Control Panel.
+	*
+	* <ul>
+	* <li>
+	* Class name &quot;User&quot; includes the user's layout set
+	* group.
+	* </li>
+	* <li>
+	* Class name &quot;Organization&quot; includes the user's
+	* immediate organization groups and inherited organization groups.
+	* </li>
+	* <li>
+	* Class name &quot;Group&quot; includes the user's immediate
+	* organization groups and site groups.
+	* </li>
+	* <li>
+	* A <code>classNames</code>
+	* value of <code>null</code> includes the user's layout set group,
+	* organization groups, inherited organization groups, and site groups.
+	* </li>
+	* </ul>
+	*
+	* @param classNames the group entity class names (optionally
+	<code>null</code>). For more information see {@link
+	#getUserSitesGroups(long, String[], boolean, int)}.
+	* @param max the maximum number of groups to return
+	* @return the user's groups &quot;sites&quot;
+	* @throws PortalException if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portal.model.Group> getUserSitesGroups(
+		java.lang.String[] classNames, int max)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getUserSitesGroups(classNames, max);
+	}
+
+	/**
+	* Returns the number of the guest or current user's groups
+	* &quot;sites&quot; associated with the group entity class names, including
+	* the Control Panel group if the user is permitted to view the Control
+	* Panel.
+	*
+	* @return the number of user's groups &quot;sites&quot;
+	* @throws PortalException if a portal exception occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public int getUserSitesGroupsCount()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _groupService.getUserSitesGroupsCount();
 	}
 
 	/**
@@ -510,7 +716,7 @@ public class GroupServiceWrapper implements GroupService,
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @param start the lower bound of the range of groups to return
 	* @param end the upper bound of the range of groups to return (not
 	inclusive)
@@ -542,7 +748,7 @@ public class GroupServiceWrapper implements GroupService,
 	search, add entries having &quot;usersGroups&quot; and
 	&quot;inherit&quot; as keys mapped to the the user's ID. For more
 	information see {@link
-	com.liferay.portal.service.persistence.GroupFinder}
+	com.liferay.portal.service.persistence.GroupFinder}.
 	* @return the number of matching groups
 	* @throws SystemException if a system exception occurred
 	*/
@@ -615,7 +821,11 @@ public class GroupServiceWrapper implements GroupService,
 	* @param description the group's new description (optionally
 	<code>null</code>)
 	* @param type the group's new type. For more information see {@link
-	com.liferay.portal.model.GroupConstants}
+	GroupConstants}.
+	* @param manualMembership whether manual membership is allowed for the
+	group
+	* @param membershipRestriction the group's membership restriction. For
+	more information see {@link GroupConstants}.
 	* @param friendlyURL the group's new friendlyURL (optionally
 	<code>null</code>)
 	* @param active whether the group is active
@@ -631,12 +841,14 @@ public class GroupServiceWrapper implements GroupService,
 	@Override
 	public com.liferay.portal.model.Group updateGroup(long groupId,
 		long parentGroupId, java.lang.String name,
-		java.lang.String description, int type, java.lang.String friendlyURL,
+		java.lang.String description, int type, boolean manualMembership,
+		int membershipRestriction, java.lang.String friendlyURL,
 		boolean active, com.liferay.portal.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _groupService.updateGroup(groupId, parentGroupId, name,
-			description, type, friendlyURL, active, serviceContext);
+			description, type, manualMembership, membershipRestriction,
+			friendlyURL, active, serviceContext);
 	}
 
 	/**
@@ -658,9 +870,18 @@ public class GroupServiceWrapper implements GroupService,
 		return _groupService.updateGroup(groupId, typeSettings);
 	}
 
+	@Override
+	public void updateStagedPortlets(long groupId,
+		java.util.Map<java.lang.String, java.lang.String> stagedPortletIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_groupService.updateStagedPortlets(groupId, stagedPortletIds);
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public GroupService getWrappedGroupService() {
 		return _groupService;
 	}
@@ -668,6 +889,7 @@ public class GroupServiceWrapper implements GroupService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedGroupService(GroupService groupService) {
 		_groupService = groupService;
 	}

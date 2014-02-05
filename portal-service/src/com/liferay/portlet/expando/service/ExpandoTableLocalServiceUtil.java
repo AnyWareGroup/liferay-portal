@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.expando.service.impl.ExpandoTableLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class ExpandoTableLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,6 +168,21 @@ public class ExpandoTableLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.expando.model.ExpandoTable fetchExpandoTable(
 		long tableId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -278,6 +296,7 @@ public class ExpandoTableLocalServiceUtil {
 	* @deprecated As of 6.1.0, replaced by {@link #addTable(long, long,
 	String)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.expando.model.ExpandoTable addTable(
 		long classNameId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -296,6 +315,7 @@ public class ExpandoTableLocalServiceUtil {
 	* @deprecated As of 6.1.0, replaced by {@link #addTable(long, String,
 	String)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.expando.model.ExpandoTable addTable(
 		java.lang.String className, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -389,6 +409,7 @@ public class ExpandoTableLocalServiceUtil {
 	* @deprecated As of 6.1.0, replaced by {@link #getTable(long, long,
 	String)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.expando.model.ExpandoTable getTable(
 		long classNameId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -407,6 +428,7 @@ public class ExpandoTableLocalServiceUtil {
 	* @deprecated As of 6.1.0, replaced by {@link #getTable(long, String,
 	String)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.expando.model.ExpandoTable getTable(
 		java.lang.String className, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -447,6 +469,7 @@ public class ExpandoTableLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(ExpandoTableLocalService service) {
 	}
 

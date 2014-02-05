@@ -14,10 +14,16 @@
 
 package com.liferay.portlet.messageboards.lar;
 
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.lar.BaseStagedModelDataHandlerTestCase;
+import com.liferay.portal.kernel.util.ObjectValuePair;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.lar.BaseWorkflowedStagedModelDataHandlerTestCase;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.StagedModel;
+import com.liferay.portal.service.persistence.RepositoryUtil;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
@@ -27,6 +33,9 @@ import com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.util.MBTestUtil;
 
+import java.io.InputStream;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +53,7 @@ import org.junit.runner.RunWith;
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class MBMessageStagedModelDataHandlerTest
-	extends BaseStagedModelDataHandlerTestCase {
+	extends BaseWorkflowedStagedModelDataHandlerTestCase {
 
 	@Override
 	protected Map<String, List<StagedModel>> addDependentStagedModelsMap(
@@ -73,8 +82,54 @@ public class MBMessageStagedModelDataHandlerTest
 
 		MBCategory category = (MBCategory)dependentStagedModels.get(0);
 
-		return MBTestUtil.addMessageWithWorkflow(
-			group.getGroupId(), category.getCategoryId(), true);
+		List<ObjectValuePair<String, InputStream>> objectValuePairs =
+			MBTestUtil.getInputStreamOVPs(
+				"attachment.txt", getClass(), StringPool.BLANK);
+
+		MBMessage message = MBTestUtil.addMessageWithWorkflowAndAttachments(
+			group.getGroupId(), category.getCategoryId(), true,
+			objectValuePairs);
+
+		List<FileEntry> attachmentsFileEntries =
+			message.getAttachmentsFileEntries();
+
+		FileEntry fileEntry = attachmentsFileEntries.get(0);
+
+		Folder folder = fileEntry.getFolder();
+
+		while (folder != null) {
+			addDependentStagedModel(
+				dependentStagedModelsMap, Folder.class, folder);
+
+			folder = folder.getParentFolder();
+		}
+
+		addDependentStagedModel(
+			dependentStagedModelsMap, FileEntry.class,
+			attachmentsFileEntries.get(0));
+
+		Repository repository = RepositoryUtil.fetchByPrimaryKey(
+			fileEntry.getRepositoryId());
+
+		addDependentStagedModel(
+			dependentStagedModelsMap, Repository.class, repository);
+
+		return message;
+	}
+
+	@Override
+	protected List<StagedModel> addWorkflowedStagedModels(Group group)
+		throws Exception {
+
+		List<StagedModel> stagedModels = new ArrayList<StagedModel>();
+
+		stagedModels.add(
+			MBTestUtil.addMessageWithWorkflow(group.getGroupId(), true));
+
+		stagedModels.add(
+			MBTestUtil.addMessageWithWorkflow(group.getGroupId(), false));
+
+		return stagedModels;
 	}
 
 	@Override
@@ -108,6 +163,23 @@ public class MBMessageStagedModelDataHandlerTest
 
 		MBCategoryLocalServiceUtil.getMBCategoryByUuidAndGroupId(
 			category.getUuid(), group.getGroupId());
+	}
+
+	@Override
+	protected void validateImport(
+			StagedModel stagedModel, StagedModelAssets stagedModelAssets,
+			Map<String, List<StagedModel>> dependentStagedModelsMap,
+			Group group)
+		throws Exception {
+
+		super.validateImport(
+			stagedModel, stagedModelAssets, dependentStagedModelsMap, group);
+
+		MBMessage importedMessage = (MBMessage)getStagedModel(
+			stagedModel.getUuid(), group);
+
+		Assert.assertEquals(
+			1, importedMessage.getAttachmentsFileEntriesCount());
 	}
 
 }

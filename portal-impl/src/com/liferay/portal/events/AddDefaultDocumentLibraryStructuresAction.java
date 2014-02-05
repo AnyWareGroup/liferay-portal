@@ -16,9 +16,9 @@ package com.liferay.portal.events;
 
 import com.liferay.portal.kernel.events.ActionException;
 import com.liferay.portal.kernel.metadata.RawMetadataProcessorUtil;
+import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.xml.Document;
@@ -28,7 +28,6 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.upgrade.UpgradeProcessUtil;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryTypeException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryMetadata;
@@ -52,6 +51,7 @@ import java.util.Map;
 /**
  * @author Sergio González
  * @author Miguel Pastor
+ * @author Roberto Díaz
  */
 public class AddDefaultDocumentLibraryStructuresAction
 	extends BaseDefaultDDMStructureAction {
@@ -67,8 +67,7 @@ public class AddDefaultDocumentLibraryStructuresAction
 	}
 
 	protected void addDLFileEntryType(
-			long userId, long groupId, String dlFileEntryTypeName,
-			String dlFileEntryTypeDescription, String dynamicDDMStructureName,
+			long userId, long groupId, String dlFileEntryTypeKey,
 			List<String> ddmStructureNames, ServiceContext serviceContext)
 		throws Exception {
 
@@ -90,19 +89,22 @@ public class AddDefaultDocumentLibraryStructuresAction
 			ddmStructureIds.add(ddmStructure.getStructureId());
 		}
 
+		Locale locale = PortalUtil.getSiteDefaultLocale(groupId);
+
 		String xsd = getDynamicDDMStructureXSD(
-			"document-library-structures.xml", dynamicDDMStructureName);
+			"document-library-structures.xml", dlFileEntryTypeKey, locale);
 
 		serviceContext.setAttribute("xsd", xsd);
 
 		try {
 			DLFileEntryTypeLocalServiceUtil.getFileEntryType(
-				groupId, dlFileEntryTypeName);
+				groupId, dlFileEntryTypeKey);
 		}
 		catch (NoSuchFileEntryTypeException nsfete) {
 			DLFileEntryTypeLocalServiceUtil.addFileEntryType(
-				userId, groupId, dlFileEntryTypeName,
-				dlFileEntryTypeDescription,
+				userId, groupId, dlFileEntryTypeKey,
+				getLocalizationMap(dlFileEntryTypeKey, locale),
+				getLocalizationMap(dlFileEntryTypeKey, locale),
 				ArrayUtil.toArray(
 					ddmStructureIds.toArray(new Long[ddmStructureIds.size()])),
 				serviceContext);
@@ -117,9 +119,7 @@ public class AddDefaultDocumentLibraryStructuresAction
 
 		addDLFileEntryType(
 			userId, groupId, DLFileEntryTypeConstants.NAME_CONTRACT,
-			DLFileEntryTypeConstants.NAME_CONTRACT,
-			DLFileEntryTypeConstants.NAME_CONTRACT, ddmStructureNames,
-			serviceContext);
+			ddmStructureNames, serviceContext);
 
 		ddmStructureNames.clear();
 
@@ -127,9 +127,7 @@ public class AddDefaultDocumentLibraryStructuresAction
 
 		addDLFileEntryType(
 			userId, groupId, DLFileEntryTypeConstants.NAME_MARKETING_BANNER,
-			DLFileEntryTypeConstants.NAME_MARKETING_BANNER,
-			DLFileEntryTypeConstants.NAME_MARKETING_BANNER, ddmStructureNames,
-			serviceContext);
+			ddmStructureNames, serviceContext);
 
 		ddmStructureNames.clear();
 
@@ -137,9 +135,7 @@ public class AddDefaultDocumentLibraryStructuresAction
 
 		addDLFileEntryType(
 			userId, groupId, DLFileEntryTypeConstants.NAME_ONLINE_TRAINING,
-			DLFileEntryTypeConstants.NAME_ONLINE_TRAINING,
-			DLFileEntryTypeConstants.NAME_ONLINE_TRAINING, ddmStructureNames,
-			serviceContext);
+			ddmStructureNames, serviceContext);
 
 		ddmStructureNames.clear();
 
@@ -147,16 +143,12 @@ public class AddDefaultDocumentLibraryStructuresAction
 
 		addDLFileEntryType(
 			userId, groupId, DLFileEntryTypeConstants.NAME_SALES_PRESENTATION,
-			DLFileEntryTypeConstants.NAME_SALES_PRESENTATION,
-			DLFileEntryTypeConstants.NAME_SALES_PRESENTATION, ddmStructureNames,
-			serviceContext);
+			ddmStructureNames, serviceContext);
 
 		if (UpgradeProcessUtil.isCreateIGImageDocumentType()) {
 			addDLFileEntryType(
 				userId, groupId, DLFileEntryTypeConstants.NAME_IG_IMAGE,
-				DLFileEntryTypeConstants.NAME_IG_IMAGE,
-				DLFileEntryTypeConstants.NAME_IG_IMAGE, ddmStructureNames,
-				serviceContext);
+				ddmStructureNames, serviceContext);
 		}
 	}
 
@@ -164,8 +156,10 @@ public class AddDefaultDocumentLibraryStructuresAction
 			long userId, long groupId, ServiceContext serviceContext)
 		throws Exception {
 
+		Locale locale = PortalUtil.getSiteDefaultLocale(groupId);
+
 		String xsd = buildDLRawMetadataXML(
-			RawMetadataProcessorUtil.getFields());
+			RawMetadataProcessorUtil.getFields(), locale);
 
 		Document document = SAXReaderUtil.read(new StringReader(xsd));
 
@@ -197,12 +191,12 @@ public class AddDefaultDocumentLibraryStructuresAction
 			else {
 				Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
-				nameMap.put(LocaleUtil.getDefault(), name);
+				nameMap.put(locale, name);
 
 				Map<Locale, String> descriptionMap =
 					new HashMap<Locale, String>();
 
-				descriptionMap.put(LocaleUtil.getDefault(), description);
+				descriptionMap.put(locale, description);
 
 				DDMStructureLocalServiceUtil.addStructure(
 					userId, groupId,
@@ -214,34 +208,33 @@ public class AddDefaultDocumentLibraryStructuresAction
 		}
 	}
 
-	protected String buildDLRawMetadataElementXML(Field field) {
-		StringBundler sb = new StringBundler(16);
+	protected String buildDLRawMetadataElementXML(Field field, Locale locale) {
+		StringBundler sb = new StringBundler(15);
 
-		sb.append("<dynamic-element dataType=\"string\" name=\"");
+		sb.append("<dynamic-element dataType=\"string\" indexType=\"text\" ");
+		sb.append("name=\"");
 
 		Class<?> fieldClass = field.getDeclaringClass();
 
 		sb.append(fieldClass.getSimpleName());
 		sb.append(StringPool.UNDERLINE);
 		sb.append(field.getName());
-		sb.append("\" type=\"text\">");
+		sb.append("\" required=\"false\" showLabel=\"true\" type=\"text\">");
 		sb.append("<meta-data locale=\"");
-		sb.append(LocaleUtil.getDefault());
+		sb.append(locale);
 		sb.append("\">");
 		sb.append("<entry name=\"label\"><![CDATA[metadata.");
 		sb.append(fieldClass.getSimpleName());
 		sb.append(StringPool.PERIOD);
 		sb.append(field.getName());
 		sb.append("]]></entry><entry name=\"predefinedValue\">");
-		sb.append("<![CDATA[]]></entry><entry name=\"required\">");
-		sb.append("<![CDATA[false]]></entry><entry name=\"showLabel\">");
-		sb.append("<![CDATA[true]]></entry></meta-data></dynamic-element>");
+		sb.append("<![CDATA[]]></entry></meta-data></dynamic-element>");
 
 		return sb.toString();
 	}
 
 	protected String buildDLRawMetadataStructureXML(
-		String name, Field[] fields) {
+		String name, Field[] fields, Locale locale) {
 
 		StringBundler sb = new StringBundler(12 + fields.length);
 
@@ -252,13 +245,13 @@ public class AddDefaultDocumentLibraryStructuresAction
 		sb.append(name);
 		sb.append("]]></description>");
 		sb.append("<root available-locales=\"");
-		sb.append(LocaleUtil.getDefault());
+		sb.append(locale);
 		sb.append("\" default-locale=\"");
-		sb.append(LocaleUtil.getDefault());
+		sb.append(locale);
 		sb.append("\">");
 
 		for (Field field : fields) {
-			sb.append(buildDLRawMetadataElementXML(field));
+			sb.append(buildDLRawMetadataElementXML(field, locale));
 		}
 
 		sb.append("</root></structure>");
@@ -266,13 +259,16 @@ public class AddDefaultDocumentLibraryStructuresAction
 		return sb.toString();
 	}
 
-	protected String buildDLRawMetadataXML(Map<String, Field[]> fields) {
+	protected String buildDLRawMetadataXML(
+		Map<String, Field[]> fields, Locale locale) {
+
 		StringBundler sb = new StringBundler(2 + fields.size());
 
 		sb.append("<?xml version=\"1.0\"?><root>");
 
 		for (String key : fields.keySet()) {
-			sb.append(buildDLRawMetadataStructureXML(key, fields.get(key)));
+			sb.append(
+				buildDLRawMetadataStructureXML(key, fields.get(key), locale));
 		}
 
 		sb.append("</root>");
@@ -282,6 +278,9 @@ public class AddDefaultDocumentLibraryStructuresAction
 
 	protected void doRun(long companyId) throws Exception {
 		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setAddGuestPermissions(true);
+		serviceContext.setAddGroupPermissions(true);
 
 		Group group = GroupLocalServiceUtil.getCompanyGroup(companyId);
 
@@ -298,6 +297,16 @@ public class AddDefaultDocumentLibraryStructuresAction
 		addDLFileEntryTypes(defaultUserId, group.getGroupId(), serviceContext);
 		addDLRawMetadataStructures(
 			defaultUserId, group.getGroupId(), serviceContext);
+	}
+
+	protected Map<Locale, String> getLocalizationMap(
+		String content, Locale locale) {
+
+		Map<Locale, String> localizationMap = new HashMap<Locale, String>();
+
+		localizationMap.put(locale, content);
+
+		return localizationMap;
 	}
 
 }

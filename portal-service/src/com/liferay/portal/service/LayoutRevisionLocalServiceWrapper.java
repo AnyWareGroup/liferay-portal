@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutRevisionLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutRevisionLocalService
+ * @author Brian Wing Shun Chan
+ * @see LayoutRevisionLocalService
  * @generated
  */
+@ProviderType
 public class LayoutRevisionLocalServiceWrapper
 	implements LayoutRevisionLocalService,
 		ServiceWrapper<LayoutRevisionLocalService> {
@@ -165,6 +168,23 @@ public class LayoutRevisionLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _layoutRevisionLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutRevisionLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -324,6 +344,14 @@ public class LayoutRevisionLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.model.LayoutRevision fetchLayoutRevision(
+		long layoutSetBranchId, boolean head, long plid)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutRevisionLocalService.fetchLayoutRevision(layoutSetBranchId,
+			head, plid);
+	}
+
+	@Override
 	public java.util.List<com.liferay.portal.model.LayoutRevision> getChildLayoutRevisions(
 		long layoutSetBranchId, long parentLayoutRevisionId, long plid)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -407,6 +435,15 @@ public class LayoutRevisionLocalServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.portal.model.LayoutRevision> getLayoutRevisions(
+		long layoutSetBranchId, long plid, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutRevisionLocalService.getLayoutRevisions(layoutSetBranchId,
+			plid, start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.model.LayoutRevision> getLayoutRevisions(
 		long layoutSetBranchId, long layoutBranchId, long plid, int start,
 		int end,
 		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
@@ -454,6 +491,7 @@ public class LayoutRevisionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutRevisionLocalService getWrappedLayoutRevisionLocalService() {
 		return _layoutRevisionLocalService;
 	}
@@ -461,6 +499,7 @@ public class LayoutRevisionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutRevisionLocalService(
 		LayoutRevisionLocalService layoutRevisionLocalService) {
 		_layoutRevisionLocalService = layoutRevisionLocalService;

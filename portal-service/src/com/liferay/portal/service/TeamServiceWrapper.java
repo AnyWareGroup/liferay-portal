@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link TeamService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       TeamService
+ * @author Brian Wing Shun Chan
+ * @see TeamService
  * @generated
  */
+@ProviderType
 public class TeamServiceWrapper implements TeamService,
 	ServiceWrapper<TeamService> {
 	public TeamServiceWrapper(TeamService teamService) {
@@ -119,6 +122,7 @@ public class TeamServiceWrapper implements TeamService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public TeamService getWrappedTeamService() {
 		return _teamService;
 	}
@@ -126,6 +130,7 @@ public class TeamServiceWrapper implements TeamService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedTeamService(TeamService teamService) {
 		_teamService = teamService;
 	}

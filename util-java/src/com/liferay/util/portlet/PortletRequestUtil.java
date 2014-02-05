@@ -65,11 +65,13 @@ public class PortletRequestUtil {
 		boolean multiPartContent = PortletFileUpload.isMultipartContent(
 			actionRequest);
 
-		if (multiPartContent) {
-			_log.info("The given request is a multipart request");
-		}
-		else {
-			_log.info("The given request is NOT a multipart request");
+		if (_log.isInfoEnabled()) {
+			if (multiPartContent) {
+				_log.info("The given request is a multipart request");
+			}
+			else {
+				_log.info("The given request is NOT a multipart request");
+			}
 		}
 
 		DiskFileItemFactory diskFileItemFactory = new DiskFileItemFactory();
@@ -290,11 +292,11 @@ public class PortletRequestUtil {
 	}
 
 	private static boolean _isValidAttributeName(String name) {
-		if (name.equalsIgnoreCase("j_password") ||
-			name.equalsIgnoreCase("LAYOUT_CONTENT") ||
-			name.equalsIgnoreCase("LAYOUTS") ||
-			name.equalsIgnoreCase("PORTLET_RENDER_PARAMETERS") ||
-			name.equalsIgnoreCase("USER_PASSWORD") ||
+		if (StringUtil.equalsIgnoreCase(name, "j_password") ||
+			StringUtil.equalsIgnoreCase(name, "LAYOUT_CONTENT") ||
+			StringUtil.equalsIgnoreCase(name, "LAYOUTS") ||
+			StringUtil.equalsIgnoreCase(name, "PORTLET_RENDER_PARAMETERS") ||
+			StringUtil.equalsIgnoreCase(name, "USER_PASSWORD") ||
 			name.startsWith("javax.") ||
 			name.startsWith("liferay-ui:")) {
 

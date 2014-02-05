@@ -30,8 +30,10 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.ResourceAction;
 import com.liferay.portal.model.impl.GroupImpl;
 import com.liferay.portal.service.ClassNameLocalServiceUtil;
+import com.liferay.portal.service.ResourceActionLocalServiceUtil;
 import com.liferay.portal.service.ResourceBlockLocalServiceUtil;
 import com.liferay.portal.service.impl.GroupLocalServiceImpl;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
@@ -82,6 +84,9 @@ public class GroupFinderImpl
 	public static final String FIND_BY_C_C =
 		GroupFinder.class.getName() + ".findByC_C";
 
+	public static final String FIND_BY_C_P =
+		GroupFinder.class.getName() + ".findByC_P";
+
 	public static final String FIND_BY_C_N =
 		GroupFinder.class.getName() + ".findByC_N";
 
@@ -109,11 +114,14 @@ public class GroupFinderImpl
 	public static final String JOIN_BY_LAYOUT_SET =
 		GroupFinder.class.getName() + ".joinByLayoutSet";
 
+	public static final String JOIN_BY_MANUAL_MEMBERSHIP =
+		GroupFinder.class.getName() + ".joinByManualMembership";
+
+	public static final String JOIN_BY_MEMBERSHIP_RESTRICTION =
+		GroupFinder.class.getName() + ".joinByMembershipRestriction";
+
 	public static final String JOIN_BY_PAGE_COUNT =
 		GroupFinder.class.getName() + ".joinByPageCount";
-
-	public static final String JOIN_BY_ROLE_PERMISSIONS =
-		GroupFinder.class.getName() + ".joinByRolePermissions";
 
 	public static final String JOIN_BY_ROLE_RESOURCE_PERMISSIONS =
 		GroupFinder.class.getName() + ".joinByRoleResourcePermissions";
@@ -134,110 +142,6 @@ public class GroupFinderImpl
 		GroupFinder.class.getName() + ".joinByUsersGroups";
 
 	@Override
-	public int countByKeywords(
-			long companyId, long parentGroupId, String parentGroupIdComparator,
-			String keywords, LinkedHashMap<String, Object> params)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return countByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(), parentGroupId,
-			parentGroupIdComparator, names, realNames, descriptions, params,
-			andOperator);
-	}
-
-	@Override
-	public int countByKeywords(
-			long companyId, long[] classNameIds, long parentGroupId,
-			String parentGroupIdComparator, String keywords,
-			LinkedHashMap<String, Object> params)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return countByC_C_PG_N_D(
-			companyId, classNameIds, parentGroupId, parentGroupIdComparator,
-			names, realNames, descriptions, params, andOperator);
-	}
-
-	@Override
-	public int countByKeywords(
-			long companyId, long[] classNameIds, String keywords,
-			LinkedHashMap<String, Object> params)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return countByC_C_PG_N_D(
-			companyId, classNameIds, GroupConstants.ANY_PARENT_GROUP_ID,
-			StringPool.NOT_EQUAL, names, realNames, descriptions, params,
-			andOperator);
-	}
-
-	@Override
-	public int countByKeywords(
-			long companyId, String keywords,
-			LinkedHashMap<String, Object> params)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return countByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(),
-			GroupConstants.ANY_PARENT_GROUP_ID, StringPool.NOT_EQUAL, names,
-			realNames, descriptions, params, andOperator);
-	}
-
-	@Override
 	public int countByLayouts(long companyId, long parentGroupId, boolean site)
 		throws SystemException {
 
@@ -248,7 +152,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(COUNT_BY_LAYOUTS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -326,114 +230,19 @@ public class GroupFinderImpl
 	}
 
 	@Override
-	public int countByC_N_D(
-			long companyId, String name, String realName, String description,
-			LinkedHashMap<String, Object> params, boolean andOperator)
-		throws SystemException {
-
-		name = StringUtil.lowerCase(name);
-		description = StringUtil.lowerCase(description);
-
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
-
-		return countByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(),
-			GroupConstants.ANY_PARENT_GROUP_ID, StringPool.NOT_EQUAL, names,
-			realNames, descriptions, params, andOperator);
-	}
-
-	@Override
-	public int countByC_N_D(
-			long companyId, String[] names, String[] realNames,
-			String[] descriptions, LinkedHashMap<String, Object> params,
-			boolean andOperator)
-		throws SystemException {
-
-		return countByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(),
-			GroupConstants.ANY_PARENT_GROUP_ID, StringPool.NOT_EQUAL, names,
-			realNames, descriptions, params, andOperator);
-	}
-
-	@Override
-	public int countByC_C_N_D(
-			long companyId, long[] classNameIds, String name, String realName,
-			String description, LinkedHashMap<String, Object> params,
-			boolean andOperator)
-		throws SystemException {
-
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
-
-		return countByC_C_PG_N_D(
-			companyId, classNameIds, GroupConstants.ANY_PARENT_GROUP_ID,
-			StringPool.NOT_EQUAL, names, realNames, descriptions, params,
-			andOperator);
-	}
-
-	@Override
-	public int countByC_PG_N_D(
-			long companyId, long parentGroupId, String parentGroupIdComparator,
-			String name, String realName, String description,
-			LinkedHashMap<String, Object> params, boolean andOperator)
-		throws SystemException {
-
-		name = StringUtil.lowerCase(name);
-		description = StringUtil.lowerCase(description);
-
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
-
-		return countByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(), parentGroupId,
-			parentGroupIdComparator, names, realNames, descriptions, params,
-			andOperator);
-	}
-
-	@Override
-	public int countByC_PG_N_D(
-			long companyId, long parentGroupId, String parentGroupIdComparator,
-			String[] names, String[] realNames, String[] descriptions,
-			LinkedHashMap<String, Object> params, boolean andOperator)
-		throws SystemException {
-
-		return countByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(), parentGroupId,
-			parentGroupIdComparator, names, realNames, descriptions, params,
-			andOperator);
-	}
-
-	@Override
 	public int countByC_C_PG_N_D(
 			long companyId, long[] classNameIds, long parentGroupId,
-			String parentGroupIdComparator, String name, String realName,
-			String description, LinkedHashMap<String, Object> params,
-			boolean andOperator)
+			String[] names, String[] descriptions,
+			LinkedHashMap<String, Object> params, boolean andOperator)
 		throws SystemException {
 
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
+		String parentGroupIdComparator = StringPool.EQUAL;
 
-		return countByC_C_PG_N_D(
-			companyId, classNameIds, parentGroupId, parentGroupIdComparator,
-			names, realNames, descriptions, params, andOperator);
-	}
-
-	@Override
-	public int countByC_C_PG_N_D(
-			long companyId, long[] classNameIds, long parentGroupId,
-			String parentGroupIdComparator, String[] names, String[] realNames,
-			String[] descriptions, LinkedHashMap<String, Object> params,
-			boolean andOperator)
-		throws SystemException {
+		if (parentGroupId == GroupConstants.ANY_PARENT_GROUP_ID) {
+			parentGroupIdComparator = StringPool.NOT_EQUAL;
+		}
 
 		names = CustomSQLUtil.keywords(names);
-		realNames = CustomSQLUtil.keywords(realNames);
 		descriptions = CustomSQLUtil.keywords(descriptions);
 
 		if (params == null) {
@@ -479,27 +288,27 @@ public class GroupFinderImpl
 			groupIds.addAll(
 				countByC_C_PG_N_D(
 					session, companyId, classNameIds, parentGroupId,
-					parentGroupIdComparator, names, realNames, descriptions,
-					params1, andOperator));
+					parentGroupIdComparator, names, descriptions, params1,
+					andOperator));
 
 			if (doUnion) {
 				groupIds.addAll(
 					countByC_C_PG_N_D(
 						session, companyId, classNameIds, parentGroupId,
-						parentGroupIdComparator, names, realNames, descriptions,
-						params2, andOperator));
+						parentGroupIdComparator, names, descriptions, params2,
+						andOperator));
 
 				groupIds.addAll(
 					countByC_C_PG_N_D(
 						session, companyId, classNameIds, parentGroupId,
-						parentGroupIdComparator, names, realNames, descriptions,
-						params3, andOperator));
+						parentGroupIdComparator, names, descriptions, params3,
+						andOperator));
 
 				groupIds.addAll(
 					countByC_C_PG_N_D(
 						session, companyId, classNameIds, parentGroupId,
-						parentGroupIdComparator, names, realNames, descriptions,
-						params4, andOperator));
+						parentGroupIdComparator, names, descriptions, params4,
+						andOperator));
 			}
 
 			return groupIds.size();
@@ -510,115 +319,6 @@ public class GroupFinderImpl
 		finally {
 			closeSession(session);
 		}
-	}
-
-	@Override
-	public List<Group> findByKeywords(
-			long companyId, long parentGroupId, String parentGroupIdComparator,
-			String keywords, LinkedHashMap<String, Object> params, int start,
-			int end, OrderByComparator obc)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return findByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(), parentGroupId,
-			parentGroupIdComparator, names, realNames, descriptions, params,
-			andOperator, start, end, obc);
-	}
-
-	@Override
-	public List<Group> findByKeywords(
-			long companyId, long[] classNameIds, long parentGroupId,
-			String parentGroupIdComparator, String keywords,
-			LinkedHashMap<String, Object> params, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return findByC_C_PG_N_D(
-			companyId, classNameIds, parentGroupId, parentGroupIdComparator,
-			names, realNames, descriptions, params, andOperator, start, end,
-			obc);
-	}
-
-	@Override
-	public List<Group> findByKeywords(
-			long companyId, long[] classNameIds, String keywords,
-			LinkedHashMap<String, Object> params, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return findByC_C_PG_N_D(
-			companyId, classNameIds, GroupConstants.ANY_PARENT_GROUP_ID,
-			StringPool.NOT_EQUAL, names, realNames, descriptions, params,
-			andOperator, start, end, obc);
-	}
-
-	@Override
-	public List<Group> findByKeywords(
-			long companyId, String keywords,
-			LinkedHashMap<String, Object> params, int start, int end,
-			OrderByComparator obc)
-		throws SystemException {
-
-		String[] names = null;
-		String[] realNames = null;
-		String[] descriptions = null;
-		boolean andOperator = false;
-
-		if (Validator.isNotNull(keywords)) {
-			names = CustomSQLUtil.keywords(keywords);
-			realNames = CustomSQLUtil.keywords(keywords);
-			descriptions = CustomSQLUtil.keywords(keywords);
-		}
-		else {
-			andOperator = true;
-		}
-
-		return findByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(),
-			GroupConstants.ANY_PARENT_GROUP_ID, StringPool.NOT_EQUAL, names,
-			realNames, descriptions, params, andOperator, start, end, obc);
 	}
 
 	@Override
@@ -634,7 +334,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_LAYOUTS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -663,7 +363,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_LIVE_GROUPS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -689,7 +389,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_NO_LAYOUTS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -717,7 +417,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_NULL_FRIENDLY_URL);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -740,7 +440,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_SYSTEM);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -822,7 +522,7 @@ public class GroupFinderImpl
 						" OR Group_.classNameId = ")));
 			findByC_C_SQL = replaceOrderBy(findByC_C_SQL, obc);
 
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(12);
 
 			sb.append(StringPool.OPEN_PARENTHESIS);
 			sb.append(replaceJoinAndWhere(findByC_C_SQL, params1));
@@ -853,7 +553,7 @@ public class GroupFinderImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("groupId", Type.LONG);
 
@@ -899,6 +599,46 @@ public class GroupFinderImpl
 	}
 
 	@Override
+	public List<Long> findByC_P(
+			long companyId, long parentGroupId, long previousGroupId, int size)
+		throws SystemException {
+
+		Session session = null;
+
+		try {
+			session = openSession();
+
+			String sql = CustomSQLUtil.get(FIND_BY_C_P);
+
+			if (previousGroupId <= 0) {
+				sql = StringUtil.replace(
+					sql, "(groupId > ?) AND", StringPool.BLANK);
+			}
+
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
+
+			q.addScalar("groupId", Type.LONG);
+
+			QueryPos qPos = QueryPos.getInstance(q);
+
+			if (previousGroupId > 0) {
+				qPos.add(previousGroupId);
+			}
+
+			qPos.add(companyId);
+			qPos.add(parentGroupId);
+
+			return (List<Long>)QueryUtil.list(q, getDialect(), 0, size);
+		}
+		catch (Exception e) {
+			throw new SystemException(e);
+		}
+		finally {
+			closeSession(session);
+		}
+	}
+
+	@Override
 	public Group findByC_N(long companyId, String name)
 		throws NoSuchGroupException, SystemException {
 
@@ -911,7 +651,7 @@ public class GroupFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_C_N);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Group_", GroupImpl.class);
 
@@ -945,118 +685,20 @@ public class GroupFinderImpl
 	}
 
 	@Override
-	public List<Group> findByC_N_D(
-			long companyId, String name, String realName, String description,
-			LinkedHashMap<String, Object> params, boolean andOperator,
-			int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		name = StringUtil.lowerCase(name);
-		description = StringUtil.lowerCase(description);
-
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
-
-		return findByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(),
-			GroupConstants.ANY_PARENT_GROUP_ID, StringPool.NOT_EQUAL, names,
-			realNames, descriptions, params, andOperator, start, end, obc);
-	}
-
-	@Override
-	public List<Group> findByC_N_D(
-			long companyId, String[] names, String[] realNames,
-			String[] descriptions, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		return findByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(),
-			GroupConstants.ANY_PARENT_GROUP_ID, StringPool.NOT_EQUAL, names,
-			realNames, descriptions, params, andOperator, start, end, obc);
-	}
-
-	@Override
-	public List<Group> findByC_C_N_D(
-			long companyId, long[] classNameIds, String name, String realName,
-			String description, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
-
-		return findByC_C_PG_N_D(
-			companyId, classNameIds, GroupConstants.ANY_PARENT_GROUP_ID,
-			StringPool.NOT_EQUAL, names, realNames, descriptions, params,
-			andOperator, start, end, obc);
-	}
-
-	@Override
-	public List<Group> findByC_PG_N_D(
-			long companyId, long parentGroupId, String parentGroupIdComparator,
-			String name, String realName, String description,
-			LinkedHashMap<String, Object> params, boolean andOperator,
-			int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		name = StringUtil.lowerCase(name);
-		description = StringUtil.lowerCase(description);
-
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
-
-		return findByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(), parentGroupId,
-			parentGroupIdComparator, names, realNames, descriptions, params,
-			andOperator, start, end, obc);
-	}
-
-	@Override
-	public List<Group> findByC_PG_N_D(
-			long companyId, long parentGroupId, String parentGroupIdComparator,
-			String[] names, String[] realNames, String[] descriptions,
-			LinkedHashMap<String, Object> params, boolean andOperator,
-			int start, int end, OrderByComparator obc)
-		throws SystemException {
-
-		return findByC_C_PG_N_D(
-			companyId, _getGroupOrganizationClassNameIds(), parentGroupId,
-			parentGroupIdComparator, names, realNames, descriptions, params,
-			andOperator, start, end, obc);
-	}
-
-	@Override
 	public List<Group> findByC_C_PG_N_D(
 			long companyId, long[] classNameIds, long parentGroupId,
-			String parentGroupIdComparator, String name, String realName,
-			String description, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
+			String[] names, String[] descriptions,
+			LinkedHashMap<String, Object> params, boolean andOperator,
+			int start, int end, OrderByComparator obc)
 		throws SystemException {
 
-		String[] names = CustomSQLUtil.keywords(name);
-		String[] realNames = CustomSQLUtil.keywords(realName);
-		String[] descriptions = CustomSQLUtil.keywords(description);
+		String parentGroupIdComparator = StringPool.EQUAL;
 
-		return findByC_C_PG_N_D(
-			companyId, classNameIds, parentGroupId, parentGroupIdComparator,
-			names, realNames, descriptions, params, andOperator, start, end,
-			obc);
-	}
-
-	@Override
-	public List<Group> findByC_C_PG_N_D(
-			long companyId, long[] classNameIds, long parentGroupId,
-			String parentGroupIdComparator, String[] names, String[] realNames,
-			String[] descriptions, LinkedHashMap<String, Object> params,
-			boolean andOperator, int start, int end, OrderByComparator obc)
-		throws SystemException {
+		if (parentGroupId == GroupConstants.ANY_PARENT_GROUP_ID) {
+			parentGroupIdComparator = StringPool.NOT_EQUAL;
+		}
 
 		names = CustomSQLUtil.keywords(names);
-		realNames = CustomSQLUtil.keywords(realNames);
 		descriptions = CustomSQLUtil.keywords(descriptions);
 
 		if (params == null) {
@@ -1093,6 +735,10 @@ public class GroupFinderImpl
 			params4.put("groupsUserGroups", userId);
 		}
 
+		if (obc == null) {
+			obc = new GroupNameComparator(true);
+		}
+
 		String sql = null;
 
 		if (classNameIds == _getGroupOrganizationClassNameIds()) {
@@ -1120,7 +766,7 @@ public class GroupFinderImpl
 
 			findByC_PG_N_D_SQL = replaceOrderBy(findByC_PG_N_D_SQL, obc);
 
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(12);
 
 			sb.append(StringPool.OPEN_PARENTHESIS);
 			sb.append(replaceJoinAndWhere(findByC_PG_N_D_SQL, params1));
@@ -1156,8 +802,7 @@ public class GroupFinderImpl
 			parentGroupIdComparator.equals(StringPool.EQUAL) ?
 				StringPool.EQUAL : StringPool.NOT_EQUAL);
 		sql = CustomSQLUtil.replaceKeywords(
-			sql, "lower(Group_.name) LIKE ? OR lower(Group_.name)",
-			StringPool.LIKE, false, names);
+			sql, "lower(Group_.name)", StringPool.LIKE, false, names);
 		sql = CustomSQLUtil.replaceKeywords(
 			sql, "lower(Group_.description)", StringPool.LIKE, true,
 			descriptions);
@@ -1168,7 +813,7 @@ public class GroupFinderImpl
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("groupId", Type.LONG);
 
@@ -1178,9 +823,7 @@ public class GroupFinderImpl
 
 			qPos.add(companyId);
 			qPos.add(parentGroupId);
-			qPos.add(names);
-			qPos.add(realNames);
-			qPos.add(names);
+			qPos.add(names, 2);
 			qPos.add(descriptions, 2);
 
 			if (doUnion) {
@@ -1188,27 +831,21 @@ public class GroupFinderImpl
 
 				qPos.add(companyId);
 				qPos.add(parentGroupId);
-				qPos.add(names);
-				qPos.add(realNames);
-				qPos.add(names);
+				qPos.add(names, 2);
 				qPos.add(descriptions, 2);
 
 				setJoin(qPos, params3);
 
 				qPos.add(companyId);
 				qPos.add(parentGroupId);
-				qPos.add(names);
-				qPos.add(realNames);
-				qPos.add(names);
+				qPos.add(names, 2);
 				qPos.add(descriptions, 2);
 
 				setJoin(qPos, params4);
 
 				qPos.add(companyId);
 				qPos.add(parentGroupId);
-				qPos.add(names);
-				qPos.add(realNames);
-				qPos.add(names);
+				qPos.add(names, 2);
 				qPos.add(descriptions, 2);
 			}
 
@@ -1234,13 +871,14 @@ public class GroupFinderImpl
 	}
 
 	protected int countByGroupId(
-		Session session, long groupId, LinkedHashMap<String, Object> params) {
+			Session session, long groupId, LinkedHashMap<String, Object> params)
+		throws Exception {
 
 		String sql = CustomSQLUtil.get(COUNT_BY_GROUP_ID);
 
 		sql = replaceJoinAndWhere(sql, params);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -1264,10 +902,11 @@ public class GroupFinderImpl
 	}
 
 	protected List<Long> countByC_C_PG_N_D(
-		Session session, long companyId, long[] classNameIds,
-		long parentGroupId, String parentGroupIdComparator, String[] names,
-		String[] realNames, String[] descriptions,
-		LinkedHashMap<String, Object> params, boolean andOperator) {
+			Session session, long companyId, long[] classNameIds,
+			long parentGroupId, String parentGroupIdComparator, String[] names,
+			String[] descriptions, LinkedHashMap<String, Object> params,
+			boolean andOperator)
+		throws Exception {
 
 		String sql = CustomSQLUtil.get(COUNT_BY_C_C_PG_N_D);
 
@@ -1288,8 +927,7 @@ public class GroupFinderImpl
 			parentGroupIdComparator.equals(StringPool.EQUAL) ?
 				StringPool.EQUAL : StringPool.NOT_EQUAL);
 		sql = CustomSQLUtil.replaceKeywords(
-			sql, "lower(Group_.name) LIKE ? OR lower(Group_.name)",
-			StringPool.LIKE, false, names);
+			sql, "lower(Group_.name)", StringPool.LIKE, false, names);
 		sql = CustomSQLUtil.replaceKeywords(
 			sql, "lower(Group_.description)", StringPool.LIKE, true,
 			descriptions);
@@ -1297,7 +935,7 @@ public class GroupFinderImpl
 		sql = replaceJoinAndWhere(sql, params);
 		sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.addScalar("groupId", Type.LONG);
 
@@ -1307,9 +945,7 @@ public class GroupFinderImpl
 
 		qPos.add(companyId);
 		qPos.add(parentGroupId);
-		qPos.add(names);
-		qPos.add(realNames);
-		qPos.add(names);
+		qPos.add(names, 2);
 		qPos.add(descriptions, 2);
 
 		return q.list(true);
@@ -1484,8 +1120,8 @@ public class GroupFinderImpl
 		return sql;
 	}
 
-	protected void setJoin(
-		QueryPos qPos, LinkedHashMap<String, Object> params) {
+	protected void setJoin(QueryPos qPos, LinkedHashMap<String, Object> params)
+		throws Exception {
 
 		if (params == null) {
 			return;
@@ -1495,7 +1131,7 @@ public class GroupFinderImpl
 			String key = entry.getKey();
 
 			if (key.equals("active") || key.equals("layoutSet") ||
-				key.equals("site")) {
+				key.equals("manualMembership") || key.equals("site")) {
 
 				Boolean value = (Boolean)entry.getValue();
 
@@ -1537,19 +1173,23 @@ public class GroupFinderImpl
 				String actionId = (String)values.get(2);
 				Long roleId = (Long)values.get(3);
 
+				ResourceAction resourceAction =
+					ResourceActionLocalServiceUtil.getResourceAction(
+						name, actionId);
+
 				if (ResourceBlockLocalServiceUtil.isSupported(name)) {
 
 					// Scope is assumed to always be group
 
 					qPos.add(name);
 					qPos.add(roleId);
-					qPos.add(actionId);
+					qPos.add(resourceAction.getBitwiseValue());
 				}
 				else {
 					qPos.add(name);
 					qPos.add(scope);
-					qPos.add(actionId);
 					qPos.add(roleId);
+					qPos.add(resourceAction.getBitwiseValue());
 				}
 			}
 			else if (key.equals("types")) {
@@ -1734,8 +1374,8 @@ public class GroupFinderImpl
 		joinMap.put(
 			"pageCount", _removeWhere(CustomSQLUtil.get(JOIN_BY_PAGE_COUNT)));
 		joinMap.put(
-			"rolePermissions",
-			_removeWhere(CustomSQLUtil.get(JOIN_BY_ROLE_PERMISSIONS)));
+			"membershipRestriction",
+			_removeWhere(CustomSQLUtil.get(JOIN_BY_MEMBERSHIP_RESTRICTION)));
 		joinMap.put(
 			"rolePermissions_6",
 			_removeWhere(CustomSQLUtil.get(JOIN_BY_ROLE_RESOURCE_PERMISSIONS)));
@@ -1783,10 +1423,13 @@ public class GroupFinderImpl
 		whereMap.put(
 			"layoutSet", _getCondition(CustomSQLUtil.get(JOIN_BY_LAYOUT_SET)));
 		whereMap.put(
-			"pageCount", _getCondition(CustomSQLUtil.get(JOIN_BY_PAGE_COUNT)));
+			"manualMembership",
+			_getCondition(CustomSQLUtil.get(JOIN_BY_MANUAL_MEMBERSHIP)));
 		whereMap.put(
-			"rolePermissions",
-			_getCondition(CustomSQLUtil.get(JOIN_BY_ROLE_PERMISSIONS)));
+			"membershipRestriction",
+			_getCondition(CustomSQLUtil.get(JOIN_BY_MEMBERSHIP_RESTRICTION)));
+		whereMap.put(
+			"pageCount", _getCondition(CustomSQLUtil.get(JOIN_BY_PAGE_COUNT)));
 		whereMap.put(
 			"rolePermissions_6",
 			_getCondition(

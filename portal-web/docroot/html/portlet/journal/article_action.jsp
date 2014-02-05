@@ -32,7 +32,7 @@ else {
 %>
 
 <span class="entry-action overlay">
-	<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>">
+	<liferay-ui:icon-menu direction="down" extended="<%= false %>" icon="<%= StringPool.BLANK %>" message="<%= StringPool.BLANK %>" showWhenSingleIcon="<%= true %>" triggerCssClass="btn">
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE) %>">
 			<portlet:renderURL var="editURL">
 				<portlet:param name="struts_action" value="/journal/edit_article" />
@@ -66,41 +66,56 @@ else {
 				url="<%= moveURL %>"
 			/>
 		</c:if>
+
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.PERMISSIONS) %>">
 			<liferay-security:permissionsURL
 				modelResource="<%= JournalArticle.class.getName() %>"
 				modelResourceDescription="<%= article.getTitle(locale) %>"
 				resourcePrimKey="<%= String.valueOf(article.getResourcePrimKey()) %>"
 				var="permissionsURL"
+				windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 			/>
 
 			<liferay-ui:icon
 				image="permissions"
+				method="get"
 				url="<%= permissionsURL %>"
+				useDialog="<%= true %>"
 			/>
 		</c:if>
 
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.VIEW) %>">
+			<liferay-portlet:renderURL plid="<%= JournalUtil.getPreviewPlid(article, themeDisplay) %>" var="previewArticleContentURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+				<portlet:param name="struts_action" value="/journal/preview_article_content" />
+				<portlet:param name="groupId" value="<%= String.valueOf(article.getGroupId()) %>" />
+				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+				<portlet:param name="version" value="<%= String.valueOf(article.getVersion()) %>" />
+			</liferay-portlet:renderURL>
 
 			<%
-			StringBundler sb = new StringBundler(9);
-
-			sb.append(themeDisplay.getPathMain());
-			sb.append("/journal/view_article_content?cmd=");
-			sb.append(Constants.VIEW);
-			sb.append("&groupId=");
-			sb.append(article.getGroupId());
-			sb.append("&articleId=");
-			sb.append(article.getArticleId());
-			sb.append("&version=");
-			sb.append(article.getVersion());
+			String taglibOnClick = "Liferay.fire('previewArticle', {title: '" + HtmlUtil.escapeJS(article.getTitle(locale)) + "', uri: '" + HtmlUtil.escapeJS(previewArticleContentURL.toString()) + "'});";
 			%>
 
 			<liferay-ui:icon
-				image="view"
-				target="_blank"
-				url="<%= sb.toString() %>"
+				image="preview"
+				onClick="<%= taglibOnClick %>"
+				url="javascript:;"
 			/>
+
+			<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.UPDATE) %>">
+				<portlet:renderURL var="viewHistoryURL">
+					<portlet:param name="struts_action" value="/journal/view_article_history" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+					<portlet:param name="referringPortletResource" value="<%= referringPortletResource %>" />
+					<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
+				</portlet:renderURL>
+
+				<liferay-ui:icon
+					image="time"
+					message="view-history"
+					url="<%= viewHistoryURL.toString() %>"
+				/>
+			</c:if>
 
 			<c:if test="<%= JournalPermission.contains(permissionChecker, scopeGroupId, ActionKeys.ADD_ARTICLE) %>">
 				<portlet:renderURL var="copyURL">
@@ -118,7 +133,7 @@ else {
 			</c:if>
 		</c:if>
 
-		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) && (article.getStatus() == WorkflowConstants.STATUS_APPROVED) %>">
+		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) && article.hasApprovedVersion() %>">
 			<portlet:actionURL var="expireURL">
 				<portlet:param name="struts_action" value="/journal/edit_article" />
 				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.EXPIRE %>" />
@@ -127,7 +142,10 @@ else {
 				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
 			</portlet:actionURL>
 
-			<liferay-ui:icon image="time" message="expire" url="<%= expireURL %>" />
+			<liferay-ui:icon
+				image="expire"
+				url="<%= expireURL %>"
+			/>
 		</c:if>
 
 		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.DELETE) %>">
@@ -139,7 +157,10 @@ else {
 				<portlet:param name="articleId" value="<%= article.getArticleId() %>" />
 			</portlet:actionURL>
 
-			<liferay-ui:icon-delete trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>" url="<%= deleteURL %>" />
+			<liferay-ui:icon-delete
+				trash="<%= TrashUtil.isTrashEnabled(scopeGroupId) %>"
+				url="<%= deleteURL %>"
+			/>
 		</c:if>
 	</liferay-ui:icon-menu>
 </span>

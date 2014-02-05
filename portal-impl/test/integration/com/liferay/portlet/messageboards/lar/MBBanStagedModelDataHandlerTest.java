@@ -76,17 +76,18 @@ public class MBBanStagedModelDataHandlerTest
 
 	@Override
 	protected void validateImport(
-			StagedModel stagedModel,
+			StagedModel stagedModel, StagedModelAssets stagedModelAssets,
 			Map<String, List<StagedModel>> dependentStagedModelsMap,
 			Group group)
 		throws Exception {
 
-		super.validateImport(stagedModel, dependentStagedModelsMap, group);
+		super.validateImport(
+			stagedModel, stagedModelAssets, dependentStagedModelsMap, group);
 
 		MBBan ban = (MBBan)stagedModel;
-		MBBan importBan = (MBBan)getStagedModel(stagedModel.getUuid(), group);
+		MBBan importedBan = (MBBan)getStagedModel(stagedModel.getUuid(), group);
 
-		Assert.assertEquals(ban.getBanUserUuid(), importBan.getBanUserUuid());
+		Assert.assertEquals(ban.getBanUserUuid(), importedBan.getBanUserUuid());
 	}
 
 }

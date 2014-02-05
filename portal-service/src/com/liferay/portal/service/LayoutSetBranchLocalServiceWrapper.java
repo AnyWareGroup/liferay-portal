@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutSetBranchLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetBranchLocalService
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetBranchLocalService
  * @generated
  */
+@ProviderType
 public class LayoutSetBranchLocalServiceWrapper
 	implements LayoutSetBranchLocalService,
 		ServiceWrapper<LayoutSetBranchLocalService> {
@@ -168,6 +171,23 @@ public class LayoutSetBranchLocalServiceWrapper
 		return _layoutSetBranchLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetBranchLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.LayoutSetBranch fetchLayoutSetBranch(
 		long layoutSetBranchId)
@@ -305,6 +325,14 @@ public class LayoutSetBranchLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.model.LayoutSetBranch fetchLayoutSetBranch(
+		long groupId, boolean privateLayout, java.lang.String name)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _layoutSetBranchLocalService.fetchLayoutSetBranch(groupId,
+			privateLayout, name);
+	}
+
+	@Override
 	public com.liferay.portal.model.LayoutSetBranch getLayoutSetBranch(
 		long groupId, boolean privateLayout, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -334,6 +362,7 @@ public class LayoutSetBranchLocalServiceWrapper
 	* @deprecated As of 6.2.0, replaced by {@link #getUserLayoutSetBranch(long,
 	long, boolean, long, long)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.LayoutSetBranch getUserLayoutSetBranch(
 		long userId, long groupId, boolean privateLayout, long layoutSetBranchId)
@@ -377,6 +406,7 @@ public class LayoutSetBranchLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutSetBranchLocalService getWrappedLayoutSetBranchLocalService() {
 		return _layoutSetBranchLocalService;
 	}
@@ -384,6 +414,7 @@ public class LayoutSetBranchLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutSetBranchLocalService(
 		LayoutSetBranchLocalService layoutSetBranchLocalService) {
 		_layoutSetBranchLocalService = layoutSetBranchLocalService;

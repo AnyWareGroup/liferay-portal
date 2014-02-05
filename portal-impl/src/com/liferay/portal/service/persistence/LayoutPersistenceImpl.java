@@ -358,6 +358,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByUuid(uuid, count - 1, count, orderByComparator);
 
 		if (!list.isEmpty()) {
@@ -1200,6 +1204,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByUuid_C(uuid, companyId, count - 1, count,
 				orderByComparator);
 
@@ -1728,6 +1736,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1988,7 +2000,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, LayoutImpl.class);
@@ -2162,7 +2174,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 				Layout.class.getName(), _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN,
 				groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2291,7 +2303,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2575,6 +2587,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 	public Layout fetchByCompanyId_Last(long companyId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<Layout> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
@@ -3306,6 +3322,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByLayoutPrototypeUuid(layoutPrototypeUuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByLayoutPrototypeUuid(layoutPrototypeUuid,
 				count - 1, count, orderByComparator);
 
@@ -3859,6 +3879,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		throws SystemException {
 		int count = countBySourcePrototypeLayoutUuid(sourcePrototypeLayoutUuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findBySourcePrototypeLayoutUuid(sourcePrototypeLayoutUuid,
 				count - 1, count, orderByComparator);
 
@@ -4407,6 +4431,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByG_P(groupId, privateLayout);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByG_P(groupId, privateLayout, count - 1, count,
 				orderByComparator);
 
@@ -4680,7 +4708,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, LayoutImpl.class);
@@ -4860,7 +4888,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 				Layout.class.getName(), _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN,
 				groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -5003,7 +5031,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -5602,6 +5630,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		throws SystemException {
 		int count = countByG_P_P(groupId, privateLayout, parentLayoutId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByG_P_P(groupId, privateLayout, parentLayoutId,
 				count - 1, count, orderByComparator);
 
@@ -5887,7 +5919,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, LayoutImpl.class);
@@ -6074,7 +6106,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 				Layout.class.getName(), _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN,
 				groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -6230,7 +6262,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -6878,6 +6910,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		throws SystemException {
 		int count = countByG_P_T(groupId, privateLayout, type);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Layout> list = findByG_P_T(groupId, privateLayout, type,
 				count - 1, count, orderByComparator);
 
@@ -7187,7 +7223,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, LayoutImpl.class);
@@ -7386,7 +7422,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 				Layout.class.getName(), _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN,
 				groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -7568,7 +7604,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -7914,6 +7950,10 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		"layout.sourcePrototypeLayoutUuid = ?";
 	private static final String _FINDER_COLUMN_G_P_SPLU_SOURCEPROTOTYPELAYOUTUUID_3 =
 		"(layout.sourcePrototypeLayoutUuid IS NULL OR layout.sourcePrototypeLayoutUuid = '')";
+
+	public LayoutPersistenceImpl() {
+		setModelClass(Layout.class);
+	}
 
 	/**
 	 * Caches the layout in the entity cache if it is enabled.
@@ -8564,10 +8604,12 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		}
 
 		EntityCacheUtil.putResult(LayoutModelImpl.ENTITY_CACHE_ENABLED,
-			LayoutImpl.class, layout.getPrimaryKey(), layout);
+			LayoutImpl.class, layout.getPrimaryKey(), layout, false);
 
 		clearUniqueFindersCache(layout);
 		cacheUniqueFindersCache(layout);
+
+		layout.resetOriginalValues();
 
 		return layout;
 	}
@@ -8582,6 +8624,7 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		layoutImpl.setNew(layout.isNew());
 		layoutImpl.setPrimaryKey(layout.getPrimaryKey());
 
+		layoutImpl.setMvccVersion(layout.getMvccVersion());
 		layoutImpl.setUuid(layout.getUuid());
 		layoutImpl.setPlid(layout.getPlid());
 		layoutImpl.setGroupId(layout.getGroupId());
@@ -8602,7 +8645,6 @@ public class LayoutPersistenceImpl extends BasePersistenceImpl<Layout>
 		layoutImpl.setTypeSettings(layout.getTypeSettings());
 		layoutImpl.setHidden(layout.isHidden());
 		layoutImpl.setFriendlyURL(layout.getFriendlyURL());
-		layoutImpl.setIconImage(layout.isIconImage());
 		layoutImpl.setIconImageId(layout.getIconImageId());
 		layoutImpl.setThemeId(layout.getThemeId());
 		layoutImpl.setColorSchemeId(layout.getColorSchemeId());

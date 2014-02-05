@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.RoleServiceImpl
  * @generated
  */
+@ProviderType
 public class RoleServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -110,6 +113,7 @@ public class RoleServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #addRole(String, long,
 	String, Map, Map, int, String, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.Role addRole(java.lang.String name,
 		java.util.Map<java.util.Locale, java.lang.String> titleMap,
 		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
@@ -376,6 +380,7 @@ public class RoleServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(RoleService service) {
 	}
 

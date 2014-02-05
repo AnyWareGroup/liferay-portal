@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.wiki.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link WikiPage}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WikiPage
+ * @author Brian Wing Shun Chan
+ * @see WikiPage
  * @generated
  */
+@ProviderType
 public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	public WikiPageWrapper(WikiPage wikiPage) {
 		_wikiPage = wikiPage;
@@ -766,8 +771,69 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	/**
+	* Returns the trash entry created when this wiki page was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this wiki page.
+	*
+	* @return the trash entry created when this wiki page was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this wiki page.
+	*
+	* @return the class primary key of the trash entry for this wiki page
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _wikiPage.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this wiki page.
+	*
+	* @return the trash handler for this wiki page
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _wikiPage.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this wiki page is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this wiki page is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _wikiPage.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this wiki page is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this wiki page is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _wikiPage.isInTrashContainer();
+	}
+
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _wikiPage.isInTrashExplicitly();
+	}
+
+	/**
 	* @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	*/
+	@Deprecated
 	@Override
 	public boolean getApproved() {
 		return _wikiPage.getApproved();
@@ -831,16 +897,6 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	@Override
 	public boolean isIncomplete() {
 		return _wikiPage.isIncomplete();
-	}
-
-	/**
-	* Returns <code>true</code> if this wiki page is in the Recycle Bin.
-	*
-	* @return <code>true</code> if this wiki page is in the Recycle Bin; <code>false</code> otherwise
-	*/
-	@Override
-	public boolean isInTrash() {
-		return _wikiPage.isInTrash();
 	}
 
 	/**
@@ -1050,11 +1106,6 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	@Override
-	public com.liferay.portlet.wiki.model.WikiNode getTrashContainer() {
-		return _wikiPage.getTrashContainer();
-	}
-
-	@Override
 	public java.util.List<com.liferay.portlet.wiki.model.WikiPage> getViewableChildPages() {
 		return _wikiPage.getViewableChildPages();
 	}
@@ -1070,18 +1121,38 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		return _wikiPage.isInTrashContainer();
+	public void setAttachmentsFolderId(long attachmentsFolderId) {
+		_wikiPage.setAttachmentsFolderId(attachmentsFolderId);
 	}
 
 	@Override
-	public void setAttachmentsFolderId(long attachmentsFolderId) {
-		_wikiPage.setAttachmentsFolderId(attachmentsFolderId);
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof WikiPageWrapper)) {
+			return false;
+		}
+
+		WikiPageWrapper wikiPageWrapper = (WikiPageWrapper)obj;
+
+		if (Validator.equals(_wikiPage, wikiPageWrapper._wikiPage)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _wikiPage.getStagedModelType();
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public WikiPage getWrappedWikiPage() {
 		return _wikiPage;
 	}
@@ -1089,6 +1160,16 @@ public class WikiPageWrapper implements WikiPage, ModelWrapper<WikiPage> {
 	@Override
 	public WikiPage getWrappedModel() {
 		return _wikiPage;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _wikiPage.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _wikiPage.isFinderCacheEnabled();
 	}
 
 	@Override

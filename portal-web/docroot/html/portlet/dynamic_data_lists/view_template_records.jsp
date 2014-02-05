@@ -28,17 +28,19 @@ DDMStructure ddmStructure = recordSet.getDDMStructure();
 
 <aui:form action="<%= editRecordSetURL %>" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveRecordSet();" %>'>
 	<c:if test="<%= DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.ADD_RECORD) && editable %>">
-		<aui:button onClick='<%= renderResponse.getNamespace() + "addRecord();" %>' value='<%= LanguageUtil.format(pageContext, "add-x", ddmStructure.getName(locale)) %>' />
+		<aui:nav-bar>
+			<aui:nav>
+				<portlet:renderURL var="addRecordURL">
+					<portlet:param name="struts_action" value="/dynamic_data_lists/edit_record" />
+					<portlet:param name="redirect" value="<%= currentURL %>" />
+					<portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" />
+					<portlet:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" />
+				</portlet:renderURL>
 
-		<div class="separator"><!-- --></div>
+				<aui:nav-item href="<%= addRecordURL %>" iconCssClass="icon-plus" label='<%= LanguageUtil.format(pageContext, "add-x", HtmlUtil.escape(ddmStructure.getName(locale)), false) %>' />
+			</aui:nav>
+		</aui:nav-bar>
 	</c:if>
 
 	<%= DDLUtil.getTemplateContent(displayDDMTemplateId, recordSet, themeDisplay, renderRequest, renderResponse) %>
-
 </aui:form>
-
-<aui:script>
-	function <portlet:namespace />addRecord() {
-		submitForm(document.<portlet:namespace />fm, '<liferay-portlet:renderURL windowState="<%= WindowState.MAXIMIZED.toString() %>"><portlet:param name="struts_action" value="/dynamic_data_lists/edit_record" /><portlet:param name="redirect" value="<%= currentURL %>" /><portlet:param name="backURL" value="<%= currentURL %>" /><portlet:param name="recordSetId" value="<%= String.valueOf(recordSet.getRecordSetId()) %>" /><portlet:param name="formDDMTemplateId" value="<%= String.valueOf(formDDMTemplateId) %>" /></liferay-portlet:renderURL>');
-	}
-</aui:script>

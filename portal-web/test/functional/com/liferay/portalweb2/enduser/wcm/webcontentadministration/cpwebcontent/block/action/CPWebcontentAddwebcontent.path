@@ -11,21 +11,41 @@
 <tr>
 	<td>PAGE_NAME</td>
 	<td></td>
-	<td>WCWebcontentAddwebcontent</td>
+	<td>CPWebcontentAddwebcontent</td>
 </tr>
 <tr>
 	<td></td>
 	<td></td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUCCESS_MESSAGE</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE</td>
+	<td>//div[@class='portlet-body']/div[@class='alert alert-error']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE_INVALID_NAME</td>
+	<td>//div[@class='journal-article-body-content']/div[@class='alert alert-error']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>OPTIONS_WRENCH_ICON</td>
-	<td>//span[@title='Options']/ul/li/strong/a</td>
+	<td>//a[@title='Options']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SELECT_STRUCTURE</td>
 	<td>//a[contains(.,'Select')]/span</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ADD_TRANSLATION</td>
+	<td>//a[@title='Add Translation']</td>
 	<td></td>
 </tr>
 <tr>
@@ -39,23 +59,44 @@
 	<td></td>
 </tr>
 <tr>
+	<td>BODY_FIELD</td>
+	<td>//body</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SEARCHABLE_CHECKBOX</td>
 	<td>//input[@id='_15_indexableCheckbox']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>SAVE_AS_DRAFT_BUTTON</td>
-	<td>//input[@id='_15_saveButton']</td>
+	<td>//button[@id='_15_saveButton']</td>
 	<td></td>
 </tr>
 <tr>
 	<td>PUBLISH_BUTTON</td>
-	<td>//input[@id='_15_publishButton']</td>
+	<td>//button[@id='_15_publishButton' and contains(.,'Publish')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>SUBMIT_FOR_PUBLICATION_BUTTON</td>
+	<td>//button[@id='_15_publishButton' and contains(.,'Submit for Publication')]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>CANCEL_BUTTON</td>
-	<td>//input[@class='aui-button-input aui-button-input-cancel']</td>
+	<td>//button[contains(.,'Cancel')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--ADD_TRANSLATION_MENULIST-->
+<tr>
+	<td>ADD_TRANSLATION_MENULIST_LANGUAGE</td>
+	<td>//li[@role='presentation']/a/span[contains(.,'${key_localizedLanguage')]</td>
 	<td></td>
 </tr>
 <tr>
@@ -64,6 +105,11 @@
 	<td></td>
 </tr>
 <!--MENU-->
+<tr>
+	<td>MENU_CONTENT</td>
+	<td>//a[@id='_15_contentLink']</td>
+	<td></td>
+</tr>
 <tr>
 	<td>MENU_ABSTRACT</td>
 	<td>//a[@id='_15_abstractLink']</td>

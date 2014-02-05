@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.bookmarks.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -56,12 +58,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       BookmarksEntryServiceHttp
- * @see       com.liferay.portlet.bookmarks.model.BookmarksEntrySoap
- * @see       com.liferay.portlet.bookmarks.service.BookmarksEntryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see BookmarksEntryServiceHttp
+ * @see com.liferay.portlet.bookmarks.model.BookmarksEntrySoap
+ * @see com.liferay.portlet.bookmarks.service.BookmarksEntryServiceUtil
  * @generated
  */
+@ProviderType
 public class BookmarksEntryServiceSoap {
 	public static com.liferay.portlet.bookmarks.model.BookmarksEntrySoap addEntry(
 		long groupId, long folderId, java.lang.String name,
@@ -132,6 +135,21 @@ public class BookmarksEntryServiceSoap {
 		try {
 			int returnValue = BookmarksEntryServiceUtil.getEntriesCount(groupId,
 					folderId);
+
+			return returnValue;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static int getEntriesCount(long groupId, long folderId, int status)
+		throws RemoteException {
+		try {
+			int returnValue = BookmarksEntryServiceUtil.getEntriesCount(groupId,
+					folderId, status);
 
 			return returnValue;
 		}
@@ -294,9 +312,12 @@ public class BookmarksEntryServiceSoap {
 		}
 	}
 
-	public static void moveEntryToTrash(long entryId) throws RemoteException {
+	public static com.liferay.portlet.bookmarks.model.BookmarksEntrySoap moveEntryToTrash(
+		long entryId) throws RemoteException {
 		try {
-			BookmarksEntryServiceUtil.moveEntryToTrash(entryId);
+			com.liferay.portlet.bookmarks.model.BookmarksEntry returnValue = BookmarksEntryServiceUtil.moveEntryToTrash(entryId);
+
+			return com.liferay.portlet.bookmarks.model.BookmarksEntrySoap.toSoapModel(returnValue);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

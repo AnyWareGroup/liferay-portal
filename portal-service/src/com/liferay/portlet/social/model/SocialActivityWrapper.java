@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialActivity}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivity
+ * @author Brian Wing Shun Chan
+ * @see SocialActivity
  * @generated
  */
+@ProviderType
 public class SocialActivityWrapper implements SocialActivity,
 	ModelWrapper<SocialActivity> {
 	public SocialActivityWrapper(SocialActivity socialActivity) {
@@ -57,6 +61,8 @@ public class SocialActivityWrapper implements SocialActivity,
 		attributes.put("mirrorActivityId", getMirrorActivityId());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
+		attributes.put("parentClassNameId", getParentClassNameId());
+		attributes.put("parentClassPK", getParentClassPK());
 		attributes.put("type", getType());
 		attributes.put("extraData", getExtraData());
 		attributes.put("receiverUserId", getReceiverUserId());
@@ -118,6 +124,18 @@ public class SocialActivityWrapper implements SocialActivity,
 
 		if (classPK != null) {
 			setClassPK(classPK);
+		}
+
+		Long parentClassNameId = (Long)attributes.get("parentClassNameId");
+
+		if (parentClassNameId != null) {
+			setParentClassNameId(parentClassNameId);
+		}
+
+		Long parentClassPK = (Long)attributes.get("parentClassPK");
+
+		if (parentClassPK != null) {
+			setParentClassPK(parentClassPK);
 		}
 
 		Integer type = (Integer)attributes.get("type");
@@ -377,6 +395,46 @@ public class SocialActivityWrapper implements SocialActivity,
 	}
 
 	/**
+	* Returns the parent class name ID of this social activity.
+	*
+	* @return the parent class name ID of this social activity
+	*/
+	@Override
+	public long getParentClassNameId() {
+		return _socialActivity.getParentClassNameId();
+	}
+
+	/**
+	* Sets the parent class name ID of this social activity.
+	*
+	* @param parentClassNameId the parent class name ID of this social activity
+	*/
+	@Override
+	public void setParentClassNameId(long parentClassNameId) {
+		_socialActivity.setParentClassNameId(parentClassNameId);
+	}
+
+	/**
+	* Returns the parent class p k of this social activity.
+	*
+	* @return the parent class p k of this social activity
+	*/
+	@Override
+	public long getParentClassPK() {
+		return _socialActivity.getParentClassPK();
+	}
+
+	/**
+	* Sets the parent class p k of this social activity.
+	*
+	* @param parentClassPK the parent class p k of this social activity
+	*/
+	@Override
+	public void setParentClassPK(long parentClassPK) {
+		_socialActivity.setParentClassPK(parentClassPK);
+	}
+
+	/**
 	* Returns the type of this social activity.
 	*
 	* @return the type of this social activity
@@ -576,6 +634,13 @@ public class SocialActivityWrapper implements SocialActivity,
 	}
 
 	@Override
+	public java.lang.String getExtraDataValue(java.lang.String key,
+		java.util.Locale locale)
+		throws com.liferay.portal.kernel.json.JSONException {
+		return _socialActivity.getExtraDataValue(key, locale);
+	}
+
+	@Override
 	public boolean isClassName(java.lang.String className) {
 		return _socialActivity.isClassName(className);
 	}
@@ -586,9 +651,36 @@ public class SocialActivityWrapper implements SocialActivity,
 		_socialActivity.setAssetEntry(assetEntry);
 	}
 
+	@Override
+	public void setExtraDataValue(java.lang.String key, java.lang.String value)
+		throws com.liferay.portal.kernel.json.JSONException {
+		_socialActivity.setExtraDataValue(key, value);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityWrapper)) {
+			return false;
+		}
+
+		SocialActivityWrapper socialActivityWrapper = (SocialActivityWrapper)obj;
+
+		if (Validator.equals(_socialActivity,
+					socialActivityWrapper._socialActivity)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivity getWrappedSocialActivity() {
 		return _socialActivity;
 	}
@@ -596,6 +688,16 @@ public class SocialActivityWrapper implements SocialActivity,
 	@Override
 	public SocialActivity getWrappedModel() {
 		return _socialActivity;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivity.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivity.isFinderCacheEnabled();
 	}
 
 	@Override

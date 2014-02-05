@@ -362,6 +362,10 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsQuestion> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1183,6 +1187,10 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsQuestion> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1715,6 +1723,10 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PollsQuestion> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1976,7 +1988,7 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, PollsQuestionImpl.class);
@@ -2152,7 +2164,7 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 				PollsQuestion.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2281,7 +2293,7 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2303,6 +2315,10 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 	}
 
 	private static final String _FINDER_COLUMN_GROUPID_GROUPID_2 = "pollsQuestion.groupId = ?";
+
+	public PollsQuestionPersistenceImpl() {
+		setModelClass(PollsQuestion.class);
+	}
 
 	/**
 	 * Caches the polls question in the entity cache if it is enabled.
@@ -2652,10 +2668,12 @@ public class PollsQuestionPersistenceImpl extends BasePersistenceImpl<PollsQuest
 
 		EntityCacheUtil.putResult(PollsQuestionModelImpl.ENTITY_CACHE_ENABLED,
 			PollsQuestionImpl.class, pollsQuestion.getPrimaryKey(),
-			pollsQuestion);
+			pollsQuestion, false);
 
 		clearUniqueFindersCache(pollsQuestion);
 		cacheUniqueFindersCache(pollsQuestion);
+
+		pollsQuestion.resetOriginalValues();
 
 		return pollsQuestion;
 	}

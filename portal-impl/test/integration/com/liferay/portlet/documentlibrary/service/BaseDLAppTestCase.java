@@ -16,9 +16,16 @@ package com.liferay.portlet.documentlibrary.service;
 
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.util.GroupTestUtil;
+import com.liferay.portal.util.RoleTestUtil;
+import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
+import com.liferay.portlet.documentlibrary.service.permission.DLPermission;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 
 import org.junit.After;
@@ -36,11 +43,23 @@ public abstract class BaseDLAppTestCase {
 		parentFolder = DLAppTestUtil.addFolder(
 			group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			"Test Folder", true);
+
+		RoleTestUtil.addResourcePermission(
+			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group.getGroupId()),
+			ActionKeys.VIEW);
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		PrincipalThreadLocal.setName(TestPropsValues.getUserId());
+
 		GroupLocalServiceUtil.deleteGroup(group);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, DLPermission.RESOURCE_NAME,
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group.getGroupId()),
+			ActionKeys.VIEW);
 	}
 
 	protected static final String CONTENT =

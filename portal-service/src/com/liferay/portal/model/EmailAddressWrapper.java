@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link EmailAddress}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       EmailAddress
+ * @author Brian Wing Shun Chan
+ * @see EmailAddress
  * @generated
  */
+@ProviderType
 public class EmailAddressWrapper implements EmailAddress,
 	ModelWrapper<EmailAddress> {
 	public EmailAddressWrapper(EmailAddress emailAddress) {
@@ -47,6 +53,7 @@ public class EmailAddressWrapper implements EmailAddress,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("emailAddressId", getEmailAddressId());
 		attributes.put("companyId", getCompanyId());
@@ -65,6 +72,12 @@ public class EmailAddressWrapper implements EmailAddress,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -156,6 +169,26 @@ public class EmailAddressWrapper implements EmailAddress,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_emailAddress.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this email address.
+	*
+	* @return the mvcc version of this email address
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _emailAddress.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this email address.
+	*
+	* @param mvccVersion the mvcc version of this email address
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_emailAddress.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -556,9 +589,34 @@ public class EmailAddressWrapper implements EmailAddress,
 		return _emailAddress.getType();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof EmailAddressWrapper)) {
+			return false;
+		}
+
+		EmailAddressWrapper emailAddressWrapper = (EmailAddressWrapper)obj;
+
+		if (Validator.equals(_emailAddress, emailAddressWrapper._emailAddress)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _emailAddress.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public EmailAddress getWrappedEmailAddress() {
 		return _emailAddress;
 	}
@@ -566,6 +624,16 @@ public class EmailAddressWrapper implements EmailAddress,
 	@Override
 	public EmailAddress getWrappedModel() {
 		return _emailAddress;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _emailAddress.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _emailAddress.isFinderCacheEnabled();
 	}
 
 	@Override

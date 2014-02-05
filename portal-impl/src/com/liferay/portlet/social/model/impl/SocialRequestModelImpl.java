@@ -210,6 +210,9 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		attributes.put("receiverUserId", getReceiverUserId());
 		attributes.put("status", getStatus());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -294,8 +297,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getUuid() {
 		if (_uuid == null) {
 			return StringPool.BLANK;
@@ -318,8 +321,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return GetterUtil.getString(_originalUuid);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getRequestId() {
 		return _requestId;
 	}
@@ -331,8 +334,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		_requestId = requestId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getGroupId() {
 		return _groupId;
 	}
@@ -354,8 +357,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalGroupId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -377,8 +380,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalCompanyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -410,8 +413,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCreateDate() {
 		return _createDate;
 	}
@@ -421,8 +424,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		_createDate = createDate;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getModifiedDate() {
 		return _modifiedDate;
 	}
@@ -452,8 +455,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -475,8 +478,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalClassNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
@@ -498,8 +501,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalClassPK;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getType() {
 		return _type;
 	}
@@ -521,8 +524,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalType;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getExtraData() {
 		if (_extraData == null) {
 			return StringPool.BLANK;
@@ -537,8 +540,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		_extraData = extraData;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getReceiverUserId() {
 		return _receiverUserId;
 	}
@@ -571,8 +574,8 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 		return _originalReceiverUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public int getStatus() {
 		return _status;
 	}
@@ -692,6 +695,16 @@ public class SocialRequestModelImpl extends BaseModelImpl<SocialRequest>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

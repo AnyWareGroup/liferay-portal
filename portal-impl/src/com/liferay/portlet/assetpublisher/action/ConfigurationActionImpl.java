@@ -17,13 +17,12 @@ package com.liferay.portlet.assetpublisher.action;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.portlet.DefaultConfigurationAction;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
-import com.liferay.portal.kernel.portlet.PortletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
+import com.liferay.portal.kernel.staging.LayoutStagingUtil;
+import com.liferay.portal.kernel.staging.StagingUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
@@ -33,17 +32,22 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.GroupConstants;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.model.LayoutRevision;
+import com.liferay.portal.model.LayoutSetBranch;
 import com.liferay.portal.model.LayoutTypePortletConstants;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
+import com.liferay.portal.service.LayoutRevisionLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portlet.PortletPreferencesImpl;
 import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
 import com.liferay.portlet.asset.AssetTagException;
+import com.liferay.portlet.asset.DuplicateQueryRuleException;
+import com.liferay.portlet.asset.model.AssetQueryRule;
 import com.liferay.portlet.asset.model.AssetRendererFactory;
 import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.assetpublisher.util.AssetPublisher;
@@ -57,7 +61,9 @@ import java.io.Serializable;
 
 import java.text.DateFormat;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 import javax.portlet.ActionRequest;
@@ -66,6 +72,8 @@ import javax.portlet.PortletConfig;
 import javax.portlet.PortletPreferences;
 import javax.portlet.ResourceRequest;
 import javax.portlet.ResourceResponse;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Brian Wing Shun Chan
@@ -84,90 +92,88 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		String portletResource = ParamUtil.getString(
 			actionRequest, "portletResource");
 
-		PortletPreferences preferences =
-			PortletPreferencesFactoryUtil.getPortletSetup(
-				actionRequest, portletResource);
+		PortletPreferences preferences = actionRequest.getPreferences();
 
 		if (cmd.equals(Constants.TRANSLATE)) {
 			super.processAction(portletConfig, actionRequest, actionResponse);
 		}
 		else if (cmd.equals(Constants.UPDATE)) {
-			validateEmailAssetEntryAdded(actionRequest);
-			validateEmailFrom(actionRequest);
-
-			updateDisplaySettings(actionRequest);
-
-			String selectionStyle = getParameter(
-				actionRequest, "selectionStyle");
-
-			if (selectionStyle.equals("dynamic")) {
-				updateQueryLogic(actionRequest, preferences);
-			}
-
-			updateDefaultAssetPublisher(actionRequest);
-
-			super.processAction(portletConfig, actionRequest, actionResponse);
-		}
-		else {
 			try {
-				if (cmd.equals("add-scope")) {
-					addScope(actionRequest, preferences);
-				}
-				else if (cmd.equals("add-selection")) {
-					AssetPublisherUtil.addSelection(
-						actionRequest, preferences, portletResource);
-				}
-				else if (cmd.equals("move-selection-down")) {
-					moveSelectionDown(actionRequest, preferences);
-				}
-				else if (cmd.equals("move-selection-up")) {
-					moveSelectionUp(actionRequest, preferences);
-				}
-				else if (cmd.equals("remove-selection")) {
-					removeSelection(actionRequest, preferences);
-				}
-				else if (cmd.equals("remove-scope")) {
-					removeScope(actionRequest, preferences);
-				}
-				else if (cmd.equals("select-scope")) {
-					setScopes(actionRequest, preferences);
-				}
-				else if (cmd.equals("selection-style")) {
-					setSelectionStyle(actionRequest, preferences);
+				validateEmailAssetEntryAdded(actionRequest);
+				validateEmailFrom(actionRequest);
+
+				updateDisplaySettings(actionRequest);
+
+				String selectionStyle = getParameter(
+					actionRequest, "selectionStyle");
+
+				if (selectionStyle.equals("dynamic")) {
+					updateQueryLogic(actionRequest, preferences);
 				}
 
-				if (SessionErrors.isEmpty(actionRequest)) {
-					preferences.store();
+				updateDefaultAssetPublisher(actionRequest);
 
-					LiferayPortletConfig liferayPortletConfig =
-						(LiferayPortletConfig)portletConfig;
-
-					SessionMessages.add(
-						actionRequest,
-						liferayPortletConfig.getPortletId() +
-							SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
-						portletResource);
-
-					SessionMessages.add(
-						actionRequest,
-						liferayPortletConfig.getPortletId() +
-							SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
-				}
-
-				String redirect = PortalUtil.escapeRedirect(
-					ParamUtil.getString(actionRequest, "redirect"));
-
-				if (Validator.isNotNull(redirect)) {
-					actionResponse.sendRedirect(redirect);
-				}
+				super.processAction(
+					portletConfig, actionRequest, actionResponse);
 			}
 			catch (Exception e) {
-				if (e instanceof AssetTagException) {
+				if (e instanceof AssetTagException ||
+					e instanceof DuplicateQueryRuleException) {
+
 					SessionErrors.add(actionRequest, e.getClass(), e);
 				}
 				else {
 					throw e;
 				}
+			}
+		}
+		else {
+			if (cmd.equals("add-scope")) {
+				addScope(actionRequest, preferences);
+			}
+			else if (cmd.equals("add-selection")) {
+				AssetPublisherUtil.addSelection(
+					actionRequest, preferences, portletResource);
+			}
+			else if (cmd.equals("move-selection-down")) {
+				moveSelectionDown(actionRequest, preferences);
+			}
+			else if (cmd.equals("move-selection-up")) {
+				moveSelectionUp(actionRequest, preferences);
+			}
+			else if (cmd.equals("remove-selection")) {
+				removeSelection(actionRequest, preferences);
+			}
+			else if (cmd.equals("remove-scope")) {
+				removeScope(actionRequest, preferences);
+			}
+			else if (cmd.equals("select-scope")) {
+				setScopes(actionRequest, preferences);
+			}
+			else if (cmd.equals("selection-style")) {
+				setSelectionStyle(actionRequest, preferences);
+			}
+
+			if (SessionErrors.isEmpty(actionRequest)) {
+				preferences.store();
+
+				SessionMessages.add(
+					actionRequest,
+					PortalUtil.getPortletId(actionRequest) +
+						SessionMessages.KEY_SUFFIX_REFRESH_PORTLET,
+					portletResource);
+
+				SessionMessages.add(
+					actionRequest,
+					PortalUtil.getPortletId(actionRequest) +
+						SessionMessages.KEY_SUFFIX_UPDATED_CONFIGURATION);
+			}
+
+			String redirect = PortalUtil.escapeRedirect(
+				ParamUtil.getString(actionRequest, "redirect"));
+
+			if (Validator.isNotNull(redirect)) {
+				actionResponse.sendRedirect(redirect);
 			}
 		}
 	}
@@ -207,16 +213,27 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 
 		Field field = fields.get(fieldName);
 
-		Serializable fieldValue = field.getValue(themeDisplay.getLocale());
+		Serializable fieldValue = field.getValue(themeDisplay.getLocale(), 0);
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		if (fieldValue != null) {
+			jsonObject.put("success", true);
+		}
+		else {
+			jsonObject.put("success", false);
+
+			writeJSON(resourceRequest, resourceResponse, jsonObject);
+
+			return;
+		}
 
 		DDMStructure ddmStructure = field.getDDMStructure();
 
 		String type = ddmStructure.getFieldType(fieldName);
 
-		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
-
 		Serializable displayValue = DDMUtil.getDisplayFieldValue(
-			fieldValue, type, themeDisplay.getLocale());
+			themeDisplay, fieldValue, type);
 
 		jsonObject.put("displayValue", String.valueOf(displayValue));
 
@@ -238,13 +255,14 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		else if (fieldValue instanceof Integer) {
 			jsonObject.put("value", (Integer)fieldValue);
 		}
+		else if (fieldValue instanceof Number) {
+			jsonObject.put("value", String.valueOf(fieldValue));
+		}
 		else {
 			jsonObject.put("value", (String)fieldValue);
 		}
 
-		resourceResponse.setContentType(ContentTypes.APPLICATION_JSON);
-
-		PortletResponseUtil.write(resourceResponse, jsonObject.toString());
+		writeJSON(resourceRequest, resourceResponse, jsonObject);
 	}
 
 	protected void addScope(
@@ -364,6 +382,30 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		}
 	}
 
+	protected AssetQueryRule getQueryRule(
+		ActionRequest actionRequest, int index) {
+
+		boolean contains = ParamUtil.getBoolean(
+			actionRequest, "queryContains" + index);
+		boolean andOperator = ParamUtil.getBoolean(
+			actionRequest, "queryAndOperator" + index);
+
+		String name = ParamUtil.getString(actionRequest, "queryName" + index);
+
+		String[] values = null;
+
+		if (name.equals("assetTags")) {
+			values = StringUtil.split(
+				ParamUtil.getString(actionRequest, "queryTagNames" + index));
+		}
+		else {
+			values = StringUtil.split(
+				ParamUtil.getString(actionRequest, "queryCategoryIds" + index));
+		}
+
+		return new AssetQueryRule(contains, andOperator, name, values);
+	}
+
 	protected boolean getSubtypesFieldsFilterEnabled(
 			ActionRequest actionRequest, String[] classNameIds)
 		throws Exception {
@@ -440,6 +482,12 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		String scopeId = ParamUtil.getString(actionRequest, "scopeId");
 
 		scopeIds = ArrayUtil.remove(scopeIds, scopeId);
+
+		if (scopeId.startsWith(AssetPublisher.SCOPE_ID_PARENT_GROUP_PREFIX)) {
+			scopeId = scopeId.substring("Parent".length());
+
+			scopeIds = ArrayUtil.remove(scopeIds, scopeId);
+		}
 
 		preferences.setValues("scopeIds", scopeIds);
 	}
@@ -548,6 +596,31 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 		layout = LayoutLocalServiceUtil.updateLayout(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
+
+		if (LayoutStagingUtil.isBranchingLayout(layout)) {
+			HttpServletRequest request = PortalUtil.getHttpServletRequest(
+				actionRequest);
+
+			LayoutSetBranch layoutSetBranch =
+				LayoutStagingUtil.getLayoutSetBranch(layout.getLayoutSet());
+
+			long layoutSetBranchId = layoutSetBranch.getLayoutSetBranchId();
+
+			long layoutRevisionId = StagingUtil.getRecentLayoutRevisionId(
+				request, layoutSetBranchId, layout.getPlid());
+
+			LayoutRevision layoutRevision =
+				LayoutRevisionLocalServiceUtil.getLayoutRevision(
+					layoutRevisionId);
+
+			PortletPreferencesImpl portletPreferences =
+				(PortletPreferencesImpl)actionRequest.getPreferences();
+
+			if (layoutRevision != null) {
+				portletPreferences.setPlid(
+					layoutRevision.getLayoutRevisionId());
+			}
+		}
 	}
 
 	protected void updateDisplaySettings(ActionRequest actionRequest)
@@ -583,36 +656,25 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 
 		int i = 0;
 
+		List<AssetQueryRule> queryRules = new ArrayList<AssetQueryRule>();
+
 		for (int queryRulesIndex : queryRulesIndexes) {
-			boolean contains = ParamUtil.getBoolean(
-				actionRequest, "queryContains" + queryRulesIndex);
-			boolean andOperator = ParamUtil.getBoolean(
-				actionRequest, "queryAndOperator" + queryRulesIndex);
-			String name = ParamUtil.getString(
-				actionRequest, "queryName" + queryRulesIndex);
+			AssetQueryRule queryRule = getQueryRule(
+				actionRequest, queryRulesIndex);
 
-			String[] values = null;
+			validateQueryRule(userId, groupId, queryRules, queryRule);
 
-			if (name.equals("assetTags")) {
-				values = StringUtil.split(
-					ParamUtil.getString(
-						actionRequest, "queryTagNames" + queryRulesIndex));
-
-				AssetTagLocalServiceUtil.checkTags(userId, groupId, values);
-			}
-			else {
-				values = StringUtil.split(
-					ParamUtil.getString(
-						actionRequest, "queryCategoryIds" + queryRulesIndex));
-			}
+			queryRules.add(queryRule);
 
 			setPreference(
-				actionRequest, "queryContains" + i, String.valueOf(contains));
+				actionRequest, "queryContains" + i,
+				String.valueOf(queryRule.isContains()));
 			setPreference(
 				actionRequest, "queryAndOperator" + i,
-				String.valueOf(andOperator));
-			setPreference(actionRequest, "queryName" + i, name);
-			setPreference(actionRequest, "queryValues" + i, values);
+				String.valueOf(queryRule.isAndOperator()));
+			setPreference(actionRequest, "queryName" + i, queryRule.getName());
+			setPreference(
+				actionRequest, "queryValues" + i, queryRule.getValues());
 
 			i++;
 		}
@@ -665,6 +727,25 @@ public class ConfigurationActionImpl extends DefaultConfigurationAction {
 				 !Validator.isVariableTerm(emailFromAddress)) {
 
 			SessionErrors.add(actionRequest, "emailFromAddress");
+		}
+	}
+
+	protected void validateQueryRule(
+			long userId, long groupId, List<AssetQueryRule> queryRules,
+			AssetQueryRule queryRule)
+		throws Exception {
+
+		String name = queryRule.getName();
+
+		if (name.equals("assetTags")) {
+			AssetTagLocalServiceUtil.checkTags(
+				userId, groupId, queryRule.getValues());
+		}
+
+		if (queryRules.contains(queryRule)) {
+			throw new DuplicateQueryRuleException(
+				queryRule.isContains(), queryRule.isAndOperator(),
+				queryRule.getName());
 		}
 	}
 

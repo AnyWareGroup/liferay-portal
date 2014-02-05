@@ -21,6 +21,8 @@ import com.thoughtworks.selenium.Selenium;
  */
 public interface LiferaySelenium extends Selenium {
 
+	public void antCommand(String fileName, String target) throws Exception;
+
 	public void assertAlert(String pattern) throws Exception;
 
 	public void assertChecked(String pattern) throws Exception;
@@ -30,6 +32,16 @@ public interface LiferaySelenium extends Selenium {
 	public void assertElementNotPresent(String locator) throws Exception;
 
 	public void assertElementPresent(String locator) throws Exception;
+
+	public void assertEmailBody(String index, String body)
+		throws Exception;
+
+	public void assertEmailSubject(String index, String subject)
+		throws Exception;
+
+	public void assertJavaScriptErrors() throws Exception;
+
+	public void assertLiferayErrors() throws Exception;
 
 	public void assertLocation(String pattern);
 
@@ -55,7 +67,7 @@ public interface LiferaySelenium extends Selenium {
 		throws Exception;
 
 	public void assertSelectedLabel(String selectLocator, String pattern)
-			throws Exception;
+		throws Exception;
 
 	public void assertText(String locator, String pattern) throws Exception;
 
@@ -71,9 +83,16 @@ public interface LiferaySelenium extends Selenium {
 
 	public void clickAtAndWait(String locator, String coordString);
 
+	public void clickImageElement(String image) throws Exception;
+
+	public void connectToEmailAccount(String emailAddress, String emailPassword)
+		throws Exception;
+
 	public void copyText(String locator);
 
 	public void copyValue(String locator);
+
+	public void deleteAllEmails() throws Exception;
 
 	public void echo(String message);
 
@@ -85,6 +104,10 @@ public interface LiferaySelenium extends Selenium {
 
 	public String getCurrentYear();
 
+	public String getEmailBody(String index) throws Exception;
+
+	public String getEmailSubject(String index) throws Exception;
+
 	public String getFirstNumber(String locator);
 
 	public String getFirstNumberIncrement(String locator);
@@ -93,9 +116,13 @@ public interface LiferaySelenium extends Selenium {
 
 	public String getNumberIncrement(String value);
 
+	public String getOutputDir();
+
 	public String getPrimaryTestSuiteName();
 
 	public String getProjectDir();
+
+	public String getSikuliImagesDir();
 
 	public void goBackAndWait();
 
@@ -137,15 +164,30 @@ public interface LiferaySelenium extends Selenium {
 
 	public void pause(String waitTime) throws Exception;
 
+	public void pauseLoggerCheck() throws Exception;
+
 	public void refreshAndWait();
 
-	public void saveScreenShotAndSource() throws Exception;
+	public void replyToEmail(String to, String body) throws Exception;
+
+	public void saveScreenshot(String fileName) throws Exception;
+
+	public void saveScreenshotAndSource() throws Exception;
 
 	public void selectAndWait(String selectLocator, String optionLocator);
+
+	public boolean sendActionLogger(String command, String[] params);
+
+	public void sendEmail(String to, String subject, String body)
+		throws Exception;
 
 	public void sendKeys(String locator, String value);
 
 	public void sendLogger(String id, String status);
+
+	public void sendTestCaseCommandLogger(String command);
+
+	public void sendTestCaseHeaderLogger(String command);
 
 	public void setDefaultTimeout();
 
@@ -160,6 +202,8 @@ public interface LiferaySelenium extends Selenium {
 	public void stopLogger();
 
 	public void typeFrame(String locator, String value);
+
+	public void typeImageElement(String image, String value) throws Exception;
 
 	public void uploadCommonFile(String locator, String value);
 

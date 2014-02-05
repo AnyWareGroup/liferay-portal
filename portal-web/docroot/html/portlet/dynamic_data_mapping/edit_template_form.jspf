@@ -15,15 +15,13 @@
 --%>
 
 <%
-String languageId = LanguageUtil.getLanguageId(request);
-
 if (Validator.isNull(script)) {
 	script = structure.getXsd();
 	scriptJSONArray = DDMXSDUtil.getJSONArray(script);
 }
 
 if (scriptJSONArray != null) {
-	scriptJSONArray = _addDetailTemplateFieldAttributes(structure, scriptJSONArray);
+	scriptJSONArray = _addFormTemplateFieldAttributes(structure, scriptJSONArray);
 }
 
 String namespace = renderResponse.getNamespace();
@@ -37,7 +35,7 @@ if (Validator.isNotNull(portletResourceNamespace)) {
 <aui:input name="scriptContent" type="hidden" />
 
 <aui:script>
-	window.<portlet:namespace />getAvailableFields = function(A, FormBuilder) {
+	window["<%= HtmlUtil.escapeJS(namespace) %>getAvailableFields"] = function(A, FormBuilder) {
 		var availableFields = <%= scriptJSONArray.toString() %>;
 
 		A.Array.each(
@@ -52,7 +50,7 @@ if (Validator.isNotNull(portletResourceNamespace)) {
 </aui:script>
 
 <%!
-public JSONArray _addDetailTemplateFieldAttributes(DDMStructure structure, JSONArray scriptJSONArray) throws Exception {
+public JSONArray _addFormTemplateFieldAttributes(DDMStructure structure, JSONArray scriptJSONArray) throws Exception {
 	for (int i = 0; i < scriptJSONArray.length(); i++) {
 		JSONObject jsonObject = scriptJSONArray.getJSONObject(i);
 

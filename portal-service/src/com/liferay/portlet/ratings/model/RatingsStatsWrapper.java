@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.ratings.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link RatingsStats}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       RatingsStats
+ * @author Brian Wing Shun Chan
+ * @see RatingsStats
  * @generated
  */
+@ProviderType
 public class RatingsStatsWrapper implements RatingsStats,
 	ModelWrapper<RatingsStats> {
 	public RatingsStatsWrapper(RatingsStats ratingsStats) {
@@ -357,9 +361,29 @@ public class RatingsStatsWrapper implements RatingsStats,
 		_ratingsStats.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RatingsStatsWrapper)) {
+			return false;
+		}
+
+		RatingsStatsWrapper ratingsStatsWrapper = (RatingsStatsWrapper)obj;
+
+		if (Validator.equals(_ratingsStats, ratingsStatsWrapper._ratingsStats)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public RatingsStats getWrappedRatingsStats() {
 		return _ratingsStats;
 	}
@@ -367,6 +391,16 @@ public class RatingsStatsWrapper implements RatingsStats,
 	@Override
 	public RatingsStats getWrappedModel() {
 		return _ratingsStats;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ratingsStats.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ratingsStats.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.RepositoryEntryLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class RepositoryEntryLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,54 @@ public class RepositoryEntryLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portal.model.RepositoryEntry fetchRepositoryEntry(
 		long repositoryEntryId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchRepositoryEntry(repositoryEntryId);
+	}
+
+	/**
+	* Returns the repository entry with the matching UUID and company.
+	*
+	* @param uuid the repository entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching repository entry, or <code>null</code> if a matching repository entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.RepositoryEntry fetchRepositoryEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchRepositoryEntryByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the repository entry matching the UUID and group.
+	*
+	* @param uuid the repository entry's UUID
+	* @param groupId the primary key of the group
+	* @return the matching repository entry, or <code>null</code> if a matching repository entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.RepositoryEntry fetchRepositoryEntryByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchRepositoryEntryByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -191,6 +238,22 @@ public class RepositoryEntryLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the repository entry with the matching UUID and company.
+	*
+	* @param uuid the repository entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching repository entry
+	* @throws PortalException if a matching repository entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portal.model.RepositoryEntry getRepositoryEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getRepositoryEntryByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -280,6 +343,12 @@ public class RepositoryEntryLocalServiceUtil {
 			serviceContext);
 	}
 
+	public static java.util.List<com.liferay.portal.model.RepositoryEntry> getRepositoryEntries(
+		long repositoryId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getRepositoryEntries(repositoryId);
+	}
+
 	public static com.liferay.portal.model.RepositoryEntry updateRepositoryEntry(
 		long repositoryEntryId, java.lang.String mappedId)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -301,6 +370,7 @@ public class RepositoryEntryLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(RepositoryEntryLocalService service) {
 	}
 

@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PortletPreferencesService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortletPreferencesService
+ * @author Brian Wing Shun Chan
+ * @see PortletPreferencesService
  * @generated
  */
+@ProviderType
 public class PortletPreferencesServiceWrapper
 	implements PortletPreferencesService,
 		ServiceWrapper<PortletPreferencesService> {
@@ -100,6 +103,7 @@ public class PortletPreferencesServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortletPreferencesService getWrappedPortletPreferencesService() {
 		return _portletPreferencesService;
 	}
@@ -107,6 +111,7 @@ public class PortletPreferencesServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortletPreferencesService(
 		PortletPreferencesService portletPreferencesService) {
 		_portletPreferencesService = portletPreferencesService;

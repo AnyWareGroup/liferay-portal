@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.messageboards.model.MBDiscussion;
 import com.liferay.portlet.messageboards.service.base.MBDiscussionLocalServiceBaseImpl;
 
@@ -61,6 +60,22 @@ public class MBDiscussionLocalServiceImpl
 	}
 
 	@Override
+	public MBDiscussion fetchDiscussion(long discussionId)
+		throws SystemException {
+
+		return mbDiscussionPersistence.fetchByPrimaryKey(discussionId);
+	}
+
+	@Override
+	public MBDiscussion fetchDiscussion(String className, long classPK)
+		throws SystemException {
+
+		long classNameId = classNameLocalService.getClassNameId(className);
+
+		return mbDiscussionPersistence.fetchByC_C(classNameId, classPK);
+	}
+
+	@Override
 	public MBDiscussion getDiscussion(long discussionId)
 		throws PortalException, SystemException {
 
@@ -71,7 +86,7 @@ public class MBDiscussionLocalServiceImpl
 	public MBDiscussion getDiscussion(String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return mbDiscussionPersistence.findByC_C(classNameId, classPK);
 	}

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.ImageServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ImageServiceHttp
- * @see       com.liferay.portal.model.ImageSoap
- * @see       com.liferay.portal.service.ImageServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ImageServiceHttp
+ * @see com.liferay.portal.model.ImageSoap
+ * @see com.liferay.portal.service.ImageServiceUtil
  * @generated
  */
+@ProviderType
 public class ImageServiceSoap {
 	public static com.liferay.portal.model.ImageSoap getImage(long imageId)
 		throws RemoteException {

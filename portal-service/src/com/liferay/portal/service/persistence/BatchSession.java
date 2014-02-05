@@ -26,16 +26,15 @@ import com.liferay.portal.model.BaseModel;
  * batching functionality is only used for large sets of contiguous updates. For
  * usage examples see {@link
  * com.liferay.portal.service.impl.LayoutLocalServiceImpl#importLayouts(long,
- * long, boolean, java.util.Map, java.io.File)}, {@link
- * com.liferay.portal.verify.VerifyProcessUtil#verifyProcess(boolean, boolean)}
- * , and {@link
- * com.liferay.portal.convert.ConvertPermissionAlgorithm#doConvert()}.
+ * long, boolean, java.util.Map, java.io.File)}, and {@link
+ * com.liferay.portal.verify.VerifyProcessUtil#verifyProcess(boolean, boolean)}.
  * </p>
  *
  * @author     Raymond Augé
  * @author     Brian Wing Shun Chan
  * @deprecated As of 6.2.0, see LPS-30598.
  */
+@Deprecated
 public interface BatchSession {
 
 	/**

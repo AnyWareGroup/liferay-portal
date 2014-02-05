@@ -348,6 +348,10 @@ public class OrgLaborPersistenceImpl extends BasePersistenceImpl<OrgLabor>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByOrganizationId(organizationId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<OrgLabor> list = findByOrganizationId(organizationId, count - 1,
 				count, orderByComparator);
 
@@ -574,6 +578,10 @@ public class OrgLaborPersistenceImpl extends BasePersistenceImpl<OrgLabor>
 	}
 
 	private static final String _FINDER_COLUMN_ORGANIZATIONID_ORGANIZATIONID_2 = "orgLabor.organizationId = ?";
+
+	public OrgLaborPersistenceImpl() {
+		setModelClass(OrgLabor.class);
+	}
 
 	/**
 	 * Caches the org labor in the entity cache if it is enabled.
@@ -815,7 +823,9 @@ public class OrgLaborPersistenceImpl extends BasePersistenceImpl<OrgLabor>
 		}
 
 		EntityCacheUtil.putResult(OrgLaborModelImpl.ENTITY_CACHE_ENABLED,
-			OrgLaborImpl.class, orgLabor.getPrimaryKey(), orgLabor);
+			OrgLaborImpl.class, orgLabor.getPrimaryKey(), orgLabor, false);
+
+		orgLabor.resetOriginalValues();
 
 		return orgLabor;
 	}
@@ -830,6 +840,7 @@ public class OrgLaborPersistenceImpl extends BasePersistenceImpl<OrgLabor>
 		orgLaborImpl.setNew(orgLabor.isNew());
 		orgLaborImpl.setPrimaryKey(orgLabor.getPrimaryKey());
 
+		orgLaborImpl.setMvccVersion(orgLabor.getMvccVersion());
 		orgLaborImpl.setOrgLaborId(orgLabor.getOrgLaborId());
 		orgLaborImpl.setOrganizationId(orgLabor.getOrganizationId());
 		orgLaborImpl.setTypeId(orgLabor.getTypeId());

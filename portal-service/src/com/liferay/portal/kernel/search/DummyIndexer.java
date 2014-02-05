@@ -82,6 +82,11 @@ public class DummyIndexer implements Indexer {
 	}
 
 	@Override
+	public String getSortField(String orderByCol, int sortType) {
+		return StringPool.BLANK;
+	}
+
+	@Override
 	public Summary getSummary(
 		Document document, Locale locale, String snippet,
 		PortletURL portletURL) {
@@ -145,6 +150,13 @@ public class DummyIndexer implements Indexer {
 
 	@Override
 	public Hits search(SearchContext searchContext) {
+		return null;
+	}
+
+	@Override
+	public Hits search(
+		SearchContext searchContext, String... selectedFieldNames) {
+
 		return null;
 	}
 

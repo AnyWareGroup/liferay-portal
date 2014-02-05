@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AnnouncementsFlagLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsFlagLocalService
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsFlagLocalService
  * @generated
  */
+@ProviderType
 public class AnnouncementsFlagLocalServiceWrapper
 	implements AnnouncementsFlagLocalService,
 		ServiceWrapper<AnnouncementsFlagLocalService> {
@@ -168,6 +171,23 @@ public class AnnouncementsFlagLocalServiceWrapper
 		return _announcementsFlagLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _announcementsFlagLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsFlag fetchAnnouncementsFlag(
 		long flagId) throws com.liferay.portal.kernel.exception.SystemException {
@@ -301,6 +321,7 @@ public class AnnouncementsFlagLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AnnouncementsFlagLocalService getWrappedAnnouncementsFlagLocalService() {
 		return _announcementsFlagLocalService;
 	}
@@ -308,6 +329,7 @@ public class AnnouncementsFlagLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAnnouncementsFlagLocalService(
 		AnnouncementsFlagLocalService announcementsFlagLocalService) {
 		_announcementsFlagLocalService = announcementsFlagLocalService;

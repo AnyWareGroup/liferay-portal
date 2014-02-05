@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Country}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Country
+ * @author Brian Wing Shun Chan
+ * @see Country
  * @generated
  */
+@ProviderType
 public class CountryWrapper implements Country, ModelWrapper<Country> {
 	public CountryWrapper(Country country) {
 		_country = country;
@@ -45,6 +50,7 @@ public class CountryWrapper implements Country, ModelWrapper<Country> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("countryId", getCountryId());
 		attributes.put("name", getName());
 		attributes.put("a2", getA2());
@@ -59,6 +65,12 @@ public class CountryWrapper implements Country, ModelWrapper<Country> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long countryId = (Long)attributes.get("countryId");
 
 		if (countryId != null) {
@@ -126,6 +138,26 @@ public class CountryWrapper implements Country, ModelWrapper<Country> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_country.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this country.
+	*
+	* @return the mvcc version of this country
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _country.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this country.
+	*
+	* @param mvccVersion the mvcc version of this country
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_country.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -426,9 +458,29 @@ public class CountryWrapper implements Country, ModelWrapper<Country> {
 		_country.setNameCurrentLanguageId(languageId);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CountryWrapper)) {
+			return false;
+		}
+
+		CountryWrapper countryWrapper = (CountryWrapper)obj;
+
+		if (Validator.equals(_country, countryWrapper._country)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Country getWrappedCountry() {
 		return _country;
 	}
@@ -436,6 +488,16 @@ public class CountryWrapper implements Country, ModelWrapper<Country> {
 	@Override
 	public Country getWrappedModel() {
 		return _country;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _country.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _country.isFinderCacheEnabled();
 	}
 
 	@Override

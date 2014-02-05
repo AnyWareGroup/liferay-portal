@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Region}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Region
+ * @author Brian Wing Shun Chan
+ * @see Region
  * @generated
  */
+@ProviderType
 public class RegionWrapper implements Region, ModelWrapper<Region> {
 	public RegionWrapper(Region region) {
 		_region = region;
@@ -45,6 +50,7 @@ public class RegionWrapper implements Region, ModelWrapper<Region> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("regionId", getRegionId());
 		attributes.put("countryId", getCountryId());
 		attributes.put("regionCode", getRegionCode());
@@ -56,6 +62,12 @@ public class RegionWrapper implements Region, ModelWrapper<Region> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long regionId = (Long)attributes.get("regionId");
 
 		if (regionId != null) {
@@ -105,6 +117,26 @@ public class RegionWrapper implements Region, ModelWrapper<Region> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_region.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this region.
+	*
+	* @return the mvcc version of this region
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _region.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this region.
+	*
+	* @param mvccVersion the mvcc version of this region
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_region.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -315,9 +347,29 @@ public class RegionWrapper implements Region, ModelWrapper<Region> {
 		return _region.toXmlString();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RegionWrapper)) {
+			return false;
+		}
+
+		RegionWrapper regionWrapper = (RegionWrapper)obj;
+
+		if (Validator.equals(_region, regionWrapper._region)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Region getWrappedRegion() {
 		return _region;
 	}
@@ -325,6 +377,16 @@ public class RegionWrapper implements Region, ModelWrapper<Region> {
 	@Override
 	public Region getWrappedModel() {
 		return _region;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _region.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _region.isFinderCacheEnabled();
 	}
 
 	@Override

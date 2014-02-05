@@ -44,7 +44,7 @@ if (layoutSetBranches.contains(layoutSetBranch)) {
 		<aui:input name="layoutSetBranchId" type="hidden" value="<%= layoutSetBranchId %>" />
 		<aui:input name="mergeLayoutSetBranchId" type="hidden" />
 
-		<liferay-ui:search-container>
+		<liferay-ui:search-container id="layoutSetBranchesSearchContainer">
 			<liferay-ui:search-container-results
 				results="<%= layoutSetBranches %>"
 				total="<%= layoutSetBranches.size() %>"
@@ -72,7 +72,7 @@ if (layoutSetBranches.contains(layoutSetBranch)) {
 					buffer.append("' data-layoutSetBranchName='");
 					buffer.append(HtmlUtil.escapeAttribute(curLayoutSetBranch.getName()));
 					buffer.append("' data-layoutSetBranchMessage='");
-					buffer.append(HtmlUtil.escapeAttribute(LanguageUtil.format(pageContext, "are-you-sure-you-want-to-merge-changes-from-x", curLayoutSetBranch.getName())));
+					buffer.append(HtmlUtil.escapeAttribute(LanguageUtil.format(pageContext, "are-you-sure-you-want-to-merge-changes-from-x", curLayoutSetBranch.getName(), false)));
 					buffer.append("' href='#'>");
 					buffer.append(LanguageUtil.get(pageContext, "select"));
 					buffer.append("</a>");

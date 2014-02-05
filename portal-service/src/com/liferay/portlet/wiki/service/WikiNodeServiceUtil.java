@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.wiki.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.wiki.service.impl.WikiNodeServiceImpl
  * @generated
  */
+@ProviderType
 public class WikiNodeServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -81,6 +84,42 @@ public class WikiNodeServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getNode(groupId, name);
+	}
+
+	public static java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNodes(groupId);
+	}
+
+	public static java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId, int status)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNodes(groupId, status);
+	}
+
+	public static java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNodes(groupId, start, end);
+	}
+
+	public static java.util.List<com.liferay.portlet.wiki.model.WikiNode> getNodes(
+		long groupId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNodes(groupId, status, start, end);
+	}
+
+	public static int getNodesCount(long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNodesCount(groupId);
+	}
+
+	public static int getNodesCount(long groupId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getNodesCount(groupId, status);
 	}
 
 	public static void importPages(long nodeId, java.lang.String importer,
@@ -138,6 +177,7 @@ public class WikiNodeServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(WikiNodeService service) {
 	}
 

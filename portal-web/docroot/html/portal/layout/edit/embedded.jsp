@@ -17,12 +17,17 @@
 <%@ include file="/html/portal/layout/edit/init.jsp" %>
 
 <%
-UnicodeProperties typeSettingsProperties = selLayout.getTypeSettingsProperties();
+String url = StringPool.BLANK;
+String description = StringPool.BLANK;
 
-String url = typeSettingsProperties.getProperty("url", StringPool.BLANK);
-String description = typeSettingsProperties.getProperty("description", StringPool.BLANK);
+if (selLayout != null) {
+	UnicodeProperties typeSettingsProperties = selLayout.getTypeSettingsProperties();
+
+	url = typeSettingsProperties.getProperty("url", StringPool.BLANK);
+	description = typeSettingsProperties.getProperty("description", StringPool.BLANK);
+}
 %>
 
-<aui:input cssClass="lfr-input-text-container" label="url" name="TypeSettingsProperties--url--" type="text" value="<%= url %>" />
+<aui:input cssClass="lfr-input-text-container" id="urlEmbedded" label="url" name="TypeSettingsProperties--url--" type="text" value="<%= url %>" />
 
-<aui:input cssClass="layout-description" label="description" name="TypeSettingsProperties--description--" type="textarea" value="<%= description %>" wrap="soft" />
+<aui:input cssClass="layout-description" id="descriptionEmbedded" label="description" name="TypeSettingsProperties--description--" type="textarea" value="<%= description %>" wrap="soft" />

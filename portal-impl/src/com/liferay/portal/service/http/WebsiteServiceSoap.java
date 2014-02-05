@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.WebsiteServiceUtil;
@@ -54,17 +56,19 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       WebsiteServiceHttp
- * @see       com.liferay.portal.model.WebsiteSoap
- * @see       com.liferay.portal.service.WebsiteServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see WebsiteServiceHttp
+ * @see com.liferay.portal.model.WebsiteSoap
+ * @see com.liferay.portal.service.WebsiteServiceUtil
  * @generated
  */
+@ProviderType
 public class WebsiteServiceSoap {
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addWebsite( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
 	String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.model.WebsiteSoap addWebsite(
 		java.lang.String className, long classPK, java.lang.String url,
 		int typeId, boolean primary) throws RemoteException {

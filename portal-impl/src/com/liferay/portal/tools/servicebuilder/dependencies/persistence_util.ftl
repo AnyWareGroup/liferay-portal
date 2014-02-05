@@ -1,5 +1,7 @@
 package ${packagePath}.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import ${packagePath}.model.${entity.name};
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
@@ -25,6 +27,11 @@ import java.util.List;
  * @see ${entity.name}PersistenceImpl
  * @generated
  */
+
+<#if pluginName == "">
+	@ProviderType
+</#if>
+
 public class ${entity.name}Util {
 
 	/*
@@ -50,7 +57,7 @@ public class ${entity.name}Util {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery) throws SystemException {
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery) throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
 
@@ -92,6 +99,11 @@ public class ${entity.name}Util {
 	<#list methods as method>
 		<#if !method.isConstructor() && method.isPublic() && serviceBuilder.isCustomMethod(method) && !serviceBuilder.isBasePersistenceMethod(method)>
 			${serviceBuilder.getJavadocComment(method)}
+
+			<#if serviceBuilder.hasAnnotation(method, "Deprecated")>
+				@Deprecated
+			</#if>
+
 			public static ${serviceBuilder.getTypeGenericsName(method.returns)} ${method.name} (
 
 			<#list method.parameters as parameter>
@@ -153,6 +165,7 @@ public class ${entity.name}Util {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(${entity.name}Persistence persistence) {
 	}
 

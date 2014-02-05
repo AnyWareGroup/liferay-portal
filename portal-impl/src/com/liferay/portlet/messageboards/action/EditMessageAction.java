@@ -17,6 +17,7 @@ package com.liferay.portlet.messageboards.action;
 import com.liferay.portal.kernel.captcha.CaptchaMaxChallengesException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.captcha.CaptchaUtil;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.upload.UploadPortletRequest;
@@ -41,6 +42,7 @@ import com.liferay.portal.util.WebKeys;
 import com.liferay.portlet.ActionResponseImpl;
 import com.liferay.portlet.asset.AssetCategoryException;
 import com.liferay.portlet.asset.AssetTagException;
+import com.liferay.portlet.documentlibrary.DuplicateFileException;
 import com.liferay.portlet.documentlibrary.FileExtensionException;
 import com.liferay.portlet.documentlibrary.FileNameException;
 import com.liferay.portlet.documentlibrary.FileSizeException;
@@ -68,6 +70,7 @@ import javax.portlet.PortletPreferences;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
+import javax.portlet.WindowState;
 
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
@@ -82,8 +85,9 @@ public class EditMessageAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -111,10 +115,22 @@ public class EditMessageAction extends PortletAction {
 			}
 
 			if (Validator.isNotNull(cmd)) {
-				String redirect = getRedirect(
-					actionRequest, actionResponse, message);
+				WindowState windowState = actionRequest.getWindowState();
 
-				sendRedirect(actionRequest, actionResponse, redirect);
+				if (!windowState.equals(LiferayWindowState.POP_UP)) {
+					String redirect = getRedirect(
+						actionRequest, actionResponse, message);
+
+					sendRedirect(actionRequest, actionResponse, redirect);
+				}
+				else {
+					String redirect = PortalUtil.escapeRedirect(
+						ParamUtil.getString(actionRequest, "redirect"));
+
+					if (Validator.isNotNull(redirect)) {
+						actionResponse.sendRedirect(redirect);
+					}
+				}
 			}
 		}
 		catch (Exception e) {
@@ -128,6 +144,7 @@ public class EditMessageAction extends PortletAction {
 			}
 			else if (e instanceof CaptchaMaxChallengesException ||
 					 e instanceof CaptchaTextException ||
+					 e instanceof DuplicateFileException ||
 					 e instanceof FileExtensionException ||
 					 e instanceof FileNameException ||
 					 e instanceof FileSizeException ||
@@ -158,8 +175,9 @@ public class EditMessageAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -171,14 +189,15 @@ public class EditMessageAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.message_boards.error");
+				return actionMapping.findForward(
+					"portlet.message_boards.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.message_boards.edit_message"));
 	}
 
@@ -295,7 +314,7 @@ public class EditMessageAction extends PortletAction {
 			ActionRequest actionRequest, ActionResponse actionResponse)
 		throws Exception {
 
-		PortletPreferences preferences = actionRequest.getPreferences();
+		PortletPreferences portletPreferences = actionRequest.getPreferences();
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
@@ -311,7 +330,7 @@ public class EditMessageAction extends PortletAction {
 		String body = ParamUtil.getString(actionRequest, "body");
 
 		String format = GetterUtil.getString(
-			preferences.getValue("messageFormat", null),
+			portletPreferences.getValue("messageFormat", null),
 			MBMessageConstants.DEFAULT_FORMAT);
 
 		List<ObjectValuePair<String, InputStream>> inputStreamOVPs =

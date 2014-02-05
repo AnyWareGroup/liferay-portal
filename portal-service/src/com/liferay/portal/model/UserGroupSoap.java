@@ -23,14 +23,15 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portal.service.http.UserGroupServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portal.service.http.UserGroupServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portal.service.http.UserGroupServiceSoap
  * @generated
  */
 public class UserGroupSoap implements Serializable {
 	public static UserGroupSoap toSoapModel(UserGroup model) {
 		UserGroupSoap soapModel = new UserGroupSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setUserGroupId(model.getUserGroupId());
 		soapModel.setCompanyId(model.getCompanyId());
@@ -92,6 +93,14 @@ public class UserGroupSoap implements Serializable {
 
 	public void setPrimaryKey(long pk) {
 		setUserGroupId(pk);
+	}
+
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	public String getUuid() {
@@ -186,6 +195,7 @@ public class UserGroupSoap implements Serializable {
 		_addedByLDAPImport = addedByLDAPImport;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _userGroupId;
 	private long _companyId;

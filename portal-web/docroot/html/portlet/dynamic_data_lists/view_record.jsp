@@ -18,7 +18,6 @@
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
-String backURL = ParamUtil.getString(request, "backURL");
 
 DDLRecord record = (DDLRecord)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD);
 
@@ -26,7 +25,7 @@ long recordId = BeanParamUtil.getLong(record, request, "recordId");
 
 long recordSetId = BeanParamUtil.getLong(record, request, "recordSetId");
 
-DDLRecordSet recordSet = DDLRecordSetLocalServiceUtil.getRecordSet(recordSetId);
+DDLRecordSet recordSet = DDLRecordSetServiceUtil.getRecordSet(recordSetId);
 
 long formDDMTemplateId = ParamUtil.getLong(request, "formDDMTemplateId");
 
@@ -40,8 +39,8 @@ DDLRecordVersion latestRecordVersion = record.getLatestRecordVersion();
 %>
 
 <liferay-ui:header
-	backURL="<%= backURL %>"
-	title='<%= LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale)) %>'
+	backURL="<%= redirect %>"
+	title='<%= LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale), false) %>'
 />
 
 <c:if test="<%= recordVersion != null %>">
@@ -100,5 +99,5 @@ portletURL.setParameter("struts_action", "/dynamic_data_lists/view_record_set");
 portletURL.setParameter("recordSetId", String.valueOf(recordSetId));
 
 PortalUtil.addPortletBreadcrumbEntry(request, recordSet.getName(locale), portletURL.toString());
-PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale)), currentURL);
+PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.format(pageContext, "view-x", ddmStructure.getName(locale), false), currentURL);
 %>

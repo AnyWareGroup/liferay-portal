@@ -16,14 +16,6 @@
 
 <%@ include file="/html/portlet/roles_admin/init.jsp" %>
 
-<%
-RoleSearch searchContainer = (RoleSearch)request.getAttribute("liferay-ui:search:searchContainer");
-
-RoleDisplayTerms displayTerms = (RoleDisplayTerms)searchContainer.getDisplayTerms();
-%>
-
-<span class="form-search lfr-display-terms-search">
-	<aui:input inlineField="<%= true %>" label="" name="<%= displayTerms.KEYWORDS %>" size="30" type="text" value="<%= displayTerms.getKeywords() %>" />
-
-	<aui:button type="submit" value="search" />
-</span>
+<div class="form-search">
+	<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' />
+</div>

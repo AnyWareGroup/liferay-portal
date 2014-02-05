@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PortalPreferencesLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortalPreferencesLocalService
+ * @author Brian Wing Shun Chan
+ * @see PortalPreferencesLocalService
  * @generated
  */
+@ProviderType
 public class PortalPreferencesLocalServiceWrapper
 	implements PortalPreferencesLocalService,
 		ServiceWrapper<PortalPreferencesLocalService> {
@@ -166,6 +169,23 @@ public class PortalPreferencesLocalServiceWrapper
 		return _portalPreferencesLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.PortalPreferences fetchPortalPreferences(
 		long portalPreferencesId)
@@ -264,6 +284,19 @@ public class PortalPreferencesLocalServiceWrapper
 
 	@Override
 	public com.liferay.portal.model.PortalPreferences addPortalPreferences(
+		long ownerId, int ownerType, java.lang.String defaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.addPortalPreferences(ownerId,
+			ownerType, defaultPreferences);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #addPortalPreferences(long,
+	int, String)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portal.model.PortalPreferences addPortalPreferences(
 		long companyId, long ownerId, int ownerType,
 		java.lang.String defaultPreferences)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -272,6 +305,25 @@ public class PortalPreferencesLocalServiceWrapper
 	}
 
 	@Override
+	public javax.portlet.PortletPreferences getPreferences(long ownerId,
+		int ownerType)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.getPreferences(ownerId, ownerType);
+	}
+
+	@Override
+	public javax.portlet.PortletPreferences getPreferences(long ownerId,
+		int ownerType, java.lang.String defaultPreferences)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _portalPreferencesLocalService.getPreferences(ownerId,
+			ownerType, defaultPreferences);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getPreferences(long, int)}
+	*/
+	@Deprecated
+	@Override
 	public javax.portlet.PortletPreferences getPreferences(long companyId,
 		long ownerId, int ownerType)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -279,6 +331,11 @@ public class PortalPreferencesLocalServiceWrapper
 			ownerId, ownerType);
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link #getPreferences(long, int,
+	String)}
+	*/
+	@Deprecated
 	@Override
 	public javax.portlet.PortletPreferences getPreferences(long companyId,
 		long ownerId, int ownerType, java.lang.String defaultPreferences)
@@ -307,6 +364,7 @@ public class PortalPreferencesLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortalPreferencesLocalService getWrappedPortalPreferencesLocalService() {
 		return _portalPreferencesLocalService;
 	}
@@ -314,6 +372,7 @@ public class PortalPreferencesLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortalPreferencesLocalService(
 		PortalPreferencesLocalService portalPreferencesLocalService) {
 		_portalPreferencesLocalService = portalPreferencesLocalService;

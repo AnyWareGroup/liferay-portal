@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialActivityInterpreterLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityInterpreterLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityInterpreterLocalService
  * @generated
  */
+@ProviderType
 public class SocialActivityInterpreterLocalServiceWrapper
 	implements SocialActivityInterpreterLocalService,
 		ServiceWrapper<SocialActivityInterpreterLocalService> {
@@ -78,10 +81,17 @@ public class SocialActivityInterpreterLocalServiceWrapper
 		return _socialActivityInterpreterLocalService.getActivityInterpreters();
 	}
 
+	@Override
+	public java.util.List<com.liferay.portlet.social.model.SocialActivityInterpreter> getActivityInterpreters(
+		java.lang.String selector) {
+		return _socialActivityInterpreterLocalService.getActivityInterpreters(selector);
+	}
+
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link #interpret(String,
 	SocialActivity, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityFeedEntry interpret(
 		com.liferay.portlet.social.model.SocialActivity activity,
@@ -133,6 +143,7 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivityInterpreterLocalService getWrappedSocialActivityInterpreterLocalService() {
 		return _socialActivityInterpreterLocalService;
 	}
@@ -140,6 +151,7 @@ public class SocialActivityInterpreterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivityInterpreterLocalService(
 		SocialActivityInterpreterLocalService socialActivityInterpreterLocalService) {
 		_socialActivityInterpreterLocalService = socialActivityInterpreterLocalService;

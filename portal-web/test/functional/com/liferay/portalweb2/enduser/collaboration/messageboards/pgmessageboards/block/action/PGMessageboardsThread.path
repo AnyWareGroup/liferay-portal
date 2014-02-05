@@ -30,6 +30,32 @@
 </tr>
 <!--THREAD_CONTROLS-->
 <tr>
+	<td>THREAD_CONTROLS_BACK</td>
+	<td>//a[@id='_19_TabsBack']</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_CONTROLS_NAVIGATION</td>
+	<td>//div[@class='thread-navigation']</td>
+	<td></td>
+</tr>
+<tr>
+	<td></td>
+	<td></td>
+	<td></td>
+</tr>
+<!--THREAD_ACTIONS-->
+<tr>
+	<td>THREAD_ACTIONS_SUBSCRIBE</td>
+	<td>//div[@class='thread-actions']/ul/li/a/span[contains(.,'Subscribe')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>THREAD_ACTIONS_UNSUBSCRIBE</td>
+	<td>//div[@class='thread-actions']/ul/li/a/span[contains(.,'Unsubscribe')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td></td>
 	<td></td>
 	<td></td>
@@ -87,6 +113,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MESSAGE_WORKFLOW_STATUS_1</td>
+	<td>xpath=(//span[@class='taglib-workflow-status']/span/strong)[1]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>MESSAGE_BODY_1</td>
 	<td>xpath=(//div[@class='thread-body'])[1]</td>
 	<td></td>
@@ -138,12 +169,12 @@
 </tr>
 <tr>
 	<td>MESSAGE_RATING_2</td>
-	<td>xpath=(//div[contains(@id,'ratingThumbContent')]/div)[2]</td>
+	<td>xpath=(//div[contains(@id,'ratingThumbContent')]/div)[3]</td>
 	<td></td>
 </tr>
 <tr>
 	<td>MESSAGE_RATING_3</td>
-	<td>xpath=(//div[contains(@id,'ratingThumbContent')]/div)[3]</td>
+	<td>xpath=(//div[contains(@id,'ratingThumbContent')]/div)[5]</td>
 	<td></td>
 </tr>
 <tr>
@@ -159,6 +190,11 @@
 <tr>
 	<td>MESSAGE_EDIT_3</td>
 	<td>xpath=(//td/ul/li[2]/span/a/span)[3]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>MESSAGE_SPLIT_THREAD</td>
+	<td>//table[contains(.,'${key_threadBody}')]/tbody/tr/td[@class='thread-bottom']/ul//a[contains(.,'Split Thread')]</td>
 	<td></td>
 </tr>
 </tbody>

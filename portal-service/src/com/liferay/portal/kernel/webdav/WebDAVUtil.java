@@ -14,8 +14,6 @@
 
 package com.liferay.portal.kernel.webdav;
 
-import com.liferay.portal.NoSuchGroupException;
-import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -140,24 +138,20 @@ public class WebDAVUtil {
 
 			String name = pathArray[0];
 
-			try {
-				Group group = GroupLocalServiceUtil.getFriendlyURLGroup(
-					companyId, StringPool.SLASH + name);
+			Group group = GroupLocalServiceUtil.fetchFriendlyURLGroup(
+				companyId, StringPool.SLASH + name);
 
+			if (group != null) {
 				return group.getGroupId();
 			}
-			catch (NoSuchGroupException nsge) {
-			}
 
-			try {
-				User user = UserLocalServiceUtil.getUserByScreenName(
-					companyId, name);
+			User user = UserLocalServiceUtil.fetchUserByScreenName(
+				companyId, name);
 
-				Group group = user.getGroup();
+			if (user != null) {
+				group = user.getGroup();
 
 				return group.getGroupId();
-			}
-			catch (NoSuchUserException nsue) {
 			}
 		}
 		catch (Exception e) {
@@ -371,7 +365,9 @@ public class WebDAVUtil {
 	private boolean _isOverwrite(HttpServletRequest request) {
 		String value = GetterUtil.getString(request.getHeader("Overwrite"));
 
-		if (value.equalsIgnoreCase("F") || !GetterUtil.getBoolean(value)) {
+		if (StringUtil.equalsIgnoreCase(value, "F") ||
+			!GetterUtil.getBoolean(value)) {
+
 			return false;
 		}
 		else {

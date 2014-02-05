@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.journal.util;
 
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
@@ -30,6 +31,7 @@ import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portal.xml.XMLSchemaImpl;
 import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
 import com.liferay.portlet.documentlibrary.util.DLAppTestUtil;
 import com.liferay.portlet.documentlibrary.util.DLUtil;
@@ -41,6 +43,7 @@ import com.liferay.portlet.dynamicdatamapping.storage.Field;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
 import com.liferay.portlet.dynamicdatamapping.storage.StorageType;
 import com.liferay.portlet.dynamicdatamapping.util.DDMImpl;
+import com.liferay.portlet.dynamicdatamapping.util.DDMXMLImpl;
 import com.liferay.portlet.journal.model.JournalArticle;
 
 import java.io.InputStream;
@@ -261,7 +264,7 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 		Field fieldsDisplayField = getFieldsDisplayField(
 			_ddmStructure.getStructureId(),
 			"text_box_INSTANCE_ND057krU,text_box_INSTANCE_HvemvQgl," +
-			"text_box_INSTANCE_enAnbvq6");
+				"text_box_INSTANCE_enAnbvq6");
 
 		fields.put(fieldsDisplayField);
 
@@ -303,11 +306,14 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 		expectedDDMStructure.setXsd(
 			readText("test-ddm-structure-all-fields.xml"));
 
+		String actualXSD = JournalConverterUtil.getDDMXSD(
+			readText("test-journal-structure-all-fields.xml"));
+
+		validateDDMXSD(actualXSD);
+
 		DDMStructure actualDDMStructure = new DDMStructureImpl();
 
-		actualDDMStructure.setXsd(
-			JournalConverterUtil.getDDMXSD(
-				readText("test-journal-structure-all-fields.xml")));
+		actualDDMStructure.setXsd(actualXSD);
 
 		Assert.assertEquals(
 			expectedDDMStructure.getFieldsMap(),
@@ -465,6 +471,22 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 			_ddmStructure, content);
 
 		assertEquals(expectedFields, actualFields);
+	}
+
+	@Test
+	public void testGetJournalXSD() throws Exception {
+		String expectedXSD = readText("test-journal-structure-all-fields.xml");
+
+		Map<String, Map<String, String>> expectedMap =
+			JournalTestUtil.getXsdMap(expectedXSD);
+
+		String actualXSD = JournalConverterUtil.getJournalXSD(
+			readText("test-ddm-structure-all-fields.xml"));
+
+		Map<String, Map<String, String>> actualMap = JournalTestUtil.getXsdMap(
+			actualXSD);
+
+		Assert.assertEquals(expectedMap, actualMap);
 	}
 
 	protected void assertEquals(Fields expectedFields, Fields actualFields) {
@@ -754,8 +776,10 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 	protected String readText(String fileName) throws Exception {
 		Class<?> clazz = getClass();
 
-		InputStream inputStream = clazz.getResourceAsStream(
-			"dependencies/" + fileName);
+		ClassLoader classLoader = clazz.getClassLoader();
+
+		InputStream inputStream = classLoader.getResourceAsStream(
+			"com/liferay/portlet/journal/dependencies/" + fileName);
 
 		return StringUtil.read(inputStream);
 	}
@@ -804,6 +828,20 @@ public class JournalConverterUtilTest extends BaseDDMServiceTestCase {
 				values.add(dynamicContentElement.getText());
 			}
 		}
+	}
+
+	protected void validateDDMXSD(String xsd) throws PortalException {
+		DDMXMLImpl ddmXMLImpl = new DDMXMLImpl();
+
+		XMLSchemaImpl xmlSchema = new XMLSchemaImpl();
+
+		xmlSchema.setSchemaLanguage("http://www.w3.org/2001/XMLSchema");
+		xmlSchema.setSystemId(
+			"http://www.liferay.com/dtd/liferay-ddm-structure_6_2_0.xsd");
+
+		ddmXMLImpl.setXMLSchema(xmlSchema);
+
+		ddmXMLImpl.validateXML(xsd);
 	}
 
 	private DDMStructure _ddmStructure;

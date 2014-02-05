@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.bookmarks.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.bookmarks.service.impl.BookmarksFolderLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class BookmarksFolderLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,54 @@ public class BookmarksFolderLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.bookmarks.model.BookmarksFolder fetchBookmarksFolder(
 		long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchBookmarksFolder(folderId);
+	}
+
+	/**
+	* Returns the bookmarks folder with the matching UUID and company.
+	*
+	* @param uuid the bookmarks folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.bookmarks.model.BookmarksFolder fetchBookmarksFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .fetchBookmarksFolderByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the bookmarks folder matching the UUID and group.
+	*
+	* @param uuid the bookmarks folder's UUID
+	* @param groupId the primary key of the group
+	* @return the matching bookmarks folder, or <code>null</code> if a matching bookmarks folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.bookmarks.model.BookmarksFolder fetchBookmarksFolderByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchBookmarksFolderByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -191,6 +238,22 @@ public class BookmarksFolderLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the bookmarks folder with the matching UUID and company.
+	*
+	* @param uuid the bookmarks folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching bookmarks folder
+	* @throws PortalException if a matching bookmarks folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.bookmarks.model.BookmarksFolder getBookmarksFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getBookmarksFolderByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -417,10 +480,16 @@ public class BookmarksFolderLocalServiceUtil {
 		return getService().moveFolderFromTrash(userId, folderId, parentFolderId);
 	}
 
-	public static void moveFolderToTrash(long userId, long folderId)
+	public static com.liferay.portlet.bookmarks.model.BookmarksFolder moveFolderToTrash(
+		long userId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		getService().moveFolderToTrash(userId, folderId);
+		return getService().moveFolderToTrash(userId, folderId);
+	}
+
+	public static void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		getService().rebuildTree(companyId);
 	}
 
 	public static void restoreFolderFromTrash(long userId, long folderId)
@@ -486,6 +555,7 @@ public class BookmarksFolderLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(BookmarksFolderLocalService service) {
 	}
 

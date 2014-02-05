@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -36,6 +38,7 @@ import java.util.List;
  * @see BrowserTrackerPersistenceImpl
  * @generated
  */
+@ProviderType
 public class BrowserTrackerUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -60,7 +63,7 @@ public class BrowserTrackerUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
@@ -340,6 +343,7 @@ public class BrowserTrackerUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(BrowserTrackerPersistence persistence) {
 	}
 

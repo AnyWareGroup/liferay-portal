@@ -45,6 +45,10 @@ public class AppViewSearchEntryTag extends IncludeTag {
 		_containerName = containerName;
 	}
 
+	public void setContainerSrc(String containerSrc) {
+		_containerSrc = containerSrc;
+	}
+
 	public void setContainerType(String containerType) {
 		_containerType = containerType;
 	}
@@ -101,11 +105,16 @@ public class AppViewSearchEntryTag extends IncludeTag {
 		_url = url;
 	}
 
+	public void setVersions(List<String> versions) {
+		_versions = versions;
+	}
+
 	@Override
 	protected void cleanUp() {
 		_actionJsp = null;
 		_containerIcon = null;
 		_containerName = null;
+		_containerSrc = null;
 		_containerType = null;
 		_cssClass = null;
 		_description = null;
@@ -120,6 +129,7 @@ public class AppViewSearchEntryTag extends IncludeTag {
 		_thumbnailSrc = null;
 		_title = null;
 		_url = null;
+		_versions = null;
 	}
 
 	@Override
@@ -140,6 +150,8 @@ public class AppViewSearchEntryTag extends IncludeTag {
 			"liferay-ui:app-view-search-entry:containerIcon", _containerIcon);
 		request.setAttribute(
 			"liferay-ui:app-view-search-entry:containerName", _containerName);
+		request.setAttribute(
+			"liferay-ui:app-view-search-entry:containerSrc", _containerSrc);
 		request.setAttribute(
 			"liferay-ui:app-view-search-entry:containerType", _containerType);
 		request.setAttribute(
@@ -167,6 +179,8 @@ public class AppViewSearchEntryTag extends IncludeTag {
 			"liferay-ui:app-view-search-entry:thumbnailSrc", _thumbnailSrc);
 		request.setAttribute("liferay-ui:app-view-search-entry:title", _title);
 		request.setAttribute("liferay-ui:app-view-search-entry:url", _url);
+		request.setAttribute(
+			"liferay-ui:app-view-search-entry:versions", _versions);
 	}
 
 	private static final boolean _CLEAN_UP_SET_ATTRIBUTES = true;
@@ -177,6 +191,7 @@ public class AppViewSearchEntryTag extends IncludeTag {
 	private String _actionJsp;
 	private String _containerIcon;
 	private String _containerName;
+	private String _containerSrc;
 	private String _containerType;
 	private String _cssClass;
 	private String _description;
@@ -191,5 +206,6 @@ public class AppViewSearchEntryTag extends IncludeTag {
 	private String _thumbnailSrc;
 	private String _title;
 	private String _url;
+	private List<String> _versions;
 
 }

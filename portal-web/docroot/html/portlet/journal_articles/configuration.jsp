@@ -39,19 +39,19 @@ groupId = ParamUtil.getLong(request, "groupId", groupId);
 					<aui:option label="global" selected="<%= groupId == themeDisplay.getCompanyGroupId() %>" value="<%= themeDisplay.getCompanyGroupId() %>" />
 
 					<%
-					List<Group> mySites = user.getMySites();
+					List<Group> mySiteGroups = user.getMySiteGroups();
 
-					for (int i = 0; i < mySites.size(); i++) {
-						Group group = mySites.get(i);
+					for (int i = 0; i < mySiteGroups.size(); i++) {
+						Group group = mySiteGroups.get(i);
 
-						String groupName = HtmlUtil.escape(group.getDescriptiveName(locale));
+						String groupDescriptiveName = HtmlUtil.escape(group.getDescriptiveName(locale));
 
 						if (group.isUser()) {
-							groupName = LanguageUtil.get(pageContext, "my-site");
+							groupDescriptiveName = LanguageUtil.get(pageContext, "my-site");
 						}
 					%>
 
-						<aui:option label="<%= groupName %>" selected="<%= groupId == group.getGroupId() %>" value="<%= group.getGroupId() %>" />
+						<aui:option label="<%= groupDescriptiveName %>" selected="<%= groupId == group.getGroupId() %>" value="<%= group.getGroupId() %>" />
 
 					<%
 					}
@@ -87,19 +87,19 @@ groupId = ParamUtil.getLong(request, "groupId", groupId);
 					else {
 						ddmStructureName = LanguageUtil.get(pageContext, "any");
 					}
+
+					if (Validator.isNotNull(ddmStructureDescription)) {
+						ddmStructureName = ddmStructureName + " (" + ddmStructureDescription+ ")";
+					}
 					%>
 
-					<div id="<portlet:namespace />structure">
-						<%= ddmStructureName %>
+					<div class="input-append">
+						<liferay-ui:input-resource id="structure" url="<%= ddmStructureName %>" />
 
-						<c:if test="<%= Validator.isNotNull (ddmStructureDescription) %>">
-							<em>(<%= ddmStructureDescription %>)</em>
-						</c:if>
+						<aui:button onClick='<%= renderResponse.getNamespace() + "openStructureSelector();" %>' value="select" />
+
+						<aui:button name="removeStructureButton" onClick='<%= renderResponse.getNamespace() + "removeStructure();" %>' value="remove" />
 					</div>
-
-					<aui:button onClick='<%= renderResponse.getNamespace() + "openStructureSelector();" %>' value="select" />
-
-					<aui:button name="removeStructureButton" onClick='<%= renderResponse.getNamespace() + "removeStructure();" %>' value="remove" />
 				</aui:field-wrapper>
 			</aui:fieldset>
 		</liferay-ui:panel>
@@ -154,28 +154,24 @@ groupId = ParamUtil.getLong(request, "groupId", groupId);
 	function <portlet:namespace />openStructureSelector() {
 		Liferay.Util.openDDMPortlet(
 			{
-				availableFields: 'Liferay.FormBuilder.AVAILABLE_FIELDS.WCM_STRUCTURE',
-				classNameId: '<%= PortalUtil.getClassNameId(DDMStructure.class) %>',
+				basePortletURL: '<%= PortletURLFactoryUtil.create(request, PortletKeys.DYNAMIC_DATA_MAPPING, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>',
 				classPK: <%= (ddmStructure != null) ? ddmStructure.getPrimaryKey() : 0 %>,
 				dialog: {
-					destroyOnHide: true,
-					zIndex: (++Liferay.zIndex.WINDOW)
+					destroyOnHide: true
 				},
 				eventName: '<portlet:namespace />selectStructure',
 				groupId: <%= groupId %>,
 				refererPortletName: '<%= PortletKeys.JOURNAL %>',
-				storageType: '<%= PropsValues.JOURNAL_ARTICLE_STORAGE_TYPE %>',
-				structureName: 'structure',
-				structureType: 'com.liferay.portlet.journal.model.JournalArticle',
+				showGlobalScope: true,
 				struts_action: '/dynamic_data_mapping/select_structure',
 				title: '<%= UnicodeLanguageUtil.get(pageContext, "structures") %>'
 			},
-			function(event){
+			function(event) {
 				var A = AUI();
 
 				document.<portlet:namespace />fm1.<portlet:namespace />ddmStructureKey.value = event.ddmstructurekey;
 
-				A.one('#<portlet:namespace />structure').html(event.name + ' <em>(' + event.ddmstructureid + ')</em>');
+				A.one('#<portlet:namespace />structure').val(event.name + ' (' + event.ddmstructureid + ')');
 			}
 		);
 	}
@@ -188,7 +184,7 @@ groupId = ParamUtil.getLong(request, "groupId", groupId);
 
 			document.<portlet:namespace />fm1.<portlet:namespace />ddmStructureKey.value = "";
 
-			A.one('#<portlet:namespace />structure').html('<%= UnicodeLanguageUtil.get(pageContext, "any") %>');
+			A.one('#<portlet:namespace />structure').val('<%= UnicodeLanguageUtil.get(pageContext, "any") %>');
 		},
 		['aui-base']
 	);

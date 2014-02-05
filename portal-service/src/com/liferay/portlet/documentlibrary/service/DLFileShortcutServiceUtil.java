@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.documentlibrary.service.impl.DLFileShortcutServiceImpl
  * @generated
  */
+@ProviderType
 public class DLFileShortcutServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -103,6 +106,7 @@ public class DLFileShortcutServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DLFileShortcutService service) {
 	}
 

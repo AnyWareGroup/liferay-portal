@@ -38,7 +38,9 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 	public String toString() {
 		StringBundler sb = new StringBundler(63);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", plid=");
 		sb.append(plid);
@@ -78,8 +80,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		sb.append(hidden);
 		sb.append(", friendlyURL=");
 		sb.append(friendlyURL);
-		sb.append(", iconImage=");
-		sb.append(iconImage);
 		sb.append(", iconImageId=");
 		sb.append(iconImageId);
 		sb.append(", themeId=");
@@ -108,6 +108,8 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 	@Override
 	public Layout toEntityModel() {
 		LayoutImpl layoutImpl = new LayoutImpl();
+
+		layoutImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			layoutImpl.setUuid(StringPool.BLANK);
@@ -204,7 +206,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 			layoutImpl.setFriendlyURL(friendlyURL);
 		}
 
-		layoutImpl.setIconImage(iconImage);
 		layoutImpl.setIconImageId(iconImageId);
 
 		if (themeId == null) {
@@ -267,6 +268,7 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
 		plid = objectInput.readLong();
 		groupId = objectInput.readLong();
@@ -287,7 +289,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		typeSettings = objectInput.readUTF();
 		hidden = objectInput.readBoolean();
 		friendlyURL = objectInput.readUTF();
-		iconImage = objectInput.readBoolean();
 		iconImageId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
@@ -303,6 +304,8 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -386,7 +389,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 			objectOutput.writeUTF(friendlyURL);
 		}
 
-		objectOutput.writeBoolean(iconImage);
 		objectOutput.writeLong(iconImageId);
 
 		if (themeId == null) {
@@ -443,6 +445,7 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		}
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long plid;
 	public long groupId;
@@ -463,7 +466,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 	public String typeSettings;
 	public boolean hidden;
 	public String friendlyURL;
-	public boolean iconImage;
 	public long iconImageId;
 	public String themeId;
 	public String colorSchemeId;

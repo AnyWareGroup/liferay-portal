@@ -59,8 +59,8 @@ public class TeamFinderImpl
 			LinkedHashMap<String, Object> params)
 		throws SystemException {
 
-		name = StringUtil.lowerCase(name);
-		description = StringUtil.lowerCase(description);
+		name = CustomSQLUtil.keywords(name)[0];
+		description = CustomSQLUtil.keywords(description)[0];
 
 		Session session = null;
 
@@ -72,7 +72,7 @@ public class TeamFinderImpl
 			sql = StringUtil.replace(sql, "[$JOIN$]", getJoin(params));
 			sql = StringUtil.replace(sql, "[$WHERE$]", getWhere(params));
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -113,8 +113,8 @@ public class TeamFinderImpl
 			OrderByComparator obc)
 		throws SystemException {
 
-		name = StringUtil.lowerCase(name);
-		description = StringUtil.lowerCase(description);
+		name = CustomSQLUtil.keywords(name)[0];
+		description = CustomSQLUtil.keywords(description)[0];
 
 		Session session = null;
 
@@ -127,7 +127,7 @@ public class TeamFinderImpl
 			sql = StringUtil.replace(sql, "[$WHERE$]", getWhere(params));
 			sql = CustomSQLUtil.replaceOrderBy(sql, obc);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("Team", TeamImpl.class);
 

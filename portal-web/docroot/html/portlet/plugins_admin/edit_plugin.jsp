@@ -58,11 +58,11 @@ if (pluginType.equals(Plugin.TYPE_PORTLET)) {
 
 	<aui:fieldset>
 		<aui:field-wrapper label="module-id">
-			<%= HtmlUtil.escape(moduleId) %>
+			<liferay-ui:input-resource url="<%= moduleId %>" />
 		</aui:field-wrapper>
 
 		<aui:field-wrapper label="plugin-id">
-			<%= HtmlUtil.escape(pluginId) %>
+			<liferay-ui:input-resource url="<%= pluginId %>" />
 		</aui:field-wrapper>
 
 		<aui:input name="active" type="checkbox" value="<%= active %>" />
@@ -99,7 +99,7 @@ if (pluginType.equals(Plugin.TYPE_PORTLET)) {
 
 					<c:if test="<%= rolesCount > maxNumberOfRolesChecked %>">
 						<div class="alert alert-block">
-							<%= LanguageUtil.format(pageContext, "the-portal-has-more-roles-than-the-maximum-that-can-be-checked-x", maxNumberOfRolesChecked) %>
+							<%= LanguageUtil.format(pageContext, "the-portal-has-more-roles-than-the-maximum-that-can-be-checked-x", maxNumberOfRolesChecked, false) %>
 						</div>
 					</c:if>
 
@@ -131,11 +131,10 @@ if (pluginType.equals(Plugin.TYPE_PORTLET)) {
 									>
 										<liferay-portlet:renderURL portletName="<%= PortletKeys.ROLES_ADMIN %>" var="editURL">
 											<portlet:param name="struts_action" value="/roles_admin/edit_role_permissions" />
-											<portlet:param name="cmd" value="edit" />
+											<portlet:param name="<%= Constants.CMD %>" value="edit" />
 											<portlet:param name="tabs1" value="roles" />
 											<portlet:param name="roleId" value="<%= String.valueOf(role.getRoleId()) %>" />
 											<portlet:param name="portletResource" value="<%= portlet.getPortletId() %>" />
-											<portlet:param name="showModelResources" value="0" />
 										</liferay-portlet:renderURL>
 
 										<liferay-ui:icon image="edit" label="<%= true %>" message="change" url="<%= editURL %>" />
@@ -174,11 +173,10 @@ if (pluginType.equals(Plugin.TYPE_PORTLET)) {
 									>
 										<liferay-portlet:renderURL portletName="<%= PortletKeys.ROLES_ADMIN %>" var="editURL">
 											<portlet:param name="struts_action" value="/roles_admin/edit_role_permissions" />
-											<portlet:param name="cmd" value="edit" />
+											<portlet:param name="<%= Constants.CMD %>" value="edit" />
 											<portlet:param name="tabs1" value="roles" />
 											<portlet:param name="roleId" value="<%= String.valueOf(role.getRoleId()) %>" />
 											<portlet:param name="portletResource" value="<%= portlet.getPortletId() %>" />
-											<portlet:param name="showModelResources" value="0" />
 										</liferay-portlet:renderURL>
 
 										<liferay-ui:icon image="edit" label="<%= true %>" message="change" url="<%= editURL %>" />

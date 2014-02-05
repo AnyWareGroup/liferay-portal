@@ -51,6 +51,10 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 
 	@Override
 	protected void doReceive(Message message) throws Exception {
+		byte[] data = (byte[])message.getPayload();
+
+		message = Message.fromByteArray(data);
+
 		PortalCacheClusterEvent portalCacheClusterEvent =
 			(PortalCacheClusterEvent)message.getPayload();
 
@@ -66,7 +70,7 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 
 		Ehcache ehcache = _portalCacheManager.getEhcache(cacheName);
 
-		if (ehcache == null) {
+		if ((ehcache == null) && (_hibernateCacheManager != null)) {
 			ehcache = _hibernateCacheManager.getEhcache(cacheName);
 		}
 
@@ -90,19 +94,10 @@ public class ClusterLinkPortalCacheClusterListener extends BaseMessageListener {
 					portalCacheClusterEvent.getElementValue();
 
 				if (elementValue == null) {
-					ehcache.remove(
-						portalCacheClusterEvent.getElementKey(), true);
+					ehcache.remove(elementKey, true);
 				}
 				else {
-					Element oldElement = ehcache.get(elementKey);
-					Element newElement = new Element(elementKey, elementValue);
-
-					if (oldElement != null) {
-						ehcache.replace(newElement);
-					}
-					else {
-						ehcache.put(newElement);
-					}
+					ehcache.put(new Element(elementKey, elementValue), true);
 				}
 			}
 			else {

@@ -125,6 +125,8 @@ public class VerifyGroup extends VerifyProcess {
 
 			if (!ShardUtil.isEnabled() || shardName.equals(currentShardName)) {
 				GroupLocalServiceUtil.checkCompanyGroup(company.getCompanyId());
+
+				GroupLocalServiceUtil.checkSystemGroups(company.getCompanyId());
 			}
 		}
 	}
@@ -137,7 +139,7 @@ public class VerifyGroup extends VerifyProcess {
 
 			User user = null;
 
-			if (group.isCompany()) {
+			if (group.isCompany() && !group.isCompanyStagingGroup()) {
 				friendlyURL = GroupConstants.GLOBAL_FRIENDLY_URL;
 			}
 			else if (group.isUser()) {
@@ -200,6 +202,14 @@ public class VerifyGroup extends VerifyProcess {
 			while (rs.next()) {
 				long groupId = rs.getLong("groupId");
 				String name = rs.getString("name");
+
+				if (name.endsWith(
+						GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX) ||
+					name.endsWith(
+						GroupLocalServiceImpl.ORGANIZATION_STAGING_SUFFIX)) {
+
+					continue;
+				}
 
 				int pos = name.indexOf(
 					GroupLocalServiceImpl.ORGANIZATION_NAME_SUFFIX);

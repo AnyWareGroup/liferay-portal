@@ -143,7 +143,7 @@ portletURL.setParameter("folderId", String.valueOf(folderId));
 							<portlet:param name="fileEntryTypeId" value="<%= String.valueOf(fileEntryType.getFileEntryTypeId()) %>" />
 						</liferay-portlet:renderURL>
 
-						<liferay-ui:icon image="copy" message="<%= HtmlUtil.escape(fileEntryType.getName()) %>" url="<%= addFileEntryTypeURL %>" />
+						<liferay-ui:icon image="copy" message="<%= HtmlUtil.escape(fileEntryType.getName(locale)) %>" url="<%= addFileEntryTypeURL %>" />
 
 					<%
 					}
@@ -188,9 +188,9 @@ portletURL.setParameter("folderId", String.valueOf(folderId));
 			StringBundler sb = new StringBundler(4);
 
 			sb.append("<img align=\"left\" border=\"0\" src=\"");
-			sb.append(themeDisplay.getPathThemeImages());
+			sb.append(HtmlUtil.escapeAttribute(themeDisplay.getPathThemeImages()));
 			sb.append("/common/folder.png\">");
-			sb.append(curFolder.getName());
+			sb.append(HtmlUtil.escape(curFolder.getName()));
 
 			row.addText(sb.toString(), rowURL);
 

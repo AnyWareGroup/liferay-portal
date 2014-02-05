@@ -70,8 +70,8 @@ public class VerifyCalendar extends VerifyProcess {
 	protected void verifyEndDate() throws Exception {
 		runSQL(
 			"update CalEvent set endDate = null where endDate is not null " +
-				"and (recurrence like '%\"until\":null%' or " +
-					"CAST_TEXT(recurrence) = 'null')");
+				"and (recurrence like '%\"until\":null%' or recurrence like " +
+					"'null')");
 	}
 
 	protected void verifyNoAssets() throws Exception {
@@ -98,7 +98,6 @@ public class VerifyCalendar extends VerifyProcess {
 		if (_log.isDebugEnabled()) {
 			_log.debug("Assets verified for events");
 		}
-
 	}
 
 	protected void verifyRecurrence() throws Exception {

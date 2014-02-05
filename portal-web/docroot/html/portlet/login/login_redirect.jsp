@@ -81,10 +81,10 @@ boolean anonymousAccount = ParamUtil.getBoolean(request, "anonymousUser");
 								var userStatus = response.userStatus;
 
 								if (userStatus == 'user_added') {
-									message = '<%= UnicodeLanguageUtil.format(pageContext, "thank-you-for-creating-an-account-your-password-has-been-sent-to-x", new Object[] {emailAddress}) %>';
+									message = '<%= UnicodeLanguageUtil.format(pageContext, "thank-you-for-creating-an-account-your-password-has-been-sent-to-x", HtmlUtil.escape(emailAddress), false) %>';
 								}
 								else if (userStatus == 'user_pending') {
-									message = '<%= UnicodeLanguageUtil.format(pageContext, "thank-you-for-creating-an-account.-you-will-be-notified-via-email-at-x-when-your-account-has-been-approved", new Object[] {emailAddress}) %>';
+									message = '<%= UnicodeLanguageUtil.format(pageContext, "thank-you-for-creating-an-account.-you-will-be-notified-via-email-at-x-when-your-account-has-been-approved", HtmlUtil.escape(emailAddress), false) %>';
 								}
 
 								<portlet:namespace />showStatusMessage('success', message);
@@ -168,7 +168,7 @@ boolean anonymousAccount = ParamUtil.getBoolean(request, "anonymousUser");
 			}
 		}
 		else {
-			window.opener.parent.location.href = "<%= HtmlUtil.escapeJS(PortalUtil.getPortalURL(renderRequest) + themeDisplay.getURLSignIn()) %>";
+			window.opener.parent.location.href = '<%= HtmlUtil.escapeJS(themeDisplay.getURLSignIn()) %>';
 
 			window.close();
 		}

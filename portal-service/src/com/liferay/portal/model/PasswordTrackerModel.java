@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,7 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.PasswordTrackerModelImpl
  * @generated
  */
-public interface PasswordTrackerModel extends BaseModel<PasswordTracker> {
+@ProviderType
+public interface PasswordTrackerModel extends BaseModel<PasswordTracker>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -57,6 +61,22 @@ public interface PasswordTrackerModel extends BaseModel<PasswordTracker> {
 	 * @param primaryKey the primary key of this password tracker
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this password tracker.
+	 *
+	 * @return the mvcc version of this password tracker
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this password tracker.
+	 *
+	 * @param mvccVersion the mvcc version of this password tracker
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the password tracker ID of this password tracker.

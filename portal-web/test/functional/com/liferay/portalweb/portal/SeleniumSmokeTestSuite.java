@@ -14,8 +14,7 @@
 
 package com.liferay.portalweb.portal;
 
-import com.liferay.portalweb.portal.login.LoginTests;
-import com.liferay.portalweb.portal.selenium.SeleniumTestPlan;
+import com.liferay.portalweb.selenium.SeleniumSmokeTestCase;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -26,10 +25,9 @@ import junit.framework.TestSuite;
 public class SeleniumSmokeTestSuite extends BaseTestSuite {
 
 	public static Test suite() {
-		TestSuite testSuite = new NamedTestSuite();
+		TestSuite testSuite = new TestSuite();
 
-		testSuite.addTest(LoginTests.suite());
-		testSuite.addTest(SeleniumTestPlan.suite());
+		testSuite.addTestSuite(SeleniumSmokeTestCase.class);
 
 		testSuite.addTestSuite(StopSeleniumTest.class);
 

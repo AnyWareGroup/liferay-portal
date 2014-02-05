@@ -359,6 +359,10 @@ public class MBMailingListPersistenceImpl extends BasePersistenceImpl<MBMailingL
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBMailingList> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1179,6 +1183,10 @@ public class MBMailingListPersistenceImpl extends BasePersistenceImpl<MBMailingL
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBMailingList> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1709,6 +1717,10 @@ public class MBMailingListPersistenceImpl extends BasePersistenceImpl<MBMailingL
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByActive(active);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<MBMailingList> list = findByActive(active, count - 1, count,
 				orderByComparator);
 
@@ -2166,6 +2178,10 @@ public class MBMailingListPersistenceImpl extends BasePersistenceImpl<MBMailingL
 	private static final String _FINDER_COLUMN_G_C_GROUPID_2 = "mbMailingList.groupId = ? AND ";
 	private static final String _FINDER_COLUMN_G_C_CATEGORYID_2 = "mbMailingList.categoryId = ?";
 
+	public MBMailingListPersistenceImpl() {
+		setModelClass(MBMailingList.class);
+	}
+
 	/**
 	 * Caches the message boards mailing list in the entity cache if it is enabled.
 	 *
@@ -2559,10 +2575,12 @@ public class MBMailingListPersistenceImpl extends BasePersistenceImpl<MBMailingL
 
 		EntityCacheUtil.putResult(MBMailingListModelImpl.ENTITY_CACHE_ENABLED,
 			MBMailingListImpl.class, mbMailingList.getPrimaryKey(),
-			mbMailingList);
+			mbMailingList, false);
 
 		clearUniqueFindersCache(mbMailingList);
 		cacheUniqueFindersCache(mbMailingList);
+
+		mbMailingList.resetOriginalValues();
 
 		return mbMailingList;
 	}

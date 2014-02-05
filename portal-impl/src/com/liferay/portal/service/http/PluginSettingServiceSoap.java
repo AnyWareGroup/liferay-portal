@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.PluginSettingServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PluginSettingServiceHttp
- * @see       com.liferay.portal.model.PluginSettingSoap
- * @see       com.liferay.portal.service.PluginSettingServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PluginSettingServiceHttp
+ * @see com.liferay.portal.model.PluginSettingSoap
+ * @see com.liferay.portal.service.PluginSettingServiceUtil
  * @generated
  */
+@ProviderType
 public class PluginSettingServiceSoap {
 	public static com.liferay.portal.model.PluginSettingSoap updatePluginSetting(
 		long companyId, java.lang.String pluginId, java.lang.String pluginType,

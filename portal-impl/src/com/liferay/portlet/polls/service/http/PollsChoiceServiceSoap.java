@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.polls.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides the SOAP utility for the
  * {@link com.liferay.portlet.polls.service.PollsChoiceServiceUtil} service utility. The
@@ -48,11 +50,12 @@ package com.liferay.portlet.polls.service.http;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsChoiceServiceHttp
- * @see       com.liferay.portlet.polls.model.PollsChoiceSoap
- * @see       com.liferay.portlet.polls.service.PollsChoiceServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PollsChoiceServiceHttp
+ * @see com.liferay.portlet.polls.model.PollsChoiceSoap
+ * @see com.liferay.portlet.polls.service.PollsChoiceServiceUtil
  * @generated
  */
+@ProviderType
 public class PollsChoiceServiceSoap {
 }

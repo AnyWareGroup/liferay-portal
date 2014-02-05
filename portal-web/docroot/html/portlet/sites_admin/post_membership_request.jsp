@@ -37,26 +37,28 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 
-	<liferay-ui:header
-		backURL="<%= redirect %>"
-		escapeXml="<%= false %>"
-		localizeTitle="<%= false %>"
-		title='<%= LanguageUtil.format(pageContext, "request-membership-for-x", HtmlUtil.escape(group.getDescriptiveName(locale))) %>'
-	/>
+	<c:if test="<%= !layout.isTypeControlPanel() %>">
+		<liferay-ui:header
+			backURL="<%= redirect %>"
+			escapeXml="<%= false %>"
+			localizeTitle="<%= false %>"
+			title='<%= LanguageUtil.format(pageContext, "request-membership-for-x", HtmlUtil.escape(group.getDescriptiveName(locale)), false) %>'
+		/>
+	</c:if>
 
 	<liferay-ui:error exception="<%= MembershipRequestCommentsException.class %>" message="please-enter-valid-comments" />
 
 	<aui:model-context bean="<%= membershipRequest %>" model="<%= MembershipRequest.class %>" />
 
-	<aui:fieldset>
-		<c:if test="<%= Validator.isNotNull(group.getDescription()) %>">
-			<aui:field-wrapper label="description">
+	<c:if test="<%= Validator.isNotNull(group.getDescription()) %>">
+		<aui:field-wrapper label="description">
+			<p>
 				<%= HtmlUtil.escape(group.getDescription()) %>
-			</aui:field-wrapper>
-		</c:if>
+			</p>
+		</aui:field-wrapper>
+	</c:if>
 
-		<aui:input name="comments" />
-	</aui:fieldset>
+	<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="comments" />
 
 	<aui:button-row>
 		<aui:button type="submit" />
@@ -64,9 +66,3 @@ MembershipRequest membershipRequest = (MembershipRequest)request.getAttribute(We
 		<aui:button href="<%= redirect %>" type="cancel" />
 	</aui:button-row>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />comments);
-	</aui:script>
-</c:if>

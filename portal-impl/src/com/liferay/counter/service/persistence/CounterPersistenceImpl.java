@@ -79,6 +79,10 @@ public class CounterPersistenceImpl extends BasePersistenceImpl<Counter>
 			CounterModelImpl.FINDER_CACHE_ENABLED, Long.class,
 			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countAll", new String[0]);
 
+	public CounterPersistenceImpl() {
+		setModelClass(Counter.class);
+	}
+
 	/**
 	 * Caches the counter in the entity cache if it is enabled.
 	 *
@@ -295,7 +299,9 @@ public class CounterPersistenceImpl extends BasePersistenceImpl<Counter>
 		}
 
 		EntityCacheUtil.putResult(CounterModelImpl.ENTITY_CACHE_ENABLED,
-			CounterImpl.class, counter.getPrimaryKey(), counter);
+			CounterImpl.class, counter.getPrimaryKey(), counter, false);
+
+		counter.resetOriginalValues();
 
 		return counter;
 	}

@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.metadata;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -31,7 +33,10 @@ import java.util.Map;
 /**
  * @author Miguel Pastor
  */
+@ProviderType
 public interface RawMetadataProcessor {
+
+	public static final String TIKA_RAW_METADATA = "TIKARAWMETADATA";
 
 	public void exportGeneratedFiles(
 			PortletDataContext portletDataContext, FileEntry fileEntry,

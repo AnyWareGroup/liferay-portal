@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.PermissionServiceImpl
  * @generated
  */
+@ProviderType
 public class PermissionServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -106,6 +109,7 @@ public class PermissionServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(PermissionService service) {
 	}
 

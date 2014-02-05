@@ -185,11 +185,14 @@ MBThreadFlag threadFlag = MBThreadFlagLocalServiceUtil.getThreadFlag(themeDispla
 					modelResourceDescription="<%= rootMessage.getSubject() %>"
 					resourcePrimKey="<%= String.valueOf(thread.getRootMessageId()) %>"
 					var="permissionsURL"
+					windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 				/>
 
 				<liferay-ui:icon
 					image="permissions"
+					method="get"
 					url="<%= permissionsURL %>"
+					useDialog="<%= true %>"
 				/>
 			</c:if>
 
@@ -208,7 +211,7 @@ MBThreadFlag threadFlag = MBThreadFlagLocalServiceUtil.getThreadFlag(themeDispla
 				/>
 			</c:if>
 
-			<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.SUBSCRIBE) && (MBUtil.getEmailMessageAddedEnabled(preferences) || MBUtil.getEmailMessageUpdatedEnabled(preferences)) %>">
+			<c:if test="<%= MBMessagePermission.contains(permissionChecker, message, ActionKeys.SUBSCRIBE) && (MBUtil.getEmailMessageAddedEnabled(portletPreferences) || MBUtil.getEmailMessageUpdatedEnabled(portletPreferences)) %>">
 				<c:choose>
 					<c:when test="<%= SubscriptionLocalServiceUtil.isSubscribed(user.getCompanyId(), user.getUserId(), MBThread.class.getName(), message.getThreadId()) %>">
 						<portlet:actionURL var="unsubscribeURL">

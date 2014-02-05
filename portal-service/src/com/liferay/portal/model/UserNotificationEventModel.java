@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -35,7 +37,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.UserNotificationEventModelImpl
  * @generated
  */
-public interface UserNotificationEventModel extends BaseModel<UserNotificationEvent> {
+@ProviderType
+public interface UserNotificationEventModel extends BaseModel<UserNotificationEvent>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -55,6 +59,22 @@ public interface UserNotificationEventModel extends BaseModel<UserNotificationEv
 	 * @param primaryKey the primary key of this user notification event
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this user notification event.
+	 *
+	 * @return the mvcc version of this user notification event
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user notification event.
+	 *
+	 * @param mvccVersion the mvcc version of this user notification event
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this user notification event.
@@ -170,6 +190,27 @@ public interface UserNotificationEventModel extends BaseModel<UserNotificationEv
 	 * @param deliverBy the deliver by of this user notification event
 	 */
 	public void setDeliverBy(long deliverBy);
+
+	/**
+	 * Returns the delivered of this user notification event.
+	 *
+	 * @return the delivered of this user notification event
+	 */
+	public boolean getDelivered();
+
+	/**
+	 * Returns <code>true</code> if this user notification event is delivered.
+	 *
+	 * @return <code>true</code> if this user notification event is delivered; <code>false</code> otherwise
+	 */
+	public boolean isDelivered();
+
+	/**
+	 * Sets whether this user notification event is delivered.
+	 *
+	 * @param delivered the delivered of this user notification event
+	 */
+	public void setDelivered(boolean delivered);
 
 	/**
 	 * Returns the payload of this user notification event.

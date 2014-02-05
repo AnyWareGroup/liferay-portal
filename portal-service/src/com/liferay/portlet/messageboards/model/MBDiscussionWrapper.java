@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.messageboards.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link MBDiscussion}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBDiscussion
+ * @author Brian Wing Shun Chan
+ * @see MBDiscussion
  * @generated
  */
+@ProviderType
 public class MBDiscussionWrapper implements MBDiscussion,
 	ModelWrapper<MBDiscussion> {
 	public MBDiscussionWrapper(MBDiscussion mbDiscussion) {
@@ -515,9 +520,34 @@ public class MBDiscussionWrapper implements MBDiscussion,
 		_mbDiscussion.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof MBDiscussionWrapper)) {
+			return false;
+		}
+
+		MBDiscussionWrapper mbDiscussionWrapper = (MBDiscussionWrapper)obj;
+
+		if (Validator.equals(_mbDiscussion, mbDiscussionWrapper._mbDiscussion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _mbDiscussion.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public MBDiscussion getWrappedMBDiscussion() {
 		return _mbDiscussion;
 	}
@@ -525,6 +555,16 @@ public class MBDiscussionWrapper implements MBDiscussion,
 	@Override
 	public MBDiscussion getWrappedModel() {
 		return _mbDiscussion;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _mbDiscussion.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _mbDiscussion.isFinderCacheEnabled();
 	}
 
 	@Override

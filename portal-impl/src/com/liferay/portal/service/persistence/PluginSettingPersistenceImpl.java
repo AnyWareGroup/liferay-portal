@@ -349,6 +349,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<PluginSetting> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
 
@@ -896,6 +900,10 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 	private static final String _FINDER_COLUMN_C_I_T_PLUGINTYPE_2 = "pluginSetting.pluginType = ?";
 	private static final String _FINDER_COLUMN_C_I_T_PLUGINTYPE_3 = "(pluginSetting.pluginType IS NULL OR pluginSetting.pluginType = '')";
 
+	public PluginSettingPersistenceImpl() {
+		setModelClass(PluginSetting.class);
+	}
+
 	/**
 	 * Caches the plugin setting in the entity cache if it is enabled.
 	 *
@@ -1205,10 +1213,12 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 
 		EntityCacheUtil.putResult(PluginSettingModelImpl.ENTITY_CACHE_ENABLED,
 			PluginSettingImpl.class, pluginSetting.getPrimaryKey(),
-			pluginSetting);
+			pluginSetting, false);
 
 		clearUniqueFindersCache(pluginSetting);
 		cacheUniqueFindersCache(pluginSetting);
+
+		pluginSetting.resetOriginalValues();
 
 		return pluginSetting;
 	}
@@ -1223,6 +1233,7 @@ public class PluginSettingPersistenceImpl extends BasePersistenceImpl<PluginSett
 		pluginSettingImpl.setNew(pluginSetting.isNew());
 		pluginSettingImpl.setPrimaryKey(pluginSetting.getPrimaryKey());
 
+		pluginSettingImpl.setMvccVersion(pluginSetting.getMvccVersion());
 		pluginSettingImpl.setPluginSettingId(pluginSetting.getPluginSettingId());
 		pluginSettingImpl.setCompanyId(pluginSetting.getCompanyId());
 		pluginSettingImpl.setPluginId(pluginSetting.getPluginId());

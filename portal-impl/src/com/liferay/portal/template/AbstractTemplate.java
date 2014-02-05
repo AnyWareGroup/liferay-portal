@@ -17,28 +17,35 @@ package com.liferay.portal.template;
 import com.liferay.portal.deploy.sandbox.SandboxHandler;
 import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
+import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringWriter;
 import com.liferay.portal.kernel.template.StringTemplateResource;
+import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.template.TemplateResourceLoader;
+import com.liferay.portal.kernel.template.URLTemplateResource;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.Serializable;
 import java.io.Writer;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Tina Tian
  */
-public abstract class AbstractTemplate extends AbstractProcessingTemplate {
+public abstract class AbstractTemplate implements Template {
 
 	public AbstractTemplate(
 		TemplateResource templateResource,
-		TemplateResource errorTemplateResource,
+		TemplateResource errorTemplateResource, Map<String, Object> context,
 		TemplateContextHelper templateContextHelper, String templateManagerName,
 		long interval) {
 
@@ -58,6 +65,14 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 		this.templateResource = templateResource;
 		this.errorTemplateResource = errorTemplateResource;
 
+		this.context = new HashMap<String, Object>();
+
+		if (context != null) {
+			for (Map.Entry<String, Object> entry : context.entrySet()) {
+				put(entry.getKey(), entry.getValue());
+			}
+		}
+
 		_templateContextHelper = templateContextHelper;
 
 		if (interval != 0) {
@@ -66,8 +81,19 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 	}
 
 	@Override
-	public TemplateContextHelper getTemplateContextHelper() {
-		return _templateContextHelper;
+	public Object get(String key) {
+		if (key == null) {
+			return null;
+		}
+
+		return context.get(key);
+	}
+
+	@Override
+	public String[] getKeys() {
+		Set<String> keys = context.keySet();
+
+		return keys.toArray(new String[keys.size()]);
 	}
 
 	@Override
@@ -76,7 +102,7 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 	}
 
 	@Override
-	protected void doProcessTemplate(Writer writer) throws TemplateException {
+	public void processTemplate(Writer writer) throws TemplateException {
 		if (errorTemplateResource == null) {
 			try {
 				processTemplate(templateResource, writer);
@@ -114,6 +140,15 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 		}
 	}
 
+	@Override
+	public void put(String key, Object value) {
+		if ((key == null) || (value == null)) {
+			return;
+		}
+
+		context.put(key, value);
+	}
+
 	protected String getTemplateResourceUUID(
 		TemplateResource templateResource) {
 
@@ -128,6 +163,7 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 			TemplateResource templateResource, Writer writer)
 		throws Exception;
 
+	protected Map<String, Object> context;
 	protected TemplateResource errorTemplateResource;
 	protected TemplateResource templateResource;
 
@@ -151,8 +187,8 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 		cacheName = cacheName.concat(StringPool.PERIOD).concat(
 			templateManagerName);
 
-		PortalCache<String, Serializable> portalCache =
-			MultiVMPoolUtil.getCache(cacheName);
+		PortalCache<String, Serializable> portalCache = _getPortalCache(
+			templateResource, cacheName);
 
 		Object object = portalCache.get(templateResource.getTemplateId());
 
@@ -179,12 +215,34 @@ public abstract class AbstractTemplate extends AbstractProcessingTemplate {
 				errorTemplateResource);
 		}
 
+		portalCache = _getPortalCache(errorTemplateResource, cacheName);
+
 		object = portalCache.get(errorTemplateResource.getTemplateId());
 
 		if ((object == null) || !errorTemplateResource.equals(object)) {
 			portalCache.put(
 				errorTemplateResource.getTemplateId(), errorTemplateResource);
 		}
+	}
+
+	private PortalCache<String, Serializable> _getPortalCache(
+		TemplateResource templateResource, String cacheName) {
+
+		if (!(templateResource instanceof CacheTemplateResource)) {
+			return MultiVMPoolUtil.getCache(cacheName);
+		}
+
+		CacheTemplateResource cacheTemplateResource =
+			(CacheTemplateResource)templateResource;
+
+		TemplateResource innerTemplateResource =
+			cacheTemplateResource.getInnerTemplateResource();
+
+		if (innerTemplateResource instanceof URLTemplateResource) {
+			return SingleVMPoolUtil.getCache(cacheName);
+		}
+
+		return MultiVMPoolUtil.getCache(cacheName);
 	}
 
 	private TemplateContextHelper _templateContextHelper;

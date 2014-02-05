@@ -14,8 +14,8 @@
 
 package com.liferay.portlet.bookmarks.model.impl;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.service.BookmarksFolderLocalServiceUtil;
 
@@ -28,48 +28,19 @@ public class BookmarksEntryImpl extends BookmarksEntryBaseImpl {
 	}
 
 	@Override
-	public BookmarksFolder getFolder() {
-		BookmarksFolder folder = null;
-
-		if (getFolderId() > 0) {
-			try {
-				folder = BookmarksFolderLocalServiceUtil.getFolder(
-					getFolderId());
-			}
-			catch (Exception e) {
-				folder = new BookmarksFolderImpl();
-
-				_log.error(e);
-			}
-		}
-		else {
-			folder = new BookmarksFolderImpl();
-		}
-
-		return folder;
-	}
-
-	@Override
-	public BookmarksFolder getTrashContainer() {
+	public String buildTreePath() throws PortalException, SystemException {
 		BookmarksFolder folder = getFolder();
 
-		if (folder.isInTrash()) {
-			return folder;
-		}
-
-		return folder.getTrashContainer();
+		return folder.buildTreePath();
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
+	public BookmarksFolder getFolder() throws PortalException, SystemException {
+		if (getFolderId() <= 0) {
+			return new BookmarksFolderImpl();
 		}
-		else {
-			return false;
-		}
-	}
 
-	private static Log _log = LogFactoryUtil.getLog(BookmarksEntryImpl.class);
+		return BookmarksFolderLocalServiceUtil.getFolder(getFolderId());
+	}
 
 }

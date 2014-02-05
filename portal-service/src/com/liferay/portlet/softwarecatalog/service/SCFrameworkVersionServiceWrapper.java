@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SCFrameworkVersionService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SCFrameworkVersionService
+ * @author Brian Wing Shun Chan
+ * @see SCFrameworkVersionService
  * @generated
  */
+@ProviderType
 public class SCFrameworkVersionServiceWrapper
 	implements SCFrameworkVersionService,
 		ServiceWrapper<SCFrameworkVersionService> {
@@ -104,6 +107,7 @@ public class SCFrameworkVersionServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SCFrameworkVersionService getWrappedSCFrameworkVersionService() {
 		return _scFrameworkVersionService;
 	}
@@ -111,6 +115,7 @@ public class SCFrameworkVersionServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSCFrameworkVersionService(
 		SCFrameworkVersionService scFrameworkVersionService) {
 		_scFrameworkVersionService = scFrameworkVersionService;

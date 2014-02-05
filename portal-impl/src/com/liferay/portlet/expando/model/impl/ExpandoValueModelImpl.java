@@ -187,6 +187,9 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		attributes.put("classPK", getClassPK());
 		attributes.put("data", getData());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -241,8 +244,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getValueId() {
 		return _valueId;
 	}
@@ -252,8 +255,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		_valueId = valueId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -263,8 +266,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		_companyId = companyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getTableId() {
 		return _tableId;
 	}
@@ -286,8 +289,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		return _originalTableId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getColumnId() {
 		return _columnId;
 	}
@@ -309,8 +312,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		return _originalColumnId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getRowId() {
 		return _rowId;
 	}
@@ -352,8 +355,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -375,8 +378,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		return _originalClassNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassPK() {
 		return _classPK;
 	}
@@ -398,8 +401,8 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 		return _originalClassPK;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getData() {
 		if (_data == null) {
 			return StringPool.BLANK;
@@ -530,6 +533,16 @@ public class ExpandoValueModelImpl extends BaseModelImpl<ExpandoValue>
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

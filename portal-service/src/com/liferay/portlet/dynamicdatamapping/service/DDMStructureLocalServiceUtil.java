@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatamapping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.dynamicdatamapping.service.impl.DDMStructureLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class DDMStructureLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,10 +168,53 @@ public class DDMStructureLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructure fetchDDMStructure(
 		long structureId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().fetchDDMStructure(structureId);
+	}
+
+	/**
+	* Returns the d d m structure with the matching UUID and company.
+	*
+	* @param uuid the d d m structure's UUID
+	* @param companyId the primary key of the company
+	* @return the matching d d m structure, or <code>null</code> if a matching d d m structure could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructure fetchDDMStructureByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchDDMStructureByUuidAndCompanyId(uuid, companyId);
+	}
+
+	/**
+	* Returns the d d m structure matching the UUID and group.
+	*
+	* @param uuid the d d m structure's UUID
+	* @param groupId the primary key of the group
+	* @return the matching d d m structure, or <code>null</code> if a matching d d m structure could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructure fetchDDMStructureByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().fetchDDMStructureByUuidAndGroupId(uuid, groupId);
 	}
 
 	/**
@@ -191,6 +237,22 @@ public class DDMStructureLocalServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return getService().getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the d d m structure with the matching UUID and company.
+	*
+	* @param uuid the d d m structure's UUID
+	* @param companyId the primary key of the company
+	* @return the matching d d m structure
+	* @throws PortalException if a matching d d m structure could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructure getDDMStructureByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().getDDMStructureByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -762,24 +824,10 @@ public class DDMStructureLocalServiceUtil {
 	}
 
 	/**
-	* Returns the structure matching the UUID and group.
-	*
-	* @param uuid the structure's UUID
-	* @param groupId the primary key of the structure's group
-	* @return the matching structure, or <code>null</code> if a matching
-	structure could not be found
-	* @throws SystemException if a system exception occurred
-	*/
-	public static com.liferay.portlet.dynamicdatamapping.model.DDMStructure fetchStructure(
-		java.lang.String uuid, long groupId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService().fetchStructure(uuid, groupId);
-	}
-
-	/**
 	* @deprecated As of 6.2.0, replaced by {@link #getClassStructures(long,
 	long)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getClassStructures(
 		long classNameId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -790,6 +838,7 @@ public class DDMStructureLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #getClassStructures(long,
 	long, int, int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getClassStructures(
 		long classNameId, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -864,6 +913,7 @@ public class DDMStructureLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #getClassStructures(long,
 	long, OrderByComparator)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getClassStructures(
 		long classNameId,
 		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
@@ -967,6 +1017,7 @@ public class DDMStructureLocalServiceUtil {
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link #getStructures}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructureEntries()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getStructureEntries();
@@ -975,6 +1026,7 @@ public class DDMStructureLocalServiceUtil {
 	/**
 	* @deprecated As of 6.2.0, replaced by {@link #getStructures(long)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructureEntries(
 		long groupId)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -985,6 +1037,7 @@ public class DDMStructureLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #getStructures(long, int,
 	int)}
 	*/
+	@Deprecated
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructureEntries(
 		long groupId, int start, int end)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -1032,8 +1085,7 @@ public class DDMStructureLocalServiceUtil {
 	* @param start the lower bound of the range of structures to return
 	* @param end the upper bound of the range of structures to return (not
 	inclusive)
-	* @return the range of matching structures, or <code>null</code> if no
-	matches could be found
+	* @return the range of matching structures
 	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
@@ -1077,8 +1129,7 @@ public class DDMStructureLocalServiceUtil {
 	* @param start the lower bound of the range of structures to return
 	* @param end the upper bound of the range of structures to return (not
 	inclusive)
-	* @return the matching structures, or <code>null</code> if no matching
-	structures could be found
+	* @return the range of matching structures
 	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
@@ -1147,14 +1198,42 @@ public class DDMStructureLocalServiceUtil {
 	* @param groupIds the primary keys of the groups
 	* @param classNameId the primary key of the class name for the structure's
 	related model
-	* @return the structures matching the class name ID and belonging to the
-	groups
+	* @return the matching structures
 	* @throws SystemException if a system exception occurred
 	*/
 	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
 		long[] groupIds, long classNameId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getStructures(groupIds, classNameId);
+	}
+
+	/**
+	* Returns a range of all the structures matching the class name ID and
+	* belonging to the groups.
+	*
+	* <p>
+	* Useful when paginating results. Returns a maximum of <code>end -
+	* start</code> instances. <code>start</code> and <code>end</code> are not
+	* primary keys, they are indexes in the result set. Thus, <code>0</code>
+	* refers to the first result in the set. Setting both <code>start</code>
+	* and <code>end</code> to {@link
+	* com.liferay.portal.kernel.dao.orm.QueryUtil#ALL_POS} will return the full
+	* result set.
+	* </p>
+	*
+	* @param groupIds the primary keys of the groups
+	* @param classNameId the primary key of the class name for the structure's
+	related model
+	* @param start the lower bound of the range of structures to return
+	* @param end the upper bound of the range of structures to return (not
+	inclusive)
+	* @return the range of matching structures
+	* @throws SystemException if a system exception occurred
+	*/
+	public static java.util.List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getStructures(
+		long[] groupIds, long classNameId, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getStructures(groupIds, classNameId, start, end);
 	}
 
 	/**
@@ -1181,6 +1260,21 @@ public class DDMStructureLocalServiceUtil {
 	public static int getStructuresCount(long groupId, long classNameId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getStructuresCount(groupId, classNameId);
+	}
+
+	/**
+	* Returns the number of structures matching the class name ID and belonging
+	* to the groups.
+	*
+	* @param groupIds the primary keys of the groups
+	* @param classNameId the primary key of the class name for the structure's
+	related model
+	* @return the number of matching structures
+	* @throws SystemException if a system exception occurred
+	*/
+	public static int getStructuresCount(long[] groupIds, long classNameId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getStructuresCount(groupIds, classNameId);
 	}
 
 	/**
@@ -1445,6 +1539,7 @@ public class DDMStructureLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DDMStructureLocalService service) {
 	}
 

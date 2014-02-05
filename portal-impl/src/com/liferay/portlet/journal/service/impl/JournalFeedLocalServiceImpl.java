@@ -18,15 +18,18 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Node;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.XPath;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PortalUtil;
@@ -65,7 +68,7 @@ public class JournalFeedLocalServiceImpl
 		// Feed
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		feedId = feedId.trim().toUpperCase();
+		feedId = StringUtil.toUpperCase(feedId.trim());
 		Date now = new Date();
 
 		validate(
@@ -178,13 +181,13 @@ public class JournalFeedLocalServiceImpl
 	}
 
 	@Override
+	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public void deleteFeed(JournalFeed feed)
 		throws PortalException, SystemException {
 
-		// Expando
+		// Feed
 
-		expandoValueLocalService.deleteValues(
-			JournalFeed.class.getName(), feed.getId());
+		journalFeedPersistence.remove(feed);
 
 		// Resources
 
@@ -192,9 +195,10 @@ public class JournalFeedLocalServiceImpl
 			feed.getCompanyId(), JournalFeed.class.getName(),
 			ResourceConstants.SCOPE_INDIVIDUAL, feed.getId());
 
-		// Feed
+		// Expando
 
-		journalFeedPersistence.remove(feed);
+		expandoValueLocalService.deleteValues(
+			JournalFeed.class.getName(), feed.getId());
 	}
 
 	@Override
@@ -203,7 +207,7 @@ public class JournalFeedLocalServiceImpl
 
 		JournalFeed feed = journalFeedPersistence.findByPrimaryKey(feedId);
 
-		deleteFeed(feed);
+		journalFeedLocalService.deleteFeed(feed);
 	}
 
 	@Override
@@ -212,7 +216,14 @@ public class JournalFeedLocalServiceImpl
 
 		JournalFeed feed = journalFeedPersistence.findByG_F(groupId, feedId);
 
-		deleteFeed(feed);
+		journalFeedLocalService.deleteFeed(feed);
+	}
+
+	@Override
+	public JournalFeed fetchFeed(long groupId, String feedId)
+		throws SystemException {
+
+		return journalFeedPersistence.fetchByG_F(groupId, feedId);
 	}
 
 	@Override
@@ -346,30 +357,29 @@ public class JournalFeedLocalServiceImpl
 
 			return true;
 		}
-		else {
-			try {
-				DDMStructure ddmStructure =
-					ddmStructureLocalService.getStructure(
-						groupId,
-						PortalUtil.getClassNameId(JournalArticle.class),
-						structureId);
 
-				Document document = SAXReaderUtil.read(ddmStructure.getXsd());
+		try {
+			DDMStructure ddmStructure =
+				ddmStructureLocalService.getStructure(
+					groupId,
+					classNameLocalService.getClassNameId(JournalArticle.class),
+					structureId);
 
-				contentField = HtmlUtil.escapeXPathAttribute(contentField);
+			Document document = SAXReaderUtil.read(ddmStructure.getXsd());
 
-				XPath xPathSelector = SAXReaderUtil.createXPath(
-					"//dynamic-element[@name="+ contentField + "]");
+			contentField = HtmlUtil.escapeXPathAttribute(contentField);
 
-				Node node = xPathSelector.selectSingleNode(document);
+			XPath xPathSelector = SAXReaderUtil.createXPath(
+				"//dynamic-element[@name="+ contentField + "]");
 
-				if (node != null) {
-					return true;
-				}
+			Node node = xPathSelector.selectSingleNode(document);
+
+			if (node != null) {
+				return true;
 			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+		}
+		catch (Exception e) {
+			_log.error(e, e);
 		}
 
 		return false;
@@ -383,6 +393,7 @@ public class JournalFeedLocalServiceImpl
 
 		if (!autoFeedId) {
 			if (Validator.isNull(feedId) || Validator.isNumber(feedId) ||
+				(feedId.indexOf(CharPool.COMMA) != -1) ||
 				(feedId.indexOf(CharPool.SPACE) != -1)) {
 
 				throw new FeedIdException();

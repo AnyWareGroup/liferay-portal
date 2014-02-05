@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialActivitySettingLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivitySettingLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialActivitySettingLocalService
  * @generated
  */
+@ProviderType
 public class SocialActivitySettingLocalServiceWrapper
 	implements SocialActivitySettingLocalService,
 		ServiceWrapper<SocialActivitySettingLocalService> {
@@ -166,6 +169,23 @@ public class SocialActivitySettingLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _socialActivitySettingLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialActivitySettingLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -356,6 +376,7 @@ public class SocialActivitySettingLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivitySettingLocalService getWrappedSocialActivitySettingLocalService() {
 		return _socialActivitySettingLocalService;
 	}
@@ -363,6 +384,7 @@ public class SocialActivitySettingLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivitySettingLocalService(
 		SocialActivitySettingLocalService socialActivitySettingLocalService) {
 		_socialActivitySettingLocalService = socialActivitySettingLocalService;

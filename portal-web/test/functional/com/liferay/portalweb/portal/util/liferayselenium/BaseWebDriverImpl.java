@@ -15,13 +15,18 @@
 package com.liferay.portalweb.portal.util.liferayselenium;
 
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portalweb.portal.util.TestPropsValues;
 
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.List;
+
+import net.jsourcerer.webdriver.jserrorcollector.JavaScriptError;
 
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
@@ -42,13 +47,30 @@ public abstract class BaseWebDriverImpl
 
 		_projectDir = projectDir;
 
+		if (OSDetector.isWindows()) {
+			_dependenciesDir = StringUtil.replace(_dependenciesDir, "//", "\\");
+
+			_outputDir = StringUtil.replace(_outputDir, "//", "\\");
+
+			_projectDir = StringUtil.replace(_projectDir, "//", "\\");
+
+			_sikuliImagesDir = StringUtil.replace(_sikuliImagesDir, "//", "\\");
+			_sikuliImagesDir = StringUtil.replace(
+				_sikuliImagesDir, "linux", "windows");
+		}
+
 		WebDriver.Options options = webDriver.manage();
 
 		WebDriver.Window window = options.window();
 
-		window.setSize(new Dimension(1000, 1025));
+		window.setSize(new Dimension(1050, 1250));
 
 		webDriver.get(browserURL);
+	}
+
+	@Override
+	public void antCommand(String fileName, String target) throws Exception {
+		LiferaySeleniumHelper.antCommand(this, fileName, target);
 	}
 
 	@Override
@@ -74,6 +96,89 @@ public abstract class BaseWebDriverImpl
 	@Override
 	public void assertElementPresent(String locator) throws Exception {
 		LiferaySeleniumHelper.assertElementPresent(this, locator);
+	}
+
+	@Override
+	public void assertEmailBody(String index, String body) throws Exception {
+		LiferaySeleniumHelper.assertEmailBody(this, index, body);
+	}
+
+	@Override
+	public void assertEmailSubject(String index, String subject)
+		throws Exception {
+
+		LiferaySeleniumHelper.assertEmailSubject(this, index, subject);
+	}
+
+	@Override
+	public void assertJavaScriptErrors() throws Exception {
+		if (!TestPropsValues.TEST_ASSSERT_JAVASCRIPT_ERRORS) {
+			return;
+		}
+
+		String pageSource = null;
+
+		try {
+			pageSource = getPageSource();
+		}
+		catch (Exception e) {
+			WebDriver.TargetLocator targetLocator = switchTo();
+
+			targetLocator.window(defaultWindowHandle);
+
+			pageSource = getPageSource();
+		}
+
+		if (pageSource.contains(
+				"html id=\"feedHandler\" xmlns=" +
+					"\"http://www.w3.org/1999/xhtml\"")) {
+
+			return;
+		}
+
+		WebElement webElement = getWebElement("//body");
+
+		WrapsDriver wrapsDriver = (WrapsDriver)webElement;
+
+		WebDriver webDriver = wrapsDriver.getWrappedDriver();
+
+		List<JavaScriptError> javaScriptErrors = JavaScriptError.readErrors(
+			webDriver);
+
+		if (!javaScriptErrors.isEmpty()) {
+			for (JavaScriptError javaScriptError : javaScriptErrors) {
+				String javaScriptErrorValue = javaScriptError.toString();
+
+				System.out.println("JS_ERROR: " + javaScriptErrorValue);
+
+				// LPS-41634
+
+				if (javaScriptErrorValue.contains(
+						"TypeError: d.config.doc.defaultView is null")) {
+
+					continue;
+				}
+
+				// LPS-41634
+
+				if (javaScriptErrorValue.contains(
+						"NS_ERROR_NOT_INITIALIZED:")) {
+
+					continue;
+				}
+
+				throw new Exception(javaScriptErrorValue);
+			}
+		}
+	}
+
+	@Override
+	public void assertLiferayErrors() throws Exception {
+		if (!TestPropsValues.TEST_ASSERT_LIFERAY_ERRORS) {
+			return;
+		}
+
+		LiferaySeleniumHelper.assertLiferayErrors();
 	}
 
 	@Override
@@ -180,6 +285,19 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
+	public void clickImageElement(String image) throws Exception {
+		LiferaySeleniumHelper.clickImageElement(this, image);
+	}
+
+	@Override
+	public void connectToEmailAccount(String emailAddress, String emailPassword)
+		throws Exception {
+
+		LiferaySeleniumHelper.connectToEmailAccount(
+			emailAddress, emailPassword);
+	}
+
+	@Override
 	public void copyText(String locator) {
 		_clipBoard = super.getText(locator);
 	}
@@ -187,6 +305,11 @@ public abstract class BaseWebDriverImpl
 	@Override
 	public void copyValue(String locator) {
 		_clipBoard = super.getValue(locator);
+	}
+
+	@Override
+	public void deleteAllEmails() throws Exception {
+		LiferaySeleniumHelper.deleteAllEmails();
 	}
 
 	@Override
@@ -218,6 +341,16 @@ public abstract class BaseWebDriverImpl
 		Calendar calendar = Calendar.getInstance();
 
 		return StringUtil.valueOf(calendar.get(Calendar.YEAR));
+	}
+
+	@Override
+	public String getEmailBody(String index) throws Exception {
+		return LiferaySeleniumHelper.getEmailBody(index);
+	}
+
+	@Override
+	public String getEmailSubject(String index) throws Exception {
+		return LiferaySeleniumHelper.getEmailSubject(index);
 	}
 
 	@Override
@@ -271,6 +404,11 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
+	public String getOutputDir() {
+		return _outputDir;
+	}
+
+	@Override
 	public String getPrimaryTestSuiteName() {
 		return _primaryTestSuiteName;
 	}
@@ -278,6 +416,11 @@ public abstract class BaseWebDriverImpl
 	@Override
 	public String getProjectDir() {
 		return _projectDir;
+	}
+
+	@Override
+	public String getSikuliImagesDir() {
+		return _sikuliImagesDir;
 	}
 
 	@Override
@@ -312,7 +455,11 @@ public abstract class BaseWebDriverImpl
 			return false;
 		}
 
-		return !pattern.equals(getSelectedLabel(selectLocator, "1"));
+		String[] selectedLabels = getSelectedLabels(selectLocator);
+
+		List<String> selectedLabelsList = Arrays.asList(selectedLabels);
+
+		return !selectedLabelsList.contains(pattern);
 	}
 
 	@Override
@@ -383,9 +530,9 @@ public abstract class BaseWebDriverImpl
 
 	@Override
 	public void makeVisible(String locator) {
-		WebElement bodyElement = getWebElement("//body");
+		WebElement bodyWebElement = getWebElement("//body");
 
-		WrapsDriver wrapsDriver = (WrapsDriver)bodyElement;
+		WrapsDriver wrapsDriver = (WrapsDriver)bodyWebElement;
 
 		WebDriver webDriver = wrapsDriver.getWrappedDriver();
 
@@ -401,9 +548,9 @@ public abstract class BaseWebDriverImpl
 		sb.append("element.style.opacity = '1';");
 		sb.append("element.style.visibility = 'visible';");
 
-		WebElement webElement = getWebElement(locator);
+		WebElement locatorWebElement = getWebElement(locator);
 
-		javascriptExecutor.executeScript(sb.toString(), webElement);
+		javascriptExecutor.executeScript(sb.toString(), locatorWebElement);
 	}
 
 	@Override
@@ -417,13 +564,31 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
+	public void pauseLoggerCheck() throws Exception {
+	}
+
+	@Override
 	public void refreshAndWait() {
 		super.refresh();
 		super.waitForPageToLoad("30000");
 	}
 
 	@Override
-	public void saveScreenShotAndSource() throws Exception {
+	public void replyToEmail(String to, String body) throws Exception {
+		LiferaySeleniumHelper.replyToEmail(this, to, body);
+	}
+
+	@Override
+	public void saveScreenshot(String fileName) throws Exception {
+		if (!TestPropsValues.SAVE_SCREENSHOT) {
+			return;
+		}
+
+		LiferaySeleniumHelper.saveScreenshot(this, fileName);
+	}
+
+	@Override
+	public void saveScreenshotAndSource() throws Exception {
 	}
 
 	@Override
@@ -433,12 +598,32 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
+	public boolean sendActionLogger(String command, String[] params) {
+		return true;
+	}
+
+	@Override
+	public void sendEmail(String to, String subject, String body)
+		throws Exception {
+
+		LiferaySeleniumHelper.sendEmail(this, to, subject, body);
+	}
+
+	@Override
 	public void sendKeys(String locator, String value) {
 		typeKeys(locator, value);
 	}
 
 	@Override
 	public void sendLogger(String id, String status) {
+	}
+
+	@Override
+	public void sendTestCaseCommandLogger(String command) {
+	}
+
+	@Override
+	public void sendTestCaseHeaderLogger(String command) {
 	}
 
 	@Override
@@ -464,11 +649,13 @@ public abstract class BaseWebDriverImpl
 	}
 
 	@Override
+	public void typeImageElement(String image, String value) throws Exception {
+		LiferaySeleniumHelper.typeImageElement(this, image, value);
+	}
+
+	@Override
 	public void uploadCommonFile(String location, String value) {
-		uploadFile(
-			location,
-			_projectDir + "portal-web\\test\\functional\\com\\liferay\\" +
-				"portalweb\\dependencies\\" + value);
+		uploadFile(location, _projectDir + _dependenciesDir + value);
 	}
 
 	@Override
@@ -482,7 +669,13 @@ public abstract class BaseWebDriverImpl
 
 	@Override
 	public void uploadTempFile(String location, String value) {
-		uploadFile(location, TestPropsValues.OUTPUT_DIR + value);
+		String slash = "/";
+
+		if (OSDetector.isWindows()) {
+			slash = "\\";
+		}
+
+		uploadFile(location, TestPropsValues.OUTPUT_DIR + slash + value);
 	}
 
 	@Override
@@ -593,7 +786,11 @@ public abstract class BaseWebDriverImpl
 	}
 
 	private String _clipBoard = "";
+	private String _dependenciesDir =
+		"portal-web//test//functional//com//liferay//portalweb//dependencies//";
+	private String _outputDir = TestPropsValues.OUTPUT_DIR;
 	private String _primaryTestSuiteName;
 	private String _projectDir;
+	private String _sikuliImagesDir = _dependenciesDir + "sikuli//linux//";
 
 }

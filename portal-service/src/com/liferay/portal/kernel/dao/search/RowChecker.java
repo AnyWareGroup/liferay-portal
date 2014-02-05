@@ -14,6 +14,7 @@
 
 package com.liferay.portal.kernel.dao.search;
 
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -77,6 +78,18 @@ public class RowChecker {
 		return _formName;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by  {@link
+	 *             #getRowCheckBox(HttpServletRequest, boolean, boolean,
+	 *             String)}
+	 */
+	@Deprecated
+	public String getRowCheckBox(
+		boolean checked, boolean disabled, String primaryKey) {
+
+		return getRowCheckBox(null, checked, disabled, primaryKey);
+	}
+
 	public String getRowCheckBox(
 		HttpServletRequest request, boolean checked, boolean disabled,
 		String primaryKey) {
@@ -138,34 +151,32 @@ public class RowChecker {
 		if (Validator.isNull(name)) {
 			return StringPool.BLANK;
 		}
-		else {
-			StringBuilder sb = new StringBuilder(9);
 
-			sb.append("<input name=\"");
-			sb.append(name);
-			sb.append("\" type=\"checkbox\" ");
-			sb.append("onClick=\"Liferay.Util.checkAll(");
-			sb.append("AUI().one(this).ancestor('");
-			sb.append(".table'), ");
-			sb.append(checkBoxRowIds);
-			sb.append(", this, 'tr:not(.lfr-template)'");
-			sb.append(");\">");
+		StringBuilder sb = new StringBuilder(9);
 
-			return sb.toString();
-		}
+		sb.append("<input name=\"");
+		sb.append(name);
+		sb.append("\" type=\"checkbox\" ");
+		sb.append("onClick=\"Liferay.Util.checkAll(");
+		sb.append("AUI().one(this).ancestor('");
+		sb.append(".table'), ");
+		sb.append(checkBoxRowIds);
+		sb.append(", this, 'tr:not(.lfr-template)'");
+		sb.append(");\">");
+
+		return sb.toString();
 	}
 
 	protected String getNamespacedValue(String value) {
 		if (Validator.isNull(value)) {
 			return StringPool.BLANK;
 		}
-		else {
-			if (!value.startsWith(_portletResponse.getNamespace())) {
-				value = _portletResponse.getNamespace() + value;
-			}
 
-			return value;
+		if (!value.startsWith(_portletResponse.getNamespace())) {
+			value = _portletResponse.getNamespace() + value;
 		}
+
+		return value;
 	}
 
 	protected String getRowCheckBox(
@@ -173,7 +184,7 @@ public class RowChecker {
 		String checkBoxRowIds, String checkBoxAllRowIds,
 		String checkBoxPostOnClick) {
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(20);
 
 		sb.append("<input ");
 
@@ -188,7 +199,7 @@ public class RowChecker {
 		sb.append("name=\"");
 		sb.append(name);
 		sb.append("\" type=\"checkbox\" value=\"");
-		sb.append(value);
+		sb.append(HtmlUtil.escapeAttribute(value));
 		sb.append("\" ");
 
 		if (Validator.isNotNull(_allRowIds)) {

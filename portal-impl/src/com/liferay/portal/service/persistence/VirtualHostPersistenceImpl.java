@@ -555,6 +555,10 @@ public class VirtualHostPersistenceImpl extends BasePersistenceImpl<VirtualHost>
 	private static final String _FINDER_COLUMN_C_L_COMPANYID_2 = "virtualHost.companyId = ? AND ";
 	private static final String _FINDER_COLUMN_C_L_LAYOUTSETID_2 = "virtualHost.layoutSetId = ?";
 
+	public VirtualHostPersistenceImpl() {
+		setModelClass(VirtualHost.class);
+	}
+
 	/**
 	 * Caches the virtual host in the entity cache if it is enabled.
 	 *
@@ -866,10 +870,13 @@ public class VirtualHostPersistenceImpl extends BasePersistenceImpl<VirtualHost>
 		}
 
 		EntityCacheUtil.putResult(VirtualHostModelImpl.ENTITY_CACHE_ENABLED,
-			VirtualHostImpl.class, virtualHost.getPrimaryKey(), virtualHost);
+			VirtualHostImpl.class, virtualHost.getPrimaryKey(), virtualHost,
+			false);
 
 		clearUniqueFindersCache(virtualHost);
 		cacheUniqueFindersCache(virtualHost);
+
+		virtualHost.resetOriginalValues();
 
 		return virtualHost;
 	}
@@ -884,6 +891,7 @@ public class VirtualHostPersistenceImpl extends BasePersistenceImpl<VirtualHost>
 		virtualHostImpl.setNew(virtualHost.isNew());
 		virtualHostImpl.setPrimaryKey(virtualHost.getPrimaryKey());
 
+		virtualHostImpl.setMvccVersion(virtualHost.getMvccVersion());
 		virtualHostImpl.setVirtualHostId(virtualHost.getVirtualHostId());
 		virtualHostImpl.setCompanyId(virtualHost.getCompanyId());
 		virtualHostImpl.setLayoutSetId(virtualHost.getLayoutSetId());

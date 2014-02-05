@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.ContactServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ContactServiceHttp
- * @see       com.liferay.portal.model.ContactSoap
- * @see       com.liferay.portal.service.ContactServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ContactServiceHttp
+ * @see com.liferay.portal.model.ContactSoap
+ * @see com.liferay.portal.service.ContactServiceUtil
  * @generated
  */
+@ProviderType
 public class ContactServiceSoap {
 	public static com.liferay.portal.model.ContactSoap getContact(
 		long contactId) throws RemoteException {

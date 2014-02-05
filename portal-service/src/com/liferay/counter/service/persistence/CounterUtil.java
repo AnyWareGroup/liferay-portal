@@ -14,6 +14,8 @@
 
 package com.liferay.counter.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.counter.model.Counter;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
@@ -37,6 +39,7 @@ import java.util.List;
  * @see CounterPersistenceImpl
  * @generated
  */
+@ProviderType
 public class CounterUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -61,7 +64,7 @@ public class CounterUtil {
 	/**
 	 * @see com.liferay.portal.service.persistence.BasePersistence#countWithDynamicQuery(DynamicQuery)
 	 */
-	public long countWithDynamicQuery(DynamicQuery dynamicQuery)
+	public static long countWithDynamicQuery(DynamicQuery dynamicQuery)
 		throws SystemException {
 		return getPersistence().countWithDynamicQuery(dynamicQuery);
 	}
@@ -272,6 +275,7 @@ public class CounterUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setPersistence(CounterPersistence persistence) {
 	}
 

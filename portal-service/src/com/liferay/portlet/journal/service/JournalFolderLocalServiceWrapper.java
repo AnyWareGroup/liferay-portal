@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link JournalFolderLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalFolderLocalService
+ * @author Brian Wing Shun Chan
+ * @see JournalFolderLocalService
  * @generated
  */
+@ProviderType
 public class JournalFolderLocalServiceWrapper
 	implements JournalFolderLocalService,
 		ServiceWrapper<JournalFolderLocalService> {
@@ -167,11 +170,60 @@ public class JournalFolderLocalServiceWrapper
 		return _journalFolderLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.journal.model.JournalFolder fetchJournalFolder(
 		long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.fetchJournalFolder(folderId);
+	}
+
+	/**
+	* Returns the journal folder with the matching UUID and company.
+	*
+	* @param uuid the journal folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching journal folder, or <code>null</code> if a matching journal folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.journal.model.JournalFolder fetchJournalFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.fetchJournalFolderByUuidAndCompanyId(uuid,
+			companyId);
+	}
+
+	/**
+	* Returns the journal folder matching the UUID and group.
+	*
+	* @param uuid the journal folder's UUID
+	* @param groupId the primary key of the group
+	* @return the matching journal folder, or <code>null</code> if a matching journal folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.journal.model.JournalFolder fetchJournalFolderByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.fetchJournalFolderByUuidAndGroupId(uuid,
+			groupId);
 	}
 
 	/**
@@ -196,6 +248,24 @@ public class JournalFolderLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the journal folder with the matching UUID and company.
+	*
+	* @param uuid the journal folder's UUID
+	* @param companyId the primary key of the company
+	* @return the matching journal folder
+	* @throws PortalException if a matching journal folder could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.journal.model.JournalFolder getJournalFolderByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getJournalFolderByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -336,6 +406,13 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public com.liferay.portlet.journal.model.JournalFolder fetchFolder(
+		long folderId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.fetchFolder(folderId);
+	}
+
+	@Override
+	public com.liferay.portlet.journal.model.JournalFolder fetchFolder(
 		long groupId, long parentFolderId, java.lang.String name)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.fetchFolder(groupId, parentFolderId,
@@ -419,6 +496,14 @@ public class JournalFolderLocalServiceWrapper
 
 	@Override
 	public java.util.List<java.lang.Object> getFoldersAndArticles(
+		long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getFoldersAndArticles(groupId,
+			folderId, status);
+	}
+
+	@Override
+	public java.util.List<java.lang.Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -439,6 +524,13 @@ public class JournalFolderLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _journalFolderLocalService.getFoldersAndArticlesCount(groupId,
 			folderId);
+	}
+
+	@Override
+	public int getFoldersAndArticlesCount(long groupId, long folderId,
+		int status) throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderLocalService.getFoldersAndArticlesCount(groupId,
+			folderId, status);
 	}
 
 	@Override
@@ -489,10 +581,17 @@ public class JournalFolderLocalServiceWrapper
 	}
 
 	@Override
-	public void moveFolderToTrash(long userId, long folderId)
+	public com.liferay.portlet.journal.model.JournalFolder moveFolderToTrash(
+		long userId, long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalFolderLocalService.moveFolderToTrash(userId, folderId);
+		return _journalFolderLocalService.moveFolderToTrash(userId, folderId);
+	}
+
+	@Override
+	public void rebuildTree(long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderLocalService.rebuildTree(companyId);
 	}
 
 	@Override
@@ -537,6 +636,7 @@ public class JournalFolderLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalFolderLocalService getWrappedJournalFolderLocalService() {
 		return _journalFolderLocalService;
 	}
@@ -544,6 +644,7 @@ public class JournalFolderLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalFolderLocalService(
 		JournalFolderLocalService journalFolderLocalService) {
 		_journalFolderLocalService = journalFolderLocalService;

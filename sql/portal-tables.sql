@@ -1,4 +1,5 @@
 create table Account_ (
+	mvccVersion LONG default 0,
 	accountId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -18,6 +19,7 @@ create table Account_ (
 );
 
 create table Address (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	addressId LONG not null primary key,
 	companyId LONG,
@@ -60,7 +62,7 @@ create table AnnouncementsEntry (
 	classNameId LONG,
 	classPK LONG,
 	title VARCHAR(75) null,
-	content STRING null,
+	content TEXT null,
 	url STRING null,
 	type_ VARCHAR(75) null,
 	displayDate DATE null,
@@ -108,9 +110,9 @@ create table AssetCategoryProperty (
 );
 
 create table AssetEntries_AssetCategories (
-	entryId LONG not null,
 	categoryId LONG not null,
-	primary key (entryId, categoryId)
+	entryId LONG not null,
+	primary key (categoryId, entryId)
 );
 
 create table AssetEntries_AssetTags (
@@ -206,8 +208,9 @@ create table AssetVocabulary (
 	settings_ STRING null
 );
 
-create table BTEntry (
-	btEntryId LONG not null primary key,
+create table BackgroundTask (
+	mvccVersion LONG default 0,
+	backgroundTaskId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
@@ -220,7 +223,8 @@ create table BTEntry (
 	taskContext TEXT null,
 	completed BOOLEAN,
 	completionDate DATE null,
-	status INTEGER
+	status INTEGER,
+	statusMessage TEXT null
 );
 
 create table BlogsEntry (
@@ -272,6 +276,7 @@ create table BookmarksEntry (
 	modifiedDate DATE null,
 	resourceBlockId LONG,
 	folderId LONG,
+	treePath STRING null,
 	name VARCHAR(255) null,
 	url STRING null,
 	description STRING null,
@@ -294,6 +299,7 @@ create table BookmarksFolder (
 	modifiedDate DATE null,
 	resourceBlockId LONG,
 	parentFolderId LONG,
+	treePath STRING null,
 	name VARCHAR(75) null,
 	description STRING null,
 	status INTEGER,
@@ -303,6 +309,7 @@ create table BookmarksFolder (
 );
 
 create table BrowserTracker (
+	mvccVersion LONG default 0,
 	browserTrackerId LONG not null primary key,
 	userId LONG,
 	browserKey LONG
@@ -335,11 +342,13 @@ create table CalEvent (
 );
 
 create table ClassName_ (
+	mvccVersion LONG default 0,
 	classNameId LONG not null primary key,
 	value VARCHAR(200) null
 );
 
 create table ClusterGroup (
+	mvccVersion LONG default 0,
 	clusterGroupId LONG not null primary key,
 	name VARCHAR(75) null,
 	clusterNodeIds VARCHAR(75) null,
@@ -347,6 +356,7 @@ create table ClusterGroup (
 );
 
 create table Company (
+	mvccVersion LONG default 0,
 	companyId LONG not null primary key,
 	accountId LONG,
 	webId VARCHAR(75) null,
@@ -360,6 +370,7 @@ create table Company (
 );
 
 create table Contact_ (
+	mvccVersion LONG default 0,
 	contactId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -401,6 +412,7 @@ create table Counter (
 );
 
 create table Country (
+	mvccVersion LONG default 0,
 	countryId LONG not null primary key,
 	name VARCHAR(75) null,
 	a2 VARCHAR(75) null,
@@ -563,14 +575,13 @@ create table DLFileEntry (
 	companyId LONG,
 	userId LONG,
 	userName VARCHAR(75) null,
-	versionUserId LONG,
-	versionUserName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
 	classNameId LONG,
 	classPK LONG,
 	repositoryId LONG,
 	folderId LONG,
+	treePath STRING null,
 	name VARCHAR(255) null,
 	extension VARCHAR(75) null,
 	mimeType VARCHAR(75) null,
@@ -607,7 +618,8 @@ create table DLFileEntryType (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
-	name VARCHAR(75) null,
+	fileEntryTypeKey VARCHAR(75) null,
+	name STRING null,
 	description STRING null
 );
 
@@ -624,14 +636,11 @@ create table DLFileEntryTypes_DLFolders (
 );
 
 create table DLFileRank (
-	uuid_ VARCHAR(75) null,
 	fileRankId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
 	userId LONG,
-	userName VARCHAR(75) null,
 	createDate DATE null,
-	modifiedDate DATE null,
 	fileEntryId LONG,
 	active_ BOOLEAN
 );
@@ -648,6 +657,7 @@ create table DLFileShortcut (
 	repositoryId LONG,
 	folderId LONG,
 	toFileEntryId LONG,
+	treePath STRING null,
 	active_ BOOLEAN,
 	status INTEGER,
 	statusByUserId LONG,
@@ -667,6 +677,7 @@ create table DLFileVersion (
 	repositoryId LONG,
 	folderId LONG,
 	fileEntryId LONG,
+	treePath STRING null,
 	extension VARCHAR(75) null,
 	mimeType VARCHAR(75) null,
 	title VARCHAR(255) null,
@@ -695,6 +706,7 @@ create table DLFolder (
 	repositoryId LONG,
 	mountPoint BOOLEAN,
 	parentFolderId LONG,
+	treePath STRING null,
 	name VARCHAR(100) null,
 	description STRING null,
 	lastPostDate DATE null,
@@ -707,7 +719,16 @@ create table DLFolder (
 	statusDate DATE null
 );
 
+create table DLSyncEvent (
+	syncEventId LONG not null primary key,
+	modifiedTime LONG,
+	event VARCHAR(75) null,
+	type_ VARCHAR(75) null,
+	typePK LONG
+);
+
 create table EmailAddress (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	emailAddressId LONG not null primary key,
 	companyId LONG,
@@ -758,7 +779,23 @@ create table ExpandoValue (
 	data_ STRING null
 );
 
+create table ExportImportConfiguration (
+	mvccVersion LONG default 0,
+	exportImportConfigurationId LONG not null primary key,
+	groupId LONG,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
+	name VARCHAR(75) null,
+	description STRING null,
+	type_ INTEGER,
+	settings_ TEXT null
+);
+
 create table Group_ (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	groupId LONG not null primary key,
 	companyId LONG,
@@ -767,13 +804,16 @@ create table Group_ (
 	classPK LONG,
 	parentGroupId LONG,
 	liveGroupId LONG,
-	treePath VARCHAR(75) null,
+	treePath STRING null,
 	name VARCHAR(150) null,
 	description STRING null,
 	type_ INTEGER,
 	typeSettings TEXT null,
+	manualMembership BOOLEAN,
+	membershipRestriction INTEGER,
 	friendlyURL VARCHAR(255) null,
 	site BOOLEAN,
+	remoteStagingGroupCount INTEGER,
 	active_ BOOLEAN
 );
 
@@ -796,6 +836,7 @@ create table Groups_UserGroups (
 );
 
 create table Image (
+	mvccVersion LONG default 0,
 	imageId LONG not null primary key,
 	modifiedDate DATE null,
 	type_ VARCHAR(75) null,
@@ -817,6 +858,7 @@ create table JournalArticle (
 	folderId LONG,
 	classNameId LONG,
 	classPK LONG,
+	treePath STRING null,
 	articleId VARCHAR(75) null,
 	version DOUBLE,
 	title STRING null,
@@ -904,6 +946,7 @@ create table JournalFolder (
 	createDate DATE null,
 	modifiedDate DATE null,
 	parentFolderId LONG,
+	treePath STRING null,
 	name VARCHAR(100) null,
 	description STRING null,
 	status INTEGER,
@@ -912,44 +955,8 @@ create table JournalFolder (
 	statusDate DATE null
 );
 
-create table JournalStructure (
-	uuid_ VARCHAR(75) null,
-	id_ LONG not null primary key,
-	groupId LONG,
-	companyId LONG,
-	userId LONG,
-	userName VARCHAR(75) null,
-	createDate DATE null,
-	modifiedDate DATE null,
-	structureId VARCHAR(75) null,
-	parentStructureId VARCHAR(75) null,
-	name STRING null,
-	description STRING null,
-	xsd TEXT null
-);
-
-create table JournalTemplate (
-	uuid_ VARCHAR(75) null,
-	id_ LONG not null primary key,
-	groupId LONG,
-	companyId LONG,
-	userId LONG,
-	userName VARCHAR(75) null,
-	createDate DATE null,
-	modifiedDate DATE null,
-	templateId VARCHAR(75) null,
-	structureId VARCHAR(75) null,
-	name STRING null,
-	description STRING null,
-	xsl TEXT null,
-	langType VARCHAR(75) null,
-	cacheable BOOLEAN,
-	smallImage BOOLEAN,
-	smallImageId LONG,
-	smallImageURL STRING null
-);
-
 create table Layout (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	plid LONG not null primary key,
 	groupId LONG,
@@ -970,7 +977,6 @@ create table Layout (
 	typeSettings TEXT null,
 	hidden_ BOOLEAN,
 	friendlyURL VARCHAR(255) null,
-	iconImage BOOLEAN,
 	iconImageId LONG,
 	themeId VARCHAR(75) null,
 	colorSchemeId VARCHAR(75) null,
@@ -984,6 +990,7 @@ create table Layout (
 );
 
 create table LayoutBranch (
+	mvccVersion LONG default 0,
 	LayoutBranchId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -997,10 +1004,15 @@ create table LayoutBranch (
 );
 
 create table LayoutFriendlyURL (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	layoutFriendlyURLId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	modifiedDate DATE null,
 	plid LONG,
 	privateLayout BOOLEAN,
 	friendlyURL VARCHAR(255) null,
@@ -1008,6 +1020,7 @@ create table LayoutFriendlyURL (
 );
 
 create table LayoutPrototype (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	layoutPrototypeId LONG not null primary key,
 	companyId LONG,
@@ -1022,6 +1035,7 @@ create table LayoutPrototype (
 );
 
 create table LayoutRevision (
+	mvccVersion LONG default 0,
 	layoutRevisionId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -1042,7 +1056,6 @@ create table LayoutRevision (
 	keywords STRING null,
 	robots STRING null,
 	typeSettings TEXT null,
-	iconImage BOOLEAN,
 	iconImageId LONG,
 	themeId VARCHAR(75) null,
 	colorSchemeId VARCHAR(75) null,
@@ -1056,13 +1069,13 @@ create table LayoutRevision (
 );
 
 create table LayoutSet (
+	mvccVersion LONG default 0,
 	layoutSetId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
 	createDate DATE null,
 	modifiedDate DATE null,
 	privateLayout BOOLEAN,
-	logo BOOLEAN,
 	logoId LONG,
 	themeId VARCHAR(75) null,
 	colorSchemeId VARCHAR(75) null,
@@ -1076,6 +1089,7 @@ create table LayoutSet (
 );
 
 create table LayoutSetBranch (
+	mvccVersion LONG default 0,
 	layoutSetBranchId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -1087,19 +1101,19 @@ create table LayoutSetBranch (
 	name VARCHAR(75) null,
 	description STRING null,
 	master BOOLEAN,
-	logo BOOLEAN,
 	logoId LONG,
 	themeId VARCHAR(75) null,
 	colorSchemeId VARCHAR(75) null,
 	wapThemeId VARCHAR(75) null,
 	wapColorSchemeId VARCHAR(75) null,
 	css TEXT null,
-	settings_ STRING null,
+	settings_ TEXT null,
 	layoutSetPrototypeUuid VARCHAR(75) null,
 	layoutSetPrototypeLinkEnabled BOOLEAN
 );
 
 create table LayoutSetPrototype (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	layoutSetPrototypeId LONG not null primary key,
 	companyId LONG,
@@ -1114,12 +1128,14 @@ create table LayoutSetPrototype (
 );
 
 create table ListType (
+	mvccVersion LONG default 0,
 	listTypeId INTEGER not null primary key,
 	name VARCHAR(75) null,
 	type_ VARCHAR(75) null
 );
 
 create table Lock_ (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	lockId LONG not null primary key,
 	companyId LONG,
@@ -1345,6 +1361,7 @@ create table MDRRuleGroupInstance (
 );
 
 create table MembershipRequest (
+	mvccVersion LONG default 0,
 	membershipRequestId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -1358,6 +1375,7 @@ create table MembershipRequest (
 );
 
 create table Organization_ (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	organizationId LONG not null primary key,
 	companyId LONG,
@@ -1373,10 +1391,12 @@ create table Organization_ (
 	regionId LONG,
 	countryId LONG,
 	statusId INTEGER,
-	comments STRING null
+	comments STRING null,
+	logoId LONG
 );
 
 create table OrgGroupRole (
+	mvccVersion LONG default 0,
 	organizationId LONG not null,
 	groupId LONG not null,
 	roleId LONG not null,
@@ -1384,6 +1404,7 @@ create table OrgGroupRole (
 );
 
 create table OrgLabor (
+	mvccVersion LONG default 0,
 	orgLaborId LONG not null primary key,
 	organizationId LONG,
 	typeId INTEGER,
@@ -1404,6 +1425,7 @@ create table OrgLabor (
 );
 
 create table PasswordPolicy (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	passwordPolicyId LONG not null primary key,
 	companyId LONG,
@@ -1441,6 +1463,7 @@ create table PasswordPolicy (
 );
 
 create table PasswordPolicyRel (
+	mvccVersion LONG default 0,
 	passwordPolicyRelId LONG not null primary key,
 	passwordPolicyId LONG,
 	classNameId LONG,
@@ -1448,6 +1471,7 @@ create table PasswordPolicyRel (
 );
 
 create table PasswordTracker (
+	mvccVersion LONG default 0,
 	passwordTrackerId LONG not null primary key,
 	userId LONG,
 	createDate DATE null,
@@ -1455,6 +1479,7 @@ create table PasswordTracker (
 );
 
 create table Phone (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	phoneId LONG not null primary key,
 	companyId LONG,
@@ -1471,6 +1496,7 @@ create table Phone (
 );
 
 create table PluginSetting (
+	mvccVersion LONG default 0,
 	pluginSettingId LONG not null primary key,
 	companyId LONG,
 	pluginId VARCHAR(75) null,
@@ -1523,6 +1549,7 @@ create table PollsVote (
 );
 
 create table PortalPreferences (
+	mvccVersion LONG default 0,
 	portalPreferencesId LONG not null primary key,
 	ownerId LONG,
 	ownerType INTEGER,
@@ -1530,6 +1557,7 @@ create table PortalPreferences (
 );
 
 create table Portlet (
+	mvccVersion LONG default 0,
 	id_ LONG not null primary key,
 	companyId LONG,
 	portletId VARCHAR(200) null,
@@ -1538,6 +1566,7 @@ create table Portlet (
 );
 
 create table PortletItem (
+	mvccVersion LONG default 0,
 	portletItemId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -1546,11 +1575,12 @@ create table PortletItem (
 	createDate DATE null,
 	modifiedDate DATE null,
 	name VARCHAR(75) null,
-	portletId VARCHAR(75) null,
+	portletId VARCHAR(200) null,
 	classNameId LONG
 );
 
 create table PortletPreferences (
+	mvccVersion LONG default 0,
 	portletPreferencesId LONG not null primary key,
 	ownerId LONG,
 	ownerType INTEGER,
@@ -1581,6 +1611,7 @@ create table RatingsStats (
 );
 
 create table Region (
+	mvccVersion LONG default 0,
 	regionId LONG not null primary key,
 	countryId LONG,
 	regionCode VARCHAR(75) null,
@@ -1589,6 +1620,7 @@ create table Region (
 );
 
 create table Release_ (
+	mvccVersion LONG default 0,
 	releaseId LONG not null primary key,
 	createDate DATE null,
 	modifiedDate DATE null,
@@ -1601,6 +1633,7 @@ create table Release_ (
 );
 
 create table Repository (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	repositoryId LONG not null primary key,
 	groupId LONG,
@@ -1612,12 +1645,13 @@ create table Repository (
 	classNameId LONG,
 	name VARCHAR(75) null,
 	description STRING null,
-	portletId VARCHAR(75) null,
+	portletId VARCHAR(200) null,
 	typeSettings TEXT null,
 	dlFolderId LONG
 );
 
 create table RepositoryEntry (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	repositoryEntryId LONG not null primary key,
 	groupId LONG,
@@ -1627,11 +1661,12 @@ create table RepositoryEntry (
 	createDate DATE null,
 	modifiedDate DATE null,
 	repositoryId LONG,
-	mappedId VARCHAR(75) null,
+	mappedId VARCHAR(255) null,
 	manualCheckInRequired BOOLEAN
 );
 
 create table ResourceAction (
+	mvccVersion LONG default 0,
 	resourceActionId LONG not null primary key,
 	name VARCHAR(255) null,
 	actionId VARCHAR(75) null,
@@ -1639,6 +1674,7 @@ create table ResourceAction (
 );
 
 create table ResourceBlock (
+	mvccVersion LONG default 0,
 	resourceBlockId LONG not null primary key,
 	companyId LONG,
 	groupId LONG,
@@ -1648,6 +1684,7 @@ create table ResourceBlock (
 );
 
 create table ResourceBlockPermission (
+	mvccVersion LONG default 0,
 	resourceBlockPermissionId LONG not null primary key,
 	resourceBlockId LONG,
 	roleId LONG,
@@ -1655,6 +1692,7 @@ create table ResourceBlockPermission (
 );
 
 create table ResourcePermission (
+	mvccVersion LONG default 0,
 	resourcePermissionId LONG not null primary key,
 	companyId LONG,
 	name VARCHAR(255) null,
@@ -1666,6 +1704,7 @@ create table ResourcePermission (
 );
 
 create table ResourceTypePermission (
+	mvccVersion LONG default 0,
 	resourceTypePermissionId LONG not null primary key,
 	companyId LONG,
 	groupId LONG,
@@ -1675,6 +1714,7 @@ create table ResourceTypePermission (
 );
 
 create table Role_ (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	roleId LONG not null primary key,
 	companyId LONG,
@@ -1771,6 +1811,7 @@ create table SCProductVersion (
 );
 
 create table ServiceComponent (
+	mvccVersion LONG default 0,
 	serviceComponentId LONG not null primary key,
 	buildNamespace VARCHAR(75) null,
 	buildNumber LONG,
@@ -1779,6 +1820,7 @@ create table ServiceComponent (
 );
 
 create table Shard (
+	mvccVersion LONG default 0,
 	shardId LONG not null primary key,
 	classNameId LONG,
 	classPK LONG,
@@ -1793,7 +1835,7 @@ create table ShoppingCart (
 	userName VARCHAR(75) null,
 	createDate DATE null,
 	modifiedDate DATE null,
-	itemIds STRING null,
+	itemIds TEXT null,
 	couponCodes VARCHAR(75) null,
 	altShipping INTEGER,
 	insure BOOLEAN
@@ -1935,7 +1977,7 @@ create table ShoppingOrder (
 	ccExpMonth INTEGER,
 	ccExpYear INTEGER,
 	ccVerNumber VARCHAR(75) null,
-	comments STRING null,
+	comments TEXT null,
 	ppTxnId VARCHAR(75) null,
 	ppPaymentStatus VARCHAR(75) null,
 	ppPaymentGross DOUBLE,
@@ -1968,6 +2010,8 @@ create table SocialActivity (
 	mirrorActivityId LONG,
 	classNameId LONG,
 	classPK LONG,
+	parentClassNameId LONG,
+	parentClassPK LONG,
 	type_ INTEGER,
 	extraData STRING null,
 	receiverUserId LONG
@@ -2021,6 +2065,7 @@ create table SocialActivitySet (
 	classNameId LONG,
 	classPK LONG,
 	type_ INTEGER,
+	extraData STRING null,
 	activityCount INTEGER
 );
 
@@ -2061,6 +2106,7 @@ create table SocialRequest (
 );
 
 create table Subscription (
+	mvccVersion LONG default 0,
 	subscriptionId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -2072,7 +2118,26 @@ create table Subscription (
 	frequency VARCHAR(75) null
 );
 
+create table SystemEvent (
+	mvccVersion LONG default 0,
+	systemEventId LONG not null primary key,
+	groupId LONG,
+	companyId LONG,
+	userId LONG,
+	userName VARCHAR(75) null,
+	createDate DATE null,
+	classNameId LONG,
+	classPK LONG,
+	classUuid VARCHAR(75) null,
+	referrerClassNameId LONG,
+	parentSystemEventId LONG,
+	systemEventSetKey LONG,
+	type_ INTEGER,
+	extraData TEXT null
+);
+
 create table Team (
+	mvccVersion LONG default 0,
 	teamId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -2085,6 +2150,7 @@ create table Team (
 );
 
 create table Ticket (
+	mvccVersion LONG default 0,
 	ticketId LONG not null primary key,
 	companyId LONG,
 	createDate DATE null,
@@ -2105,6 +2171,7 @@ create table TrashEntry (
 	createDate DATE null,
 	classNameId LONG,
 	classPK LONG,
+	systemEventSetKey LONG,
 	typeSettings TEXT null,
 	status INTEGER
 );
@@ -2114,10 +2181,24 @@ create table TrashVersion (
 	entryId LONG,
 	classNameId LONG,
 	classPK LONG,
+	typeSettings TEXT null,
 	status INTEGER
 );
 
+create table UserNotificationDelivery (
+	mvccVersion LONG default 0,
+	userNotificationDeliveryId LONG not null primary key,
+	companyId LONG,
+	userId LONG,
+	portletId VARCHAR(200) null,
+	classNameId LONG,
+	notificationType INTEGER,
+	deliveryType INTEGER,
+	deliver BOOLEAN
+);
+
 create table User_ (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	userId LONG not null primary key,
 	companyId LONG,
@@ -2161,6 +2242,7 @@ create table User_ (
 );
 
 create table UserGroup (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	userGroupId LONG not null primary key,
 	companyId LONG,
@@ -2175,6 +2257,7 @@ create table UserGroup (
 );
 
 create table UserGroupGroupRole (
+	mvccVersion LONG default 0,
 	userGroupId LONG not null,
 	groupId LONG not null,
 	roleId LONG not null,
@@ -2182,6 +2265,7 @@ create table UserGroupGroupRole (
 );
 
 create table UserGroupRole (
+	mvccVersion LONG default 0,
 	userId LONG not null,
 	groupId LONG not null,
 	roleId LONG not null,
@@ -2189,12 +2273,13 @@ create table UserGroupRole (
 );
 
 create table UserGroups_Teams (
-	userGroupId LONG not null,
 	teamId LONG not null,
-	primary key (userGroupId, teamId)
+	userGroupId LONG not null,
+	primary key (teamId, userGroupId)
 );
 
 create table UserIdMapper (
+	mvccVersion LONG default 0,
 	userIdMapperId LONG not null primary key,
 	userId LONG,
 	type_ VARCHAR(75) null,
@@ -2203,6 +2288,7 @@ create table UserIdMapper (
 );
 
 create table UserNotificationEvent (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	userNotificationEventId LONG not null primary key,
 	companyId LONG,
@@ -2210,41 +2296,43 @@ create table UserNotificationEvent (
 	type_ VARCHAR(75) null,
 	timestamp LONG,
 	deliverBy LONG,
+	delivered BOOLEAN,
 	payload TEXT null,
 	archived BOOLEAN
 );
 
 create table Users_Groups (
-	userId LONG not null,
 	groupId LONG not null,
-	primary key (userId, groupId)
+	userId LONG not null,
+	primary key (groupId, userId)
 );
 
 create table Users_Orgs (
-	userId LONG not null,
 	organizationId LONG not null,
-	primary key (userId, organizationId)
+	userId LONG not null,
+	primary key (organizationId, userId)
 );
 
 create table Users_Roles (
-	userId LONG not null,
 	roleId LONG not null,
-	primary key (userId, roleId)
+	userId LONG not null,
+	primary key (roleId, userId)
 );
 
 create table Users_Teams (
-	userId LONG not null,
 	teamId LONG not null,
-	primary key (userId, teamId)
+	userId LONG not null,
+	primary key (teamId, userId)
 );
 
 create table Users_UserGroups (
-	userGroupId LONG not null,
 	userId LONG not null,
-	primary key (userGroupId, userId)
+	userGroupId LONG not null,
+	primary key (userId, userGroupId)
 );
 
 create table UserTracker (
+	mvccVersion LONG default 0,
 	userTrackerId LONG not null primary key,
 	companyId LONG,
 	userId LONG,
@@ -2256,6 +2344,7 @@ create table UserTracker (
 );
 
 create table UserTrackerPath (
+	mvccVersion LONG default 0,
 	userTrackerPathId LONG not null primary key,
 	userTrackerId LONG,
 	path_ STRING null,
@@ -2263,6 +2352,7 @@ create table UserTrackerPath (
 );
 
 create table VirtualHost (
+	mvccVersion LONG default 0,
 	virtualHostId LONG not null primary key,
 	companyId LONG,
 	layoutSetId LONG,
@@ -2270,6 +2360,7 @@ create table VirtualHost (
 );
 
 create table WebDAVProps (
+	mvccVersion LONG default 0,
 	webDavPropsId LONG not null primary key,
 	companyId LONG,
 	createDate DATE null,
@@ -2280,6 +2371,7 @@ create table WebDAVProps (
 );
 
 create table Website (
+	mvccVersion LONG default 0,
 	uuid_ VARCHAR(75) null,
 	websiteId LONG not null primary key,
 	companyId LONG,
@@ -2346,6 +2438,7 @@ create table WikiPageResource (
 );
 
 create table WorkflowDefinitionLink (
+	mvccVersion LONG default 0,
 	workflowDefinitionLinkId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,
@@ -2361,6 +2454,7 @@ create table WorkflowDefinitionLink (
 );
 
 create table WorkflowInstanceLink (
+	mvccVersion LONG default 0,
 	workflowInstanceLinkId LONG not null primary key,
 	groupId LONG,
 	companyId LONG,

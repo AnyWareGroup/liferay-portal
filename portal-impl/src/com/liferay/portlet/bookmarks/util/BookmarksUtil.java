@@ -181,12 +181,12 @@ public class BookmarksUtil {
 		Collections.reverse(folders);
 
 		for (BookmarksFolder curFolder : folders) {
-			sb.append(StringPool.RAQUO);
+			sb.append(StringPool.RAQUO_CHAR);
 			sb.append(StringPool.SPACE);
 			sb.append(curFolder.getName());
 		}
 
-		sb.append(StringPool.RAQUO);
+		sb.append(StringPool.RAQUO_CHAR);
 		sb.append(StringPool.SPACE);
 		sb.append(folder.getName());
 
@@ -217,7 +217,7 @@ public class BookmarksUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryAddedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -254,7 +254,7 @@ public class BookmarksUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryAddedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -276,7 +276,7 @@ public class BookmarksUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryUpdatedBody");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 
@@ -313,7 +313,7 @@ public class BookmarksUtil {
 		Map<Locale, String> map = LocalizationUtil.getLocalizationMap(
 			preferences, "emailEntryUpdatedSubject");
 
-		Locale defaultLocale = LocaleUtil.getDefault();
+		Locale defaultLocale = LocaleUtil.getSiteDefault();
 
 		String defaultValue = map.get(defaultLocale);
 

@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link OrgLaborService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       OrgLaborService
+ * @author Brian Wing Shun Chan
+ * @see OrgLaborService
  * @generated
  */
+@ProviderType
 public class OrgLaborServiceWrapper implements OrgLaborService,
 	ServiceWrapper<OrgLaborService> {
 	public OrgLaborServiceWrapper(OrgLaborService orgLaborService) {
@@ -96,6 +99,7 @@ public class OrgLaborServiceWrapper implements OrgLaborService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public OrgLaborService getWrappedOrgLaborService() {
 		return _orgLaborService;
 	}
@@ -103,6 +107,7 @@ public class OrgLaborServiceWrapper implements OrgLaborService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedOrgLaborService(OrgLaborService orgLaborService) {
 		_orgLaborService = orgLaborService;
 	}

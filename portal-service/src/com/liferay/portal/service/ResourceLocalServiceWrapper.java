@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ResourceLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ResourceLocalService
+ * @author Brian Wing Shun Chan
+ * @see ResourceLocalService
  * @generated
  */
+@ProviderType
 public class ResourceLocalServiceWrapper implements ResourceLocalService,
 	ServiceWrapper<ResourceLocalService> {
 	public ResourceLocalServiceWrapper(
@@ -77,7 +80,7 @@ public class ResourceLocalServiceWrapper implements ResourceLocalService,
 	* context are applied. See {@link
 	* com.liferay.portal.service.ServiceContext#setGroupPermissions(String[])}
 	* and {@link
-	* com.liferay.portal.service.ServiceContext#setGuesPermissions(String[])}.
+	* com.liferay.portal.service.ServiceContext#setGuestPermissions(String[])}.
 	* </li>
 	* </ol>
 	*
@@ -440,6 +443,7 @@ public class ResourceLocalServiceWrapper implements ResourceLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ResourceLocalService getWrappedResourceLocalService() {
 		return _resourceLocalService;
 	}
@@ -447,6 +451,7 @@ public class ResourceLocalServiceWrapper implements ResourceLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedResourceLocalService(
 		ResourceLocalService resourceLocalService) {
 		_resourceLocalService = resourceLocalService;

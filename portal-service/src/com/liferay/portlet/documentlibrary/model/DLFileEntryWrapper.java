@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.documentlibrary.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DLFileEntry}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileEntry
+ * @author Brian Wing Shun Chan
+ * @see DLFileEntry
  * @generated
  */
+@ProviderType
 public class DLFileEntryWrapper implements DLFileEntry,
 	ModelWrapper<DLFileEntry> {
 	public DLFileEntryWrapper(DLFileEntry dlFileEntry) {
@@ -55,14 +60,13 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
 		attributes.put("userName", getUserName());
-		attributes.put("versionUserId", getVersionUserId());
-		attributes.put("versionUserName", getVersionUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("folderId", getFolderId());
+		attributes.put("treePath", getTreePath());
 		attributes.put("name", getName());
 		attributes.put("extension", getExtension());
 		attributes.put("mimeType", getMimeType());
@@ -120,18 +124,6 @@ public class DLFileEntryWrapper implements DLFileEntry,
 			setUserName(userName);
 		}
 
-		Long versionUserId = (Long)attributes.get("versionUserId");
-
-		if (versionUserId != null) {
-			setVersionUserId(versionUserId);
-		}
-
-		String versionUserName = (String)attributes.get("versionUserName");
-
-		if (versionUserName != null) {
-			setVersionUserName(versionUserName);
-		}
-
 		Date createDate = (Date)attributes.get("createDate");
 
 		if (createDate != null) {
@@ -166,6 +158,12 @@ public class DLFileEntryWrapper implements DLFileEntry,
 
 		if (folderId != null) {
 			setFolderId(folderId);
+		}
+
+		String treePath = (String)attributes.get("treePath");
+
+		if (treePath != null) {
+			setTreePath(treePath);
 		}
 
 		String name = (String)attributes.get("name");
@@ -423,68 +421,6 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	}
 
 	/**
-	* Returns the version user ID of this document library file entry.
-	*
-	* @return the version user ID of this document library file entry
-	*/
-	@Override
-	public long getVersionUserId() {
-		return _dlFileEntry.getVersionUserId();
-	}
-
-	/**
-	* Sets the version user ID of this document library file entry.
-	*
-	* @param versionUserId the version user ID of this document library file entry
-	*/
-	@Override
-	public void setVersionUserId(long versionUserId) {
-		_dlFileEntry.setVersionUserId(versionUserId);
-	}
-
-	/**
-	* Returns the version user uuid of this document library file entry.
-	*
-	* @return the version user uuid of this document library file entry
-	* @throws SystemException if a system exception occurred
-	*/
-	@Override
-	public java.lang.String getVersionUserUuid()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _dlFileEntry.getVersionUserUuid();
-	}
-
-	/**
-	* Sets the version user uuid of this document library file entry.
-	*
-	* @param versionUserUuid the version user uuid of this document library file entry
-	*/
-	@Override
-	public void setVersionUserUuid(java.lang.String versionUserUuid) {
-		_dlFileEntry.setVersionUserUuid(versionUserUuid);
-	}
-
-	/**
-	* Returns the version user name of this document library file entry.
-	*
-	* @return the version user name of this document library file entry
-	*/
-	@Override
-	public java.lang.String getVersionUserName() {
-		return _dlFileEntry.getVersionUserName();
-	}
-
-	/**
-	* Sets the version user name of this document library file entry.
-	*
-	* @param versionUserName the version user name of this document library file entry
-	*/
-	@Override
-	public void setVersionUserName(java.lang.String versionUserName) {
-		_dlFileEntry.setVersionUserName(versionUserName);
-	}
-
-	/**
 	* Returns the create date of this document library file entry.
 	*
 	* @return the create date of this document library file entry
@@ -617,6 +553,26 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	@Override
 	public void setFolderId(long folderId) {
 		_dlFileEntry.setFolderId(folderId);
+	}
+
+	/**
+	* Returns the tree path of this document library file entry.
+	*
+	* @return the tree path of this document library file entry
+	*/
+	@Override
+	public java.lang.String getTreePath() {
+		return _dlFileEntry.getTreePath();
+	}
+
+	/**
+	* Sets the tree path of this document library file entry.
+	*
+	* @param treePath the tree path of this document library file entry
+	*/
+	@Override
+	public void setTreePath(java.lang.String treePath) {
+		_dlFileEntry.setTreePath(treePath);
 	}
 
 	/**
@@ -929,6 +885,76 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		_dlFileEntry.setManualCheckInRequired(manualCheckInRequired);
 	}
 
+	/**
+	* Returns the status of this document library file entry.
+	*
+	* @return the status of this document library file entry
+	*/
+	@Override
+	public int getStatus() {
+		return _dlFileEntry.getStatus();
+	}
+
+	/**
+	* Returns the trash entry created when this document library file entry was moved to the Recycle Bin. The trash entry may belong to one of the ancestors of this document library file entry.
+	*
+	* @return the trash entry created when this document library file entry was moved to the Recycle Bin
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.trash.model.TrashEntry getTrashEntry()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntry.getTrashEntry();
+	}
+
+	/**
+	* Returns the class primary key of the trash entry for this document library file entry.
+	*
+	* @return the class primary key of the trash entry for this document library file entry
+	*/
+	@Override
+	public long getTrashEntryClassPK() {
+		return _dlFileEntry.getTrashEntryClassPK();
+	}
+
+	/**
+	* Returns the trash handler for this document library file entry.
+	*
+	* @return the trash handler for this document library file entry
+	*/
+	@Override
+	public com.liferay.portal.kernel.trash.TrashHandler getTrashHandler() {
+		return _dlFileEntry.getTrashHandler();
+	}
+
+	/**
+	* Returns <code>true</code> if this document library file entry is in the Recycle Bin.
+	*
+	* @return <code>true</code> if this document library file entry is in the Recycle Bin; <code>false</code> otherwise
+	*/
+	@Override
+	public boolean isInTrash() {
+		return _dlFileEntry.isInTrash();
+	}
+
+	/**
+	* Returns <code>true</code> if the parent of this document library file entry is in the Recycle Bin.
+	*
+	* @return <code>true</code> if the parent of this document library file entry is in the Recycle Bin; <code>false</code> otherwise
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public boolean isInTrashContainer() {
+		return _dlFileEntry.isInTrashContainer();
+	}
+
+	@Override
+	public boolean isInTrashExplicitly()
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntry.isInTrashExplicitly();
+	}
+
 	@Override
 	public boolean isNew() {
 		return _dlFileEntry.isNew();
@@ -1035,6 +1061,19 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlFileEntry.updateTreePath(treePath);
+	}
+
+	@Override
+	public java.lang.String buildTreePath()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntry.buildTreePath();
+	}
+
+	@Override
 	public java.io.InputStream getContentStream()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -1094,7 +1133,9 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	}
 
 	@Override
-	public com.liferay.portlet.documentlibrary.model.DLFolder getFolder() {
+	public com.liferay.portlet.documentlibrary.model.DLFolder getFolder()
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
 		return _dlFileEntry.getFolder();
 	}
 
@@ -1121,9 +1162,31 @@ public class DLFileEntryWrapper implements DLFileEntry,
 		return _dlFileEntry.getLuceneProperties();
 	}
 
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserId()}
+	*/
+	@Deprecated
 	@Override
-	public com.liferay.portlet.documentlibrary.model.DLFolder getTrashContainer() {
-		return _dlFileEntry.getTrashContainer();
+	public long getVersionUserId() {
+		return _dlFileEntry.getVersionUserId();
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserName()}
+	*/
+	@Deprecated
+	@Override
+	public java.lang.String getVersionUserName() {
+		return _dlFileEntry.getVersionUserName();
+	}
+
+	/**
+	* @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserUuid()}
+	*/
+	@Deprecated
+	@Override
+	public java.lang.String getVersionUserUuid() {
+		return _dlFileEntry.getVersionUserUuid();
 	}
 
 	@Override
@@ -1142,19 +1205,39 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		return _dlFileEntry.isInTrashContainer();
-	}
-
-	@Override
 	public void setExtraSettingsProperties(
 		com.liferay.portal.kernel.util.UnicodeProperties extraSettingsProperties) {
 		_dlFileEntry.setExtraSettingsProperties(extraSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DLFileEntryWrapper)) {
+			return false;
+		}
+
+		DLFileEntryWrapper dlFileEntryWrapper = (DLFileEntryWrapper)obj;
+
+		if (Validator.equals(_dlFileEntry, dlFileEntryWrapper._dlFileEntry)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _dlFileEntry.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DLFileEntry getWrappedDLFileEntry() {
 		return _dlFileEntry;
 	}
@@ -1162,6 +1245,16 @@ public class DLFileEntryWrapper implements DLFileEntry,
 	@Override
 	public DLFileEntry getWrappedModel() {
 		return _dlFileEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _dlFileEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _dlFileEntry.isFinderCacheEnabled();
 	}
 
 	@Override

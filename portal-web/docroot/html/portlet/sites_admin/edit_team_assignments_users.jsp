@@ -42,13 +42,14 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_team_assignments.
 <liferay-ui:search-container
 	rowChecker="<%= new UserTeamChecker(renderResponse, team) %>"
 	searchContainer="<%= new UserSearch(renderRequest, portletURL) %>"
+	var="userSearchContainer"
 >
 	<liferay-ui:search-form
 		page="/html/portlet/users_admin/user_search.jsp"
 	/>
 
 	<%
-	UserSearchTerms searchTerms = (UserSearchTerms)searchContainer.getSearchTerms();
+	UserSearchTerms searchTerms = (UserSearchTerms)userSearchContainer.getSearchTerms();
 
 	LinkedHashMap<String, Object> userParams = new LinkedHashMap<String, Object>();
 
@@ -89,8 +90,6 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_team_assignments.
 	%>
 
 	<aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
-
-	<br /><br />
 
 	<liferay-ui:search-iterator />
 </liferay-ui:search-container>

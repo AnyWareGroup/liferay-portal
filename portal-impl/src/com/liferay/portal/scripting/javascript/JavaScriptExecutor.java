@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.cache.SingleVMPoolUtil;
 import com.liferay.portal.kernel.scripting.BaseScriptingExecutor;
 import com.liferay.portal.kernel.scripting.ScriptingException;
 import com.liferay.portal.kernel.util.AggregateClassLoader;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.HashMap;
@@ -29,6 +30,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.Wrapper;
 
 /**
  * @author Alberto Montero
@@ -53,7 +55,7 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 
 			Scriptable scriptable = context.initStandardObjects();
 
-			if ((classLoaders != null) && (classLoaders.length > 0)) {
+			if (ArrayUtil.isNotEmpty(classLoaders)) {
 				ClassLoader aggregateClassLoader =
 					AggregateClassLoader.getAggregateClassLoader(
 						ClassLoaderUtil.getPortalClassLoader(), classLoaders);
@@ -83,9 +85,16 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 			Map<String, Object> outputObjects = new HashMap<String, Object>();
 
 			for (String outputName : outputNames) {
-				outputObjects.put(
-					outputName,
-					ScriptableObject.getProperty(scriptable, outputName));
+				Object property = ScriptableObject.getProperty(
+					scriptable, outputName);
+
+				if (property instanceof Wrapper) {
+					Wrapper wrapper = (Wrapper)property;
+
+					property = wrapper.unwrap();
+				}
+
+				outputObjects.put(outputName, property);
 			}
 
 			return outputObjects;
@@ -117,7 +126,7 @@ public class JavaScriptExecutor extends BaseScriptingExecutor {
 		try {
 			Context context = Context.enter();
 
-			if ((classLoaders != null) && (classLoaders.length > 0)) {
+			if (ArrayUtil.isNotEmpty(classLoaders)) {
 				ClassLoader aggregateClassLoader =
 					AggregateClassLoader.getAggregateClassLoader(
 						ClassLoaderUtil.getPortalClassLoader(), classLoaders);

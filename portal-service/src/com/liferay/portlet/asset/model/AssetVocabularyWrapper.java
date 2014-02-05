@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.asset.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AssetVocabulary}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetVocabulary
+ * @author Brian Wing Shun Chan
+ * @see AssetVocabulary
  * @generated
  */
+@ProviderType
 public class AssetVocabularyWrapper implements AssetVocabulary,
 	ModelWrapper<AssetVocabulary> {
 	public AssetVocabularyWrapper(AssetVocabulary assetVocabulary) {
@@ -723,6 +728,22 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _assetVocabulary.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _assetVocabulary.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_assetVocabulary.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -803,9 +824,35 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 		_assetVocabulary.setSettingsProperties(settingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AssetVocabularyWrapper)) {
+			return false;
+		}
+
+		AssetVocabularyWrapper assetVocabularyWrapper = (AssetVocabularyWrapper)obj;
+
+		if (Validator.equals(_assetVocabulary,
+					assetVocabularyWrapper._assetVocabulary)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _assetVocabulary.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AssetVocabulary getWrappedAssetVocabulary() {
 		return _assetVocabulary;
 	}
@@ -813,6 +860,16 @@ public class AssetVocabularyWrapper implements AssetVocabulary,
 	@Override
 	public AssetVocabulary getWrappedModel() {
 		return _assetVocabulary;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _assetVocabulary.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _assetVocabulary.isFinderCacheEnabled();
 	}
 
 	@Override

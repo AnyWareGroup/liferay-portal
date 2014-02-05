@@ -186,6 +186,9 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		attributes.put("sms", getSms());
 		attributes.put("website", getWebsite());
 
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
+
 		return attributes;
 	}
 
@@ -234,8 +237,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		}
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getDeliveryId() {
 		return _deliveryId;
 	}
@@ -245,8 +248,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		_deliveryId = deliveryId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getCompanyId() {
 		return _companyId;
 	}
@@ -256,8 +259,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		_companyId = companyId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getUserId() {
 		return _userId;
 	}
@@ -289,8 +292,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		return _originalUserId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getType() {
 		if (_type == null) {
 			return StringPool.BLANK;
@@ -315,8 +318,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		return GetterUtil.getString(_originalType);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getEmail() {
 		return _email;
 	}
@@ -331,8 +334,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		_email = email;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getSms() {
 		return _sms;
 	}
@@ -347,8 +350,8 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 		_sms = sms;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public boolean getWebsite() {
 		return _website;
 	}
@@ -447,6 +450,16 @@ public class AnnouncementsDeliveryModelImpl extends BaseModelImpl<AnnouncementsD
 	@Override
 	public int hashCode() {
 		return (int)getPrimaryKey();
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
 	}
 
 	@Override

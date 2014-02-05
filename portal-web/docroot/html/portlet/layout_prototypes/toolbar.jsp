@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/layout_prototypes/init.jsp" %>
 
 <%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 %>
 
 <aui:nav-bar>
@@ -26,8 +26,6 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
 			<portlet:param name="struts_action" value="/layout_prototypes/view" />
 		</portlet:renderURL>
 
-		<aui:nav-item href="<%= viewLayoutPrototypesURL %>" label="view-all" selected='<%= toolbarItem.equals("view-all") %>' />
-
 		<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_LAYOUT_PROTOTYPE) %>">
 			<portlet:renderURL var="addLayoutPrototypeURL">
 				<portlet:param name="struts_action" value="/layout_prototypes/edit_layout_prototype" />
@@ -35,7 +33,7 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
 				<portlet:param name="backURL" value="<%= viewLayoutPrototypesURL %>" />
 			</portlet:renderURL>
 
-			<aui:nav-item href="<%= addLayoutPrototypeURL %>" iconClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
+			<aui:nav-item href="<%= addLayoutPrototypeURL %>" iconCssClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
 		</c:if>
 	</aui:nav>
 </aui:nav-bar>

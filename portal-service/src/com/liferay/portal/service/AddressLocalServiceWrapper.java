@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link AddressLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AddressLocalService
+ * @author Brian Wing Shun Chan
+ * @see AddressLocalService
  * @generated
  */
+@ProviderType
 public class AddressLocalServiceWrapper implements AddressLocalService,
 	ServiceWrapper<AddressLocalService> {
 	public AddressLocalServiceWrapper(AddressLocalService addressLocalService) {
@@ -161,10 +164,42 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 		return _addressLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _addressLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.Address fetchAddress(long addressId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _addressLocalService.fetchAddress(addressId);
+	}
+
+	/**
+	* Returns the address with the matching UUID and company.
+	*
+	* @param uuid the address's UUID
+	* @param companyId the primary key of the company
+	* @return the matching address, or <code>null</code> if a matching address could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Address fetchAddressByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _addressLocalService.fetchAddressByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -188,6 +223,23 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _addressLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the address with the matching UUID and company.
+	*
+	* @param uuid the address's UUID
+	* @param companyId the primary key of the company
+	* @return the matching address
+	* @throws PortalException if a matching address could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Address getAddressByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _addressLocalService.getAddressByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -260,6 +312,7 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	long, String, String, String, String, String, long, long,
 	int, boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Address addAddress(long userId,
 		java.lang.String className, long classPK, java.lang.String street1,
@@ -295,14 +348,6 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	}
 
 	@Override
-	public com.liferay.portal.model.Address fetchAddressByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _addressLocalService.fetchAddressByUuidAndCompanyId(uuid,
-			companyId);
-	}
-
-	@Override
 	public java.util.List<com.liferay.portal.model.Address> getAddresses()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _addressLocalService.getAddresses();
@@ -330,6 +375,7 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AddressLocalService getWrappedAddressLocalService() {
 		return _addressLocalService;
 	}
@@ -337,6 +383,7 @@ public class AddressLocalServiceWrapper implements AddressLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAddressLocalService(
 		AddressLocalService addressLocalService) {
 		_addressLocalService = addressLocalService;

@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.journal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link JournalFeed}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalFeed
+ * @author Brian Wing Shun Chan
+ * @see JournalFeed
  * @generated
  */
+@ProviderType
 public class JournalFeedWrapper implements JournalFeed,
 	ModelWrapper<JournalFeed> {
 	public JournalFeedWrapper(JournalFeed journalFeed) {
@@ -826,9 +831,34 @@ public class JournalFeedWrapper implements JournalFeed,
 		_journalFeed.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof JournalFeedWrapper)) {
+			return false;
+		}
+
+		JournalFeedWrapper journalFeedWrapper = (JournalFeedWrapper)obj;
+
+		if (Validator.equals(_journalFeed, journalFeedWrapper._journalFeed)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _journalFeed.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public JournalFeed getWrappedJournalFeed() {
 		return _journalFeed;
 	}
@@ -836,6 +866,16 @@ public class JournalFeedWrapper implements JournalFeed,
 	@Override
 	public JournalFeed getWrappedModel() {
 		return _journalFeed;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _journalFeed.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _journalFeed.isFinderCacheEnabled();
 	}
 
 	@Override

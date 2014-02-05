@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.dynamicdatamapping.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DDMStructureService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DDMStructureService
+ * @author Brian Wing Shun Chan
+ * @see DDMStructureService
  * @generated
  */
+@ProviderType
 public class DDMStructureServiceWrapper implements DDMStructureService,
 	ServiceWrapper<DDMStructureService> {
 	public DDMStructureServiceWrapper(DDMStructureService ddmStructureService) {
@@ -559,6 +562,7 @@ public class DDMStructureServiceWrapper implements DDMStructureService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DDMStructureService getWrappedDDMStructureService() {
 		return _ddmStructureService;
 	}
@@ -566,6 +570,7 @@ public class DDMStructureServiceWrapper implements DDMStructureService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDDMStructureService(
 		DDMStructureService ddmStructureService) {
 		_ddmStructureService = ddmStructureService;

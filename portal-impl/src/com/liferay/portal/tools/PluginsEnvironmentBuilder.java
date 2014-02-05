@@ -104,7 +104,8 @@ public class PluginsEnvironmentBuilder {
 			}
 
 			if (osgiProject || sharedProject) {
-				setupJarProject(dirName, fileName, dependencyJars);
+				setupJarProject(
+					dirName, fileName, dependencyJars, sharedProject);
 			}
 		}
 	}
@@ -160,7 +161,7 @@ public class PluginsEnvironmentBuilder {
 		int x = content.indexOf("import.shared");
 
 		if (x == -1) {
-			return Collections.emptyList();
+			return new ArrayList<String>();
 		}
 
 		x = content.indexOf("value=\"", x);
@@ -169,13 +170,13 @@ public class PluginsEnvironmentBuilder {
 		int y = content.indexOf("\" />", x);
 
 		if ((x == -1) || (y == -1)) {
-			return Collections.emptyList();
+			return new ArrayList<String>();
 		}
 
 		String[] importShared = StringUtil.split(content.substring(x + 1, y));
 
 		if (importShared.length == 0) {
-			return Collections.emptyList();
+			return new ArrayList<String>();
 		}
 
 		List<String> jars = new ArrayList<String>();
@@ -190,8 +191,8 @@ public class PluginsEnvironmentBuilder {
 				continue;
 			}
 
-			for (File f : currentImportSharedLibDir.listFiles()) {
-				jars.add(f.getName());
+			for (File file : currentImportSharedLibDir.listFiles()) {
+				jars.add(file.getName());
 			}
 		}
 
@@ -229,7 +230,8 @@ public class PluginsEnvironmentBuilder {
 	}
 
 	protected void setupJarProject(
-			String dirName, String fileName, List<String> dependencyJars)
+			String dirName, String fileName, List<String> dependencyJars,
+			boolean sharedProject)
 		throws Exception {
 
 		File buildFile = new File(dirName + "/" + fileName);
@@ -242,6 +244,12 @@ public class PluginsEnvironmentBuilder {
 
 		List<String> importSharedJars = getImportSharedJars(projectDir);
 
+		if (sharedProject) {
+			if (!importSharedJars.contains("portal-compat-shared.jar")) {
+				importSharedJars.add("portal-compat-shared.jar");
+			}
+		}
+
 		File gitignoreFile = new File(
 			projectDir.getCanonicalPath() + "/.gitignore");
 
@@ -252,7 +260,6 @@ public class PluginsEnvironmentBuilder {
 			String gitIgnore = gitIgnores[i];
 
 			gitIgnore = "/lib/" + gitIgnore;
-			gitIgnore = gitIgnore.replace(".jar", "-*.jar");
 
 			gitIgnores[i] = gitIgnore;
 		}
@@ -413,7 +420,9 @@ public class PluginsEnvironmentBuilder {
 		for (String sourceDirName : _SOURCE_DIR_NAMES) {
 			if (_fileUtil.exists(projectDirName + "/" + sourceDirName)) {
 				sb.append("\t<classpathentry excluding=\"**/.svn/**|.svn/\" ");
-				sb.append("kind=\"src\" path=\"" + sourceDirName + "\" />\n");
+				sb.append("kind=\"src\" path=\"");
+				sb.append(sourceDirName);
+				sb.append("\" />\n");
 			}
 		}
 
@@ -430,7 +439,9 @@ public class PluginsEnvironmentBuilder {
 				addJunitJars = true;
 
 				sb.append("\t<classpathentry excluding=\"**/.svn/**|.svn/\" ");
-				sb.append("kind=\"src\" path=\""+ testFolder + "\" />\n");
+				sb.append("kind=\"src\" path=\"");
+				sb.append(testFolder);
+				sb.append("\" />\n");
 			}
 		}
 
@@ -460,12 +471,19 @@ public class PluginsEnvironmentBuilder {
 		}
 
 		for (String jar : portalJars) {
-			addClasspathEntry(sb, "/portal/lib/portal/" + jar, attributes);
+			if (!jar.equals("util-slf4j.jar")) {
+				addClasspathEntry(sb, "/portal/lib/portal/" + jar, attributes);
+			}
 		}
 
 		addClasspathEntry(sb, "/portal/portal-service/portal-service.jar");
 		addClasspathEntry(sb, "/portal/util-bridges/util-bridges.jar");
 		addClasspathEntry(sb, "/portal/util-java/util-java.jar");
+
+		if (portalJars.contains("util-slf4j.jar")) {
+			addClasspathEntry(sb, "/portal/util-slf4j/util-slf4j.jar");
+		}
+
 		addClasspathEntry(sb, "/portal/util-taglib/util-taglib.jar");
 
 		for (String jar : extGlobalJars) {

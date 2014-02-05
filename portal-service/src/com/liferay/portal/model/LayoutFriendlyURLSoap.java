@@ -17,22 +17,28 @@ package com.liferay.portal.model;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * This class is used by SOAP remote services.
  *
- * @author    Brian Wing Shun Chan
+ * @author Brian Wing Shun Chan
  * @generated
  */
 public class LayoutFriendlyURLSoap implements Serializable {
 	public static LayoutFriendlyURLSoap toSoapModel(LayoutFriendlyURL model) {
 		LayoutFriendlyURLSoap soapModel = new LayoutFriendlyURLSoap();
 
+		soapModel.setMvccVersion(model.getMvccVersion());
 		soapModel.setUuid(model.getUuid());
 		soapModel.setLayoutFriendlyURLId(model.getLayoutFriendlyURLId());
 		soapModel.setGroupId(model.getGroupId());
 		soapModel.setCompanyId(model.getCompanyId());
+		soapModel.setUserId(model.getUserId());
+		soapModel.setUserName(model.getUserName());
+		soapModel.setCreateDate(model.getCreateDate());
+		soapModel.setModifiedDate(model.getModifiedDate());
 		soapModel.setPlid(model.getPlid());
 		soapModel.setPrivateLayout(model.getPrivateLayout());
 		soapModel.setFriendlyURL(model.getFriendlyURL());
@@ -92,6 +98,14 @@ public class LayoutFriendlyURLSoap implements Serializable {
 		setLayoutFriendlyURLId(pk);
 	}
 
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
+	}
+
 	public String getUuid() {
 		return _uuid;
 	}
@@ -122,6 +136,38 @@ public class LayoutFriendlyURLSoap implements Serializable {
 
 	public void setCompanyId(long companyId) {
 		_companyId = companyId;
+	}
+
+	public long getUserId() {
+		return _userId;
+	}
+
+	public void setUserId(long userId) {
+		_userId = userId;
+	}
+
+	public String getUserName() {
+		return _userName;
+	}
+
+	public void setUserName(String userName) {
+		_userName = userName;
+	}
+
+	public Date getCreateDate() {
+		return _createDate;
+	}
+
+	public void setCreateDate(Date createDate) {
+		_createDate = createDate;
+	}
+
+	public Date getModifiedDate() {
+		return _modifiedDate;
+	}
+
+	public void setModifiedDate(Date modifiedDate) {
+		_modifiedDate = modifiedDate;
 	}
 
 	public long getPlid() {
@@ -160,10 +206,15 @@ public class LayoutFriendlyURLSoap implements Serializable {
 		_languageId = languageId;
 	}
 
+	private long _mvccVersion;
 	private String _uuid;
 	private long _layoutFriendlyURLId;
 	private long _groupId;
 	private long _companyId;
+	private long _userId;
+	private String _userName;
+	private Date _createDate;
+	private Date _modifiedDate;
 	private long _plid;
 	private boolean _privateLayout;
 	private String _friendlyURL;

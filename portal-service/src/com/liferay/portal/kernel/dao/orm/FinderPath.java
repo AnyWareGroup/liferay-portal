@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.dao.orm;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.cache.key.CacheKeyGenerator;
 import com.liferay.portal.kernel.cache.key.CacheKeyGeneratorUtil;
 import com.liferay.portal.kernel.dao.shard.ShardUtil;
@@ -28,6 +30,7 @@ import java.io.Serializable;
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
  */
+@ProviderType
 public class FinderPath {
 
 	public FinderPath(
@@ -71,11 +74,21 @@ public class FinderPath {
 		_initLocalCacheKeyPrefix();
 	}
 
-	public Serializable encodeCacheKey(Object[] arguments) {
-		StringBundler sb = new StringBundler(arguments.length * 2 + 3);
+	public Serializable encodeCacheKey(
+		boolean shardEnabled, Object[] arguments) {
 
-		sb.append(ShardUtil.getCurrentShardName());
-		sb.append(StringPool.PERIOD);
+		StringBundler sb = null;
+
+		if (shardEnabled) {
+			sb = new StringBundler(arguments.length * 2 + 3);
+
+			sb.append(ShardUtil.getCurrentShardName());
+			sb.append(StringPool.PERIOD);
+		}
+		else {
+			sb = new StringBundler(arguments.length * 2 + 1);
+		}
+
 		sb.append(_cacheKeyPrefix);
 
 		for (Object arg : arguments) {
@@ -86,11 +99,21 @@ public class FinderPath {
 		return _getCacheKey(sb);
 	}
 
-	public Serializable encodeLocalCacheKey(Object[] arguments) {
-		StringBundler sb = new StringBundler(arguments.length * 2 + 3);
+	public Serializable encodeLocalCacheKey(
+		boolean shardEnabled, Object[] arguments) {
 
-		sb.append(ShardUtil.getCurrentShardName());
-		sb.append(StringPool.PERIOD);
+		StringBundler sb = null;
+
+		if (shardEnabled) {
+			sb = new StringBundler(arguments.length * 2 + 3);
+
+			sb.append(ShardUtil.getCurrentShardName());
+			sb.append(StringPool.PERIOD);
+		}
+		else {
+			sb = new StringBundler(arguments.length * 2 + 1);
+		}
+
 		sb.append(_localCacheKeyPrefix);
 
 		for (Object arg : arguments) {
@@ -119,27 +142,6 @@ public class FinderPath {
 
 	public boolean isFinderCacheEnabled() {
 		return _finderCacheEnabled;
-	}
-
-	public void setCacheKeyGeneratorCacheName(
-		String cacheKeyGeneratorCacheName) {
-
-		if (cacheKeyGeneratorCacheName == null) {
-			cacheKeyGeneratorCacheName = FinderCache.class.getName();
-		}
-
-		_cacheKeyGeneratorCacheName = cacheKeyGeneratorCacheName;
-
-		CacheKeyGenerator cacheKeyGenerator =
-			CacheKeyGeneratorUtil.getCacheKeyGenerator(
-				cacheKeyGeneratorCacheName);
-
-		if (cacheKeyGenerator.isCallingGetCacheKeyThreadSafe()) {
-			_cacheKeyGenerator = cacheKeyGenerator;
-		}
-		else {
-			_cacheKeyGenerator = null;
-		}
 	}
 
 	private Serializable _getCacheKey(StringBundler sb) {

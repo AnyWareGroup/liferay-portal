@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link AddressService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AddressService
+ * @author Brian Wing Shun Chan
+ * @see AddressService
  * @generated
  */
+@ProviderType
 public class AddressServiceWrapper implements AddressService,
 	ServiceWrapper<AddressService> {
 	public AddressServiceWrapper(AddressService addressService) {
@@ -48,10 +51,11 @@ public class AddressServiceWrapper implements AddressService,
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #addAddress( String, long,
+	* @deprecated As of 6.2.0, replaced by {@link #addAddress(String, long,
 	String, String, String, String, String, long, long, int,
 	boolean, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Address addAddress(
 		java.lang.String className, long classPK, java.lang.String street1,
@@ -115,6 +119,7 @@ public class AddressServiceWrapper implements AddressService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AddressService getWrappedAddressService() {
 		return _addressService;
 	}
@@ -122,6 +127,7 @@ public class AddressServiceWrapper implements AddressService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAddressService(AddressService addressService) {
 		_addressService = addressService;
 	}

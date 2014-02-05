@@ -30,7 +30,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 public class JSONWebServiceSecureTest extends BaseJSONWebServiceTestCase {
 
 	@BeforeClass
-	public static void init() throws Exception {
+	public static void setUpClass() throws Exception {
 		initPortalServices();
 
 		registerActionClass(OpenService.class);
@@ -49,7 +49,7 @@ public class JSONWebServiceSecureTest extends BaseJSONWebServiceTestCase {
 
 			TestCase.fail();
 		}
-		catch (ClassCastException cce) {
+		catch (Exception e) {
 		}
 	}
 
@@ -92,7 +92,7 @@ public class JSONWebServiceSecureTest extends BaseJSONWebServiceTestCase {
 
 			TestCase.fail();
 		}
-		catch (ClassCastException cce) {
+		catch (Exception e) {
 		}
 	}
 

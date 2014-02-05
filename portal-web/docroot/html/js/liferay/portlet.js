@@ -3,6 +3,8 @@
 
 	var arrayIndexOf = A.Array.indexOf;
 
+	var STR_HEAD = 'head';
+
 	var TPL_NOT_AJAXABLE = '<div class="alert alert-info">{0}</div>';
 
 	var Portlet = {
@@ -44,6 +46,22 @@
 			);
 		},
 
+		_loadMarkupHeadElements: function(response, loadHTML) {
+			var markupHeadElements = response.markupHeadElements;
+
+			if (markupHeadElements && markupHeadElements.length) {
+				var head = A.one(STR_HEAD);
+
+				head.append(markupHeadElements);
+
+				var container = A.Node.create('<div />');
+
+				container.plug(A.Plugin.ParseContent);
+
+				container.setContent(markupHeadElements);
+			}
+		},
+
 		_loadPortletFiles: function(response, loadHTML) {
 			var headerCssPaths = response.headerCssPaths || [];
 			var footerCssPaths = response.footerCssPaths || [];
@@ -52,7 +70,7 @@
 
 			javascriptPaths = javascriptPaths.concat(response.footerJavaScriptPaths || []);
 
-			var head = A.one('head');
+			var head = A.one(STR_HEAD);
 			var body = A.getBody();
 
 			if (headerCssPaths.length) {
@@ -248,7 +266,8 @@
 				portletBound.plug(A.Plugin.ParseContent);
 
 				portletBound.setContent(html);
-				portletBound = portletBound.get('firstChild');
+
+				portletBound = portletBound.one('> *');
 
 				var id = portletBound.attr('id');
 
@@ -266,7 +285,7 @@
 				Util.addInputType(portletBound);
 
 				if (window.location.hash) {
-					window.location.hash = 'p_' + portletId;
+					window.location.hash = 'p_p_id_' + portletId + '_';
 				}
 
 				portletBoundary = portletBound;
@@ -325,6 +344,7 @@
 								addPortletReturn(response.portletHTML);
 							}
 							else {
+								Portlet._loadMarkupHeadElements(response);
 								Portlet._loadPortletFiles(response, addPortletReturn);
 							}
 						}
@@ -385,63 +405,29 @@
 					var link = A.one(el);
 
 					if (link) {
-						var img = link.one('img');
+						var title = (restore) ? Liferay.Language.get('minimize') : Liferay.Language.get('restore');
 
-						if (img) {
-							var title = (restore) ? Liferay.Language.get('minimize') : Liferay.Language.get('restore');
+						link.attr('alt', title);
+						link.attr('title', title);
 
-							var imgSrc = themeDisplay.getPathThemeImages() + '/portlet/';
+						var linkText = link.one('.taglib-text-icon');
+
+						if (linkText) {
+							linkText.html(title);
+						}
+
+						var icon = link.one('i');
+
+						if (icon) {
+							icon.removeClass('icon-minus icon-resize-vertical');
 
 							if (restore) {
-								imgSrc += 'minimize.png';
+								icon.addClass('icon-minus');
 							}
 							else {
-								imgSrc += 'restore.png';
+								icon.addClass('icon-resize-vertical');
 							}
-
-							img.attr('alt', title);
-							img.attr('title', title);
-
-							link.attr('title', title);
-							img.attr('src', imgSrc);
-
-							img.setStyles(
-								{
-									backgroundImage: 'none',
-									height: 16,
-									width: 16
-								}
-							);
 						}
-					}
-
-					var html = '';
-					var portletBody = content.one('.portlet-body');
-
-					if (portletBody) {
-						html = portletBody.html();
-					}
-
-					var hasBodyContent = !!(A.Lang.trim(html));
-
-					if (hasBodyContent) {
-						content.unplug(A.Plugin.IO);
-					}
-					else {
-						content.plug(
-							A.Plugin.IO,
-							{
-								autoLoad: false,
-								data: {
-									doAsUserId: doAsUserId,
-									p_l_id: plid,
-									p_p_id: portlet.portletId,
-									p_p_state: 'exclusive'
-								},
-								showLoading: false,
-								uri: themeDisplay.getPathMain() + '/portal/render_portlet'
-							}
-						);
 					}
 
 					A.io.request(
@@ -449,8 +435,18 @@
 						{
 							after: {
 								success: function() {
-									if (restore && content.io) {
-										content.io.start();
+									if (restore) {
+										var data = {
+											doAsUserId: doAsUserId,
+											p_l_id: plid,
+											p_p_boundary: false,
+											p_p_id: portlet.portletId,
+											p_p_isolated: true
+										};
+
+										portlet.plug(A.Plugin.ParseContent);
+
+										portlet.load(themeDisplay.getPathMain() + '/portal/render_portlet?' + A.QueryString.stringify(data));
 									}
 								}
 							},
@@ -468,7 +464,7 @@
 				}
 			}
 		},
-		['aui-io']
+		['aui-io', 'aui-parse-content', 'node-load', 'querystring-stringify']
 	);
 
 	Liferay.provide(
@@ -500,8 +496,14 @@
 				// Functions to run on portlet load
 
 				if (canEditTitle) {
+					var events = ['focus', 'gesturemovestart'];
+
+					if (!A.UA.touch) {
+						events.push('mousemove');
+					}
+
 					var handle = portlet.on(
-						['focus', 'mousedown', 'mousemove'],
+						events,
 						function(event) {
 							Util.portletTitleEdit(
 								{
@@ -543,7 +545,7 @@
 				}
 			}
 		},
-		['aui-base', 'aui-task-manager']
+		['aui-base', 'aui-timer', 'event-move']
 	);
 
 	Liferay.provide(
@@ -646,19 +648,24 @@
 
 	Liferay.provide(
 		Portlet,
-		'openConfiguration',
-		function(portlet, portletId, configurationURL, namespacedId) {
+		'openWindow',
+		function(portlet, portletId, url, namespacedId, windowTitle) {
 			var instance = this;
 
 			portlet = A.one(portlet);
 
-			if (portlet && configurationURL) {
+			if (portlet && url) {
 				var title = portlet.one('.portlet-title') || portlet.one('.portlet-title-default');
 
-				var titleHtml = title.html();
+				var titleHtml = windowTitle;
 
-				if (portlet.one('#cpPortletTitle')) {
-					titleHtml = title.one('.portlet-title-text').outerHTML();
+				if (title) {
+					if (portlet.one('#cpPortletTitle')) {
+						titleHtml = title.one('.portlet-title-text').outerHTML() + ' - ' + titleHtml;
+					}
+					else {
+						titleHtml = title.html() + ' - ' + titleHtml;
+					}
 				}
 
 				Liferay.Util.openWindow(
@@ -666,11 +673,11 @@
 						cache: false,
 						dialogIframe: {
 							id: namespacedId + 'configurationIframe',
-							uri: configurationURL
+							uri: url
 						},
 						id: namespacedId + 'configurationIframeDialog',
-						title: titleHtml + ' - ' + Liferay.Language.get('configuration'),
-						uri: configurationURL
+						title: titleHtml,
+						uri: url
 					}
 				);
 			}

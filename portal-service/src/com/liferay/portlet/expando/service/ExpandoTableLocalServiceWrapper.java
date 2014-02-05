@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.expando.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link ExpandoTableLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ExpandoTableLocalService
+ * @author Brian Wing Shun Chan
+ * @see ExpandoTableLocalService
  * @generated
  */
+@ProviderType
 public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService,
 	ServiceWrapper<ExpandoTableLocalService> {
 	public ExpandoTableLocalServiceWrapper(
@@ -166,6 +169,23 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 		return _expandoTableLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _expandoTableLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.expando.model.ExpandoTable fetchExpandoTable(
 		long tableId)
@@ -290,6 +310,7 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 	* @deprecated As of 6.1.0, replaced by {@link #addTable(long, long,
 	String)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.expando.model.ExpandoTable addTable(
 		long classNameId, java.lang.String name)
@@ -310,6 +331,7 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 	* @deprecated As of 6.1.0, replaced by {@link #addTable(long, String,
 	String)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.expando.model.ExpandoTable addTable(
 		java.lang.String className, java.lang.String name)
@@ -417,6 +439,7 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 	* @deprecated As of 6.1.0, replaced by {@link #getTable(long, long,
 	String)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.expando.model.ExpandoTable getTable(
 		long classNameId, java.lang.String name)
@@ -437,6 +460,7 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 	* @deprecated As of 6.1.0, replaced by {@link #getTable(long, String,
 	String)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.expando.model.ExpandoTable getTable(
 		java.lang.String className, java.lang.String name)
@@ -470,6 +494,7 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ExpandoTableLocalService getWrappedExpandoTableLocalService() {
 		return _expandoTableLocalService;
 	}
@@ -477,6 +502,7 @@ public class ExpandoTableLocalServiceWrapper implements ExpandoTableLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedExpandoTableLocalService(
 		ExpandoTableLocalService expandoTableLocalService) {
 		_expandoTableLocalService = expandoTableLocalService;

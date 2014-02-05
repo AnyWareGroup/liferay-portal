@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link ClassName}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ClassName
+ * @author Brian Wing Shun Chan
+ * @see ClassName
  * @generated
  */
+@ProviderType
 public class ClassNameWrapper implements ClassName, ModelWrapper<ClassName> {
 	public ClassNameWrapper(ClassName className) {
 		_className = className;
@@ -45,6 +50,7 @@ public class ClassNameWrapper implements ClassName, ModelWrapper<ClassName> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("value", getValue());
 
@@ -53,6 +59,12 @@ public class ClassNameWrapper implements ClassName, ModelWrapper<ClassName> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long classNameId = (Long)attributes.get("classNameId");
 
 		if (classNameId != null) {
@@ -84,6 +96,26 @@ public class ClassNameWrapper implements ClassName, ModelWrapper<ClassName> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_className.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this class name.
+	*
+	* @return the mvcc version of this class name
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _className.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this class name.
+	*
+	* @param mvccVersion the mvcc version of this class name
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_className.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -245,9 +277,29 @@ public class ClassNameWrapper implements ClassName, ModelWrapper<ClassName> {
 		_className.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ClassNameWrapper)) {
+			return false;
+		}
+
+		ClassNameWrapper classNameWrapper = (ClassNameWrapper)obj;
+
+		if (Validator.equals(_className, classNameWrapper._className)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public ClassName getWrappedClassName() {
 		return _className;
 	}
@@ -255,6 +307,16 @@ public class ClassNameWrapper implements ClassName, ModelWrapper<ClassName> {
 	@Override
 	public ClassName getWrappedModel() {
 		return _className;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _className.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _className.isFinderCacheEnabled();
 	}
 
 	@Override

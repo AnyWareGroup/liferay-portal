@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.ClassNameServiceUtil;
@@ -54,12 +56,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ClassNameServiceHttp
- * @see       com.liferay.portal.model.ClassNameSoap
- * @see       com.liferay.portal.service.ClassNameServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ClassNameServiceHttp
+ * @see com.liferay.portal.model.ClassNameSoap
+ * @see com.liferay.portal.service.ClassNameServiceUtil
  * @generated
  */
+@ProviderType
 public class ClassNameServiceSoap {
 	public static com.liferay.portal.model.ClassNameSoap fetchClassName(
 		java.lang.String value) throws RemoteException {

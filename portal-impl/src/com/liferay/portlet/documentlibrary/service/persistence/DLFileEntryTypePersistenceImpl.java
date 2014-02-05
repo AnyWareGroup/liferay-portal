@@ -16,11 +16,6 @@ package com.liferay.portlet.documentlibrary.service.persistence;
 
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
-import com.liferay.portal.kernel.dao.jdbc.MappingSqlQuery;
-import com.liferay.portal.kernel.dao.jdbc.MappingSqlQueryFactoryUtil;
-import com.liferay.portal.kernel.dao.jdbc.RowMapper;
-import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
-import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
@@ -47,6 +42,8 @@ import com.liferay.portal.model.CacheModel;
 import com.liferay.portal.model.ModelListener;
 import com.liferay.portal.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.service.persistence.impl.TableMapper;
+import com.liferay.portal.service.persistence.impl.TableMapperFactory;
 
 import com.liferay.portlet.documentlibrary.NoSuchFileEntryTypeException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryType;
@@ -58,6 +55,7 @@ import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -371,6 +369,10 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public DLFileEntryType fetchByUuid_Last(String uuid,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<DLFileEntryType> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
@@ -1193,6 +1195,10 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileEntryType> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1729,6 +1735,10 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileEntryType> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1990,7 +2000,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, DLFileEntryTypeImpl.class);
@@ -2166,7 +2176,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 				DLFileEntryType.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2255,6 +2265,13 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			return findByGroupId(groupIds, start, end, orderByComparator);
 		}
 
+		if (groupIds == null) {
+			groupIds = new long[0];
+		}
+		else {
+			groupIds = ArrayUtil.unique(groupIds);
+		}
+
 		StringBundler query = new StringBundler();
 
 		if (getDB().isSupportsInlineDistinct()) {
@@ -2264,27 +2281,20 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			query.append(_FILTER_SQL_SELECT_DLFILEENTRYTYPE_NO_INLINE_DISTINCT_WHERE_1);
 		}
 
-		boolean conjunctionable = false;
-
-		if ((groupIds == null) || (groupIds.length > 0)) {
-			if (conjunctionable) {
-				query.append(WHERE_AND);
-			}
-
+		if (groupIds.length > 0) {
 			query.append(StringPool.OPEN_PARENTHESIS);
 
-			for (int i = 0; i < groupIds.length; i++) {
-				query.append(_FINDER_COLUMN_GROUPID_GROUPID_5);
+			query.append(_FINDER_COLUMN_GROUPID_GROUPID_7);
 
-				if ((i + 1) < groupIds.length) {
-					query.append(WHERE_OR);
-				}
-			}
+			query.append(StringUtil.merge(groupIds));
 
 			query.append(StringPool.CLOSE_PARENTHESIS);
 
-			conjunctionable = true;
+			query.append(StringPool.CLOSE_PARENTHESIS);
 		}
+
+		query.setStringAt(removeConjunction(query.stringAt(query.index() - 1)),
+			query.index() - 1);
 
 		if (!getDB().isSupportsInlineDistinct()) {
 			query.append(_FILTER_SQL_SELECT_DLFILEENTRYTYPE_NO_INLINE_DISTINCT_WHERE_2);
@@ -2318,19 +2328,13 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, DLFileEntryTypeImpl.class);
 			}
 			else {
 				q.addEntity(_FILTER_ENTITY_TABLE, DLFileEntryTypeImpl.class);
-			}
-
-			QueryPos qPos = QueryPos.getInstance(q);
-
-			if (groupIds != null) {
-				qPos.add(groupIds);
 			}
 
 			return (List<DLFileEntryType>)QueryUtil.list(q, getDialect(),
@@ -2398,7 +2402,14 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public List<DLFileEntryType> findByGroupId(long[] groupIds, int start,
 		int end, OrderByComparator orderByComparator) throws SystemException {
-		if ((groupIds != null) && (groupIds.length == 1)) {
+		if (groupIds == null) {
+			groupIds = new long[0];
+		}
+		else {
+			groupIds = ArrayUtil.unique(groupIds);
+		}
+
+		if (groupIds.length == 1) {
 			return findByGroupId(groupIds[0], start, end, orderByComparator);
 		}
 
@@ -2436,27 +2447,20 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 			query.append(_SQL_SELECT_DLFILEENTRYTYPE_WHERE);
 
-			boolean conjunctionable = false;
-
-			if ((groupIds == null) || (groupIds.length > 0)) {
-				if (conjunctionable) {
-					query.append(WHERE_AND);
-				}
-
+			if (groupIds.length > 0) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
-				for (int i = 0; i < groupIds.length; i++) {
-					query.append(_FINDER_COLUMN_GROUPID_GROUPID_5);
+				query.append(_FINDER_COLUMN_GROUPID_GROUPID_7);
 
-					if ((i + 1) < groupIds.length) {
-						query.append(WHERE_OR);
-					}
-				}
+				query.append(StringUtil.merge(groupIds));
 
 				query.append(StringPool.CLOSE_PARENTHESIS);
 
-				conjunctionable = true;
+				query.append(StringPool.CLOSE_PARENTHESIS);
 			}
+
+			query.setStringAt(removeConjunction(query.stringAt(query.index() -
+						1)), query.index() - 1);
 
 			if (orderByComparator != null) {
 				appendOrderByComparator(query, _ORDER_BY_ENTITY_ALIAS,
@@ -2475,12 +2479,6 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 				session = openSession();
 
 				Query q = session.createQuery(sql);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				if (groupIds != null) {
-					qPos.add(groupIds);
-				}
 
 				if (!pagination) {
 					list = (List<DLFileEntryType>)QueryUtil.list(q,
@@ -2590,6 +2588,13 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	 */
 	@Override
 	public int countByGroupId(long[] groupIds) throws SystemException {
+		if (groupIds == null) {
+			groupIds = new long[0];
+		}
+		else {
+			groupIds = ArrayUtil.unique(groupIds);
+		}
+
 		Object[] finderArgs = new Object[] { StringUtil.merge(groupIds) };
 
 		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_WITH_PAGINATION_COUNT_BY_GROUPID,
@@ -2600,27 +2605,20 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 			query.append(_SQL_COUNT_DLFILEENTRYTYPE_WHERE);
 
-			boolean conjunctionable = false;
-
-			if ((groupIds == null) || (groupIds.length > 0)) {
-				if (conjunctionable) {
-					query.append(WHERE_AND);
-				}
-
+			if (groupIds.length > 0) {
 				query.append(StringPool.OPEN_PARENTHESIS);
 
-				for (int i = 0; i < groupIds.length; i++) {
-					query.append(_FINDER_COLUMN_GROUPID_GROUPID_5);
+				query.append(_FINDER_COLUMN_GROUPID_GROUPID_7);
 
-					if ((i + 1) < groupIds.length) {
-						query.append(WHERE_OR);
-					}
-				}
+				query.append(StringUtil.merge(groupIds));
 
 				query.append(StringPool.CLOSE_PARENTHESIS);
 
-				conjunctionable = true;
+				query.append(StringPool.CLOSE_PARENTHESIS);
 			}
+
+			query.setStringAt(removeConjunction(query.stringAt(query.index() -
+						1)), query.index() - 1);
 
 			String sql = query.toString();
 
@@ -2630,12 +2628,6 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 				session = openSession();
 
 				Query q = session.createQuery(sql);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				if (groupIds != null) {
-					qPos.add(groupIds);
-				}
 
 				count = (Long)q.uniqueResult();
 
@@ -2684,7 +2676,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2718,31 +2710,31 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			return countByGroupId(groupIds);
 		}
 
+		if (groupIds == null) {
+			groupIds = new long[0];
+		}
+		else {
+			groupIds = ArrayUtil.unique(groupIds);
+		}
+
 		StringBundler query = new StringBundler();
 
 		query.append(_FILTER_SQL_COUNT_DLFILEENTRYTYPE_WHERE);
 
-		boolean conjunctionable = false;
-
-		if ((groupIds == null) || (groupIds.length > 0)) {
-			if (conjunctionable) {
-				query.append(WHERE_AND);
-			}
-
+		if (groupIds.length > 0) {
 			query.append(StringPool.OPEN_PARENTHESIS);
 
-			for (int i = 0; i < groupIds.length; i++) {
-				query.append(_FINDER_COLUMN_GROUPID_GROUPID_5);
+			query.append(_FINDER_COLUMN_GROUPID_GROUPID_7);
 
-				if ((i + 1) < groupIds.length) {
-					query.append(WHERE_OR);
-				}
-			}
+			query.append(StringUtil.merge(groupIds));
 
 			query.append(StringPool.CLOSE_PARENTHESIS);
 
-			conjunctionable = true;
+			query.append(StringPool.CLOSE_PARENTHESIS);
 		}
+
+		query.setStringAt(removeConjunction(query.stringAt(query.index() - 1)),
+			query.index() - 1);
 
 		String sql = InlineSQLHelperUtil.replacePermissionCheck(query.toString(),
 				DLFileEntryType.class.getName(),
@@ -2753,16 +2745,10 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
-
-			QueryPos qPos = QueryPos.getInstance(q);
-
-			if (groupIds != null) {
-				qPos.add(groupIds);
-			}
 
 			Long count = (Long)q.uniqueResult();
 
@@ -2777,32 +2763,31 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	}
 
 	private static final String _FINDER_COLUMN_GROUPID_GROUPID_2 = "dlFileEntryType.groupId = ?";
-	private static final String _FINDER_COLUMN_GROUPID_GROUPID_5 = "(" +
-		removeConjunction(_FINDER_COLUMN_GROUPID_GROUPID_2) + ")";
-	public static final FinderPath FINDER_PATH_FETCH_BY_G_N = new FinderPath(DLFileEntryTypeModelImpl.ENTITY_CACHE_ENABLED,
+	private static final String _FINDER_COLUMN_GROUPID_GROUPID_7 = "dlFileEntryType.groupId IN (";
+	public static final FinderPath FINDER_PATH_FETCH_BY_G_F = new FinderPath(DLFileEntryTypeModelImpl.ENTITY_CACHE_ENABLED,
 			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED,
-			DLFileEntryTypeImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByG_N",
+			DLFileEntryTypeImpl.class, FINDER_CLASS_NAME_ENTITY, "fetchByG_F",
 			new String[] { Long.class.getName(), String.class.getName() },
 			DLFileEntryTypeModelImpl.GROUPID_COLUMN_BITMASK |
-			DLFileEntryTypeModelImpl.NAME_COLUMN_BITMASK);
-	public static final FinderPath FINDER_PATH_COUNT_BY_G_N = new FinderPath(DLFileEntryTypeModelImpl.ENTITY_CACHE_ENABLED,
+			DLFileEntryTypeModelImpl.FILEENTRYTYPEKEY_COLUMN_BITMASK);
+	public static final FinderPath FINDER_PATH_COUNT_BY_G_F = new FinderPath(DLFileEntryTypeModelImpl.ENTITY_CACHE_ENABLED,
 			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED, Long.class,
-			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_N",
+			FINDER_CLASS_NAME_LIST_WITHOUT_PAGINATION, "countByG_F",
 			new String[] { Long.class.getName(), String.class.getName() });
 
 	/**
-	 * Returns the document library file entry type where groupId = &#63; and name = &#63; or throws a {@link com.liferay.portlet.documentlibrary.NoSuchFileEntryTypeException} if it could not be found.
+	 * Returns the document library file entry type where groupId = &#63; and fileEntryTypeKey = &#63; or throws a {@link com.liferay.portlet.documentlibrary.NoSuchFileEntryTypeException} if it could not be found.
 	 *
 	 * @param groupId the group ID
-	 * @param name the name
+	 * @param fileEntryTypeKey the file entry type key
 	 * @return the matching document library file entry type
 	 * @throws com.liferay.portlet.documentlibrary.NoSuchFileEntryTypeException if a matching document library file entry type could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DLFileEntryType findByG_N(long groupId, String name)
+	public DLFileEntryType findByG_F(long groupId, String fileEntryTypeKey)
 		throws NoSuchFileEntryTypeException, SystemException {
-		DLFileEntryType dlFileEntryType = fetchByG_N(groupId, name);
+		DLFileEntryType dlFileEntryType = fetchByG_F(groupId, fileEntryTypeKey);
 
 		if (dlFileEntryType == null) {
 			StringBundler msg = new StringBundler(6);
@@ -2812,8 +2797,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			msg.append("groupId=");
 			msg.append(groupId);
 
-			msg.append(", name=");
-			msg.append(name);
+			msg.append(", fileEntryTypeKey=");
+			msg.append(fileEntryTypeKey);
 
 			msg.append(StringPool.CLOSE_CURLY_BRACE);
 
@@ -2828,37 +2813,37 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	}
 
 	/**
-	 * Returns the document library file entry type where groupId = &#63; and name = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
+	 * Returns the document library file entry type where groupId = &#63; and fileEntryTypeKey = &#63; or returns <code>null</code> if it could not be found. Uses the finder cache.
 	 *
 	 * @param groupId the group ID
-	 * @param name the name
+	 * @param fileEntryTypeKey the file entry type key
 	 * @return the matching document library file entry type, or <code>null</code> if a matching document library file entry type could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DLFileEntryType fetchByG_N(long groupId, String name)
+	public DLFileEntryType fetchByG_F(long groupId, String fileEntryTypeKey)
 		throws SystemException {
-		return fetchByG_N(groupId, name, true);
+		return fetchByG_F(groupId, fileEntryTypeKey, true);
 	}
 
 	/**
-	 * Returns the document library file entry type where groupId = &#63; and name = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
+	 * Returns the document library file entry type where groupId = &#63; and fileEntryTypeKey = &#63; or returns <code>null</code> if it could not be found, optionally using the finder cache.
 	 *
 	 * @param groupId the group ID
-	 * @param name the name
+	 * @param fileEntryTypeKey the file entry type key
 	 * @param retrieveFromCache whether to use the finder cache
 	 * @return the matching document library file entry type, or <code>null</code> if a matching document library file entry type could not be found
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DLFileEntryType fetchByG_N(long groupId, String name,
+	public DLFileEntryType fetchByG_F(long groupId, String fileEntryTypeKey,
 		boolean retrieveFromCache) throws SystemException {
-		Object[] finderArgs = new Object[] { groupId, name };
+		Object[] finderArgs = new Object[] { groupId, fileEntryTypeKey };
 
 		Object result = null;
 
 		if (retrieveFromCache) {
-			result = FinderCacheUtil.getResult(FINDER_PATH_FETCH_BY_G_N,
+			result = FinderCacheUtil.getResult(FINDER_PATH_FETCH_BY_G_F,
 					finderArgs, this);
 		}
 
@@ -2866,7 +2851,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			DLFileEntryType dlFileEntryType = (DLFileEntryType)result;
 
 			if ((groupId != dlFileEntryType.getGroupId()) ||
-					!Validator.equals(name, dlFileEntryType.getName())) {
+					!Validator.equals(fileEntryTypeKey,
+						dlFileEntryType.getFileEntryTypeKey())) {
 				result = null;
 			}
 		}
@@ -2876,20 +2862,20 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 			query.append(_SQL_SELECT_DLFILEENTRYTYPE_WHERE);
 
-			query.append(_FINDER_COLUMN_G_N_GROUPID_2);
+			query.append(_FINDER_COLUMN_G_F_GROUPID_2);
 
-			boolean bindName = false;
+			boolean bindFileEntryTypeKey = false;
 
-			if (name == null) {
-				query.append(_FINDER_COLUMN_G_N_NAME_1);
+			if (fileEntryTypeKey == null) {
+				query.append(_FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_1);
 			}
-			else if (name.equals(StringPool.BLANK)) {
-				query.append(_FINDER_COLUMN_G_N_NAME_3);
+			else if (fileEntryTypeKey.equals(StringPool.BLANK)) {
+				query.append(_FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_3);
 			}
 			else {
-				bindName = true;
+				bindFileEntryTypeKey = true;
 
-				query.append(_FINDER_COLUMN_G_N_NAME_2);
+				query.append(_FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_2);
 			}
 
 			String sql = query.toString();
@@ -2905,14 +2891,14 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 				qPos.add(groupId);
 
-				if (bindName) {
-					qPos.add(name);
+				if (bindFileEntryTypeKey) {
+					qPos.add(fileEntryTypeKey);
 				}
 
 				List<DLFileEntryType> list = q.list();
 
 				if (list.isEmpty()) {
-					FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_N,
+					FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_F,
 						finderArgs, list);
 				}
 				else {
@@ -2923,15 +2909,16 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 					cacheResult(dlFileEntryType);
 
 					if ((dlFileEntryType.getGroupId() != groupId) ||
-							(dlFileEntryType.getName() == null) ||
-							!dlFileEntryType.getName().equals(name)) {
-						FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_N,
+							(dlFileEntryType.getFileEntryTypeKey() == null) ||
+							!dlFileEntryType.getFileEntryTypeKey()
+												.equals(fileEntryTypeKey)) {
+						FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_F,
 							finderArgs, dlFileEntryType);
 					}
 				}
 			}
 			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_G_N,
+				FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_G_F,
 					finderArgs);
 
 				throw processException(e);
@@ -2950,34 +2937,35 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	}
 
 	/**
-	 * Removes the document library file entry type where groupId = &#63; and name = &#63; from the database.
+	 * Removes the document library file entry type where groupId = &#63; and fileEntryTypeKey = &#63; from the database.
 	 *
 	 * @param groupId the group ID
-	 * @param name the name
+	 * @param fileEntryTypeKey the file entry type key
 	 * @return the document library file entry type that was removed
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public DLFileEntryType removeByG_N(long groupId, String name)
+	public DLFileEntryType removeByG_F(long groupId, String fileEntryTypeKey)
 		throws NoSuchFileEntryTypeException, SystemException {
-		DLFileEntryType dlFileEntryType = findByG_N(groupId, name);
+		DLFileEntryType dlFileEntryType = findByG_F(groupId, fileEntryTypeKey);
 
 		return remove(dlFileEntryType);
 	}
 
 	/**
-	 * Returns the number of document library file entry types where groupId = &#63; and name = &#63;.
+	 * Returns the number of document library file entry types where groupId = &#63; and fileEntryTypeKey = &#63;.
 	 *
 	 * @param groupId the group ID
-	 * @param name the name
+	 * @param fileEntryTypeKey the file entry type key
 	 * @return the number of matching document library file entry types
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int countByG_N(long groupId, String name) throws SystemException {
-		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_N;
+	public int countByG_F(long groupId, String fileEntryTypeKey)
+		throws SystemException {
+		FinderPath finderPath = FINDER_PATH_COUNT_BY_G_F;
 
-		Object[] finderArgs = new Object[] { groupId, name };
+		Object[] finderArgs = new Object[] { groupId, fileEntryTypeKey };
 
 		Long count = (Long)FinderCacheUtil.getResult(finderPath, finderArgs,
 				this);
@@ -2987,20 +2975,20 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 			query.append(_SQL_COUNT_DLFILEENTRYTYPE_WHERE);
 
-			query.append(_FINDER_COLUMN_G_N_GROUPID_2);
+			query.append(_FINDER_COLUMN_G_F_GROUPID_2);
 
-			boolean bindName = false;
+			boolean bindFileEntryTypeKey = false;
 
-			if (name == null) {
-				query.append(_FINDER_COLUMN_G_N_NAME_1);
+			if (fileEntryTypeKey == null) {
+				query.append(_FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_1);
 			}
-			else if (name.equals(StringPool.BLANK)) {
-				query.append(_FINDER_COLUMN_G_N_NAME_3);
+			else if (fileEntryTypeKey.equals(StringPool.BLANK)) {
+				query.append(_FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_3);
 			}
 			else {
-				bindName = true;
+				bindFileEntryTypeKey = true;
 
-				query.append(_FINDER_COLUMN_G_N_NAME_2);
+				query.append(_FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_2);
 			}
 
 			String sql = query.toString();
@@ -3016,8 +3004,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 				qPos.add(groupId);
 
-				if (bindName) {
-					qPos.add(name);
+				if (bindFileEntryTypeKey) {
+					qPos.add(fileEntryTypeKey);
 				}
 
 				count = (Long)q.uniqueResult();
@@ -3037,10 +3025,14 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		return count.intValue();
 	}
 
-	private static final String _FINDER_COLUMN_G_N_GROUPID_2 = "dlFileEntryType.groupId = ? AND ";
-	private static final String _FINDER_COLUMN_G_N_NAME_1 = "dlFileEntryType.name IS NULL";
-	private static final String _FINDER_COLUMN_G_N_NAME_2 = "dlFileEntryType.name = ?";
-	private static final String _FINDER_COLUMN_G_N_NAME_3 = "(dlFileEntryType.name IS NULL OR dlFileEntryType.name = '')";
+	private static final String _FINDER_COLUMN_G_F_GROUPID_2 = "dlFileEntryType.groupId = ? AND ";
+	private static final String _FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_1 = "dlFileEntryType.fileEntryTypeKey IS NULL";
+	private static final String _FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_2 = "dlFileEntryType.fileEntryTypeKey = ?";
+	private static final String _FINDER_COLUMN_G_F_FILEENTRYTYPEKEY_3 = "(dlFileEntryType.fileEntryTypeKey IS NULL OR dlFileEntryType.fileEntryTypeKey = '')";
+
+	public DLFileEntryTypePersistenceImpl() {
+		setModelClass(DLFileEntryType.class);
+	}
 
 	/**
 	 * Caches the document library file entry type in the entity cache if it is enabled.
@@ -3057,9 +3049,11 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			new Object[] { dlFileEntryType.getUuid(), dlFileEntryType.getGroupId() },
 			dlFileEntryType);
 
-		FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_N,
-			new Object[] { dlFileEntryType.getGroupId(), dlFileEntryType.getName() },
-			dlFileEntryType);
+		FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_F,
+			new Object[] {
+				dlFileEntryType.getGroupId(),
+				dlFileEntryType.getFileEntryTypeKey()
+			}, dlFileEntryType);
 
 		dlFileEntryType.resetOriginalValues();
 	}
@@ -3147,12 +3141,13 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 				dlFileEntryType);
 
 			args = new Object[] {
-					dlFileEntryType.getGroupId(), dlFileEntryType.getName()
+					dlFileEntryType.getGroupId(),
+					dlFileEntryType.getFileEntryTypeKey()
 				};
 
-			FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_G_N, args,
+			FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_G_F, args,
 				Long.valueOf(1));
-			FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_N, args,
+			FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_F, args,
 				dlFileEntryType);
 		}
 		else {
@@ -3171,14 +3166,15 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			}
 
 			if ((dlFileEntryTypeModelImpl.getColumnBitmask() &
-					FINDER_PATH_FETCH_BY_G_N.getColumnBitmask()) != 0) {
+					FINDER_PATH_FETCH_BY_G_F.getColumnBitmask()) != 0) {
 				Object[] args = new Object[] {
-						dlFileEntryType.getGroupId(), dlFileEntryType.getName()
+						dlFileEntryType.getGroupId(),
+						dlFileEntryType.getFileEntryTypeKey()
 					};
 
-				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_G_N, args,
+				FinderCacheUtil.putResult(FINDER_PATH_COUNT_BY_G_F, args,
 					Long.valueOf(1));
-				FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_N, args,
+				FinderCacheUtil.putResult(FINDER_PATH_FETCH_BY_G_F, args,
 					dlFileEntryType);
 			}
 		}
@@ -3206,21 +3202,22 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		}
 
 		args = new Object[] {
-				dlFileEntryType.getGroupId(), dlFileEntryType.getName()
+				dlFileEntryType.getGroupId(),
+				dlFileEntryType.getFileEntryTypeKey()
 			};
 
-		FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_G_N, args);
-		FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_G_N, args);
+		FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_G_F, args);
+		FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_G_F, args);
 
 		if ((dlFileEntryTypeModelImpl.getColumnBitmask() &
-				FINDER_PATH_FETCH_BY_G_N.getColumnBitmask()) != 0) {
+				FINDER_PATH_FETCH_BY_G_F.getColumnBitmask()) != 0) {
 			args = new Object[] {
 					dlFileEntryTypeModelImpl.getOriginalGroupId(),
-					dlFileEntryTypeModelImpl.getOriginalName()
+					dlFileEntryTypeModelImpl.getOriginalFileEntryTypeKey()
 				};
 
-			FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_G_N, args);
-			FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_G_N, args);
+			FinderCacheUtil.removeResult(FINDER_PATH_COUNT_BY_G_F, args);
+			FinderCacheUtil.removeResult(FINDER_PATH_FETCH_BY_G_F, args);
 		}
 	}
 
@@ -3304,25 +3301,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		throws SystemException {
 		dlFileEntryType = toUnwrappedModel(dlFileEntryType);
 
-		try {
-			clearDLFolders.clear(dlFileEntryType.getPrimaryKey());
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
-		}
+		dlFileEntryTypeToDLFolderTableMapper.deleteLeftPrimaryKeyTableMappings(dlFileEntryType.getPrimaryKey());
 
-		try {
-			clearDDMStructures.clear(dlFileEntryType.getPrimaryKey());
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
-		}
+		dlFileEntryTypeToDDMStructureTableMapper.deleteLeftPrimaryKeyTableMappings(dlFileEntryType.getPrimaryKey());
 
 		Session session = null;
 
@@ -3454,10 +3435,12 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 		EntityCacheUtil.putResult(DLFileEntryTypeModelImpl.ENTITY_CACHE_ENABLED,
 			DLFileEntryTypeImpl.class, dlFileEntryType.getPrimaryKey(),
-			dlFileEntryType);
+			dlFileEntryType, false);
 
 		clearUniqueFindersCache(dlFileEntryType);
 		cacheUniqueFindersCache(dlFileEntryType);
+
+		dlFileEntryType.resetOriginalValues();
 
 		return dlFileEntryType;
 	}
@@ -3480,6 +3463,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		dlFileEntryTypeImpl.setUserName(dlFileEntryType.getUserName());
 		dlFileEntryTypeImpl.setCreateDate(dlFileEntryType.getCreateDate());
 		dlFileEntryTypeImpl.setModifiedDate(dlFileEntryType.getModifiedDate());
+		dlFileEntryTypeImpl.setFileEntryTypeKey(dlFileEntryType.getFileEntryTypeKey());
 		dlFileEntryTypeImpl.setName(dlFileEntryType.getName());
 		dlFileEntryTypeImpl.setDescription(dlFileEntryType.getDescription());
 
@@ -3792,20 +3776,6 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		return getDLFolders(pk, start, end, null);
 	}
 
-	public static final FinderPath FINDER_PATH_GET_DLFOLDERS = new FinderPath(com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl.ENTITY_CACHE_ENABLED,
-			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED_DLFILEENTRYTYPES_DLFOLDERS,
-			com.liferay.portlet.documentlibrary.model.impl.DLFolderImpl.class,
-			DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME,
-			"getDLFolders",
-			new String[] {
-				Long.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), OrderByComparator.class.getName()
-			});
-
-	static {
-		FINDER_PATH_GET_DLFOLDERS.setCacheKeyGeneratorCacheName(null);
-	}
-
 	/**
 	 * Returns an ordered range of all the document library folders associated with the document library file entry type.
 	 *
@@ -3824,90 +3794,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public List<com.liferay.portlet.documentlibrary.model.DLFolder> getDLFolders(
 		long pk, int start, int end, OrderByComparator orderByComparator)
 		throws SystemException {
-		boolean pagination = true;
-		Object[] finderArgs = null;
-
-		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
-				(orderByComparator == null)) {
-			pagination = false;
-			finderArgs = new Object[] { pk };
-		}
-		else {
-			finderArgs = new Object[] { pk, start, end, orderByComparator };
-		}
-
-		List<com.liferay.portlet.documentlibrary.model.DLFolder> list = (List<com.liferay.portlet.documentlibrary.model.DLFolder>)FinderCacheUtil.getResult(FINDER_PATH_GET_DLFOLDERS,
-				finderArgs, this);
-
-		if (list == null) {
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				String sql = null;
-
-				if (orderByComparator != null) {
-					sql = _SQL_GETDLFOLDERS.concat(ORDER_BY_CLAUSE)
-										   .concat(orderByComparator.getOrderBy());
-				}
-				else {
-					sql = _SQL_GETDLFOLDERS;
-
-					if (pagination) {
-						sql = sql.concat(com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl.ORDER_BY_SQL);
-					}
-				}
-
-				SQLQuery q = session.createSQLQuery(sql);
-
-				q.addEntity("DLFolder",
-					com.liferay.portlet.documentlibrary.model.impl.DLFolderImpl.class);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(pk);
-
-				if (!pagination) {
-					list = (List<com.liferay.portlet.documentlibrary.model.DLFolder>)QueryUtil.list(q,
-							getDialect(), start, end, false);
-
-					Collections.sort(list);
-
-					list = new UnmodifiableList<com.liferay.portlet.documentlibrary.model.DLFolder>(list);
-				}
-				else {
-					list = (List<com.liferay.portlet.documentlibrary.model.DLFolder>)QueryUtil.list(q,
-							getDialect(), start, end);
-				}
-
-				dlFolderPersistence.cacheResult(list);
-
-				FinderCacheUtil.putResult(FINDER_PATH_GET_DLFOLDERS,
-					finderArgs, list);
-			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_GET_DLFOLDERS,
-					finderArgs);
-
-				throw processException(e);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return list;
-	}
-
-	public static final FinderPath FINDER_PATH_GET_DLFOLDERS_SIZE = new FinderPath(com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl.ENTITY_CACHE_ENABLED,
-			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED_DLFILEENTRYTYPES_DLFOLDERS,
-			Long.class,
-			DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME,
-			"getDLFoldersSize", new String[] { Long.class.getName() });
-
-	static {
-		FINDER_PATH_GET_DLFOLDERS_SIZE.setCacheKeyGeneratorCacheName(null);
+		return dlFileEntryTypeToDLFolderTableMapper.getRightBaseModels(pk,
+			start, end, orderByComparator);
 	}
 
 	/**
@@ -3919,51 +3807,10 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	 */
 	@Override
 	public int getDLFoldersSize(long pk) throws SystemException {
-		Object[] finderArgs = new Object[] { pk };
+		long[] pks = dlFileEntryTypeToDLFolderTableMapper.getRightPrimaryKeys(pk);
 
-		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_GET_DLFOLDERS_SIZE,
-				finderArgs, this);
-
-		if (count == null) {
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				SQLQuery q = session.createSQLQuery(_SQL_GETDLFOLDERSSIZE);
-
-				q.addScalar(COUNT_COLUMN_NAME,
-					com.liferay.portal.kernel.dao.orm.Type.LONG);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(pk);
-
-				count = (Long)q.uniqueResult();
-
-				FinderCacheUtil.putResult(FINDER_PATH_GET_DLFOLDERS_SIZE,
-					finderArgs, count);
-			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_GET_DLFOLDERS_SIZE,
-					finderArgs);
-
-				throw processException(e);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
+		return pks.length;
 	}
-
-	public static final FinderPath FINDER_PATH_CONTAINS_DLFOLDER = new FinderPath(com.liferay.portlet.documentlibrary.model.impl.DLFolderModelImpl.ENTITY_CACHE_ENABLED,
-			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED_DLFILEENTRYTYPES_DLFOLDERS,
-			Boolean.class,
-			DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME,
-			"containsDLFolder",
-			new String[] { Long.class.getName(), Long.class.getName() });
 
 	/**
 	 * Returns <code>true</code> if the document library folder is associated with the document library file entry type.
@@ -3976,27 +3823,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public boolean containsDLFolder(long pk, long dlFolderPK)
 		throws SystemException {
-		Object[] finderArgs = new Object[] { pk, dlFolderPK };
-
-		Boolean value = (Boolean)FinderCacheUtil.getResult(FINDER_PATH_CONTAINS_DLFOLDER,
-				finderArgs, this);
-
-		if (value == null) {
-			try {
-				value = Boolean.valueOf(containsDLFolder.contains(pk, dlFolderPK));
-
-				FinderCacheUtil.putResult(FINDER_PATH_CONTAINS_DLFOLDER,
-					finderArgs, value);
-			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_CONTAINS_DLFOLDER,
-					finderArgs);
-
-				throw processException(e);
-			}
-		}
-
-		return value.booleanValue();
+		return dlFileEntryTypeToDLFolderTableMapper.containsTableMapping(pk,
+			dlFolderPK);
 	}
 
 	/**
@@ -4025,15 +3853,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	 */
 	@Override
 	public void addDLFolder(long pk, long dlFolderPK) throws SystemException {
-		try {
-			addDLFolder.add(pk, dlFolderPK);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
-		}
+		dlFileEntryTypeToDLFolderTableMapper.addTableMapping(pk, dlFolderPK);
 	}
 
 	/**
@@ -4047,15 +3867,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void addDLFolder(long pk,
 		com.liferay.portlet.documentlibrary.model.DLFolder dlFolder)
 		throws SystemException {
-		try {
-			addDLFolder.add(pk, dlFolder.getPrimaryKey());
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
-		}
+		dlFileEntryTypeToDLFolderTableMapper.addTableMapping(pk,
+			dlFolder.getPrimaryKey());
 	}
 
 	/**
@@ -4068,16 +3881,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void addDLFolders(long pk, long[] dlFolderPKs)
 		throws SystemException {
-		try {
-			for (long dlFolderPK : dlFolderPKs) {
-				addDLFolder.add(pk, dlFolderPK);
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
+		for (long dlFolderPK : dlFolderPKs) {
+			dlFileEntryTypeToDLFolderTableMapper.addTableMapping(pk, dlFolderPK);
 		}
 	}
 
@@ -4092,16 +3897,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void addDLFolders(long pk,
 		List<com.liferay.portlet.documentlibrary.model.DLFolder> dlFolders)
 		throws SystemException {
-		try {
-			for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
-				addDLFolder.add(pk, dlFolder.getPrimaryKey());
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
+		for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
+			dlFileEntryTypeToDLFolderTableMapper.addTableMapping(pk,
+				dlFolder.getPrimaryKey());
 		}
 	}
 
@@ -4113,15 +3911,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	 */
 	@Override
 	public void clearDLFolders(long pk) throws SystemException {
-		try {
-			clearDLFolders.clear(pk);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
-		}
+		dlFileEntryTypeToDLFolderTableMapper.deleteLeftPrimaryKeyTableMappings(pk);
 	}
 
 	/**
@@ -4134,15 +3924,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void removeDLFolder(long pk, long dlFolderPK)
 		throws SystemException {
-		try {
-			removeDLFolder.remove(pk, dlFolderPK);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
-		}
+		dlFileEntryTypeToDLFolderTableMapper.deleteTableMapping(pk, dlFolderPK);
 	}
 
 	/**
@@ -4156,15 +3938,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void removeDLFolder(long pk,
 		com.liferay.portlet.documentlibrary.model.DLFolder dlFolder)
 		throws SystemException {
-		try {
-			removeDLFolder.remove(pk, dlFolder.getPrimaryKey());
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
-		}
+		dlFileEntryTypeToDLFolderTableMapper.deleteTableMapping(pk,
+			dlFolder.getPrimaryKey());
 	}
 
 	/**
@@ -4177,16 +3952,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void removeDLFolders(long pk, long[] dlFolderPKs)
 		throws SystemException {
-		try {
-			for (long dlFolderPK : dlFolderPKs) {
-				removeDLFolder.remove(pk, dlFolderPK);
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
+		for (long dlFolderPK : dlFolderPKs) {
+			dlFileEntryTypeToDLFolderTableMapper.deleteTableMapping(pk,
+				dlFolderPK);
 		}
 	}
 
@@ -4201,16 +3969,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void removeDLFolders(long pk,
 		List<com.liferay.portlet.documentlibrary.model.DLFolder> dlFolders)
 		throws SystemException {
-		try {
-			for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
-				removeDLFolder.remove(pk, dlFolder.getPrimaryKey());
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
+		for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
+			dlFileEntryTypeToDLFolderTableMapper.deleteTableMapping(pk,
+				dlFolder.getPrimaryKey());
 		}
 	}
 
@@ -4224,26 +3985,24 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void setDLFolders(long pk, long[] dlFolderPKs)
 		throws SystemException {
-		try {
-			Set<Long> dlFolderPKSet = SetUtil.fromArray(dlFolderPKs);
+		Set<Long> newDLFolderPKsSet = SetUtil.fromArray(dlFolderPKs);
+		Set<Long> oldDLFolderPKsSet = SetUtil.fromArray(dlFileEntryTypeToDLFolderTableMapper.getRightPrimaryKeys(
+					pk));
 
-			List<com.liferay.portlet.documentlibrary.model.DLFolder> dlFolders = getDLFolders(pk);
+		Set<Long> removeDLFolderPKsSet = new HashSet<Long>(oldDLFolderPKsSet);
 
-			for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
-				if (!dlFolderPKSet.remove(dlFolder.getPrimaryKey())) {
-					removeDLFolder.remove(pk, dlFolder.getPrimaryKey());
-				}
-			}
+		removeDLFolderPKsSet.removeAll(newDLFolderPKsSet);
 
-			for (Long dlFolderPK : dlFolderPKSet) {
-				addDLFolder.add(pk, dlFolderPK);
-			}
+		for (long removeDLFolderPK : removeDLFolderPKsSet) {
+			dlFileEntryTypeToDLFolderTableMapper.deleteTableMapping(pk,
+				removeDLFolderPK);
 		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
+
+		newDLFolderPKsSet.removeAll(oldDLFolderPKsSet);
+
+		for (long newDLFolderPK : newDLFolderPKsSet) {
+			dlFileEntryTypeToDLFolderTableMapper.addTableMapping(pk,
+				newDLFolderPK);
 		}
 	}
 
@@ -4271,9 +4030,6 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		}
 		catch (Exception e) {
 			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DLFOLDERS_NAME);
 		}
 	}
 
@@ -4309,20 +4065,6 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		return getDDMStructures(pk, start, end, null);
 	}
 
-	public static final FinderPath FINDER_PATH_GET_DDMSTRUCTURES = new FinderPath(com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl.ENTITY_CACHE_ENABLED,
-			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED_DLFILEENTRYTYPES_DDMSTRUCTURES,
-			com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureImpl.class,
-			DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME,
-			"getDDMStructures",
-			new String[] {
-				Long.class.getName(), Integer.class.getName(),
-				Integer.class.getName(), OrderByComparator.class.getName()
-			});
-
-	static {
-		FINDER_PATH_GET_DDMSTRUCTURES.setCacheKeyGeneratorCacheName(null);
-	}
-
 	/**
 	 * Returns an ordered range of all the d d m structures associated with the document library file entry type.
 	 *
@@ -4341,90 +4083,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> getDDMStructures(
 		long pk, int start, int end, OrderByComparator orderByComparator)
 		throws SystemException {
-		boolean pagination = true;
-		Object[] finderArgs = null;
-
-		if ((start == QueryUtil.ALL_POS) && (end == QueryUtil.ALL_POS) &&
-				(orderByComparator == null)) {
-			pagination = false;
-			finderArgs = new Object[] { pk };
-		}
-		else {
-			finderArgs = new Object[] { pk, start, end, orderByComparator };
-		}
-
-		List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> list = (List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>)FinderCacheUtil.getResult(FINDER_PATH_GET_DDMSTRUCTURES,
-				finderArgs, this);
-
-		if (list == null) {
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				String sql = null;
-
-				if (orderByComparator != null) {
-					sql = _SQL_GETDDMSTRUCTURES.concat(ORDER_BY_CLAUSE)
-											   .concat(orderByComparator.getOrderBy());
-				}
-				else {
-					sql = _SQL_GETDDMSTRUCTURES;
-
-					if (pagination) {
-						sql = sql.concat(com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl.ORDER_BY_SQL);
-					}
-				}
-
-				SQLQuery q = session.createSQLQuery(sql);
-
-				q.addEntity("DDMStructure",
-					com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureImpl.class);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(pk);
-
-				if (!pagination) {
-					list = (List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>)QueryUtil.list(q,
-							getDialect(), start, end, false);
-
-					Collections.sort(list);
-
-					list = new UnmodifiableList<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>(list);
-				}
-				else {
-					list = (List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>)QueryUtil.list(q,
-							getDialect(), start, end);
-				}
-
-				ddmStructurePersistence.cacheResult(list);
-
-				FinderCacheUtil.putResult(FINDER_PATH_GET_DDMSTRUCTURES,
-					finderArgs, list);
-			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_GET_DDMSTRUCTURES,
-					finderArgs);
-
-				throw processException(e);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return list;
-	}
-
-	public static final FinderPath FINDER_PATH_GET_DDMSTRUCTURES_SIZE = new FinderPath(com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl.ENTITY_CACHE_ENABLED,
-			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED_DLFILEENTRYTYPES_DDMSTRUCTURES,
-			Long.class,
-			DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME,
-			"getDDMStructuresSize", new String[] { Long.class.getName() });
-
-	static {
-		FINDER_PATH_GET_DDMSTRUCTURES_SIZE.setCacheKeyGeneratorCacheName(null);
+		return dlFileEntryTypeToDDMStructureTableMapper.getRightBaseModels(pk,
+			start, end, orderByComparator);
 	}
 
 	/**
@@ -4436,51 +4096,10 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	 */
 	@Override
 	public int getDDMStructuresSize(long pk) throws SystemException {
-		Object[] finderArgs = new Object[] { pk };
+		long[] pks = dlFileEntryTypeToDDMStructureTableMapper.getRightPrimaryKeys(pk);
 
-		Long count = (Long)FinderCacheUtil.getResult(FINDER_PATH_GET_DDMSTRUCTURES_SIZE,
-				finderArgs, this);
-
-		if (count == null) {
-			Session session = null;
-
-			try {
-				session = openSession();
-
-				SQLQuery q = session.createSQLQuery(_SQL_GETDDMSTRUCTURESSIZE);
-
-				q.addScalar(COUNT_COLUMN_NAME,
-					com.liferay.portal.kernel.dao.orm.Type.LONG);
-
-				QueryPos qPos = QueryPos.getInstance(q);
-
-				qPos.add(pk);
-
-				count = (Long)q.uniqueResult();
-
-				FinderCacheUtil.putResult(FINDER_PATH_GET_DDMSTRUCTURES_SIZE,
-					finderArgs, count);
-			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_GET_DDMSTRUCTURES_SIZE,
-					finderArgs);
-
-				throw processException(e);
-			}
-			finally {
-				closeSession(session);
-			}
-		}
-
-		return count.intValue();
+		return pks.length;
 	}
-
-	public static final FinderPath FINDER_PATH_CONTAINS_DDMSTRUCTURE = new FinderPath(com.liferay.portlet.dynamicdatamapping.model.impl.DDMStructureModelImpl.ENTITY_CACHE_ENABLED,
-			DLFileEntryTypeModelImpl.FINDER_CACHE_ENABLED_DLFILEENTRYTYPES_DDMSTRUCTURES,
-			Boolean.class,
-			DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME,
-			"containsDDMStructure",
-			new String[] { Long.class.getName(), Long.class.getName() });
 
 	/**
 	 * Returns <code>true</code> if the d d m structure is associated with the document library file entry type.
@@ -4493,28 +4112,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public boolean containsDDMStructure(long pk, long ddmStructurePK)
 		throws SystemException {
-		Object[] finderArgs = new Object[] { pk, ddmStructurePK };
-
-		Boolean value = (Boolean)FinderCacheUtil.getResult(FINDER_PATH_CONTAINS_DDMSTRUCTURE,
-				finderArgs, this);
-
-		if (value == null) {
-			try {
-				value = Boolean.valueOf(containsDDMStructure.contains(pk,
-							ddmStructurePK));
-
-				FinderCacheUtil.putResult(FINDER_PATH_CONTAINS_DDMSTRUCTURE,
-					finderArgs, value);
-			}
-			catch (Exception e) {
-				FinderCacheUtil.removeResult(FINDER_PATH_CONTAINS_DDMSTRUCTURE,
-					finderArgs);
-
-				throw processException(e);
-			}
-		}
-
-		return value.booleanValue();
+		return dlFileEntryTypeToDDMStructureTableMapper.containsTableMapping(pk,
+			ddmStructurePK);
 	}
 
 	/**
@@ -4544,15 +4143,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void addDDMStructure(long pk, long ddmStructurePK)
 		throws SystemException {
-		try {
-			addDDMStructure.add(pk, ddmStructurePK);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
-		}
+		dlFileEntryTypeToDDMStructureTableMapper.addTableMapping(pk,
+			ddmStructurePK);
 	}
 
 	/**
@@ -4566,15 +4158,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void addDDMStructure(long pk,
 		com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure)
 		throws SystemException {
-		try {
-			addDDMStructure.add(pk, ddmStructure.getPrimaryKey());
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
-		}
+		dlFileEntryTypeToDDMStructureTableMapper.addTableMapping(pk,
+			ddmStructure.getPrimaryKey());
 	}
 
 	/**
@@ -4587,16 +4172,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void addDDMStructures(long pk, long[] ddmStructurePKs)
 		throws SystemException {
-		try {
-			for (long ddmStructurePK : ddmStructurePKs) {
-				addDDMStructure.add(pk, ddmStructurePK);
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
+		for (long ddmStructurePK : ddmStructurePKs) {
+			dlFileEntryTypeToDDMStructureTableMapper.addTableMapping(pk,
+				ddmStructurePK);
 		}
 	}
 
@@ -4611,16 +4189,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void addDDMStructures(long pk,
 		List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> ddmStructures)
 		throws SystemException {
-		try {
-			for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
-				addDDMStructure.add(pk, ddmStructure.getPrimaryKey());
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
+		for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
+			dlFileEntryTypeToDDMStructureTableMapper.addTableMapping(pk,
+				ddmStructure.getPrimaryKey());
 		}
 	}
 
@@ -4632,15 +4203,7 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	 */
 	@Override
 	public void clearDDMStructures(long pk) throws SystemException {
-		try {
-			clearDDMStructures.clear(pk);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
-		}
+		dlFileEntryTypeToDDMStructureTableMapper.deleteLeftPrimaryKeyTableMappings(pk);
 	}
 
 	/**
@@ -4653,15 +4216,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void removeDDMStructure(long pk, long ddmStructurePK)
 		throws SystemException {
-		try {
-			removeDDMStructure.remove(pk, ddmStructurePK);
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
-		}
+		dlFileEntryTypeToDDMStructureTableMapper.deleteTableMapping(pk,
+			ddmStructurePK);
 	}
 
 	/**
@@ -4675,15 +4231,8 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void removeDDMStructure(long pk,
 		com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure)
 		throws SystemException {
-		try {
-			removeDDMStructure.remove(pk, ddmStructure.getPrimaryKey());
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
-		}
+		dlFileEntryTypeToDDMStructureTableMapper.deleteTableMapping(pk,
+			ddmStructure.getPrimaryKey());
 	}
 
 	/**
@@ -4696,16 +4245,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void removeDDMStructures(long pk, long[] ddmStructurePKs)
 		throws SystemException {
-		try {
-			for (long ddmStructurePK : ddmStructurePKs) {
-				removeDDMStructure.remove(pk, ddmStructurePK);
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
+		for (long ddmStructurePK : ddmStructurePKs) {
+			dlFileEntryTypeToDDMStructureTableMapper.deleteTableMapping(pk,
+				ddmStructurePK);
 		}
 	}
 
@@ -4720,16 +4262,9 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	public void removeDDMStructures(long pk,
 		List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> ddmStructures)
 		throws SystemException {
-		try {
-			for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
-				removeDDMStructure.remove(pk, ddmStructure.getPrimaryKey());
-			}
-		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
+		for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
+			dlFileEntryTypeToDDMStructureTableMapper.deleteTableMapping(pk,
+				ddmStructure.getPrimaryKey());
 		}
 	}
 
@@ -4743,27 +4278,24 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 	@Override
 	public void setDDMStructures(long pk, long[] ddmStructurePKs)
 		throws SystemException {
-		try {
-			Set<Long> ddmStructurePKSet = SetUtil.fromArray(ddmStructurePKs);
+		Set<Long> newDDMStructurePKsSet = SetUtil.fromArray(ddmStructurePKs);
+		Set<Long> oldDDMStructurePKsSet = SetUtil.fromArray(dlFileEntryTypeToDDMStructureTableMapper.getRightPrimaryKeys(
+					pk));
 
-			List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> ddmStructures =
-				getDDMStructures(pk);
+		Set<Long> removeDDMStructurePKsSet = new HashSet<Long>(oldDDMStructurePKsSet);
 
-			for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
-				if (!ddmStructurePKSet.remove(ddmStructure.getPrimaryKey())) {
-					removeDDMStructure.remove(pk, ddmStructure.getPrimaryKey());
-				}
-			}
+		removeDDMStructurePKsSet.removeAll(newDDMStructurePKsSet);
 
-			for (Long ddmStructurePK : ddmStructurePKSet) {
-				addDDMStructure.add(pk, ddmStructurePK);
-			}
+		for (long removeDDMStructurePK : removeDDMStructurePKsSet) {
+			dlFileEntryTypeToDDMStructureTableMapper.deleteTableMapping(pk,
+				removeDDMStructurePK);
 		}
-		catch (Exception e) {
-			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
+
+		newDDMStructurePKsSet.removeAll(oldDDMStructurePKsSet);
+
+		for (long newDDMStructurePK : newDDMStructurePKsSet) {
+			dlFileEntryTypeToDDMStructureTableMapper.addTableMapping(pk,
+				newDDMStructurePK);
 		}
 	}
 
@@ -4792,9 +4324,6 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 		}
 		catch (Exception e) {
 			throw processException(e);
-		}
-		finally {
-			FinderCacheUtil.clearCache(DLFileEntryTypeModelImpl.MAPPING_TABLE_DLFILEENTRYTYPES_DDMSTRUCTURES_NAME);
 		}
 	}
 
@@ -4827,17 +4356,11 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 			}
 		}
 
-		containsDLFolder = new ContainsDLFolder();
+		dlFileEntryTypeToDLFolderTableMapper = TableMapperFactory.getTableMapper("DLFileEntryTypes_DLFolders",
+				"fileEntryTypeId", "folderId", this, dlFolderPersistence);
 
-		addDLFolder = new AddDLFolder();
-		clearDLFolders = new ClearDLFolders();
-		removeDLFolder = new RemoveDLFolder();
-
-		containsDDMStructure = new ContainsDDMStructure();
-
-		addDDMStructure = new AddDDMStructure();
-		clearDDMStructures = new ClearDDMStructures();
-		removeDDMStructure = new RemoveDDMStructure();
+		dlFileEntryTypeToDDMStructureTableMapper = TableMapperFactory.getTableMapper("DLFileEntryTypes_DDMStructures",
+				"fileEntryTypeId", "structureId", this, ddmStructurePersistence);
 	}
 
 	public void destroy() {
@@ -4849,358 +4372,14 @@ public class DLFileEntryTypePersistenceImpl extends BasePersistenceImpl<DLFileEn
 
 	@BeanReference(type = DLFolderPersistence.class)
 	protected DLFolderPersistence dlFolderPersistence;
-	protected ContainsDLFolder containsDLFolder;
-	protected AddDLFolder addDLFolder;
-	protected ClearDLFolders clearDLFolders;
-	protected RemoveDLFolder removeDLFolder;
+	protected TableMapper<DLFileEntryType, com.liferay.portlet.documentlibrary.model.DLFolder> dlFileEntryTypeToDLFolderTableMapper;
 	@BeanReference(type = DDMStructurePersistence.class)
 	protected DDMStructurePersistence ddmStructurePersistence;
-	protected ContainsDDMStructure containsDDMStructure;
-	protected AddDDMStructure addDDMStructure;
-	protected ClearDDMStructures clearDDMStructures;
-	protected RemoveDDMStructure removeDDMStructure;
-
-	protected class ContainsDLFolder {
-		protected ContainsDLFolder() {
-			_mappingSqlQuery = MappingSqlQueryFactoryUtil.getMappingSqlQuery(getDataSource(),
-					"SELECT COUNT(*) AS COUNT_VALUE FROM DLFileEntryTypes_DLFolders WHERE fileEntryTypeId = ? AND folderId = ?",
-					new int[] { java.sql.Types.BIGINT, java.sql.Types.BIGINT },
-					RowMapper.COUNT);
-		}
-
-		protected boolean contains(long fileEntryTypeId, long folderId) {
-			List<Integer> results = _mappingSqlQuery.execute(new Object[] {
-						new Long(fileEntryTypeId), new Long(folderId)
-					});
-
-			if (results.size() > 0) {
-				Integer count = results.get(0);
-
-				if (count.intValue() > 0) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private MappingSqlQuery<Integer> _mappingSqlQuery;
-	}
-
-	protected class AddDLFolder {
-		protected AddDLFolder() {
-			_sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(getDataSource(),
-					"INSERT INTO DLFileEntryTypes_DLFolders (fileEntryTypeId, folderId) VALUES (?, ?)",
-					new int[] { java.sql.Types.BIGINT, java.sql.Types.BIGINT });
-		}
-
-		protected void add(long fileEntryTypeId, long folderId)
-			throws SystemException {
-			if (!containsDLFolder.contains(fileEntryTypeId, folderId)) {
-				ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder>[] dlFolderListeners =
-					dlFolderPersistence.getListeners();
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onBeforeAddAssociation(fileEntryTypeId,
-						com.liferay.portlet.documentlibrary.model.DLFolder.class.getName(),
-						folderId);
-				}
-
-				for (ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder> listener : dlFolderListeners) {
-					listener.onBeforeAddAssociation(folderId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-
-				_sqlUpdate.update(new Object[] {
-						new Long(fileEntryTypeId), new Long(folderId)
-					});
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onAfterAddAssociation(fileEntryTypeId,
-						com.liferay.portlet.documentlibrary.model.DLFolder.class.getName(),
-						folderId);
-				}
-
-				for (ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder> listener : dlFolderListeners) {
-					listener.onAfterAddAssociation(folderId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-			}
-		}
-
-		private SqlUpdate _sqlUpdate;
-	}
-
-	protected class ClearDLFolders {
-		protected ClearDLFolders() {
-			_sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(getDataSource(),
-					"DELETE FROM DLFileEntryTypes_DLFolders WHERE fileEntryTypeId = ?",
-					new int[] { java.sql.Types.BIGINT });
-		}
-
-		protected void clear(long fileEntryTypeId) throws SystemException {
-			ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder>[] dlFolderListeners =
-				dlFolderPersistence.getListeners();
-
-			List<com.liferay.portlet.documentlibrary.model.DLFolder> dlFolders = null;
-
-			if ((listeners.length > 0) || (dlFolderListeners.length > 0)) {
-				dlFolders = getDLFolders(fileEntryTypeId);
-
-				for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
-					for (ModelListener<DLFileEntryType> listener : listeners) {
-						listener.onBeforeRemoveAssociation(fileEntryTypeId,
-							com.liferay.portlet.documentlibrary.model.DLFolder.class.getName(),
-							dlFolder.getPrimaryKey());
-					}
-
-					for (ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder> listener : dlFolderListeners) {
-						listener.onBeforeRemoveAssociation(dlFolder.getPrimaryKey(),
-							DLFileEntryType.class.getName(), fileEntryTypeId);
-					}
-				}
-			}
-
-			_sqlUpdate.update(new Object[] { new Long(fileEntryTypeId) });
-
-			if ((listeners.length > 0) || (dlFolderListeners.length > 0)) {
-				for (com.liferay.portlet.documentlibrary.model.DLFolder dlFolder : dlFolders) {
-					for (ModelListener<DLFileEntryType> listener : listeners) {
-						listener.onAfterRemoveAssociation(fileEntryTypeId,
-							com.liferay.portlet.documentlibrary.model.DLFolder.class.getName(),
-							dlFolder.getPrimaryKey());
-					}
-
-					for (ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder> listener : dlFolderListeners) {
-						listener.onAfterRemoveAssociation(dlFolder.getPrimaryKey(),
-							DLFileEntryType.class.getName(), fileEntryTypeId);
-					}
-				}
-			}
-		}
-
-		private SqlUpdate _sqlUpdate;
-	}
-
-	protected class RemoveDLFolder {
-		protected RemoveDLFolder() {
-			_sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(getDataSource(),
-					"DELETE FROM DLFileEntryTypes_DLFolders WHERE fileEntryTypeId = ? AND folderId = ?",
-					new int[] { java.sql.Types.BIGINT, java.sql.Types.BIGINT });
-		}
-
-		protected void remove(long fileEntryTypeId, long folderId)
-			throws SystemException {
-			if (containsDLFolder.contains(fileEntryTypeId, folderId)) {
-				ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder>[] dlFolderListeners =
-					dlFolderPersistence.getListeners();
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onBeforeRemoveAssociation(fileEntryTypeId,
-						com.liferay.portlet.documentlibrary.model.DLFolder.class.getName(),
-						folderId);
-				}
-
-				for (ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder> listener : dlFolderListeners) {
-					listener.onBeforeRemoveAssociation(folderId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-
-				_sqlUpdate.update(new Object[] {
-						new Long(fileEntryTypeId), new Long(folderId)
-					});
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onAfterRemoveAssociation(fileEntryTypeId,
-						com.liferay.portlet.documentlibrary.model.DLFolder.class.getName(),
-						folderId);
-				}
-
-				for (ModelListener<com.liferay.portlet.documentlibrary.model.DLFolder> listener : dlFolderListeners) {
-					listener.onAfterRemoveAssociation(folderId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-			}
-		}
-
-		private SqlUpdate _sqlUpdate;
-	}
-
-	protected class ContainsDDMStructure {
-		protected ContainsDDMStructure() {
-			_mappingSqlQuery = MappingSqlQueryFactoryUtil.getMappingSqlQuery(getDataSource(),
-					"SELECT COUNT(*) AS COUNT_VALUE FROM DLFileEntryTypes_DDMStructures WHERE fileEntryTypeId = ? AND structureId = ?",
-					new int[] { java.sql.Types.BIGINT, java.sql.Types.BIGINT },
-					RowMapper.COUNT);
-		}
-
-		protected boolean contains(long fileEntryTypeId, long structureId) {
-			List<Integer> results = _mappingSqlQuery.execute(new Object[] {
-						new Long(fileEntryTypeId), new Long(structureId)
-					});
-
-			if (results.size() > 0) {
-				Integer count = results.get(0);
-
-				if (count.intValue() > 0) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private MappingSqlQuery<Integer> _mappingSqlQuery;
-	}
-
-	protected class AddDDMStructure {
-		protected AddDDMStructure() {
-			_sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(getDataSource(),
-					"INSERT INTO DLFileEntryTypes_DDMStructures (fileEntryTypeId, structureId) VALUES (?, ?)",
-					new int[] { java.sql.Types.BIGINT, java.sql.Types.BIGINT });
-		}
-
-		protected void add(long fileEntryTypeId, long structureId)
-			throws SystemException {
-			if (!containsDDMStructure.contains(fileEntryTypeId, structureId)) {
-				ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>[] ddmStructureListeners =
-					ddmStructurePersistence.getListeners();
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onBeforeAddAssociation(fileEntryTypeId,
-						com.liferay.portlet.dynamicdatamapping.model.DDMStructure.class.getName(),
-						structureId);
-				}
-
-				for (ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> listener : ddmStructureListeners) {
-					listener.onBeforeAddAssociation(structureId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-
-				_sqlUpdate.update(new Object[] {
-						new Long(fileEntryTypeId), new Long(structureId)
-					});
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onAfterAddAssociation(fileEntryTypeId,
-						com.liferay.portlet.dynamicdatamapping.model.DDMStructure.class.getName(),
-						structureId);
-				}
-
-				for (ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> listener : ddmStructureListeners) {
-					listener.onAfterAddAssociation(structureId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-			}
-		}
-
-		private SqlUpdate _sqlUpdate;
-	}
-
-	protected class ClearDDMStructures {
-		protected ClearDDMStructures() {
-			_sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(getDataSource(),
-					"DELETE FROM DLFileEntryTypes_DDMStructures WHERE fileEntryTypeId = ?",
-					new int[] { java.sql.Types.BIGINT });
-		}
-
-		protected void clear(long fileEntryTypeId) throws SystemException {
-			ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>[] ddmStructureListeners =
-				ddmStructurePersistence.getListeners();
-
-			List<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> ddmStructures =
-				null;
-
-			if ((listeners.length > 0) || (ddmStructureListeners.length > 0)) {
-				ddmStructures = getDDMStructures(fileEntryTypeId);
-
-				for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
-					for (ModelListener<DLFileEntryType> listener : listeners) {
-						listener.onBeforeRemoveAssociation(fileEntryTypeId,
-							com.liferay.portlet.dynamicdatamapping.model.DDMStructure.class.getName(),
-							ddmStructure.getPrimaryKey());
-					}
-
-					for (ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> listener : ddmStructureListeners) {
-						listener.onBeforeRemoveAssociation(ddmStructure.getPrimaryKey(),
-							DLFileEntryType.class.getName(), fileEntryTypeId);
-					}
-				}
-			}
-
-			_sqlUpdate.update(new Object[] { new Long(fileEntryTypeId) });
-
-			if ((listeners.length > 0) || (ddmStructureListeners.length > 0)) {
-				for (com.liferay.portlet.dynamicdatamapping.model.DDMStructure ddmStructure : ddmStructures) {
-					for (ModelListener<DLFileEntryType> listener : listeners) {
-						listener.onAfterRemoveAssociation(fileEntryTypeId,
-							com.liferay.portlet.dynamicdatamapping.model.DDMStructure.class.getName(),
-							ddmStructure.getPrimaryKey());
-					}
-
-					for (ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> listener : ddmStructureListeners) {
-						listener.onAfterRemoveAssociation(ddmStructure.getPrimaryKey(),
-							DLFileEntryType.class.getName(), fileEntryTypeId);
-					}
-				}
-			}
-		}
-
-		private SqlUpdate _sqlUpdate;
-	}
-
-	protected class RemoveDDMStructure {
-		protected RemoveDDMStructure() {
-			_sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(getDataSource(),
-					"DELETE FROM DLFileEntryTypes_DDMStructures WHERE fileEntryTypeId = ? AND structureId = ?",
-					new int[] { java.sql.Types.BIGINT, java.sql.Types.BIGINT });
-		}
-
-		protected void remove(long fileEntryTypeId, long structureId)
-			throws SystemException {
-			if (containsDDMStructure.contains(fileEntryTypeId, structureId)) {
-				ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure>[] ddmStructureListeners =
-					ddmStructurePersistence.getListeners();
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onBeforeRemoveAssociation(fileEntryTypeId,
-						com.liferay.portlet.dynamicdatamapping.model.DDMStructure.class.getName(),
-						structureId);
-				}
-
-				for (ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> listener : ddmStructureListeners) {
-					listener.onBeforeRemoveAssociation(structureId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-
-				_sqlUpdate.update(new Object[] {
-						new Long(fileEntryTypeId), new Long(structureId)
-					});
-
-				for (ModelListener<DLFileEntryType> listener : listeners) {
-					listener.onAfterRemoveAssociation(fileEntryTypeId,
-						com.liferay.portlet.dynamicdatamapping.model.DDMStructure.class.getName(),
-						structureId);
-				}
-
-				for (ModelListener<com.liferay.portlet.dynamicdatamapping.model.DDMStructure> listener : ddmStructureListeners) {
-					listener.onAfterRemoveAssociation(structureId,
-						DLFileEntryType.class.getName(), fileEntryTypeId);
-				}
-			}
-		}
-
-		private SqlUpdate _sqlUpdate;
-	}
-
+	protected TableMapper<DLFileEntryType, com.liferay.portlet.dynamicdatamapping.model.DDMStructure> dlFileEntryTypeToDDMStructureTableMapper;
 	private static final String _SQL_SELECT_DLFILEENTRYTYPE = "SELECT dlFileEntryType FROM DLFileEntryType dlFileEntryType";
 	private static final String _SQL_SELECT_DLFILEENTRYTYPE_WHERE = "SELECT dlFileEntryType FROM DLFileEntryType dlFileEntryType WHERE ";
 	private static final String _SQL_COUNT_DLFILEENTRYTYPE = "SELECT COUNT(dlFileEntryType) FROM DLFileEntryType dlFileEntryType";
 	private static final String _SQL_COUNT_DLFILEENTRYTYPE_WHERE = "SELECT COUNT(dlFileEntryType) FROM DLFileEntryType dlFileEntryType WHERE ";
-	private static final String _SQL_GETDLFOLDERS = "SELECT {DLFolder.*} FROM DLFolder INNER JOIN DLFileEntryTypes_DLFolders ON (DLFileEntryTypes_DLFolders.folderId = DLFolder.folderId) WHERE (DLFileEntryTypes_DLFolders.fileEntryTypeId = ?)";
-	private static final String _SQL_GETDLFOLDERSSIZE = "SELECT COUNT(*) AS COUNT_VALUE FROM DLFileEntryTypes_DLFolders WHERE fileEntryTypeId = ?";
-	private static final String _SQL_GETDDMSTRUCTURES = "SELECT {DDMStructure.*} FROM DDMStructure INNER JOIN DLFileEntryTypes_DDMStructures ON (DLFileEntryTypes_DDMStructures.structureId = DDMStructure.structureId) WHERE (DLFileEntryTypes_DDMStructures.fileEntryTypeId = ?)";
-	private static final String _SQL_GETDDMSTRUCTURESSIZE = "SELECT COUNT(*) AS COUNT_VALUE FROM DLFileEntryTypes_DDMStructures WHERE fileEntryTypeId = ?";
 	private static final String _FILTER_ENTITY_TABLE_FILTER_PK_COLUMN = "dlFileEntryType.fileEntryTypeId";
 	private static final String _FILTER_SQL_SELECT_DLFILEENTRYTYPE_WHERE = "SELECT DISTINCT {dlFileEntryType.*} FROM DLFileEntryType dlFileEntryType WHERE ";
 	private static final String _FILTER_SQL_SELECT_DLFILEENTRYTYPE_NO_INLINE_DISTINCT_WHERE_1 =

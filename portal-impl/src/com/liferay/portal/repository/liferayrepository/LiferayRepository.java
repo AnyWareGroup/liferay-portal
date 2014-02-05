@@ -209,6 +209,7 @@ public class LiferayRepository
 	 * @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	 *             String, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public void checkInFileEntry(long fileEntryId, String lockUuid)
 		throws PortalException, SystemException {
@@ -348,7 +349,7 @@ public class LiferayRepository
 
 	@Override
 	public int getFileEntriesAndFileShortcutsCount(long folderId, int status)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return dlFolderService.getFileEntriesAndFileShortcutsCount(
 			getGroupId(), toFolderId(folderId), status);
@@ -357,7 +358,7 @@ public class LiferayRepository
 	@Override
 	public int getFileEntriesAndFileShortcutsCount(
 			long folderId, int status, String[] mimeTypes)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return dlFolderService.getFileEntriesAndFileShortcutsCount(
 			getGroupId(), toFolderId(folderId), status, mimeTypes);
@@ -503,7 +504,7 @@ public class LiferayRepository
 	@Override
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long folderId, int status, boolean includeMountFolders)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return dlFolderService.getFoldersAndFileEntriesAndFileShortcutsCount(
 			getGroupId(), toFolderId(folderId), status, includeMountFolders);
@@ -513,7 +514,7 @@ public class LiferayRepository
 	public int getFoldersAndFileEntriesAndFileShortcutsCount(
 			long folderId, int status, String[] mimeTypes,
 			boolean includeMountFolders)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return dlFolderService.getFoldersAndFileEntriesAndFileShortcutsCount(
 			getGroupId(), toFolderId(folderId), status, mimeTypes,
@@ -522,7 +523,7 @@ public class LiferayRepository
 
 	@Override
 	public int getFoldersCount(long parentFolderId, boolean includeMountfolders)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return getFoldersCount(
 			parentFolderId, WorkflowConstants.STATUS_APPROVED,
@@ -532,7 +533,7 @@ public class LiferayRepository
 	@Override
 	public int getFoldersCount(
 			long parentFolderId, int status, boolean includeMountfolders)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return dlFolderService.getFoldersCount(
 			getGroupId(), toFolderId(parentFolderId), status,
@@ -560,7 +561,7 @@ public class LiferayRepository
 
 	@Override
 	public int getMountFoldersCount(long parentFolderId)
-		throws SystemException {
+		throws PortalException, SystemException {
 
 		return dlFolderService.getMountFoldersCount(
 			getGroupId(), toFolderId(parentFolderId));
@@ -616,7 +617,7 @@ public class LiferayRepository
 		throws PortalException, SystemException {
 
 		dlFolderService.getSubfolderIds(
-			folderIds, getGroupId(), toFolderId(folderId));
+			folderIds, getGroupId(), toFolderId(folderId), true);
 	}
 
 	@Override
@@ -631,6 +632,7 @@ public class LiferayRepository
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Lock lockFileEntry(long fileEntryId)
 		throws PortalException, SystemException {
@@ -645,6 +647,7 @@ public class LiferayRepository
 	 * @deprecated As of 6.2.0, replaced by {@link #checkOutFileEntry(long,
 	 *             String, long, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Lock lockFileEntry(
 			long fileEntryId, String owner, long expirationTime)
@@ -720,6 +723,25 @@ public class LiferayRepository
 
 		dlFileEntryService.revertFileEntry(
 			fileEntryId, version, serviceContext);
+	}
+
+	@Override
+	public Hits search(long creatorUserId, int status, int start, int end)
+		throws PortalException, SystemException {
+
+		return dlFileEntryService.search(
+			getGroupId(), creatorUserId, status, start, end);
+	}
+
+	@Override
+	public Hits search(
+			long creatorUserId, long folderId, String[] mimeTypes, int status,
+			int start, int end)
+		throws PortalException, SystemException {
+
+		return dlFileEntryService.search(
+			getGroupId(), creatorUserId, folderId, mimeTypes, status, start,
+			end);
 	}
 
 	@Override

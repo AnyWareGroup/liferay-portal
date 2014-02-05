@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.trash.BaseTrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
 import com.liferay.portal.kernel.trash.TrashHandlerRegistryUtil;
 import com.liferay.portal.kernel.trash.TrashRenderer;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ContainerModel;
 import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalFolder;
@@ -56,11 +57,9 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 			long classPK, long parentContainerModelId, int start, int end)
 		throws PortalException, SystemException {
 
-		JournalFolder folder = getJournalFolder(classPK);
-
 		List<JournalFolder> folders =
 			JournalFolderLocalServiceUtil.getFolders(
-				folder.getGroupId(), parentContainerModelId, start, end);
+				getGroupId(classPK), parentContainerModelId, start, end);
 
 		List<ContainerModel> containerModels = new ArrayList<ContainerModel>(
 			folders.size());
@@ -77,10 +76,8 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 			long classPK, long parentContainerModelId)
 		throws PortalException, SystemException {
 
-		JournalFolder folder = getJournalFolder(classPK);
-
 		return JournalFolderLocalServiceUtil.getFoldersCount(
-			folder.getGroupId(), parentContainerModelId);
+			getGroupId(classPK), parentContainerModelId);
 	}
 
 	@Override
@@ -127,8 +124,8 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 
 		JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(classPK);
 
-		return JournalArticleLocalServiceUtil.getArticlesCount(
-			folder.getGroupId(), classPK);
+		return JournalArticleLocalServiceUtil.searchCount(
+			folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -141,8 +138,9 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 		JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(classPK);
 
 		List<JournalArticle> articles =
-			JournalArticleLocalServiceUtil.getArticles(
-				folder.getGroupId(), classPK, start, end);
+			JournalArticleLocalServiceUtil.search(
+				folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH,
+				start, end);
 
 		for (JournalArticle article : articles) {
 			TrashHandler trashHandler =
@@ -170,7 +168,7 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 		JournalFolder folder = JournalFolderLocalServiceUtil.getFolder(classPK);
 
 		return JournalFolderLocalServiceUtil.getFoldersCount(
-			folder.getGroupId(), classPK);
+			folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH);
 	}
 
 	@Override
@@ -184,7 +182,8 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 
 		List<JournalFolder> folders =
 			JournalFolderLocalServiceUtil.getFolders(
-					folder.getGroupId(), classPK, start, end);
+				folder.getGroupId(), classPK, WorkflowConstants.STATUS_IN_TRASH,
+				start, end);
 
 		for (JournalFolder curFolder : folders) {
 			TrashHandler trashHandler =
@@ -205,7 +204,7 @@ public abstract class JournalBaseTrashHandler extends BaseTrashHandler {
 		return true;
 	}
 
-	protected abstract JournalFolder getJournalFolder(long classPK)
+	protected abstract long getGroupId(long classPK)
 		throws PortalException, SystemException;
 
 }

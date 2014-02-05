@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ContactService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ContactService
+ * @author Brian Wing Shun Chan
+ * @see ContactService
  * @generated
  */
+@ProviderType
 public class ContactServiceWrapper implements ContactService,
 	ServiceWrapper<ContactService> {
 	public ContactServiceWrapper(ContactService contactService) {
@@ -74,6 +77,7 @@ public class ContactServiceWrapper implements ContactService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ContactService getWrappedContactService() {
 		return _contactService;
 	}
@@ -81,6 +85,7 @@ public class ContactServiceWrapper implements ContactService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedContactService(ContactService contactService) {
 		_contactService = contactService;
 	}

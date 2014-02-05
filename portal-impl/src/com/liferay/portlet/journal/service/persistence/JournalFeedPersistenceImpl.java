@@ -358,6 +358,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<JournalFeed> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -1177,6 +1181,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid_C(uuid, companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<JournalFeed> list = findByUuid_C(uuid, companyId, count - 1,
 				count, orderByComparator);
 
@@ -1706,6 +1714,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByGroupId(groupId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<JournalFeed> list = findByGroupId(groupId, count - 1, count,
 				orderByComparator);
 
@@ -1967,7 +1979,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			if (getDB().isSupportsInlineDistinct()) {
 				q.addEntity(_FILTER_ENTITY_ALIAS, JournalFeedImpl.class);
@@ -2141,7 +2153,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 				JournalFeed.class.getName(),
 				_FILTER_ENTITY_TABLE_FILTER_PK_COLUMN, groupId);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.setFirstResult(0);
 		q.setMaxResults(2);
@@ -2270,7 +2282,7 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 		try {
 			session = openSession();
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME,
 				com.liferay.portal.kernel.dao.orm.Type.LONG);
@@ -2555,6 +2567,10 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 	private static final String _FINDER_COLUMN_G_F_FEEDID_1 = "journalFeed.feedId IS NULL";
 	private static final String _FINDER_COLUMN_G_F_FEEDID_2 = "journalFeed.feedId = ?";
 	private static final String _FINDER_COLUMN_G_F_FEEDID_3 = "(journalFeed.feedId IS NULL OR journalFeed.feedId = '')";
+
+	public JournalFeedPersistenceImpl() {
+		setModelClass(JournalFeed.class);
+	}
 
 	/**
 	 * Caches the journal feed in the entity cache if it is enabled.
@@ -2943,10 +2959,13 @@ public class JournalFeedPersistenceImpl extends BasePersistenceImpl<JournalFeed>
 		}
 
 		EntityCacheUtil.putResult(JournalFeedModelImpl.ENTITY_CACHE_ENABLED,
-			JournalFeedImpl.class, journalFeed.getPrimaryKey(), journalFeed);
+			JournalFeedImpl.class, journalFeed.getPrimaryKey(), journalFeed,
+			false);
 
 		clearUniqueFindersCache(journalFeed);
 		cacheUniqueFindersCache(journalFeed);
+
+		journalFeed.resetOriginalValues();
 
 		return journalFeed;
 	}

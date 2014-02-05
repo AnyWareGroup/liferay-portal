@@ -19,11 +19,17 @@
 <%
 Folder folder = (Folder)request.getAttribute(WebKeys.DOCUMENT_LIBRARY_FOLDER);
 
-long defaultFolderId = GetterUtil.getLong(preferences.getValue("rootFolderId", StringPool.BLANK), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+long defaultFolderId = GetterUtil.getLong(portletPreferences.getValue("rootFolderId", StringPool.BLANK), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID);
 
 long folderId = BeanParamUtil.getLong(folder, request, "folderId", defaultFolderId);
 
+boolean defaultFolderView = false;
+
 if ((folder == null) && (defaultFolderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
+	defaultFolderView = true;
+}
+
+if (defaultFolderView) {
 	try {
 		folder = DLAppLocalServiceUtil.getFolder(folderId);
 	}
@@ -40,20 +46,20 @@ if (folder != null) {
 
 int status = WorkflowConstants.STATUS_APPROVED;
 
-if (permissionChecker.isCompanyAdmin() || permissionChecker.isGroupAdmin(scopeGroupId)) {
+if (permissionChecker.isContentReviewer(user.getCompanyId(), scopeGroupId)) {
 	status = WorkflowConstants.STATUS_ANY;
 }
 
-long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(themeDisplay, displayTemplate);
+long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayTemplateDDMTemplateId(displayStyleGroupId, displayStyle);
 %>
 
 <c:choose>
 	<c:when test="<%= portletDisplayDDMTemplateId > 0 %>">
 
 		<%
-		String[] mediaGalleryMimeTypes = DLUtil.getMediaGalleryMimeTypes(preferences, renderRequest);
+		String[] mediaGalleryMimeTypes = DLUtil.getMediaGalleryMimeTypes(portletPreferences, renderRequest);
 
-		List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, themeDisplay.getUserId(), folderId, mediaGalleryMimeTypes, status, 0, SearchContainer.DEFAULT_DELTA, null);
+		List fileEntries = DLAppServiceUtil.getGroupFileEntries(scopeGroupId, 0, folderId, mediaGalleryMimeTypes, status, 0, SearchContainer.MAX_DELTA, null);
 		%>
 
 		<%= PortletDisplayTemplateUtil.renderDDMTemplate(pageContext, portletDisplayDDMTemplateId, fileEntries) %>
@@ -89,12 +95,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 		request.setAttribute("view.jsp-portletURL", portletURL);
 		%>
 
-		<portlet:actionURL var="undoTrashURL">
-			<portlet:param name="struts_action" value="/document_library/edit_entry" />
-			<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.RESTORE %>" />
-		</portlet:actionURL>
-
-		<liferay-ui:trash-undo portletURL="<%= undoTrashURL %>" />
+		<liferay-ui:trash-undo />
 
 		<liferay-util:include page="/html/portlet/document_library/top_links.jsp" />
 
@@ -125,7 +126,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 				String[] mediaGalleryMimeTypes = null;
 
 				request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-				request.setAttribute("view.jsp-results", results);
 				request.setAttribute("view.jsp-searchContainer", searchContainer);
 				%>
 
@@ -143,7 +143,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 					<%
 					SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, "cur2", SearchContainer.DEFAULT_DELTA, portletURL, null, null);
 
-					String[] mediaGalleryMimeTypes = DLUtil.getMediaGalleryMimeTypes(preferences, renderRequest);
+					String[] mediaGalleryMimeTypes = DLUtil.getMediaGalleryMimeTypes(portletPreferences, renderRequest);
 
 					int foldersCount = DLAppServiceUtil.getFoldersCount(repositoryId, folderId, true);
 
@@ -158,7 +158,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 					searchContainer.setResults(results);
 
 					request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-					request.setAttribute("view.jsp-results", results);
 					request.setAttribute("view.jsp-searchContainer", searchContainer);
 					%>
 
@@ -171,7 +170,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 
 								<div class="lfr-asset-metadata">
 									<div class="lfr-asset-icon lfr-asset-date">
-										<%= LanguageUtil.format(pageContext, "last-updated-x", dateFormatDate.format(folder.getModifiedDate())) %>
+										<%= LanguageUtil.format(pageContext, "last-updated-x", dateFormatDate.format(folder.getModifiedDate()), false) %>
 									</div>
 
 									<div class="lfr-asset-icon lfr-asset-subfolders">
@@ -202,12 +201,12 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 							<div class="lfr-asset-summary">
 								<liferay-ui:icon
 									cssClass="lfr-asset-avatar"
-									image='<%= "../file_system/large/" + ((total > 0) ? "folder_full_image" : "folder_empty_image") %>'
-									message='<%= (folder != null) ? folder.getName() : LanguageUtil.get(pageContext, "home") %>'
+									image='<%= "../file_system/large/" + ((total > 0) ? "folder_full_image" : "folder_empty") %>'
+									message='<%= (folder != null) ? HtmlUtil.escape(folder.getName()) : LanguageUtil.get(pageContext, "home") %>'
 								/>
 
 								<div class="lfr-asset-name">
-									<h4><%= (folder != null) ? folder.getName() : LanguageUtil.get(pageContext, "home") %></h4>
+									<h4><%= (folder != null) ? HtmlUtil.escape(folder.getName()) : LanguageUtil.get(pageContext, "home") %></h4>
 								</div>
 							</div>
 
@@ -224,7 +223,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 				if (folder != null) {
 					IGUtil.addPortletBreadcrumbEntries(folder, request, renderResponse);
 
-					if (portletName.equals(PortletKeys.MEDIA_GALLERY_DISPLAY)) {
+					if (!defaultFolderView && portletName.equals(PortletKeys.MEDIA_GALLERY_DISPLAY)) {
 						PortalUtil.setPageSubtitle(folder.getName(), request);
 						PortalUtil.setPageDescription(folder.getDescription(), request);
 					}
@@ -243,7 +242,7 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 
 				SearchContainer searchContainer = new SearchContainer(renderRequest, null, null, SearchContainer.DEFAULT_CUR_PARAM, SearchContainer.DEFAULT_DELTA, portletURL, null, null);
 
-				String[] mediaGalleryMimeTypes = DLUtil.getMediaGalleryMimeTypes(preferences, renderRequest);
+				String[] mediaGalleryMimeTypes = DLUtil.getMediaGalleryMimeTypes(portletPreferences, renderRequest);
 
 				int total = DLAppServiceUtil.getGroupFileEntriesCount(repositoryId, groupImagesUserId, defaultFolderId, mediaGalleryMimeTypes, status);
 
@@ -254,7 +253,6 @@ long portletDisplayDDMTemplateId = PortletDisplayTemplateUtil.getPortletDisplayT
 				searchContainer.setResults(results);
 
 				request.setAttribute("view.jsp-mediaGalleryMimeTypes", mediaGalleryMimeTypes);
-				request.setAttribute("view.jsp-results", results);
 				request.setAttribute("view.jsp-searchContainer", searchContainer);
 				%>
 

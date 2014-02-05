@@ -363,6 +363,10 @@ public class DLFileEntryMetadataPersistenceImpl extends BasePersistenceImpl<DLFi
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByUuid(uuid);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileEntryMetadata> list = findByUuid(uuid, count - 1, count,
 				orderByComparator);
 
@@ -891,6 +895,10 @@ public class DLFileEntryMetadataPersistenceImpl extends BasePersistenceImpl<DLFi
 		throws SystemException {
 		int count = countByFileEntryTypeId(fileEntryTypeId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileEntryMetadata> list = findByFileEntryTypeId(fileEntryTypeId,
 				count - 1, count, orderByComparator);
 
@@ -1389,6 +1397,10 @@ public class DLFileEntryMetadataPersistenceImpl extends BasePersistenceImpl<DLFi
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByFileEntryId(fileEntryId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileEntryMetadata> list = findByFileEntryId(fileEntryId,
 				count - 1, count, orderByComparator);
 
@@ -1885,6 +1897,10 @@ public class DLFileEntryMetadataPersistenceImpl extends BasePersistenceImpl<DLFi
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByFileVersionId(fileVersionId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<DLFileEntryMetadata> list = findByFileVersionId(fileVersionId,
 				count - 1, count, orderByComparator);
 
@@ -2351,6 +2367,10 @@ public class DLFileEntryMetadataPersistenceImpl extends BasePersistenceImpl<DLFi
 	private static final String _FINDER_COLUMN_D_F_DDMSTRUCTUREID_2 = "dlFileEntryMetadata.DDMStructureId = ? AND ";
 	private static final String _FINDER_COLUMN_D_F_FILEVERSIONID_2 = "dlFileEntryMetadata.fileVersionId = ?";
 
+	public DLFileEntryMetadataPersistenceImpl() {
+		setModelClass(DLFileEntryMetadata.class);
+	}
+
 	/**
 	 * Caches the document library file entry metadata in the entity cache if it is enabled.
 	 *
@@ -2733,10 +2753,12 @@ public class DLFileEntryMetadataPersistenceImpl extends BasePersistenceImpl<DLFi
 
 		EntityCacheUtil.putResult(DLFileEntryMetadataModelImpl.ENTITY_CACHE_ENABLED,
 			DLFileEntryMetadataImpl.class, dlFileEntryMetadata.getPrimaryKey(),
-			dlFileEntryMetadata);
+			dlFileEntryMetadata, false);
 
 		clearUniqueFindersCache(dlFileEntryMetadata);
 		cacheUniqueFindersCache(dlFileEntryMetadata);
+
+		dlFileEntryMetadata.resetOriginalValues();
 
 		return dlFileEntryMetadata;
 	}

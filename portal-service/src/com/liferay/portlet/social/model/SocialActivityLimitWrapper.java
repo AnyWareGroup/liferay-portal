@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialActivityLimit}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityLimit
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityLimit
  * @generated
  */
+@ProviderType
 public class SocialActivityLimitWrapper implements SocialActivityLimit,
 	ModelWrapper<SocialActivityLimit> {
 	public SocialActivityLimitWrapper(SocialActivityLimit socialActivityLimit) {
@@ -476,9 +480,30 @@ public class SocialActivityLimitWrapper implements SocialActivityLimit,
 		_socialActivityLimit.setCount(limitPeriod, count);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityLimitWrapper)) {
+			return false;
+		}
+
+		SocialActivityLimitWrapper socialActivityLimitWrapper = (SocialActivityLimitWrapper)obj;
+
+		if (Validator.equals(_socialActivityLimit,
+					socialActivityLimitWrapper._socialActivityLimit)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivityLimit getWrappedSocialActivityLimit() {
 		return _socialActivityLimit;
 	}
@@ -486,6 +511,16 @@ public class SocialActivityLimitWrapper implements SocialActivityLimit,
 	@Override
 	public SocialActivityLimit getWrappedModel() {
 		return _socialActivityLimit;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivityLimit.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivityLimit.isFinderCacheEnabled();
 	}
 
 	@Override

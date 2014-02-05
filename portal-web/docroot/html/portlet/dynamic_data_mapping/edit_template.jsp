@@ -18,6 +18,8 @@
 
 <%
 String redirect = ParamUtil.getString(request, "redirect");
+String closeRedirect = ParamUtil.getString(request, "closeRedirect");
+boolean showBackURL = ParamUtil.getBoolean(request, "showBackURL", true);
 
 String portletResource = ParamUtil.getString(request, "portletResource");
 
@@ -48,7 +50,7 @@ if (Validator.isNull(script)) {
 	TemplateHandler templateHandler = TemplateHandlerRegistryUtil.getTemplateHandler(classNameId);
 
 	if (templateHandler != null) {
-		script = ContentUtil.get(templateHandler.getTemplatesHelpPath(language));
+		script = templateHandler.getTemplatesHelpContent(language);
 	}
 	else if ((structure != null) && Validator.equals(structure.getClassName(), JournalArticle.class.getName())) {
 		script = ContentUtil.get(PropsUtil.get(PropsKeys.JOURNAL_TEMPLATE_LANGUAGE_CONTENT, new Filter(language)));
@@ -78,6 +80,7 @@ if (Validator.isNotNull(structureAvailableFields)) {
 <aui:form action="<%= editTemplateURL %>" enctype="multipart/form-data" method="post" name="fm" onSubmit='<%= "event.preventDefault(); " + renderResponse.getNamespace() + "saveTemplate();" %>'>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= (template != null) ? Constants.UPDATE : Constants.ADD %>" />
 	<aui:input name="redirect" type="hidden" value="<%= redirect %>" />
+	<aui:input name="closeRedirect" type="hidden" value="<%= closeRedirect %>" />
 	<aui:input name="portletResource" type="hidden" value="<%= portletResource %>" />
 	<aui:input name="templateId" type="hidden" value="<%= templateId %>" />
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
@@ -105,7 +108,7 @@ if (Validator.isNotNull(structureAvailableFields)) {
 		long imageMaxSize = PrefsPropsUtil.getLong(PropsKeys.DYNAMIC_DATA_MAPPING_IMAGE_SMALL_MAX_SIZE) / 1024;
 		%>
 
-		<liferay-ui:message arguments="<%= imageMaxSize %>" key="please-enter-a-small-image-with-a-valid-file-size-no-larger-than-x" />
+		<liferay-ui:message arguments="<%= imageMaxSize %>" key="please-enter-a-small-image-with-a-valid-file-size-no-larger-than-x" translateArguments="<%= false %>" />
 	</liferay-ui:error>
 
 	<%
@@ -122,61 +125,62 @@ if (Validator.isNotNull(structureAvailableFields)) {
 	<liferay-ui:header
 		backURL="<%= ddmDisplay.getEditTemplateBackURL(liferayPortletRequest, liferayPortletResponse, classNameId, classPK, portletResource) %>"
 		localizeTitle="<%= false %>"
+		showBackURL="<%= showBackURL %>"
 		title="<%= title %>"
 	/>
 
 	<aui:model-context bean="<%= template %>" model="<%= DDMTemplate.class %>" />
 
 	<aui:fieldset>
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" name="name" />
 
 		<liferay-ui:panel-container cssClass="lfr-structure-entry-details-container" extended="<%= false %>" id="templateDetailsPanelContainer" persistState="<%= true %>">
-			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id="templateDetailsSectionPanel" persistState="<%= true %>" title="details">
+			<liferay-ui:panel collapsible="<%= true %>" defaultState="closed" extended="<%= false %>" id="templateDetailsSectionPanel" persistState="<%= true %>" title="details">
 				<c:if test="<%= ddmDisplay.isShowStructureSelector() %>">
 					<aui:field-wrapper helpMessage="structure-help" label="structure">
-						<c:choose>
-							<c:when test="<%= classPK < 0 %>">
-								<liferay-ui:icon
-									image="add"
-									label="<%= true %>"
-									message="select"
-									url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
-								/>
-							</c:when>
-							<c:otherwise>
-								<%= (structure == null) ? "" : structure.getName(locale) %>
-							</c:otherwise>
-						</c:choose>
+						<liferay-ui:input-resource url="<%= (structure != null) ? structure.getName(locale) : StringPool.BLANK %>" />
+
+						<c:if test="<%= ((template == null) || (template.getClassPK() == 0)) %>">
+							<liferay-ui:icon
+								iconCssClass="icon-search"
+								label="<%= true %>"
+								linkCssClass="btn"
+								message="select"
+								url='<%= "javascript:" + renderResponse.getNamespace() + "openDDMStructureSelector();" %>'
+							/>
+						</c:if>
 					</aui:field-wrapper>
 				</c:if>
 
-				<aui:select helpMessage='<%= (template == null) ? StringPool.BLANK : "changing-the-language-will-not-automatically-translate-the-existing-template-script" %>' label="language" name="language">
+				<c:if test="<%= type.equals(DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY) %>">
+					<aui:select changesContext="<%= true %>" helpMessage='<%= (template == null) ? StringPool.BLANK : "changing-the-language-will-not-automatically-translate-the-existing-template-script" %>' label="language" name="language">
 
-					<%
-					for (String curLangType : ddmDisplay.getTemplateLanguageTypes()) {
-						StringBundler sb = new StringBundler(6);
+						<%
+						for (String curLangType : ddmDisplay.getTemplateLanguageTypes()) {
+							StringBundler sb = new StringBundler(6);
 
-						sb.append(LanguageUtil.get(pageContext, curLangType + "[stands-for]"));
-						sb.append(StringPool.SPACE);
-						sb.append(StringPool.OPEN_PARENTHESIS);
-						sb.append(StringPool.PERIOD);
-						sb.append(curLangType);
-						sb.append(StringPool.CLOSE_PARENTHESIS);
-					%>
+							sb.append(LanguageUtil.get(pageContext, curLangType + "[stands-for]"));
+							sb.append(StringPool.SPACE);
+							sb.append(StringPool.OPEN_PARENTHESIS);
+							sb.append(StringPool.PERIOD);
+							sb.append(curLangType);
+							sb.append(StringPool.CLOSE_PARENTHESIS);
+						%>
 
-						<aui:option label="<%= sb.toString() %>" selected="<%= language.equals(curLangType) %>" value="<%= curLangType %>" />
+							<aui:option label="<%= sb.toString() %>" selected="<%= language.equals(curLangType) %>" value="<%= curLangType %>" />
 
-					<%
-					}
-					%>
+						<%
+						}
+						%>
 
-				</aui:select>
+					</aui:select>
+				</c:if>
 
 				<aui:input name="description" />
 
 				<c:if test="<%= template != null %>">
 					<aui:field-wrapper helpMessage="template-key-help" label="template-key">
-						<%= template.getTemplateKey() %>
+						<liferay-ui:input-resource url="<%= template.getTemplateKey() %>" />
 					</aui:field-wrapper>
 
 					<aui:field-wrapper label="url">
@@ -207,7 +211,7 @@ if (Validator.isNotNull(structureAvailableFields)) {
 								<aui:row>
 									<c:if test="<%= smallImage && (template != null) %>">
 										<aui:col width="<%= 50 %>">
-											<img alt="<liferay-ui:message key="preview" />" class="lfr-ddm-small-image-preview" src="<%= Validator.isNotNull(template.getSmallImageURL()) ? template.getSmallImageURL() : themeDisplay.getPathImage() + "/template?img_id=" + template.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(template.getSmallImageId()) %>" />
+											<img alt="<liferay-ui:message key="preview" />" class="lfr-ddm-small-image-preview" src="<%= Validator.isNotNull(template.getSmallImageURL()) ? HtmlUtil.escapeHREF(template.getSmallImageURL()) : themeDisplay.getPathImage() + "/template?img_id=" + template.getSmallImageId() + "&t=" + WebServerServletTokenUtil.getToken(template.getSmallImageId()) %>" />
 										</aui:col>
 									</c:if>
 
@@ -255,13 +259,15 @@ if (Validator.isNotNull(structureAvailableFields)) {
 					var A = AUI();
 
 					A.one('#<portlet:namespace />mode').on(
-						'valueChange',
+						'change',
 						function(event) {
-							<portlet:namespace />toggleMode(event.newVal);
+							var currentTarget = event.currentTarget;
+
+							<portlet:namespace />toggleMode(currentTarget.get('value'));
 						}
 					);
 				},
-				['event-valuechange']
+				['aui-base']
 			);
 
 			Liferay.on(
@@ -306,6 +312,12 @@ if (Validator.isNotNull(structureAvailableFields)) {
 					window.<portlet:namespace />formBuilder.get('fields').each(A.rbind('<portlet:namespace />setFieldsHiddenAttributes', window, mode));
 
 					A.Array.each(window.<portlet:namespace />formBuilder.get('availableFields'), A.rbind('<portlet:namespace />setFieldsHiddenAttributes', window, mode));
+
+					var editingField = window.<portlet:namespace />formBuilder.editingField;
+
+					if (editingField) {
+						window.<portlet:namespace />formBuilder.propertyList.set('data', window.<portlet:namespace />formBuilder.getFieldProperties(editingField));
+					}
 				},
 				['aui-base']
 			);
@@ -355,7 +367,7 @@ if (Validator.isNotNull(structureAvailableFields)) {
 
 							if (expanded) {
 								types.each(
-									function (item, index, collection) {
+									function(item, index, collection) {
 										if (item.get('checked')) {
 											values.item(index).set('disabled', false);
 										}
@@ -375,28 +387,22 @@ if (Validator.isNotNull(structureAvailableFields)) {
 	</c:otherwise>
 </c:choose>
 
-<c:if test="<%= ddmDisplay.isShowStructureSelector() && (classPK < 0) %>">
+<c:if test="<%= ddmDisplay.isShowStructureSelector() && ((template == null) || (template.getClassPK() == 0)) %>">
 	<aui:script>
 		function <portlet:namespace />openDDMStructureSelector() {
 			Liferay.Util.openDDMPortlet(
 				{
-					availableFields: 'Liferay.FormBuilder.AVAILABLE_FIELDS.WCM_STRUCTURE',
+					basePortletURL: '<%= PortletURLFactoryUtil.create(request, PortletKeys.DYNAMIC_DATA_MAPPING, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE) %>',
 					classNameId: '<%= PortalUtil.getClassNameId(DDMStructure.class) %>',
 					classPK: 0,
-					dialog: {
-						modal: true,
-						width: 820
-					},
 					eventName: '<portlet:namespace />selectStructure',
 					groupId: <%= groupId %>,
 					refererPortletName: '<%= PortletKeys.JOURNAL %>',
-					storageType: '<%= PropsValues.JOURNAL_ARTICLE_STORAGE_TYPE %>',
-					structureName: 'structure',
-					structureType: 'com.liferay.portlet.journal.model.JournalArticle',
+					showGlobalScope: true,
 					struts_action: '/dynamic_data_mapping/select_structure',
 					title: '<%= UnicodeLanguageUtil.get(pageContext, "structures") %>'
 				},
-				function(event){
+				function(event) {
 					if (confirm('<%= UnicodeLanguageUtil.get(pageContext, "selecting-a-new-structure-will-change-the-available-input-fields-and-available-templates") %>') && (document.<portlet:namespace />fm.<portlet:namespace />classPK.value != event.ddmstructureid)) {
 						document.<portlet:namespace />fm.<portlet:namespace />classPK.value = event.ddmstructureid;
 

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DLAppHelperLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DLAppHelperLocalService
+ * @author Brian Wing Shun Chan
+ * @see DLAppHelperLocalService
  * @generated
  */
+@ProviderType
 public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	ServiceWrapper<DLAppHelperLocalService> {
 	public DLAppHelperLocalServiceWrapper(
@@ -113,8 +116,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	public void getFileAsStream(long userId,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry,
 		boolean incrementCounter)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
+		throws com.liferay.portal.kernel.exception.SystemException {
 		_dlAppHelperLocalService.getFileAsStream(userId, fileEntry,
 			incrementCounter);
 	}
@@ -131,6 +133,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getFileShortcuts(long, long,
 	boolean, int)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.documentlibrary.model.DLFileShortcut> getFileShortcuts(
 		long groupId, long folderId, int status)
@@ -151,6 +154,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #getFileShortcutsCount(long,
 	long, boolean, int)}
 	*/
+	@Deprecated
 	@Override
 	public int getFileShortcutsCount(long groupId, long folderId, int status)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -161,6 +165,16 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	@Override
 	public java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> getNoAssetFileEntries() {
 		return _dlAppHelperLocalService.getNoAssetFileEntries();
+	}
+
+	@Override
+	public void moveDependentsToTrash(
+		java.util.List<java.lang.Object> dlFileEntriesAndDLFolders,
+		long trashEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlAppHelperLocalService.moveDependentsToTrash(dlFileEntriesAndDLFolders,
+			trashEntryId);
 	}
 
 	@Override
@@ -234,7 +248,8 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 
 	@Override
 	public void moveFolder(
-		com.liferay.portal.kernel.repository.model.Folder folder) {
+		com.liferay.portal.kernel.repository.model.Folder folder)
+		throws com.liferay.portal.kernel.exception.SystemException {
 		_dlAppHelperLocalService.moveFolder(folder);
 	}
 
@@ -264,6 +279,31 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _dlAppHelperLocalService.moveFolderToTrash(userId, folder);
+	}
+
+	@Override
+	public void registerDLSyncEventCallback(java.lang.String event,
+		com.liferay.portal.kernel.repository.model.FileEntry fileEntry)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlAppHelperLocalService.registerDLSyncEventCallback(event, fileEntry);
+	}
+
+	@Override
+	public void registerDLSyncEventCallback(java.lang.String event,
+		com.liferay.portal.kernel.repository.model.Folder folder)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_dlAppHelperLocalService.registerDLSyncEventCallback(event, folder);
+	}
+
+	@Override
+	public void restoreDependentsFromTrash(
+		java.util.List<java.lang.Object> dlFileEntriesAndDLFolders,
+		long trashEntryId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlAppHelperLocalService.restoreDependentsFromTrash(dlFileEntriesAndDLFolders,
+			trashEntryId);
 	}
 
 	@Override
@@ -326,15 +366,6 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	}
 
 	@Override
-	public void updateDependentStatus(com.liferay.portal.model.User user,
-		java.util.List<java.lang.Object> dlFileEntriesAndDLFolders, int status)
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException {
-		_dlAppHelperLocalService.updateDependentStatus(user,
-			dlFileEntriesAndDLFolders, status);
-	}
-
-	@Override
 	public void updateFileEntry(long userId,
 		com.liferay.portal.kernel.repository.model.FileEntry fileEntry,
 		com.liferay.portal.kernel.repository.model.FileVersion sourceFileVersion,
@@ -384,6 +415,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLAppHelperLocalService getWrappedDLAppHelperLocalService() {
 		return _dlAppHelperLocalService;
 	}
@@ -391,6 +423,7 @@ public class DLAppHelperLocalServiceWrapper implements DLAppHelperLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLAppHelperLocalService(
 		DLAppHelperLocalService dlAppHelperLocalService) {
 		_dlAppHelperLocalService = dlAppHelperLocalService;

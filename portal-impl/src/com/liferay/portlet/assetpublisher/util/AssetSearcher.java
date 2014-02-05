@@ -26,11 +26,14 @@ import com.liferay.portal.kernel.search.IndexerPostProcessor;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.Summary;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.security.permission.PermissionChecker;
+import com.liferay.portal.security.permission.PermissionThreadLocal;
 import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.model.AssetCategory;
 import com.liferay.portlet.asset.service.AssetCategoryLocalServiceUtil;
 import com.liferay.portlet.asset.service.persistence.AssetEntryQuery;
+import com.liferay.portlet.asset.util.AssetUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,9 +91,18 @@ public class AssetSearcher extends BaseIndexer {
 		_assetEntryQuery = assetEntryQuery;
 	}
 
+	protected void addImpossibleTerm(BooleanQuery contextQuery, String field)
+		throws Exception {
+
+		contextQuery.addTerm(field, "-1", false, BooleanClauseOccur.MUST);
+	}
+
 	protected void addSearchAllCategories(
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
 
 		long[] allCategoryIds = _assetEntryQuery.getAllCategoryIds();
 
@@ -98,10 +110,19 @@ public class AssetSearcher extends BaseIndexer {
 			return;
 		}
 
+		long[] filteredAllCategoryIds = AssetUtil.filterCategoryIds(
+			permissionChecker, allCategoryIds);
+
+		if (allCategoryIds.length != filteredAllCategoryIds.length) {
+			addImpossibleTerm(contextQuery, Field.ASSET_CATEGORY_IDS);
+
+			return;
+		}
+
 		BooleanQuery categoryIdsQuery = BooleanQueryFactoryUtil.create(
 			searchContext);
 
-		for (long allCategoryId : allCategoryIds) {
+		for (long allCategoryId : filteredAllCategoryIds) {
 			AssetCategory assetCategory =
 				AssetCategoryLocalServiceUtil.fetchAssetCategory(allCategoryId);
 
@@ -137,9 +158,21 @@ public class AssetSearcher extends BaseIndexer {
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
 
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
 		long[] allTagIds = _assetEntryQuery.getAllTagIds();
 
 		if (allTagIds.length == 0) {
+			return;
+		}
+
+		long[] filteredAllTagIds = AssetUtil.filterTagIds(
+			permissionChecker, allTagIds);
+
+		if (allTagIds.length != filteredAllTagIds.length) {
+			addImpossibleTerm(contextQuery, Field.ASSET_TAG_IDS);
+
 			return;
 		}
 
@@ -157,16 +190,28 @@ public class AssetSearcher extends BaseIndexer {
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
 
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
 		long[] anyCategoryIds = _assetEntryQuery.getAnyCategoryIds();
 
 		if (anyCategoryIds.length == 0) {
 			return;
 		}
 
+		long[] filteredAnyCategoryIds = AssetUtil.filterCategoryIds(
+			permissionChecker, anyCategoryIds);
+
+		if (filteredAnyCategoryIds.length == 0) {
+			addImpossibleTerm(contextQuery, Field.ASSET_CATEGORY_IDS);
+
+			return;
+		}
+
 		BooleanQuery categoryIdsQuery = BooleanQueryFactoryUtil.create(
 			searchContext);
 
-		for (long anyCategoryId : anyCategoryIds) {
+		for (long anyCategoryId : filteredAnyCategoryIds) {
 			AssetCategory assetCategory =
 				AssetCategoryLocalServiceUtil.fetchAssetCategory(anyCategoryId);
 
@@ -197,9 +242,21 @@ public class AssetSearcher extends BaseIndexer {
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
 
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
 		long[] anyTagIds = _assetEntryQuery.getAnyTagIds();
 
 		if (anyTagIds.length == 0) {
+			return;
+		}
+
+		long[] filteredAnyTagIds = AssetUtil.filterTagIds(
+			permissionChecker, anyTagIds);
+
+		if (filteredAnyTagIds.length == 0) {
+			addImpossibleTerm(contextQuery, Field.ASSET_TAG_IDS);
+
 			return;
 		}
 

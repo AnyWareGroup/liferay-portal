@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/workflow_definitions/init.jsp" %>
 
 <%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 %>
 
 <aui:nav-bar>
@@ -26,8 +26,6 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
 			<portlet:param name="struts_action" value="/workflow_definitions/view" />
 			<portlet:param name="tabs1" value="workflow-definitions" />
 		</portlet:renderURL>
-
-		<aui:nav-item href="<%= viewDefinitionsURL %>" label="view-all" selected='<%= toolbarItem.equals("view-all") %>' />
 
 		<portlet:renderURL var="addWorkflowDefinitionURL">
 			<portlet:param name="struts_action" value="/workflow_definitions/edit_workflow_definition" />
@@ -42,9 +40,9 @@ String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
 			String taglibHREF = "javascript:Liferay.Util.getOpener()." + renderResponse.getNamespace() + "openKaleoDesigner('', '0', '', Liferay.Util.getWindowName());";
 			%>
 
-			<aui:nav-item href="<%= taglibHREF %>" iconClass="icon-plus" label='<%= LanguageUtil.format(pageContext, "add-new-x", "definition") %>' />
+			<aui:nav-item href="<%= taglibHREF %>" iconCssClass="icon-plus" label='<%= LanguageUtil.format(pageContext, "add-new-x", "definition") %>' />
 		</c:if>
-		<aui:nav-item href="<%= addWorkflowDefinitionURL %>" iconClass="icon-upload" label="file-upload" selected='<%= toolbarItem.equals("add") %>' />
+		<aui:nav-item href="<%= addWorkflowDefinitionURL %>" iconCssClass="icon-upload" label="upload-definition" selected='<%= toolbarItem.equals("add") %>' />
 	</aui:nav>
 </aui:nav-bar>
 

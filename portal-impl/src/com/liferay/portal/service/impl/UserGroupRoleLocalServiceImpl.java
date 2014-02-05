@@ -275,11 +275,13 @@ public class UserGroupRoleLocalServiceImpl
 
 		long companyId = user.getCompanyId();
 
-		Role role = rolePersistence.findByC_N(companyId, roleName);
+		Role role = rolePersistence.fetchByC_N(companyId, roleName);
 
-		long roleId = role.getRoleId();
+		if (role == null) {
+			return false;
+		}
 
-		return hasUserGroupRole(userId, groupId, roleId, inherit);
+		return hasUserGroupRole(userId, groupId, role.getRoleId(), inherit);
 	}
 
 	protected UserGroupRole addUserGroupRole(

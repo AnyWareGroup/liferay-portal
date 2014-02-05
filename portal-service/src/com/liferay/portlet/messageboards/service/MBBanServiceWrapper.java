@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link MBBanService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       MBBanService
+ * @author Brian Wing Shun Chan
+ * @see MBBanService
  * @generated
  */
+@ProviderType
 public class MBBanServiceWrapper implements MBBanService,
 	ServiceWrapper<MBBanService> {
 	public MBBanServiceWrapper(MBBanService mbBanService) {
@@ -68,6 +71,7 @@ public class MBBanServiceWrapper implements MBBanService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBBanService getWrappedMBBanService() {
 		return _mbBanService;
 	}
@@ -75,6 +79,7 @@ public class MBBanServiceWrapper implements MBBanService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBBanService(MBBanService mbBanService) {
 		_mbBanService = mbBanService;
 	}

@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DDMContent}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDMContent
+ * @author Brian Wing Shun Chan
+ * @see DDMContent
  * @generated
  */
+@ProviderType
 public class DDMContentWrapper implements DDMContent, ModelWrapper<DDMContent> {
 	public DDMContentWrapper(DDMContent ddmContent) {
 		_ddmContent = ddmContent;
@@ -573,6 +578,22 @@ public class DDMContentWrapper implements DDMContent, ModelWrapper<DDMContent> {
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _ddmContent.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _ddmContent.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_ddmContent.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -626,9 +647,34 @@ public class DDMContentWrapper implements DDMContent, ModelWrapper<DDMContent> {
 		_ddmContent.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDMContentWrapper)) {
+			return false;
+		}
+
+		DDMContentWrapper ddmContentWrapper = (DDMContentWrapper)obj;
+
+		if (Validator.equals(_ddmContent, ddmContentWrapper._ddmContent)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _ddmContent.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDMContent getWrappedDDMContent() {
 		return _ddmContent;
 	}
@@ -636,6 +682,16 @@ public class DDMContentWrapper implements DDMContent, ModelWrapper<DDMContent> {
 	@Override
 	public DDMContent getWrappedModel() {
 		return _ddmContent;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddmContent.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddmContent.isFinderCacheEnabled();
 	}
 
 	@Override

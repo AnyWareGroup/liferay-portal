@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialRequest}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRequest
+ * @author Brian Wing Shun Chan
+ * @see SocialRequest
  * @generated
  */
+@ProviderType
 public class SocialRequestWrapper implements SocialRequest,
 	ModelWrapper<SocialRequest> {
 	public SocialRequestWrapper(SocialRequest socialRequest) {
@@ -590,9 +594,29 @@ public class SocialRequestWrapper implements SocialRequest,
 		_socialRequest.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialRequestWrapper)) {
+			return false;
+		}
+
+		SocialRequestWrapper socialRequestWrapper = (SocialRequestWrapper)obj;
+
+		if (Validator.equals(_socialRequest, socialRequestWrapper._socialRequest)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialRequest getWrappedSocialRequest() {
 		return _socialRequest;
 	}
@@ -600,6 +624,16 @@ public class SocialRequestWrapper implements SocialRequest,
 	@Override
 	public SocialRequest getWrappedModel() {
 		return _socialRequest;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialRequest.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialRequest.isFinderCacheEnabled();
 	}
 
 	@Override

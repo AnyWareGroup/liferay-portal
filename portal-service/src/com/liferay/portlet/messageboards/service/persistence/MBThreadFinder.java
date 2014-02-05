@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.messageboards.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface MBThreadFinder {
 	public int countByG_U(long groupId, long userId,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
-	public int countByG_C(long groupId, long[] categoryIds,
+	public int countByG_C(long groupId, long categoryId,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
@@ -30,7 +33,7 @@ public interface MBThreadFinder {
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
-	public int countByG_U_LPD(long groupId, long userId, long[] categoryIds,
+	public int countByG_U_LPD(long groupId, long userId,
 		java.util.Date lastPostDate,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
@@ -55,7 +58,7 @@ public interface MBThreadFinder {
 	public int filterCountByG_C(long groupId, long categoryId)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
-	public int filterCountByG_C(long groupId, long[] categoryIds,
+	public int filterCountByG_C(long groupId, long categoryId,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
@@ -69,7 +72,7 @@ public interface MBThreadFinder {
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public java.util.List<com.liferay.portlet.messageboards.model.MBThread> filterFindByG_C(
-		long groupId, long[] categoryIds,
+		long groupId, long categoryId,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
@@ -87,7 +90,7 @@ public interface MBThreadFinder {
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_C(
-		long groupId, long[] categoryIds,
+		long groupId, long categoryId,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 
@@ -97,8 +100,7 @@ public interface MBThreadFinder {
 		throws com.liferay.portal.kernel.exception.SystemException;
 
 	public java.util.List<com.liferay.portlet.messageboards.model.MBThread> findByG_U_LPD(
-		long groupId, long userId, long[] categoryIds,
-		java.util.Date lastPostDate,
+		long groupId, long userId, java.util.Date lastPostDate,
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException;
 

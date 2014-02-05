@@ -28,8 +28,10 @@ import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.security.permission.InlineSQLHelperUtil;
 import com.liferay.portal.service.persistence.impl.BasePersistenceImpl;
+import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.asset.NoSuchTagException;
 import com.liferay.portlet.asset.model.AssetTag;
+import com.liferay.portlet.asset.model.AssetTagConstants;
 import com.liferay.portlet.asset.model.impl.AssetTagImpl;
 import com.liferay.util.dao.orm.CustomSQLUtil;
 
@@ -166,7 +168,7 @@ public class AssetTagFinderImpl
 			session = openSession();
 
 			String sql = CustomSQLUtil.get(FIND_BY_G_N_S_E);
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
@@ -216,17 +218,21 @@ public class AssetTagFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
+					sql, AssetTag.class.getName(), "AssetTag.tagId",
+					PortalUtil.getSiteGroupId(groupId));
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
 			qPos.add(groupId);
-			qPos.add(name);
+
+			String lowerCaseName = StringUtil.toLowerCase(name);
+
+			qPos.add(lowerCaseName);
 
 			Iterator<Long> itr = q.iterate();
 
@@ -262,10 +268,11 @@ public class AssetTagFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
+					sql, AssetTag.class.getName(), "AssetTag.tagId",
+					PortalUtil.getSiteGroupId(groupId));
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -273,8 +280,11 @@ public class AssetTagFinderImpl
 
 			qPos.add(groupId);
 			qPos.add(classNameId);
-			qPos.add(name);
-			qPos.add(name);
+
+			String lowerCaseName = StringUtil.toLowerCase(name);
+
+			qPos.add(lowerCaseName);
+			qPos.add(lowerCaseName);
 
 			Iterator<Long> itr = q.iterate();
 
@@ -315,7 +325,7 @@ public class AssetTagFinderImpl
 					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -324,8 +334,11 @@ public class AssetTagFinderImpl
 			setJoin(qPos, tagProperties);
 
 			qPos.add(groupId);
-			qPos.add(name);
-			qPos.add(name);
+
+			String lowerCaseName = StringUtil.toLowerCase(name);
+
+			qPos.add(lowerCaseName);
+			qPos.add(lowerCaseName);
 
 			Iterator<Long> itr = q.iterate();
 
@@ -351,7 +364,7 @@ public class AssetTagFinderImpl
 			long groupId, String name, boolean inlineSQLHelper)
 		throws NoSuchTagException, SystemException {
 
-		name = name.trim().toLowerCase();
+		name = StringUtil.toLowerCase(name.trim());
 
 		Session session = null;
 
@@ -365,14 +378,17 @@ public class AssetTagFinderImpl
 					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("AssetTag", AssetTagImpl.class);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
 			qPos.add(groupId);
-			qPos.add(name);
+
+			String lowerCaseName = StringUtil.toLowerCase(name);
+
+			qPos.add(lowerCaseName);
 
 			List<AssetTag> tags = q.list();
 
@@ -415,10 +431,11 @@ public class AssetTagFinderImpl
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
-					sql, AssetTag.class.getName(), "AssetTag.tagId", groupId);
+					sql, AssetTag.class.getName(), "AssetTag.tagId",
+					PortalUtil.getSiteGroupId(groupId));
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("AssetTag", AssetTagImpl.class);
 
@@ -426,8 +443,11 @@ public class AssetTagFinderImpl
 
 			qPos.add(groupId);
 			qPos.add(classNameId);
-			qPos.add(name);
-			qPos.add(name);
+
+			String lowerCaseName = StringUtil.toLowerCase(name);
+
+			qPos.add(lowerCaseName);
+			qPos.add(lowerCaseName);
 
 			return (List<AssetTag>)QueryUtil.list(q, getDialect(), start, end);
 		}
@@ -461,7 +481,7 @@ public class AssetTagFinderImpl
 					sql, AssetTag.class.getName(), "AssetTag.tagId", groupIds);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("AssetTag", AssetTagImpl.class);
 
@@ -470,8 +490,11 @@ public class AssetTagFinderImpl
 			setJoin(qPos, tagProperties);
 
 			qPos.add(groupIds);
-			qPos.add(name);
-			qPos.add(name);
+
+			String lowerCaseName = StringUtil.toLowerCase(name);
+
+			qPos.add(lowerCaseName);
+			qPos.add(lowerCaseName);
 
 			return (List<AssetTag>)QueryUtil.list(q, getDialect(), start, end);
 		}
@@ -509,29 +532,33 @@ public class AssetTagFinderImpl
 		if (tagProperties.length == 0) {
 			return StringPool.BLANK;
 		}
-		else {
-			StringBundler sb = new StringBundler(tagProperties.length * 3 + 1);
 
-			sb.append(" INNER JOIN AssetTagProperty ON ");
-			sb.append(" (AssetTagProperty.tagId = AssetTag.tagId) AND ");
+		StringBundler sb = new StringBundler(tagProperties.length * 3 + 1);
 
-			for (int i = 0; i < tagProperties.length; i++) {
-				sb.append("(AssetTagProperty.key_ = ? AND ");
-				sb.append("AssetTagProperty.value = ?) ");
+		sb.append(" INNER JOIN AssetTagProperty ON ");
+		sb.append(" (AssetTagProperty.tagId = AssetTag.tagId) AND ");
 
-				if ((i + 1) < tagProperties.length) {
-					sb.append(" AND ");
-				}
+		for (int i = 0; i < tagProperties.length; i++) {
+			sb.append("(AssetTagProperty.key_ = ? AND ");
+			sb.append("AssetTagProperty.value = ?) ");
+
+			if ((i + 1) < tagProperties.length) {
+				sb.append(" AND ");
 			}
-
-			return sb.toString();
 		}
+
+		return sb.toString();
 	}
 
 	protected void setJoin(QueryPos qPos, String[] tagProperties) {
 		for (String tagProperty : tagProperties) {
 			String[] tagPropertyParts = StringUtil.split(
-				tagProperty, CharPool.COLON);
+				tagProperty, AssetTagConstants.PROPERTY_KEY_VALUE_SEPARATOR);
+
+			if (tagPropertyParts.length <= 1) {
+				tagPropertyParts = StringUtil.split(
+					tagProperty, CharPool.COLON);
+			}
 
 			String key = StringPool.BLANK;
 

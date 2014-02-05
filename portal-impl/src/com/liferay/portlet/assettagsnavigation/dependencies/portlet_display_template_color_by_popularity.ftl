@@ -1,21 +1,14 @@
 <#if entries?has_content>
 	<ul class="tag-items tag-list">
-		<#assign assetTagService = serviceLocator.findService("com.liferay.portlet.asset.service.AssetTagService")>
-
+		<#assign scopeGroupId = getterUtil.getLong(scopeGroupId, themeDisplay.getScopeGroupId()) />
 		<#assign classNameId = getterUtil.getLong(classNameId, 0) />
 
 		<#assign maxCount = 1 />
 		<#assign minCount = 1 />
 
 		<#list entries as entry>
-			<#if (classNameId > 0)>
-				<#assign count = assetTagService.getTagsCount(themeDisplay.getScopeGroupId(), classNameId, entry.getName()) />
-			<#else>
-				<#assign count = assetTagService.getTagsCount(themeDisplay.getScopeGroupId(), entry.getName()) />
-			</#if>
-
-			<#assign maxCount = liferay.max(maxCount, count) />
-			<#assign minCount = liferay.min(minCount, count) />
+			<#assign maxCount = liferay.max(maxCount, entry.getAssetCount()) />
+			<#assign minCount = liferay.min(minCount, entry.getAssetCount()) />
 		</#list>
 
 		<#assign multiplier = 1 />
@@ -26,15 +19,7 @@
 
 		<#list entries as entry>
 			<li class="taglib-asset-tags-summary">
-				<#assign count = 0 />
-
-				<#if (classNameId > 0)>
-					<#assign count = assetTagService.getTagsCount(themeDisplay.getScopeGroupId(), classNameId, entry.getName()) />
-				<#else>
-					<#assign count = assetTagService.getTagsCount(themeDisplay.getScopeGroupId(), entry.getName()) />
-				</#if>
-
-				<#assign popularity = (maxCount - (maxCount - (count - minCount))) * multiplier />
+				<#assign popularity = (maxCount - (maxCount - (entry.getAssetCount() - minCount))) * multiplier />
 
 				<#if popularity < 1>
 					<#assign color = "green" />
@@ -52,7 +37,7 @@
 				<a class ="tag" style="color: ${color};" href="${tagURL}">
 					${entry.getName()}
 
-					<#if (showAssetCount == "true")>
+					<#if count?? && (showAssetCount == "true")>
 						<span class="tag-asset-count">(${count})</span>
 					</#if>
 				</a>

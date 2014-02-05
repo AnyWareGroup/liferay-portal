@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PhoneLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PhoneLocalService
+ * @author Brian Wing Shun Chan
+ * @see PhoneLocalService
  * @generated
  */
+@ProviderType
 public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	ServiceWrapper<PhoneLocalService> {
 	public PhoneLocalServiceWrapper(PhoneLocalService phoneLocalService) {
@@ -161,10 +164,41 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 		return _phoneLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _phoneLocalService.dynamicQueryCount(dynamicQuery, projection);
+	}
+
 	@Override
 	public com.liferay.portal.model.Phone fetchPhone(long phoneId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _phoneLocalService.fetchPhone(phoneId);
+	}
+
+	/**
+	* Returns the phone with the matching UUID and company.
+	*
+	* @param uuid the phone's UUID
+	* @param companyId the primary key of the company
+	* @return the matching phone, or <code>null</code> if a matching phone could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Phone fetchPhoneByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _phoneLocalService.fetchPhoneByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -188,6 +222,23 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _phoneLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the phone with the matching UUID and company.
+	*
+	* @param uuid the phone's UUID
+	* @param companyId the primary key of the company
+	* @return the matching phone
+	* @throws PortalException if a matching phone could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portal.model.Phone getPhoneByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _phoneLocalService.getPhoneByUuidAndCompanyId(uuid, companyId);
 	}
 
 	/**
@@ -258,6 +309,7 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	* @deprecated As of 6.2.0, replaced by {@link #addPhone(long, String, long,
 	String, String, int, boolean, ServiceContext)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.model.Phone addPhone(long userId,
 		java.lang.String className, long classPK, java.lang.String number,
@@ -287,13 +339,6 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	}
 
 	@Override
-	public com.liferay.portal.model.Phone fetchPhoneByUuidAndCompanyId(
-		java.lang.String uuid, long companyId)
-		throws com.liferay.portal.kernel.exception.SystemException {
-		return _phoneLocalService.fetchPhoneByUuidAndCompanyId(uuid, companyId);
-	}
-
-	@Override
 	public java.util.List<com.liferay.portal.model.Phone> getPhones()
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _phoneLocalService.getPhones();
@@ -319,6 +364,7 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PhoneLocalService getWrappedPhoneLocalService() {
 		return _phoneLocalService;
 	}
@@ -326,6 +372,7 @@ public class PhoneLocalServiceWrapper implements PhoneLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPhoneLocalService(PhoneLocalService phoneLocalService) {
 		_phoneLocalService = phoneLocalService;
 	}

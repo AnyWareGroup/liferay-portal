@@ -17,7 +17,7 @@
 		</#if>
 
 		<#list layouts as curLayout>
-			<#assign curLayoutJSON = htmlUtil.escapeAttribute("{ \"layoutId\": ${curLayout.getLayoutId()}, \"groupId\": ${groupId}, \"privateLayout\": ${privateLayout?string} }")>
+			<#assign curLayoutJSON = escapeAttribute("{ \"layoutId\": ${curLayout.getLayoutId()}, \"groupId\": ${groupId}, \"privateLayout\": ${privateLayout?string} }")>
 
 			<#assign selected = false>
 
@@ -30,7 +30,7 @@
 					&ndash;&nbsp;
 				</#list>
 
-				${curLayout.getName(requestedLocale)}
+				${escape(curLayout.getName(requestedLocale))}
 			</@>
 
 			<@getLayoutsOptions
@@ -56,7 +56,13 @@
 	<#if (fieldRawValue?? && fieldRawValue != "")>
 		<#assign fieldLayoutJSONObject = jsonFactoryUtil.createJSONObject(fieldRawValue)>
 
-		<#assign selectedLayout = layoutLocalService.fetchLayout(fieldLayoutJSONObject.getLong("groupId"), fieldLayoutJSONObject.getBoolean("privateLayout"), fieldLayoutJSONObject.getLong("layoutId"))!"">
+		<#if (fieldLayoutJSONObject.getLong("groupId") > 0)>
+			<#assign selectedLayoutGroupId = fieldLayoutJSONObject.getLong("groupId")>
+		<#else>
+			<#assign selectedLayoutGroupId = scopeGroupId>
+		</#if>
+
+		<#assign selectedLayout = layoutLocalService.fetchLayout(selectedLayoutGroupId, fieldLayoutJSONObject.getBoolean("privateLayout"), fieldLayoutJSONObject.getLong("layoutId"))!"">
 
 		<#if (selectedLayout?? && selectedLayout != "")>
 			<#assign selectedPlid = selectedLayout.getPlid()>

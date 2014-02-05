@@ -17,9 +17,12 @@ package com.liferay.portal.kernel.deploy.auto;
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringUtil;
 
 import java.io.File;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +37,41 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class AutoDeployDir {
 
 	public static final String DEFAULT_NAME = "defaultAutoDeployDir";
+
+	public static void deploy(
+			AutoDeploymentContext autoDeploymentContext,
+			List<AutoDeployListener> autoDeployListeners)
+		throws AutoDeployException {
+
+		List<String> duplicateApplicableAutoDeployListenerClassNames =
+			new ArrayList<String>();
+
+		for (AutoDeployListener autoDeployListener : autoDeployListeners) {
+			if (autoDeployListener.deploy(autoDeploymentContext) !=
+					AutoDeployer.CODE_NOT_APPLICABLE) {
+
+				Class<?> autoDeployListenerClass =
+					autoDeployListener.getClass();
+
+				duplicateApplicableAutoDeployListenerClassNames.add(
+					autoDeployListenerClass.getName());
+			}
+		}
+
+		if (duplicateApplicableAutoDeployListenerClassNames.size() > 1) {
+			StringBundler sb = new StringBundler(5);
+
+			sb.append("The auto deploy listeners ");
+			sb.append(
+				StringUtil.merge(
+					duplicateApplicableAutoDeployListenerClassNames, ", "));
+			sb.append(" all deployed ");
+			sb.append(autoDeploymentContext.getFile());
+			sb.append(", but only one should have.");
+
+			throw new AutoDeployException(sb.toString());
+		}
+	}
 
 	public AutoDeployDir(
 		String name, File deployDir, File destDir, long interval,
@@ -85,7 +123,9 @@ public class AutoDeployDir {
 			}
 		}
 
-		if (_interval > 0) {
+		if ((_interval > 0) &&
+			((_autoDeployScanner == null) || !_autoDeployScanner.isAlive())) {
+
 			try {
 				Thread currentThread = Thread.currentThread();
 
@@ -168,9 +208,7 @@ public class AutoDeployDir {
 			AutoDeploymentContext autoDeploymentContext =
 				buildAutoDeploymentContext(file);
 
-			for (AutoDeployListener autoDeployListener : _autoDeployListeners) {
-				autoDeployListener.deploy(autoDeploymentContext);
-			}
+			deploy(autoDeploymentContext, _autoDeployListeners);
 
 			if (file.delete()) {
 				return;
@@ -192,6 +230,10 @@ public class AutoDeployDir {
 	protected void scanDirectory() {
 		File[] files = _deployDir.listFiles();
 
+		if (files == null) {
+			return;
+		}
+
 		Set<String> blacklistedFileNames = _blacklistFileTimestamps.keySet();
 
 		Iterator<String> iterator = blacklistedFileNames.iterator();
@@ -202,7 +244,9 @@ public class AutoDeployDir {
 			boolean blacklistedFileExists = false;
 
 			for (File file : files) {
-				if (blacklistedFileName.equalsIgnoreCase(file.getName())) {
+				if (StringUtil.equalsIgnoreCase(
+						blacklistedFileName, file.getName())) {
+
 					blacklistedFileExists = true;
 				}
 			}
@@ -221,7 +265,7 @@ public class AutoDeployDir {
 		for (File file : files) {
 			String fileName = file.getName();
 
-			fileName = fileName.toLowerCase();
+			fileName = StringUtil.toLowerCase(fileName);
 
 			if (file.isFile() &&
 				(fileName.endsWith(".jar") || fileName.endsWith(".lpkg") ||
@@ -235,8 +279,9 @@ public class AutoDeployDir {
 
 	private static Log _log = LogFactoryUtil.getLog(AutoDeployDir.class);
 
+	private static AutoDeployScanner _autoDeployScanner;
+
 	private List<AutoDeployListener> _autoDeployListeners;
-	private AutoDeployScanner _autoDeployScanner;
 	private Map<String, Long> _blacklistFileTimestamps;
 	private File _deployDir;
 	private File _destDir;

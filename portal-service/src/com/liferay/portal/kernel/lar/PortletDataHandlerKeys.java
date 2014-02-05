@@ -21,6 +21,8 @@ public class PortletDataHandlerKeys {
 
 	public static final String CATEGORIES = "CATEGORIES";
 
+	public static final String COMMENTS = "COMMENTS";
+
 	public static final String DATA_STRATEGY = "DATA_STRATEGY";
 
 	public static final String DATA_STRATEGY_COPY_AS_NEW =
@@ -35,6 +37,8 @@ public class PortletDataHandlerKeys {
 		"DELETE_MISSING_LAYOUTS";
 
 	public static final String DELETE_PORTLET_DATA = "DELETE_PORTLET_DATA";
+
+	public static final String DELETIONS = "DELETIONS";
 
 	public static final String IGNORE_LAST_PUBLISH_DATE =
 		"IGNORE_LAST_PUBLISH_DATE";
@@ -67,6 +71,14 @@ public class PortletDataHandlerKeys {
 	public static final String PORTLET_ARCHIVED_SETUPS =
 		"PORTLET_ARCHIVED_SETUPS";
 
+	public static final String PORTLET_ARCHIVED_SETUPS_ALL =
+		"PORTLET_ARCHIVED_SETUPS_ALL";
+
+	public static final String PORTLET_CONFIGURATION = "PORTLET_CONFIGURATION";
+
+	public static final String PORTLET_CONFIGURATION_ALL =
+		"PORTLET_CONFIGURATION_ALL";
+
 	public static final String PORTLET_DATA = "PORTLET_DATA";
 
 	public static final String PORTLET_DATA_ALL = "PORTLET_DATA_ALL";
@@ -80,6 +92,9 @@ public class PortletDataHandlerKeys {
 
 	public static final String PORTLET_USER_PREFERENCES =
 		"PORTLET_USER_PREFERENCES";
+
+	public static final String PORTLET_USER_PREFERENCES_ALL =
+		"PORTLET_USER_PREFERENCES_ALL";
 
 	public static final String PORTLETS_MERGE_MODE = "PORTLETS_MERGE_MODE";
 
@@ -95,9 +110,9 @@ public class PortletDataHandlerKeys {
 
 	public static final String PUBLISH_TO_REMOTE = "PUBLISH_TO_REMOTE";
 
-	public static final String SELECTED_LAYOUTS = "SELECTED_LAYOUTS";
+	public static final String RATINGS = "RATINGS";
 
-	public static final String THEME = "THEME";
+	public static final String SELECTED_LAYOUTS = "SELECTED_LAYOUTS";
 
 	public static final String THEME_REFERENCE = "THEME_REFERENCE";
 

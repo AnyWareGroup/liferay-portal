@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -29,8 +31,12 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see JournalStructureService
  * @see com.liferay.portlet.journal.service.base.JournalStructureServiceBaseImpl
  * @see com.liferay.portlet.journal.service.impl.JournalStructureServiceImpl
+ * @deprecated As of 6.2.0, since Web Content Administration now uses the
+Dynamic Data Mapping framework to handle templates
  * @generated
  */
+@Deprecated
+@ProviderType
 public class JournalStructureServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -177,6 +183,7 @@ public class JournalStructureServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(JournalStructureService service) {
 	}
 

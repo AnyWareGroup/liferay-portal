@@ -17,6 +17,9 @@
 	<bean id="destination.background_task" class="com.liferay.portal.kernel.messaging.ParallelDestination">
 		<property name="name" value="liferay/background_task" />
 	</bean>
+	<bean id="destination.background_task_status" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+		<property name="name" value="liferay/background_task_status" />
+	</bean>
 	<bean id="destination.convert_process" class="com.liferay.portal.kernel.messaging.SerialDestination">
 		<property name="name" value="liferay/convert_process" />
 	</bean>
@@ -56,6 +59,9 @@
 	<bean id="destination.message_boards_mailing_list" class="com.liferay.portal.kernel.messaging.ParallelDestination">
 		<property name="name" value="liferay/message_boards_mailing_list" />
 	</bean>
+	<bean id="destination.subscription_clean_up" class="com.liferay.portal.kernel.messaging.ParallelDestination">
+		<property name="name" value="liferay/subscription_clean_up" />
+	</bean>
 	<bean id="destination.subscription_sender" class="com.liferay.portal.kernel.messaging.ParallelDestination">
 		<property name="name" value="liferay/subscription_sender" />
 	</bean>
@@ -63,7 +69,8 @@
 	<!-- Listeners -->
 
 	<bean id="messageListener.async_service" class="com.liferay.portal.messaging.async.AsyncMessageListener" />
-	<bean id="messageListener.background_task" class="com.liferay.portlet.backgroundtask.messaging.BackgroundTaskMessageListener" />
+	<bean id="messageListener.background_task" class="com.liferay.portal.backgroundtask.messaging.BackgroundTaskMessageListener" />
+	<bean id="messageListener.background_task_queuing" class="com.liferay.portal.backgroundtask.messaging.BackgroundTaskQueuingMessageListener" />
 	<bean id="messageListener.convert_process" class="com.liferay.portal.convert.messaging.ConvertProcessMessageListener" />
 	<bean id="messageListener.document_library_audio_processor" class="com.liferay.portlet.documentlibrary.messaging.AudioProcessorMessageListener" />
 	<bean id="messageListener.document_library_image_processor" class="com.liferay.portlet.documentlibrary.messaging.ImageProcessorMessageListener" />
@@ -105,6 +112,7 @@
 			<bean class="com.liferay.portlet.messageboards.messaging.MailingListMessageListener" />
 		</property>
 	</bean>
+	<bean id="messageListener.subscription_clean_up" class="com.liferay.portal.subscription.CleanUpSubscriptionMessageListener" />
 	<bean id="messageListener.subscription_sender" class="com.liferay.portal.messaging.SubscriptionSenderMessageListener" />
 
 	<!-- Configurator -->
@@ -114,6 +122,7 @@
 			<list>
 				<ref bean="destination.async_service" />
 				<ref bean="destination.background_task" />
+				<ref bean="destination.background_task_status" />
 				<ref bean="destination.convert_process" />
 				<ref bean="destination.document_library_audio_processor" />
 				<ref bean="destination.document_library_image_processor" />
@@ -127,6 +136,7 @@
 				<ref bean="destination.live_users" />
 				<ref bean="destination.marketplace" />
 				<ref bean="destination.message_boards_mailing_list" />
+				<ref bean="destination.subscription_clean_up" />
 				<ref bean="destination.subscription_sender" />
 			</list>
 		</property>
@@ -143,6 +153,11 @@
 				<entry key="liferay/background_task">
 					<list value-type="com.liferay.portal.kernel.messaging.MessageListener">
 						<ref bean="messageListener.background_task" />
+					</list>
+				</entry>
+				<entry key="liferay/background_task_status">
+					<list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+						<ref bean="messageListener.background_task_queuing" />
 					</list>
 				</entry>
 				<entry key="liferay/convert_process">
@@ -204,6 +219,11 @@
 				<entry key="liferay/message_boards_mailing_list">
 					<list value-type="com.liferay.portal.kernel.messaging.MessageListener">
 						<ref bean="messageListener.message_boards_mailing_list" />
+					</list>
+				</entry>
+				<entry key="liferay/subscription_clean_up">
+					<list value-type="com.liferay.portal.kernel.messaging.MessageListener">
+						<ref bean="messageListener.subscription_clean_up" />
 					</list>
 				</entry>
 				<entry key="liferay/subscription_sender">

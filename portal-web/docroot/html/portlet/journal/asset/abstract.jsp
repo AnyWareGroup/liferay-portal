@@ -31,7 +31,9 @@ boolean workflowAssetPreview = GetterUtil.getBoolean((Boolean)request.getAttribu
 JournalArticleDisplay articleDisplay = null;
 
 if (!workflowAssetPreview && article.isApproved()) {
-	articleDisplay = JournalContentUtil.getDisplay(articleResource.getGroupId(), articleResource.getArticleId(), null, null, languageId, themeDisplay);
+	String xmlRequest = PortletRequestUtil.toXML(renderRequest, renderResponse);
+
+	articleDisplay = JournalContentUtil.getDisplay(articleResource.getGroupId(), articleResource.getArticleId(), null, null, languageId, themeDisplay, 1, xmlRequest);
 }
 else {
 	articleDisplay = JournalArticleLocalServiceUtil.getArticleDisplay(article, null, null, languageId, 1, null, themeDisplay);
@@ -55,7 +57,7 @@ else {
 		<c:choose>
 			<c:when test="<%= Validator.isNotNull(viewURL) %>">
 				<a href="<%= viewURL %>">
-					<img alt="<%= articleDisplay.getTitle() %>" class="asset-small-image" src="<%= HtmlUtil.escape(src) %>" width="150" />
+					<img alt="<%= HtmlUtil.escapeAttribute(articleDisplay.getTitle()) %>" class="asset-small-image" src="<%= HtmlUtil.escapeAttribute(src) %>" width="150" />
 				</a>
 			</c:when>
 			<c:otherwise>
@@ -67,6 +69,8 @@ else {
 
 <%
 String summary = HtmlUtil.escape(articleDisplay.getDescription());
+
+summary = HtmlUtil.replaceNewLine(summary);
 
 if (Validator.isNull(summary)) {
 	summary = HtmlUtil.stripHtml(articleDisplay.getContent());

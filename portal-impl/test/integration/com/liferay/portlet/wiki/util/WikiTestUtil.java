@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.wiki.util;
 
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -22,6 +23,7 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
+import com.liferay.portlet.wiki.model.WikiPageConstants;
 import com.liferay.portlet.wiki.service.WikiNodeLocalServiceUtil;
 import com.liferay.portlet.wiki.service.WikiPageLocalServiceUtil;
 
@@ -95,6 +97,39 @@ public class WikiTestUtil {
 		}
 	}
 
+	public static WikiPage addPage(
+			long userId, long nodeId, String title, String content,
+			String parentTitle, boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
+
+		try {
+			WorkflowThreadLocal.setEnabled(true);
+
+			serviceContext = (ServiceContext)serviceContext.clone();
+
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+
+			WikiPage page = WikiPageLocalServiceUtil.addPage(
+				userId, nodeId, title, WikiPageConstants.VERSION_DEFAULT,
+				content, "Summary", true, WikiPageConstants.DEFAULT_FORMAT,
+				false, parentTitle, null, serviceContext);
+
+			if (approved) {
+				page = WikiPageLocalServiceUtil.updateStatus(
+					userId, page.getResourcePrimKey(),
+					WorkflowConstants.STATUS_APPROVED, serviceContext);
+			}
+
+			return page;
+		}
+		finally {
+			WorkflowThreadLocal.setEnabled(workflowEnabled);
+		}
+	}
+
 	public static File addWikiAttachment(
 			long userId, long nodeId, String title, Class<?> clazz)
 		throws Exception {
@@ -110,11 +145,11 @@ public class WikiTestUtil {
 		throws Exception {
 
 		byte[] fileBytes = FileUtil.getBytes(
-			clazz.getResourceAsStream("dependencies/OSX_Test.docx"));
+			clazz, "dependencies/OSX_Test.docx");
 
 		File file = null;
 
-		if ((fileBytes != null) && (fileBytes.length > 0)) {
+		if (ArrayUtil.isNotEmpty(fileBytes)) {
 			file = FileUtil.createTempFile(fileBytes);
 		}
 
@@ -124,6 +159,21 @@ public class WikiTestUtil {
 			userId, nodeId, title, fileName, file, mimeType);
 
 		return file;
+	}
+
+	public static WikiPage copyPage(
+			WikiPage page, boolean approved, ServiceContext serviceContext)
+		throws Exception {
+
+		WikiPage copyPage = addPage(
+			page.getUserId(), page.getNodeId(), ServiceTestUtil.randomString(),
+			page.getContent(), approved, serviceContext);
+
+		WikiPageLocalServiceUtil.copyPageAttachments(
+			page.getUserId(), page.getNodeId(), page.getTitle(),
+			copyPage.getNodeId(), copyPage.getTitle());
+
+		return copyPage;
 	}
 
 	public static WikiPage updatePage(

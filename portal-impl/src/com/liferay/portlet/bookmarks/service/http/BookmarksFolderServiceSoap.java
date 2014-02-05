@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.bookmarks.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -56,12 +58,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       BookmarksFolderServiceHttp
- * @see       com.liferay.portlet.bookmarks.model.BookmarksFolderSoap
- * @see       com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see BookmarksFolderServiceHttp
+ * @see com.liferay.portlet.bookmarks.model.BookmarksFolderSoap
+ * @see com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil
  * @generated
  */
+@ProviderType
 public class BookmarksFolderServiceSoap {
 	public static com.liferay.portlet.bookmarks.model.BookmarksFolderSoap addFolder(
 		long parentFolderId, java.lang.String name,
@@ -258,11 +261,29 @@ public class BookmarksFolderServiceSoap {
 		}
 	}
 
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	long, boolean)}
+	*/
+	@Deprecated
 	public static void getSubfolderIds(Long[] folderIds, long groupId,
 		long folderId) throws RemoteException {
 		try {
 			BookmarksFolderServiceUtil.getSubfolderIds(ListUtil.toList(
 					folderIds), groupId, folderId);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static void getSubfolderIds(Long[] folderIds, long groupId,
+		long folderId, boolean recurse) throws RemoteException {
+		try {
+			BookmarksFolderServiceUtil.getSubfolderIds(ListUtil.toList(
+					folderIds), groupId, folderId, recurse);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -316,10 +337,12 @@ public class BookmarksFolderServiceSoap {
 		}
 	}
 
-	public static void moveFolderToTrash(long folderId)
-		throws RemoteException {
+	public static com.liferay.portlet.bookmarks.model.BookmarksFolderSoap moveFolderToTrash(
+		long folderId) throws RemoteException {
 		try {
-			BookmarksFolderServiceUtil.moveFolderToTrash(folderId);
+			com.liferay.portlet.bookmarks.model.BookmarksFolder returnValue = BookmarksFolderServiceUtil.moveFolderToTrash(folderId);
+
+			return com.liferay.portlet.bookmarks.model.BookmarksFolderSoap.toSoapModel(returnValue);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

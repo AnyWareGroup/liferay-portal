@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link LayoutPrototype}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutPrototype
+ * @author Brian Wing Shun Chan
+ * @see LayoutPrototype
  * @generated
  */
+@ProviderType
 public class LayoutPrototypeWrapper implements LayoutPrototype,
 	ModelWrapper<LayoutPrototype> {
 	public LayoutPrototypeWrapper(LayoutPrototype layoutPrototype) {
@@ -47,6 +53,7 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("layoutPrototypeId", getLayoutPrototypeId());
 		attributes.put("companyId", getCompanyId());
@@ -64,6 +71,12 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -149,6 +162,26 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_layoutPrototype.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this layout prototype.
+	*
+	* @return the mvcc version of this layout prototype
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _layoutPrototype.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this layout prototype.
+	*
+	* @param mvccVersion the mvcc version of this layout prototype
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_layoutPrototype.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -582,6 +615,22 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _layoutPrototype.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _layoutPrototype.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_layoutPrototype.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -656,9 +705,35 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 		return _layoutPrototype.getLayout();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LayoutPrototypeWrapper)) {
+			return false;
+		}
+
+		LayoutPrototypeWrapper layoutPrototypeWrapper = (LayoutPrototypeWrapper)obj;
+
+		if (Validator.equals(_layoutPrototype,
+					layoutPrototypeWrapper._layoutPrototype)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _layoutPrototype.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public LayoutPrototype getWrappedLayoutPrototype() {
 		return _layoutPrototype;
 	}
@@ -666,6 +741,16 @@ public class LayoutPrototypeWrapper implements LayoutPrototype,
 	@Override
 	public LayoutPrototype getWrappedModel() {
 		return _layoutPrototype;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _layoutPrototype.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _layoutPrototype.isFinderCacheEnabled();
 	}
 
 	@Override

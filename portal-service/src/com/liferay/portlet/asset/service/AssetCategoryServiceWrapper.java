@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AssetCategoryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetCategoryService
+ * @author Brian Wing Shun Chan
+ * @see AssetCategoryService
  * @generated
  */
+@ProviderType
 public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	ServiceWrapper<AssetCategoryService> {
 	public AssetCategoryServiceWrapper(
@@ -71,6 +74,18 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _assetCategoryService.addCategory(title, vocabularyId,
 			serviceContext);
+	}
+
+	/**
+	* @deprecated As of 6.2.0, Replaced by {@link #deleteCategories(long[],
+	ServiceContext)}
+	*/
+	@Deprecated
+	@Override
+	public void deleteCategories(long[] categoryIds)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_assetCategoryService.deleteCategories(categoryIds);
 	}
 
 	@Override
@@ -128,6 +143,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	* @deprecated As of 6.2.0, replaced by {@link #search(long[], String,
 	long[], int, int)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONArray getJSONSearch(
 		long groupId, java.lang.String name, long[] vocabularyIds, int start,
@@ -143,6 +159,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	#getVocabularyCategoriesDisplay(long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONVocabularyCategories(
 		long vocabularyId, int start, int end,
@@ -158,6 +175,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	#getVocabularyCategoriesDisplay(long, String, long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portal.kernel.json.JSONObject getJSONVocabularyCategories(
 		long groupId, java.lang.String name, long vocabularyId, int start,
@@ -233,10 +251,11 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	}
 
 	/**
-	* @deprecated As of 6.2.0, replaced by {@link #
-	getVocabularyRootCategories(long, long, int, int,
+	* @deprecated As of 6.2.0, replaced by {@link
+	#getVocabularyRootCategories(long, long, int, int,
 	OrderByComparator)}
 	*/
+	@Deprecated
 	@Override
 	public java.util.List<com.liferay.portlet.asset.model.AssetCategory> getVocabularyRootCategories(
 		long vocabularyId, int start, int end,
@@ -318,6 +337,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetCategoryService getWrappedAssetCategoryService() {
 		return _assetCategoryService;
 	}
@@ -325,6 +345,7 @@ public class AssetCategoryServiceWrapper implements AssetCategoryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetCategoryService(
 		AssetCategoryService assetCategoryService) {
 		_assetCategoryService = assetCategoryService;

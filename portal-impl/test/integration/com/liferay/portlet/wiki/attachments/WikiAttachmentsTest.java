@@ -19,19 +19,16 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.model.Group;
-import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.TestPropsValues;
 import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
 import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
-import com.liferay.portlet.trash.model.TrashEntry;
-import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 import com.liferay.portlet.trash.service.TrashEntryServiceUtil;
 import com.liferay.portlet.wiki.model.WikiNode;
 import com.liferay.portlet.wiki.model.WikiPage;
@@ -52,7 +49,7 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		EnvironmentExecutionTestListener.class,
+		MainServletExecutionTestListener.class,
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
@@ -352,12 +349,10 @@ public class WikiAttachmentsTest {
 			initialTrashEntriesCount,
 			_page.getDeletedAttachmentsFileEntriesCount());
 
-		long fileEntryId = WikiPageLocalServiceUtil.movePageAttachmentToTrash(
-			TestPropsValues.getUserId(), _page.getNodeId(), _page.getTitle(),
-			fileName);
-
-		FileEntry fileEntry = PortletFileRepositoryUtil.getPortletFileEntry(
-			fileEntryId);
+		FileEntry fileEntry =
+			WikiPageLocalServiceUtil.movePageAttachmentToTrash(
+				TestPropsValues.getUserId(), _page.getNodeId(),
+				_page.getTitle(), fileName);
 
 		Assert.assertEquals(
 			initialNotInTrashCount, _page.getAttachmentsFileEntriesCount());
@@ -366,10 +361,9 @@ public class WikiAttachmentsTest {
 			_page.getDeletedAttachmentsFileEntriesCount());
 
 		if (restore) {
-			TrashEntry trashEntry = TrashEntryLocalServiceUtil.getEntry(
-				DLFileEntryConstants.getClassName(), fileEntryId);
-
-			TrashEntryServiceUtil.restoreEntry(trashEntry.getEntryId());
+			TrashEntryServiceUtil.restoreEntry(
+				DLFileEntryConstants.getClassName(),
+				fileEntry.getFileEntryId());
 
 			Assert.assertEquals(
 				initialNotInTrashCount + 1,

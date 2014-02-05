@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.blogs.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link BlogsStatsUserLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       BlogsStatsUserLocalService
+ * @author Brian Wing Shun Chan
+ * @see BlogsStatsUserLocalService
  * @generated
  */
+@ProviderType
 public class BlogsStatsUserLocalServiceWrapper
 	implements BlogsStatsUserLocalService,
 		ServiceWrapper<BlogsStatsUserLocalService> {
@@ -165,6 +168,23 @@ public class BlogsStatsUserLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _blogsStatsUserLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _blogsStatsUserLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -392,6 +412,7 @@ public class BlogsStatsUserLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public BlogsStatsUserLocalService getWrappedBlogsStatsUserLocalService() {
 		return _blogsStatsUserLocalService;
 	}
@@ -399,6 +420,7 @@ public class BlogsStatsUserLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedBlogsStatsUserLocalService(
 		BlogsStatsUserLocalService blogsStatsUserLocalService) {
 		_blogsStatsUserLocalService = blogsStatsUserLocalService;

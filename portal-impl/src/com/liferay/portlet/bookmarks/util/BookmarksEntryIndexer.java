@@ -21,30 +21,29 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.BaseIndexer;
-import com.liferay.portal.kernel.search.BooleanClauseOccur;
 import com.liferay.portal.kernel.search.BooleanQuery;
-import com.liferay.portal.kernel.search.BooleanQueryFactoryUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.service.persistence.GroupActionableDynamicQuery;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.bookmarks.asset.BookmarksEntryAssetRendererFactory;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.model.BookmarksFolderConstants;
 import com.liferay.portlet.bookmarks.service.BookmarksEntryLocalServiceUtil;
-import com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil;
+import com.liferay.portlet.bookmarks.service.permission.BookmarksEntryPermission;
 import com.liferay.portlet.bookmarks.service.persistence.BookmarksEntryActionableDynamicQuery;
 import com.liferay.portlet.bookmarks.service.persistence.BookmarksFolderActionableDynamicQuery;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Locale;
 
 import javax.portlet.PortletURL;
@@ -61,6 +60,7 @@ public class BookmarksEntryIndexer extends BaseIndexer {
 	public static final String PORTLET_ID = PortletKeys.BOOKMARKS;
 
 	public BookmarksEntryIndexer() {
+		setFilterSearch(true);
 		setPermissionAware(true);
 	}
 
@@ -75,40 +75,21 @@ public class BookmarksEntryIndexer extends BaseIndexer {
 	}
 
 	@Override
+	public boolean hasPermission(
+			PermissionChecker permissionChecker, String entryClassName,
+			long entryClassPK, String actionId)
+		throws Exception {
+
+		return BookmarksEntryPermission.contains(
+			permissionChecker, entryClassPK, ActionKeys.VIEW);
+	}
+
+	@Override
 	public void postProcessContextQuery(
 			BooleanQuery contextQuery, SearchContext searchContext)
 		throws Exception {
 
-		int status = GetterUtil.getInteger(
-			searchContext.getAttribute(Field.STATUS),
-			WorkflowConstants.STATUS_APPROVED);
-
-		if (status != WorkflowConstants.STATUS_ANY) {
-			contextQuery.addRequiredTerm(Field.STATUS, status);
-		}
-
-		long[] folderIds = searchContext.getFolderIds();
-
-		if ((folderIds != null) && (folderIds.length > 0) &&
-			(folderIds[0] !=
-				BookmarksFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
-
-			BooleanQuery folderIdsQuery = BooleanQueryFactoryUtil.create(
-				searchContext);
-
-			for (long folderId : folderIds) {
-				try {
-					BookmarksFolderServiceUtil.getFolder(folderId);
-				}
-				catch (Exception e) {
-					continue;
-				}
-
-				folderIdsQuery.addTerm(Field.FOLDER_ID, folderId);
-			}
-
-			contextQuery.add(folderIdsQuery, BooleanClauseOccur.MUST);
-		}
+		addStatus(contextQuery, searchContext);
 	}
 
 	@Override
@@ -127,22 +108,10 @@ public class BookmarksEntryIndexer extends BaseIndexer {
 		document.addText(Field.DESCRIPTION, entry.getDescription());
 		document.addKeyword(Field.FOLDER_ID, entry.getFolderId());
 		document.addText(Field.TITLE, entry.getName());
+		document.addKeyword(
+			Field.TREE_PATH,
+			StringUtil.split(entry.getTreePath(), CharPool.SLASH));
 		document.addText(Field.URL, entry.getUrl());
-
-		if (!entry.isInTrash() && entry.isInTrashContainer()) {
-			BookmarksFolder folder = entry.getTrashContainer();
-
-			addTrashFields(
-				document, BookmarksFolder.class.getName(), folder.getFolderId(),
-				null, null, BookmarksEntryAssetRendererFactory.TYPE);
-
-			document.addKeyword(
-				Field.ROOT_ENTRY_CLASS_NAME, BookmarksFolder.class.getName());
-			document.addKeyword(
-				Field.ROOT_ENTRY_CLASS_PK, folder.getFolderId());
-			document.addKeyword(
-				Field.STATUS, WorkflowConstants.STATUS_IN_TRASH);
-		}
 
 		return document;
 	}
@@ -198,8 +167,6 @@ public class BookmarksEntryIndexer extends BaseIndexer {
 			long companyId, final long groupId, final long folderId)
 		throws PortalException, SystemException {
 
-		final Collection<Document> documents = new ArrayList<Document>();
-
 		ActionableDynamicQuery actionableDynamicQuery =
 			new BookmarksEntryActionableDynamicQuery() {
 
@@ -226,17 +193,16 @@ public class BookmarksEntryIndexer extends BaseIndexer {
 
 				Document document = getDocument(entry);
 
-				documents.add(document);
+				addDocument(document);
 			}
 
 		};
 
+		actionableDynamicQuery.setCompanyId(companyId);
 		actionableDynamicQuery.setGroupId(groupId);
+		actionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
 		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
 	}
 
 	protected void reindexFolders(final long companyId)

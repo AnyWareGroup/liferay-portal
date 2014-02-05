@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.dynamicdatamapping.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link DDMStructure}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DDMStructure
+ * @author Brian Wing Shun Chan
+ * @see DDMStructure
  * @generated
  */
+@ProviderType
 public class DDMStructureWrapper implements DDMStructure,
 	ModelWrapper<DDMStructure> {
 	public DDMStructureWrapper(DDMStructure ddmStructure) {
@@ -846,6 +851,22 @@ public class DDMStructureWrapper implements DDMStructure,
 	}
 
 	@Override
+	public java.lang.String[] getAvailableLanguageIds() {
+		return _ddmStructure.getAvailableLanguageIds();
+	}
+
+	@Override
+	public java.lang.String getDefaultLanguageId() {
+		return _ddmStructure.getDefaultLanguageId();
+	}
+
+	@Override
+	public void prepareLocalizedFieldsForImport()
+		throws com.liferay.portal.LocaleException {
+		_ddmStructure.prepareLocalizedFieldsForImport();
+	}
+
+	@Override
 	public void prepareLocalizedFieldsForImport(
 		java.util.Locale defaultImportLocale)
 		throws com.liferay.portal.LocaleException {
@@ -900,11 +921,6 @@ public class DDMStructureWrapper implements DDMStructure,
 	}
 
 	@Override
-	public java.util.List<java.lang.String> getAvailableLanguageIds() {
-		return _ddmStructure.getAvailableLanguageIds();
-	}
-
-	@Override
 	public java.util.List<java.lang.String> getChildrenFieldNames(
 		java.lang.String fieldName)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -917,11 +933,6 @@ public class DDMStructureWrapper implements DDMStructure,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _ddmStructure.getCompleteXsd();
-	}
-
-	@Override
-	public java.lang.String getDefaultLanguageId() {
-		return _ddmStructure.getDefaultLanguageId();
 	}
 
 	@Override
@@ -1127,9 +1138,34 @@ public class DDMStructureWrapper implements DDMStructure,
 		_ddmStructure.setLocalizedTransientFieldsMap(localizedTransientFieldsMap);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof DDMStructureWrapper)) {
+			return false;
+		}
+
+		DDMStructureWrapper ddmStructureWrapper = (DDMStructureWrapper)obj;
+
+		if (Validator.equals(_ddmStructure, ddmStructureWrapper._ddmStructure)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _ddmStructure.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public DDMStructure getWrappedDDMStructure() {
 		return _ddmStructure;
 	}
@@ -1137,6 +1173,16 @@ public class DDMStructureWrapper implements DDMStructure,
 	@Override
 	public DDMStructure getWrappedModel() {
 		return _ddmStructure;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _ddmStructure.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _ddmStructure.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -46,7 +46,7 @@ import org.springframework.mock.web.MockServletContext;
 public class ComboServletTest extends PowerMockito {
 
 	@BeforeClass
-	public static void setUp() throws Exception {
+	public static void setUpClass() throws Exception {
 		mockStatic(SingleVMPoolUtil.class);
 
 		MemoryPortalCacheManager<Serializable, Object>
@@ -144,7 +144,6 @@ public class ComboServletTest extends PowerMockito {
 		else {
 			Assert.assertEquals(servletContext.getResource(path), resourceURL);
 		}
-
 	}
 
 	private static final String _JAVASCRIPT_DIR = "html/js";

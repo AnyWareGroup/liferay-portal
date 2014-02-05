@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.ratings.NoSuchStatsException;
 import com.liferay.portlet.ratings.model.RatingsStats;
 import com.liferay.portlet.ratings.service.base.RatingsStatsLocalServiceBaseImpl;
@@ -70,13 +69,15 @@ public class RatingsStatsLocalServiceImpl
 	public void deleteStats(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		try {
 			ratingsStatsPersistence.removeByC_C(classNameId, classPK);
 		}
 		catch (NoSuchStatsException nsse) {
-			_log.warn(nsse);
+			if (_log.isWarnEnabled()) {
+				_log.warn(nsse);
+			}
 		}
 
 		ratingsEntryPersistence.removeByC_C(classNameId, classPK);
@@ -93,7 +94,7 @@ public class RatingsStatsLocalServiceImpl
 	public List<RatingsStats> getStats(String className, List<Long> classPKs)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return ratingsStatsFinder.findByC_C(classNameId, classPKs);
 	}
@@ -102,7 +103,7 @@ public class RatingsStatsLocalServiceImpl
 	public RatingsStats getStats(String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		RatingsStats stats = ratingsStatsPersistence.fetchByC_C(
 			classNameId, classPK);

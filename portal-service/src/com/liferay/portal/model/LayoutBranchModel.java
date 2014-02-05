@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -35,7 +37,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.LayoutBranchModelImpl
  * @generated
  */
-public interface LayoutBranchModel extends BaseModel<LayoutBranch> {
+@ProviderType
+public interface LayoutBranchModel extends BaseModel<LayoutBranch>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -55,6 +58,22 @@ public interface LayoutBranchModel extends BaseModel<LayoutBranch> {
 	 * @param primaryKey the primary key of this layout branch
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this layout branch.
+	 *
+	 * @return the mvcc version of this layout branch
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this layout branch.
+	 *
+	 * @param mvccVersion the mvcc version of this layout branch
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the layout branch ID of this layout branch.

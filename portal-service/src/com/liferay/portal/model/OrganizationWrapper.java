@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Organization}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Organization
+ * @author Brian Wing Shun Chan
+ * @see Organization
  * @generated
  */
+@ProviderType
 public class OrganizationWrapper implements Organization,
 	ModelWrapper<Organization> {
 	public OrganizationWrapper(Organization organization) {
@@ -47,6 +53,7 @@ public class OrganizationWrapper implements Organization,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("organizationId", getOrganizationId());
 		attributes.put("companyId", getCompanyId());
@@ -63,12 +70,19 @@ public class OrganizationWrapper implements Organization,
 		attributes.put("countryId", getCountryId());
 		attributes.put("statusId", getStatusId());
 		attributes.put("comments", getComments());
+		attributes.put("logoId", getLogoId());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -164,6 +178,12 @@ public class OrganizationWrapper implements Organization,
 		if (comments != null) {
 			setComments(comments);
 		}
+
+		Long logoId = (Long)attributes.get("logoId");
+
+		if (logoId != null) {
+			setLogoId(logoId);
+		}
 	}
 
 	/**
@@ -184,6 +204,26 @@ public class OrganizationWrapper implements Organization,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_organization.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this organization.
+	*
+	* @return the mvcc version of this organization
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _organization.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this organization.
+	*
+	* @param mvccVersion the mvcc version of this organization
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_organization.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -538,6 +578,26 @@ public class OrganizationWrapper implements Organization,
 		_organization.setComments(comments);
 	}
 
+	/**
+	* Returns the logo ID of this organization.
+	*
+	* @return the logo ID of this organization
+	*/
+	@Override
+	public long getLogoId() {
+		return _organization.getLogoId();
+	}
+
+	/**
+	* Sets the logo ID of this organization.
+	*
+	* @param logoId the logo ID of this organization
+	*/
+	@Override
+	public void setLogoId(long logoId) {
+		_organization.setLogoId(logoId);
+	}
+
 	@Override
 	public boolean isNew() {
 		return _organization.isNew();
@@ -650,6 +710,12 @@ public class OrganizationWrapper implements Organization,
 	}
 
 	@Override
+	public void updateTreePath(java.lang.String treePath)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_organization.updateTreePath(treePath);
+	}
+
+	@Override
 	public com.liferay.portal.model.Address getAddress() {
 		return _organization.getAddress();
 	}
@@ -686,11 +752,6 @@ public class OrganizationWrapper implements Organization,
 	@Override
 	public long getGroupId() {
 		return _organization.getGroupId();
-	}
-
-	@Override
-	public long getLogoId() {
-		return _organization.getLogoId();
 	}
 
 	@Override
@@ -773,9 +834,34 @@ public class OrganizationWrapper implements Organization,
 		return _organization.isRoot();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof OrganizationWrapper)) {
+			return false;
+		}
+
+		OrganizationWrapper organizationWrapper = (OrganizationWrapper)obj;
+
+		if (Validator.equals(_organization, organizationWrapper._organization)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _organization.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Organization getWrappedOrganization() {
 		return _organization;
 	}
@@ -783,6 +869,16 @@ public class OrganizationWrapper implements Organization,
 	@Override
 	public Organization getWrappedModel() {
 		return _organization;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _organization.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _organization.isFinderCacheEnabled();
 	}
 
 	@Override

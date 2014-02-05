@@ -58,8 +58,9 @@ public class EditLDAPServerAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -94,11 +95,12 @@ public class EditLDAPServerAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(
 				renderRequest, "portlet.portal_settings.edit_ldap_server"));
 	}
@@ -140,10 +142,10 @@ public class EditLDAPServerAction extends PortletAction {
 			}
 		}
 
-		PortletPreferences preferences = PrefsPropsUtil.getPreferences(
-			companyId);
+		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences(
+			companyId, true);
 
-		String ldapServerIds = preferences.getValue(
+		String ldapServerIds = portletPreferences.getValue(
 			"ldap.server.ids", StringPool.BLANK);
 
 		ldapServerIds = StringUtil.add(
@@ -162,7 +164,7 @@ public class EditLDAPServerAction extends PortletAction {
 
 		long ldapServerId = ParamUtil.getLong(actionRequest, "ldapServerId");
 
-		// Remove preferences
+		// Remove portletPreferences
 
 		String postfix = LDAPSettingsUtil.getPropertyPostfix(ldapServerId);
 
@@ -174,17 +176,17 @@ public class EditLDAPServerAction extends PortletAction {
 
 		CompanyServiceUtil.removePreferences(themeDisplay.getCompanyId(), keys);
 
-		// Update preferences
+		// Update portletPreferences
 
-		PortletPreferences preferences = PrefsPropsUtil.getPreferences(
-			themeDisplay.getCompanyId());
+		PortletPreferences portletPreferences = PrefsPropsUtil.getPreferences(
+			themeDisplay.getCompanyId(), true);
 
 		UnicodeProperties properties = new UnicodeProperties();
 
-		String ldapServerIds = preferences.getValue(
+		String ldapServerIds = portletPreferences.getValue(
 			"ldap.server.ids", StringPool.BLANK);
 
-		ldapServerIds = StringUtil.remove(
+		ldapServerIds = StringUtil.removeFromList(
 			ldapServerIds, String.valueOf(ldapServerId));
 
 		properties.put("ldap.server.ids", ldapServerIds);

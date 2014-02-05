@@ -25,21 +25,19 @@ if (Validator.isNull(url) && (userDisplay != null)) {
 <div class="taglib-user-display display-style-<%= displayStyle %>">
 
 	<%
-	String taglibAlt = (userDisplay != null) ? HtmlUtil.escapeAttribute(userDisplay.getFullName()) : LanguageUtil.get(pageContext, "generic-portrait");
-
 	String taglibSrc = null;
 
 	if (userDisplay != null) {
 		taglibSrc = userDisplay.getPortraitURL(themeDisplay);
 	}
 	else {
-		taglibSrc = UserConstants.getPortraitURL(themeDisplay.getPathImage(), true, 0);
+		taglibSrc = UserConstants.getPortraitURL(themeDisplay.getPathImage(), true, 0, null);
 	}
 	%>
 
 	<aui:a href="<%= url %>">
 		<span class="user-profile-image">
-			<img alt="<%= taglibAlt %>" class="avatar" src="<%= HtmlUtil.escape(taglibSrc) %>" width="65" />
+			<img alt="" class="avatar" src="<%= HtmlUtil.escape(taglibSrc) %>" width="65" />
 		</span>
 
 		<span class="user-name">

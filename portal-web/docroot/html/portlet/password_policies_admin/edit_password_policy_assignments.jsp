@@ -83,13 +83,14 @@ portletURL.setParameter("tabs3", tabs3);
 			<liferay-ui:search-container
 				rowChecker="<%= new UserPasswordPolicyChecker(renderResponse, passwordPolicy) %>"
 				searchContainer="<%= new UserSearch(renderRequest, portletURL) %>"
+				var="userSearchContainer"
 			>
 				<liferay-ui:search-form
 					page="/html/portlet/users_admin/user_search.jsp"
 				/>
 
 				<%
-				UserSearchTerms searchTerms = (UserSearchTerms)searchContainer.getSearchTerms();
+				UserSearchTerms searchTerms = (UserSearchTerms)userSearchContainer.getSearchTerms();
 
 				LinkedHashMap<String, Object> userParams = new LinkedHashMap<String, Object>();
 
@@ -111,8 +112,32 @@ portletURL.setParameter("tabs3", tabs3);
 				>
 					<liferay-ui:search-container-column-text
 						name="name"
-						value="<%= HtmlUtil.escape(user2.getFullName()) %>"
-					/>
+					>
+
+						<%= HtmlUtil.escape(user2.getFullName()) %>
+
+						<%
+						PasswordPolicyRel passwordPolicyRel = PasswordPolicyRelLocalServiceUtil.fetchPasswordPolicyRel(User.class.getName(), user.getUserId());
+						%>
+
+						<c:if test="<%= (passwordPolicyRel != null) && (passwordPolicyRel.getPasswordPolicyId() != passwordPolicy.getPasswordPolicyId()) %>">
+
+							<%
+							PasswordPolicy curPasswordPolicy = PasswordPolicyLocalServiceUtil.getPasswordPolicy(passwordPolicyRel.getPasswordPolicyId());
+							%>
+
+							<portlet:renderURL var="assignMembersURL">
+								<portlet:param name="struts_action" value="/password_policies_admin/edit_password_policy_assignments" />
+								<portlet:param name="tabs1" value="<%= tabs1 %>" />
+								<portlet:param name="tabs2" value="users" />
+								<portlet:param name="tabs3" value="current" />
+								<portlet:param name="redirect" value="<%= currentURL %>" />
+								<portlet:param name="passwordPolicyId" value="<%= String.valueOf(curPasswordPolicy.getPasswordPolicyId()) %>" />
+							</portlet:renderURL>
+
+							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-user-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
+						</c:if>
+					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
 						name="screen-name"
@@ -127,8 +152,6 @@ portletURL.setParameter("tabs3", tabs3);
 				%>
 
 				<aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
-
-				<br /><br />
 
 				<liferay-ui:search-iterator />
 			</liferay-ui:search-container>
@@ -146,13 +169,14 @@ portletURL.setParameter("tabs3", tabs3);
 			<liferay-ui:search-container
 				rowChecker="<%= new OrganizationPasswordPolicyChecker(renderResponse, passwordPolicy) %>"
 				searchContainer="<%= new OrganizationSearch(renderRequest, portletURL) %>"
+				var="organizationSearchContainer"
 			>
 				<liferay-ui:search-form
 					page="/html/portlet/users_admin/organization_search.jsp"
 				/>
 
 				<%
-				OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)searchContainer.getSearchTerms();
+				OrganizationSearchTerms searchTerms = (OrganizationSearchTerms)organizationSearchContainer.getSearchTerms();
 
 				long parentOrganizationId = OrganizationConstants.ANY_PARENT_ORGANIZATION_ID;
 
@@ -178,6 +202,36 @@ portletURL.setParameter("tabs3", tabs3);
 						orderable="<%= true %>"
 						property="name"
 					/>
+
+					<liferay-ui:search-container-column-text
+						name="name"
+						orderable="<%= true %>"
+					>
+
+						<%= HtmlUtil.escape(organization.getName()) %>
+
+						<%
+						PasswordPolicyRel passwordPolicyRel = PasswordPolicyRelLocalServiceUtil.fetchPasswordPolicyRel(Organization.class.getName(), organization.getOrganizationId());
+						%>
+
+						<c:if test="<%= (passwordPolicyRel != null) && (passwordPolicyRel.getPasswordPolicyId() != passwordPolicy.getPasswordPolicyId()) %>">
+
+							<%
+							PasswordPolicy curPasswordPolicy = PasswordPolicyLocalServiceUtil.getPasswordPolicy(passwordPolicyRel.getPasswordPolicyId());
+							%>
+
+							<portlet:renderURL var="assignMembersURL">
+								<portlet:param name="struts_action" value="/password_policies_admin/edit_password_policy_assignments" />
+								<portlet:param name="tabs1" value="<%= tabs1 %>" />
+								<portlet:param name="tabs2" value="organizations" />
+								<portlet:param name="tabs3" value="current" />
+								<portlet:param name="redirect" value="<%= currentURL %>" />
+								<portlet:param name="passwordPolicyId" value="<%= String.valueOf(curPasswordPolicy.getPasswordPolicyId()) %>" />
+							</portlet:renderURL>
+
+							<liferay-ui:icon-help message='<%= LanguageUtil.format(pageContext, "this-organization-is-already-assigned-to-password-policy-x", new Object[] {assignMembersURL, curPasswordPolicy.getName()}, false) %>' />
+						</c:if>
+					</liferay-ui:search-container-column-text>
 
 					<liferay-ui:search-container-column-text
 						buffer="buffer"
@@ -230,8 +284,6 @@ portletURL.setParameter("tabs3", tabs3);
 
 				<aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
 
-				<br /><br />
-
 				<liferay-ui:search-iterator />
 			</liferay-ui:search-container>
 		</c:when>
@@ -245,8 +297,9 @@ portletURL.setParameter("tabs3", tabs3);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "password_policy_organizations";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addOrganizationIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeOrganizationIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addOrganizationIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeOrganizationIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm);
 		},
 		['liferay-util-list-fields']
@@ -258,8 +311,9 @@ portletURL.setParameter("tabs3", tabs3);
 		function(assignmentsRedirect) {
 			document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "password_policy_users";
 			document.<portlet:namespace />fm.<portlet:namespace />assignmentsRedirect.value = assignmentsRedirect;
-			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
-			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, "<portlet:namespace />allRowIds");
+			document.<portlet:namespace />fm.<portlet:namespace />addUserIds.value = Liferay.Util.listCheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+			document.<portlet:namespace />fm.<portlet:namespace />removeUserIds.value = Liferay.Util.listUncheckedExcept(document.<portlet:namespace />fm, '<portlet:namespace />allRowIds');
+
 			submitForm(document.<portlet:namespace />fm);
 		},
 		['liferay-util-list-fields']

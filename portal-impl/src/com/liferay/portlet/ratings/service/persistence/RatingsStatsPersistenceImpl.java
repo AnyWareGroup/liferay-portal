@@ -313,6 +313,10 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 	private static final String _FINDER_COLUMN_C_C_CLASSNAMEID_2 = "ratingsStats.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_CLASSPK_2 = "ratingsStats.classPK = ?";
 
+	public RatingsStatsPersistenceImpl() {
+		setModelClass(RatingsStats.class);
+	}
+
 	/**
 	 * Caches the ratings stats in the entity cache if it is enabled.
 	 *
@@ -591,10 +595,13 @@ public class RatingsStatsPersistenceImpl extends BasePersistenceImpl<RatingsStat
 		}
 
 		EntityCacheUtil.putResult(RatingsStatsModelImpl.ENTITY_CACHE_ENABLED,
-			RatingsStatsImpl.class, ratingsStats.getPrimaryKey(), ratingsStats);
+			RatingsStatsImpl.class, ratingsStats.getPrimaryKey(), ratingsStats,
+			false);
 
 		clearUniqueFindersCache(ratingsStats);
 		cacheUniqueFindersCache(ratingsStats);
+
+		ratingsStats.resetOriginalValues();
 
 		return ratingsStats;
 	}

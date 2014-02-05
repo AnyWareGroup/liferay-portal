@@ -211,8 +211,7 @@ public class Log4JUtil {
 	}
 
 	/**
-	 * @see {@link com.liferay.portal.util.FileImpl#getBytes(InputStream, int,
-	 *      boolean)}
+	 * @see com.liferay.portal.util.FileImpl#getBytes(InputStream, int, boolean)
 	 */
 	private static byte[] _getBytes(InputStream inputStream)
 		throws IOException {
@@ -226,13 +225,15 @@ public class Log4JUtil {
 	}
 
 	private static java.util.logging.Level _getJdkLevel(String priority) {
-		if (priority.equalsIgnoreCase(Level.DEBUG.toString())) {
+		if (StringUtil.equalsIgnoreCase(priority, Level.DEBUG.toString())) {
 			return java.util.logging.Level.FINE;
 		}
-		else if (priority.equalsIgnoreCase(Level.ERROR.toString())) {
+		else if (StringUtil.equalsIgnoreCase(
+					priority, Level.ERROR.toString())) {
+
 			return java.util.logging.Level.SEVERE;
 		}
-		else if (priority.equalsIgnoreCase(Level.WARN.toString())) {
+		else if (StringUtil.equalsIgnoreCase(priority, Level.WARN.toString())) {
 			return java.util.logging.Level.WARNING;
 		}
 		else {
@@ -251,7 +252,15 @@ public class Log4JUtil {
 	private static String _getURLContent(URL url) {
 		Map<String, String> variables = new HashMap<String, String>();
 
-		variables.put("liferay.home", _getLiferayHome());
+		variables.put("@liferay.home@", _getLiferayHome());
+
+		String spiId = System.getProperty("spi.id");
+
+		if (spiId == null) {
+			spiId = StringPool.BLANK;
+		}
+
+		variables.put("@spi.id@", spiId);
 
 		String urlContent = null;
 
@@ -274,8 +283,8 @@ public class Log4JUtil {
 		}
 
 		for (Map.Entry<String, String> variable : variables.entrySet()) {
-			urlContent = urlContent.replaceAll(
-				"@" + variable.getKey() + "@", variable.getValue());
+			urlContent = StringUtil.replace(
+				urlContent, variable.getKey(), variable.getValue());
 		}
 
 		if (ServerDetector.getServerId() != null) {

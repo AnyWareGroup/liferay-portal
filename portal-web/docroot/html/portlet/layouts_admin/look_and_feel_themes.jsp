@@ -35,15 +35,15 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 		<legend><liferay-ui:message key="current-theme" /></legend>
 
 		<div>
-			<img alt="<%= selTheme.getName() %>" class="img-polaroid theme-screenshot" onclick="<portlet:namespace /><%= device %>selectTheme('SelTheme', false);" src="<%= themeDisplay.getCDNBaseURL() %><%= selTheme.getStaticResourcePath() %><%= selTheme.getImagesPath() %>/thumbnail.png" title="<%= selTheme.getName() %>" />
+			<img alt="<%= HtmlUtil.escapeAttribute(selTheme.getName()) %>" class="img-polaroid theme-screenshot" onclick="<portlet:namespace /><%= device %>selectTheme('SelTheme', false);" src="<%= themeDisplay.getCDNBaseURL() %><%= HtmlUtil.escapeAttribute(selTheme.getStaticResourcePath()) %><%= HtmlUtil.escapeAttribute(selTheme.getImagesPath()) %>/thumbnail.png" title="<%= HtmlUtil.escapeAttribute(selTheme.getName()) %>" />
 
 			<div class="theme-details">
 				<c:choose>
 					<c:when test="<%= editable %>">
-						<aui:input checked="<%= true %>" cssClass="selected-theme theme-title" id='<%= device + "SelTheme" %>' label="<%= selTheme.getName() %>" name='<%= device + "ThemeId" %>' type="radio" value="<%= selTheme.getThemeId() %>" />
+						<aui:input checked="<%= true %>" cssClass="selected-theme theme-title" id='<%= device + "SelTheme" %>' label="<%= HtmlUtil.escape(selTheme.getName()) %>" name='<%= device + "ThemeId" %>' type="radio" value="<%= selTheme.getThemeId() %>" />
 					</c:when>
 					<c:otherwise>
-						<div class="selected-theme theme-title"><%= selTheme.getName() %></div>
+						<div class="selected-theme theme-title"><%= HtmlUtil.escape(selTheme.getName()) %></div>
 					</c:otherwise>
 				</c:choose>
 
@@ -58,7 +58,7 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 							<liferay-ui:message key="description" />
 						</dt>
 						<dd>
-							<%= selPluginPackage.getShortDescription() %>
+							<%= HtmlUtil.escape(selPluginPackage.getShortDescription()) %>
 						</dd>
 					</c:if>
 
@@ -67,7 +67,7 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 							<liferay-ui:message key="author" />
 						</dt>
 						<dd>
-							<a href="<%= selPluginPackage.getPageURL() %>"><%= selPluginPackage.getAuthor() %></a>
+							<a href="<%= HtmlUtil.escapeHREF(selPluginPackage.getPageURL()) %>"><%= HtmlUtil.escape(selPluginPackage.getAuthor()) %></a>
 						</dd>
 					</c:if>
 
@@ -76,7 +76,7 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 							<liferay-ui:message key="color-scheme" />
 						</dt>
 						<dd>
-							<%= selColorScheme.getName() %>
+							<%= HtmlUtil.escape(selColorScheme.getName()) %>
 						</dd>
 					</c:if>
 
@@ -87,10 +87,10 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 						%>
 
 							<dt class="theme-setting">
-								<liferay-ui:message key="<%= name %>" />
+								<liferay-ui:message key="<%= HtmlUtil.escape(name) %>" />
 							</dt>
 							<dd>
-								<%= selLayoutSet.getThemeSetting(name, device) %>
+								<%= HtmlUtil.escape(selLayoutSet.getThemeSetting(name, device)) %>
 							</dd>
 
 						<%
@@ -104,94 +104,92 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 
 		<c:if test="<%= editable %>">
 			<c:if test="<%= !colorSchemes.isEmpty() || !configurableSettings.isEmpty() %>">
-				<liferay-ui:panel-container extended="<%= true %>" id='<%= device + "layoutsAdminLookAndFeelPanelContainer" %>' persistState="<%= true %>">
-					<c:if test="<%= !colorSchemes.isEmpty() %>">
-						<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id='<%= device + "layoutsAdminLookAndFeelColorsPanel" %>' persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, "color-schemes-x", colorSchemes.size()) %>'>
-							<aui:fieldset cssCclass="color-schemes">
-								<div class="lfr-theme-list unstyled">
-
-									<%
-									for (int i = 0; i < colorSchemes.size(); i++) {
-										ColorScheme curColorScheme = colorSchemes.get(i);
-
-										String cssClass = StringPool.BLANK;
-
-										if (selColorScheme.getColorSchemeId().equals(curColorScheme.getColorSchemeId())) {
-											cssClass = "selected-color-scheme";
-										}
-									%>
-
-									<div class="<%= cssClass %> theme-entry">
-										<img alt="" class="modify-link theme-thumbnail" onclick="<portlet:namespace /><%= device %>selectColorScheme('#<portlet:namespace /><%= device %>ColorSchemeId<%= i %>');" src="<%= themeDisplay.getCDNBaseURL() %><%= selTheme.getStaticResourcePath() %><%= curColorScheme.getColorSchemeThumbnailPath() %>/thumbnail.png" title="<%= curColorScheme.getName() %>" />
-
-										<aui:input checked="<%= selColorScheme.getColorSchemeId().equals(curColorScheme.getColorSchemeId()) %>" cssClass="theme-title" id='<%= device + "ColorSchemeId" + i %>' label="<%= curColorScheme.getName() %>" name='<%= device + "ColorSchemeId" %>' type="radio" value="<%= curColorScheme.getColorSchemeId() %>" />
-									</div>
-
-									<%
-									}
-									%>
-
-								</div>
-							</aui:fieldset>
-						</liferay-ui:panel>
-					</c:if>
-
-					<c:if test="<%= !configurableSettings.isEmpty() %>">
-						<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id='<%= device + "layoutsAdminLookAndFeelSettingsPanel" %>' persistState="<%= true %>" title="settings">
-							<aui:fieldset>
+				<c:if test="<%= !colorSchemes.isEmpty() %>">
+					<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id='<%= device + "layoutsAdminLookAndFeelColorsPanel" %>' persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, "color-schemes-x", colorSchemes.size()) %>'>
+						<aui:fieldset cssCclass="color-schemes">
+							<div class="lfr-theme-list unstyled">
 
 								<%
-								for (String name : configurableSettings.keySet()) {
-									ThemeSetting themeSetting = configurableSettings.get(name);
+								for (int i = 0; i < colorSchemes.size(); i++) {
+									ColorScheme curColorScheme = colorSchemes.get(i);
 
-									String type = GetterUtil.getString(themeSetting.getType(), "text");
-									String value = StringPool.BLANK;
+									String cssClass = StringPool.BLANK;
 
-									if (selLayout != null) {
-										value = selLayout.getThemeSetting(name, device);
+									if (selColorScheme.getColorSchemeId().equals(curColorScheme.getColorSchemeId())) {
+										cssClass = "selected-color-scheme";
 									}
-									else {
-										value = selLayoutSet.getThemeSetting(name, device);
-									}
-
-									String propertyName = device + "ThemeSettingsProperties--" + name + StringPool.DOUBLE_DASH;
 								%>
 
-									<c:choose>
-										<c:when test='<%= type.equals("checkbox") || type.equals("text") || type.equals("textarea") %>'>
-											<aui:input label="<%= name %>" name="<%= propertyName %>" type="<%= type %>" value="<%= value %>" />
-										</c:when>
-										<c:when test='<%= type.equals("select") %>'>
-											<aui:select label="<%= name %>" name="<%= propertyName %>">
+								<div class="<%= cssClass %> theme-entry">
+									<img alt="" class="modify-link theme-thumbnail" onclick="<portlet:namespace /><%= device %>selectColorScheme('#<portlet:namespace /><%= device %>ColorSchemeId<%= i %>');" src="<%= themeDisplay.getCDNBaseURL() %><%= HtmlUtil.escapeAttribute(selTheme.getStaticResourcePath()) %><%= HtmlUtil.escapeAttribute(curColorScheme.getColorSchemeThumbnailPath()) %>/thumbnail.png" title="<%= HtmlUtil.escapeAttribute(curColorScheme.getName()) %>" />
 
-												<%
-												for (String option : themeSetting.getOptions()) {
-												%>
-
-													<aui:option label="<%= option %>" selected="<%= option.equals(value) %>" />
-
-												<%
-												}
-												%>
-
-											</aui:select>
-										</c:when>
-									</c:choose>
-
-									<c:if test="<%= Validator.isNotNull(themeSetting.getScript()) %>">
-										<aui:script position="inline">
-											<%= StringUtil.replace(themeSetting.getScript(), "[@NAMESPACE@]", renderResponse.getNamespace()) %>
-										</aui:script>
-									</c:if>
+									<aui:input checked="<%= selColorScheme.getColorSchemeId().equals(curColorScheme.getColorSchemeId()) %>" cssClass="theme-title" id='<%= device + "ColorSchemeId" + i %>' label="<%= HtmlUtil.escape(curColorScheme.getName()) %>" name='<%= device + "ColorSchemeId" %>' type="radio" value="<%= curColorScheme.getColorSchemeId() %>" />
+								</div>
 
 								<%
 								}
 								%>
 
-							</aui:fieldset>
-						</liferay-ui:panel>
-					</c:if>
-				</liferay-ui:panel-container>
+							</div>
+						</aui:fieldset>
+					</liferay-ui:panel>
+				</c:if>
+
+				<c:if test="<%= !configurableSettings.isEmpty() %>">
+					<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" id='<%= device + "layoutsAdminLookAndFeelSettingsPanel" %>' persistState="<%= true %>" title="settings">
+						<aui:fieldset>
+
+							<%
+							for (String name : configurableSettings.keySet()) {
+								ThemeSetting themeSetting = configurableSettings.get(name);
+
+								String type = GetterUtil.getString(themeSetting.getType(), "text");
+								String value = StringPool.BLANK;
+
+								if (selLayout != null) {
+									value = selLayout.getThemeSetting(name, device);
+								}
+								else {
+									value = selLayoutSet.getThemeSetting(name, device);
+								}
+
+								String propertyName = HtmlUtil.escapeAttribute(device + "ThemeSettingsProperties--" + name + StringPool.DOUBLE_DASH);
+							%>
+
+								<c:choose>
+									<c:when test='<%= type.equals("checkbox") || type.equals("text") || type.equals("textarea") %>'>
+										<aui:input label="<%= HtmlUtil.escape(name) %>" name="<%= propertyName %>" type="<%= type %>" value="<%= value %>" />
+									</c:when>
+									<c:when test='<%= type.equals("select") %>'>
+										<aui:select label="<%= HtmlUtil.escape(name) %>" name="<%= propertyName %>">
+
+											<%
+											for (String option : themeSetting.getOptions()) {
+											%>
+
+												<aui:option label="<%= HtmlUtil.escape(option) %>" selected="<%= option.equals(value) %>" />
+
+											<%
+											}
+											%>
+
+										</aui:select>
+									</c:when>
+								</c:choose>
+
+								<c:if test="<%= Validator.isNotNull(themeSetting.getScript()) %>">
+									<aui:script position="inline">
+										<%= StringUtil.replace(themeSetting.getScript(), "[@NAMESPACE@]", liferayPortletResponse.getNamespace()) %>
+									</aui:script>
+								</c:if>
+
+							<%
+							}
+							%>
+
+						</aui:fieldset>
+					</liferay-ui:panel>
+				</c:if>
 			</c:if>
 		</c:if>
 	</div>
@@ -200,18 +198,26 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 		<div class="float-container lfr-available-themes" id="<%= device %>availableThemes">
 			<legend>
 				<span class="header-title">
-					<%= LanguageUtil.format(pageContext, "available-themes-x", (themes.size() - 1)) %>
+					<%= LanguageUtil.format(pageContext, "available-themes-x", (themes.size() - 1), false) %>
 				</span>
 
 				<c:if test="<%= permissionChecker.isOmniadmin() && PortletLocalServiceUtil.hasPortlet(themeDisplay.getCompanyId(), PortletKeys.MARKETPLACE_STORE) && PrefsPropsUtil.getBoolean(PropsKeys.AUTO_DEPLOY_ENABLED, PropsValues.AUTO_DEPLOY_ENABLED) %>">
 
 					<%
-					PortletURL marketplaceURL = PortletURLFactoryUtil.create(request, PortletKeys.MARKETPLACE_STORE, themeDisplay.getPlid(), PortletRequest.RENDER_PHASE);
+					long controlPanelPlid = PortalUtil.getControlPanelPlid(company.getCompanyId());
+
+					PortletURL marketplaceURL = PortletURLFactoryUtil.create(request, PortletKeys.MARKETPLACE_STORE, controlPanelPlid, PortletRequest.RENDER_PHASE);
 					%>
 
-					<span class="install-themes">
-						<a href="<%= HttpUtil.removeParameter(marketplaceURL.toString(), "controlPanelCategory") %>" id="<portlet:namespace />installMore"><liferay-ui:message key="install-more" /></a>
-					</span>
+					<liferay-ui:icon
+						cssClass="manage-layout-set-branches-link pull-right"
+						iconCssClass="icon-inbox"
+						id="installMore"
+						label="<%= true %>"
+						linkCssClass="btn"
+						message="install-more"
+						url='<%= HttpUtil.removeParameter(marketplaceURL.toString(), "controlPanelCategory") %>'
+					/>
 				</c:if>
 			</legend>
 
@@ -227,9 +233,9 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 
 							<li>
 								<div class="theme-entry">
-									<img alt="" class="modify-link theme-thumbnail" onclick="<portlet:namespace /><%= device %>selectTheme('ThemeId<%= i %>', true);" src="<%= themeDisplay.getCDNBaseURL() %><%= curTheme.getStaticResourcePath() %><%= curTheme.getImagesPath() %>/thumbnail.png" title="<%= curTheme.getName() %>" />
+									<img alt="" class="modify-link theme-thumbnail" onclick="<portlet:namespace /><%= device %>selectTheme('ThemeId<%= i %>', true);" src="<%= themeDisplay.getCDNBaseURL() %><%= HtmlUtil.escapeAttribute(curTheme.getStaticResourcePath()) %><%= HtmlUtil.escapeAttribute(curTheme.getImagesPath()) %>/thumbnail.png" title="<%= HtmlUtil.escapeAttribute(curTheme.getName()) %>" />
 
-									<aui:input cssClass="theme-title" id='<%= device + "ThemeId" + i %>' label="<%= curTheme.getName() %>" name='<%= device + "ThemeId" %>' type="radio" value="<%= curTheme.getThemeId() %>" />
+									<aui:input cssClass="theme-title" id='<%= device + "ThemeId" + i %>' label="<%= HtmlUtil.escape(curTheme.getName()) %>" name='<%= device + "ThemeId" %>' type="radio" value="<%= curTheme.getThemeId() %>" />
 								</div>
 							</li>
 
@@ -277,7 +283,7 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 		Liferay.provide(
 			window,
 			'<portlet:namespace /><%= device %>selectColorScheme',
-			function (id) {
+			function(id) {
 				var A = AUI();
 
 				var colorSchemeInput = A.one(id);
@@ -292,7 +298,7 @@ Map<String, ThemeSetting> configurableSettings = selTheme.getConfigurableSetting
 		Liferay.provide(
 			window,
 			'<portlet:namespace /><%= device %>selectTheme',
-			function (themeId, colorSchemesDisabled) {
+			function(themeId, colorSchemesDisabled) {
 				var A = AUI();
 
 				A.one('#<portlet:namespace /><%= device %>' + themeId).set('checked', true);

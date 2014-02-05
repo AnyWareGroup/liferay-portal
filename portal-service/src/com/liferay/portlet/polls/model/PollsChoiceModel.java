@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.polls.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -43,6 +45,7 @@ import java.util.Map;
  * @see com.liferay.portlet.polls.model.impl.PollsChoiceModelImpl
  * @generated
  */
+@ProviderType
 public interface PollsChoiceModel extends BaseModel<PollsChoice>,
 	StagedGroupedModel {
 	/*
@@ -372,6 +375,12 @@ public interface PollsChoiceModel extends BaseModel<PollsChoice>,
 
 	@Override
 	public void setExpandoBridgeAttributes(ServiceContext serviceContext);
+
+	public String[] getAvailableLanguageIds();
+
+	public String getDefaultLanguageId();
+
+	public void prepareLocalizedFieldsForImport() throws LocaleException;
 
 	public void prepareLocalizedFieldsForImport(Locale defaultImportLocale)
 		throws LocaleException;

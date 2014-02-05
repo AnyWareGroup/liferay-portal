@@ -17,10 +17,12 @@ package com.liferay.portlet.mobiledevicerules.service.impl;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.model.Group;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.util.PropsValues;
@@ -126,11 +128,14 @@ public class MDRRuleGroupLocalServiceImpl
 			ruleGroupId);
 
 		if (ruleGroup != null) {
-			deleteRuleGroup(ruleGroup);
+			mdrRuleGroupLocalService.deleteRuleGroup(ruleGroup);
 		}
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteRuleGroup(MDRRuleGroup ruleGroup) throws SystemException {
 
 		// Rule group
@@ -141,7 +146,7 @@ public class MDRRuleGroupLocalServiceImpl
 
 		mdrRuleLocalService.deleteRules(ruleGroup.getRuleGroupId());
 
-		//	Rule group instances
+		// Rule group instances
 
 		mdrRuleGroupInstanceLocalService.deleteRuleGroupInstances(
 			ruleGroup.getRuleGroupId());
@@ -153,7 +158,7 @@ public class MDRRuleGroupLocalServiceImpl
 			groupId);
 
 		for (MDRRuleGroup ruleGroup : ruleGroups) {
-			deleteRuleGroup(ruleGroup);
+			mdrRuleGroupLocalService.deleteRuleGroup(ruleGroup);
 		}
 	}
 
@@ -194,6 +199,7 @@ public class MDRRuleGroupLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #search(long, String,
 	 *             LinkedHashMap, boolean, int, int)}
 	 */
+	@Deprecated
 	@Override
 	public List<MDRRuleGroup> search(
 			long groupId, String name, boolean andOperator, int start, int end)
@@ -222,6 +228,7 @@ public class MDRRuleGroupLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #searchByKeywords(long,
 	 *             String, LinkedHashMap, boolean, int, int)}
 	 */
+	@Deprecated
 	@Override
 	public List<MDRRuleGroup> searchByKeywords(
 			long groupId, String keywords, boolean andOperator, int start,
@@ -251,6 +258,7 @@ public class MDRRuleGroupLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #searchByKeywordsCount(long,
 	 *             String, LinkedHashMap, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public int searchByKeywordsCount(
 			long groupId, String keywords, boolean andOperator)
@@ -277,6 +285,7 @@ public class MDRRuleGroupLocalServiceImpl
 	 * @deprecated As of 6.2.0, replaced by {@link #searchCount(long, String,
 	 *             LinkedHashMap, boolean)}
 	 */
+	@Deprecated
 	@Override
 	public int searchCount(long groupId, String name, boolean andOperator)
 		throws SystemException {

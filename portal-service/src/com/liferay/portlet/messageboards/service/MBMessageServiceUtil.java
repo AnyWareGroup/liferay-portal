@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.messageboards.service.impl.MBMessageServiceImpl
  * @generated
  */
+@ProviderType
 public class MBMessageServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -75,6 +78,7 @@ public class MBMessageServiceUtil {
 	String, String, java.util.List, boolean, double, boolean,
 	com.liferay.portal.service.ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.messageboards.model.MBMessage addMessage(
 		long groupId, long categoryId, long threadId, long parentMessageId,
 		java.lang.String subject, java.lang.String body,
@@ -330,6 +334,7 @@ public class MBMessageServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(MBMessageService service) {
 	}
 

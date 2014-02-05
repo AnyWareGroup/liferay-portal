@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialActivityCounter}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityCounter
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityCounter
  * @generated
  */
+@ProviderType
 public class SocialActivityCounterWrapper implements SocialActivityCounter,
 	ModelWrapper<SocialActivityCounter> {
 	public SocialActivityCounterWrapper(
@@ -562,9 +566,30 @@ public class SocialActivityCounterWrapper implements SocialActivityCounter,
 		return _socialActivityCounter.isActivePeriod(periodLength);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivityCounterWrapper)) {
+			return false;
+		}
+
+		SocialActivityCounterWrapper socialActivityCounterWrapper = (SocialActivityCounterWrapper)obj;
+
+		if (Validator.equals(_socialActivityCounter,
+					socialActivityCounterWrapper._socialActivityCounter)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivityCounter getWrappedSocialActivityCounter() {
 		return _socialActivityCounter;
 	}
@@ -572,6 +597,16 @@ public class SocialActivityCounterWrapper implements SocialActivityCounter,
 	@Override
 	public SocialActivityCounter getWrappedModel() {
 		return _socialActivityCounter;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivityCounter.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivityCounter.isFinderCacheEnabled();
 	}
 
 	@Override

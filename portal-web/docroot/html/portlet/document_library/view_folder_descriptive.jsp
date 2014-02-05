@@ -26,14 +26,17 @@ PortletURL tempRowURL = (PortletURL)request.getAttribute("view_entries.jsp-tempR
 
 <liferay-ui:app-view-entry
 	actionJsp="/html/portlet/document_library/folder_action.jsp"
+	author="<%= folder.getUserName() %>"
+	createDate="<%= folder.getCreateDate() %>"
 	description="<%= folder.getDescription() %>"
 	displayStyle="descriptive"
 	folder="<%= true %>"
+	modifiedDate="<%= folder.getModifiedDate() %>"
 	rowCheckerId="<%= String.valueOf(folder.getFolderId()) %>"
 	rowCheckerName="<%= Folder.class.getSimpleName() %>"
 	showCheckbox="<%= DLFolderPermission.contains(permissionChecker, folder, ActionKeys.DELETE) || DLFolderPermission.contains(permissionChecker, folder, ActionKeys.UPDATE) %>"
 	thumbnailSrc='<%= themeDisplay.getPathThemeImages() + "/file_system/large/" + folderImage + ".png" %>'
-	thumbnailStyle='<%= "width: " + PrefsPropsUtil.getLong(PropsKeys.DL_FILE_ENTRY_THUMBNAIL_MAX_WIDTH) + "px" %>'
+	thumbnailStyle="<%= DLUtil.getThumbnailStyle() %>"
 	title="<%= folder.getName() %>"
 	url="<%= tempRowURL.toString() %>"
 />

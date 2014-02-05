@@ -22,13 +22,14 @@ import com.liferay.portal.kernel.messaging.async.Async;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
 import com.liferay.portal.model.User;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portlet.asset.model.AssetEntry;
-import com.liferay.portlet.social.NoSuchActivityException;
 import com.liferay.portlet.social.model.SocialActivity;
+import com.liferay.portlet.social.model.SocialActivityConstants;
 import com.liferay.portlet.social.model.SocialActivityDefinition;
 import com.liferay.portlet.social.service.base.SocialActivityLocalServiceBaseImpl;
+import com.liferay.portlet.social.util.SocialActivityHierarchyEntry;
+import com.liferay.portlet.social.util.SocialActivityHierarchyEntryThreadLocal;
 
 import java.util.Date;
 import java.util.List;
@@ -104,7 +105,7 @@ public class SocialActivityLocalServiceImpl
 		}
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		if (groupId > 0) {
 			Group group = groupLocalService.getGroup(groupId);
@@ -126,6 +127,16 @@ public class SocialActivityLocalServiceImpl
 		activity.setMirrorActivityId(0);
 		activity.setClassNameId(classNameId);
 		activity.setClassPK(classPK);
+
+		SocialActivityHierarchyEntry activityHierarchyEntry =
+			SocialActivityHierarchyEntryThreadLocal.peek();
+
+		if (activityHierarchyEntry != null) {
+			activity.setParentClassNameId(
+				activityHierarchyEntry.getClassNameId());
+			activity.setParentClassPK(activityHierarchyEntry.getClassPK());
+		}
+
 		activity.setType(type);
 		activity.setExtraData(extraData);
 		activity.setReceiverUserId(receiverUserId);
@@ -146,6 +157,14 @@ public class SocialActivityLocalServiceImpl
 			mirrorActivity.setCreateDate(createDate.getTime());
 			mirrorActivity.setClassNameId(classNameId);
 			mirrorActivity.setClassPK(classPK);
+
+			if (activityHierarchyEntry != null) {
+				mirrorActivity.setParentClassNameId(
+					activityHierarchyEntry.getClassNameId());
+				mirrorActivity.setParentClassPK(
+					activityHierarchyEntry.getClassPK());
+			}
+
 			mirrorActivity.setType(type);
 			mirrorActivity.setExtraData(extraData);
 			mirrorActivity.setReceiverUserId(user.getUserId());
@@ -181,7 +200,7 @@ public class SocialActivityLocalServiceImpl
 
 		Date createDate = new Date();
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		while (true) {
 			SocialActivity socialActivity =
@@ -220,15 +239,7 @@ public class SocialActivityLocalServiceImpl
 				"Activity and mirror activity must not have primary keys set");
 		}
 
-		SocialActivityDefinition activityDefinition =
-			socialActivitySettingLocalService.getActivityDefinition(
-				activity.getGroupId(), activity.getClassName(),
-				activity.getType());
-
-		if (((activityDefinition == null) && (activity.getType() < 10000)) ||
-			((activityDefinition != null) &&
-			 activityDefinition.isLogActivity())) {
-
+		if (isLogActivity(activity)) {
 			long activityId = counterLocalService.increment(
 				SocialActivity.class.getName());
 
@@ -281,7 +292,7 @@ public class SocialActivityLocalServiceImpl
 			long classPK, int type, String extraData, long receiverUserId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		SocialActivity socialActivity =
 			socialActivityPersistence.fetchByG_U_CD_C_C_T_R(
@@ -322,7 +333,7 @@ public class SocialActivityLocalServiceImpl
 			String extraData, long receiverUserId)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		int count = socialActivityPersistence.countByG_U_C_C_T_R(
 			groupId, userId, classNameId, classPK, type, receiverUserId);
@@ -358,19 +369,36 @@ public class SocialActivityLocalServiceImpl
 		socialActivityCounterLocalService.deleteActivityCounters(assetEntry);
 	}
 
+	@Override
+	public void deleteActivities(long groupId) throws SystemException {
+		if (PropsValues.SOCIAL_ACTIVITY_SETS_ENABLED) {
+			socialActivitySetPersistence.removeByGroupId(groupId);
+		}
+
+		socialActivityPersistence.removeByGroupId(groupId);
+
+		socialActivityCounterPersistence.removeByGroupId(groupId);
+
+		socialActivityLimitPersistence.removeByGroupId(groupId);
+
+		socialActivitySettingPersistence.removeByGroupId(groupId);
+	}
+
 	/**
 	 * Removes stored activities for the asset identified by the class name and
 	 * class primary key.
 	 *
 	 * @param  className the target asset's class name
 	 * @param  classPK the primary key of the target asset
+	 * @throws PortalException if the user's activity counters could not be
+	 *         deleted
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void deleteActivities(String className, long classPK)
 		throws PortalException, SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		if (PropsValues.SOCIAL_ACTIVITY_SETS_ENABLED) {
 			socialActivitySetLocalService.decrementActivityCount(
@@ -401,6 +429,8 @@ public class SocialActivityLocalServiceImpl
 	 * Removes the stored activity and its mirror activity from the database.
 	 *
 	 * @param  activity the activity to be removed
+	 * @throws PortalException if the user's activity counters could not be
+	 *         deleted or if a portal exception occurred
 	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
@@ -414,11 +444,12 @@ public class SocialActivityLocalServiceImpl
 
 		socialActivityPersistence.remove(activity);
 
-		try {
-			socialActivityPersistence.removeByMirrorActivityId(
+		SocialActivity mirrorActivity =
+			socialActivityPersistence.fetchByMirrorActivityId(
 				activity.getActivityId());
-		}
-		catch (NoSuchActivityException nsae) {
+
+		if (mirrorActivity != null) {
+			socialActivityPersistence.remove(mirrorActivity);
 		}
 	}
 
@@ -473,7 +504,7 @@ public class SocialActivityLocalServiceImpl
 			String className, long classPK, int type)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return socialActivityPersistence.fetchByC_C_T_First(
 			classNameId, classPK, type, null);
@@ -570,7 +601,7 @@ public class SocialActivityLocalServiceImpl
 			int end)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getActivities(
 			mirrorActivityId, classNameId, classPK, start, end);
@@ -601,7 +632,7 @@ public class SocialActivityLocalServiceImpl
 			String className, int start, int end)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getActivities(classNameId, start, end);
 	}
@@ -655,7 +686,7 @@ public class SocialActivityLocalServiceImpl
 			long mirrorActivityId, String className, long classPK)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getActivitiesCount(mirrorActivityId, classNameId, classPK);
 	}
@@ -669,7 +700,7 @@ public class SocialActivityLocalServiceImpl
 	 */
 	@Override
 	public int getActivitiesCount(String className) throws SystemException {
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getActivitiesCount(classNameId);
 	}
@@ -1156,6 +1187,33 @@ public class SocialActivityLocalServiceImpl
 		throws SystemException {
 
 		return socialActivityFinder.countByUserOrganizations(userId);
+	}
+
+	protected boolean isLogActivity(SocialActivity activity)
+		throws SystemException {
+
+		if (activity.getType() == SocialActivityConstants.TYPE_DELETE) {
+			if (activity.getParentClassPK() == 0) {
+				return true;
+			}
+
+			return false;
+		}
+
+		SocialActivityDefinition activityDefinition =
+			socialActivitySettingLocalService.getActivityDefinition(
+				activity.getGroupId(), activity.getClassName(),
+				activity.getType());
+
+		if (activityDefinition != null) {
+			return activityDefinition.isLogActivity();
+		}
+
+		if (activity.getType() < SocialActivityConstants.TYPE_VIEW) {
+			return true;
+		}
+
+		return false;
 	}
 
 }

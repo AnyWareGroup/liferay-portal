@@ -33,8 +33,10 @@ import com.liferay.portal.kernel.executor.PortalExecutorManager;
 import com.liferay.portal.kernel.executor.PortalExecutorManagerUtil;
 import com.liferay.portal.kernel.portlet.PortletClassLoaderUtil;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.util.ClassLoaderPool;
 import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.util.PortalImpl;
 import com.liferay.portal.util.PortalUtil;
@@ -124,13 +126,40 @@ public abstract class BaseClusterExecutorImplTestCase
 
 		public static final int PORTAL_PORT = 80;
 
+		public static final int SECURE_PORTAL_PORT = 81;
+
 		@Around(
 			"set(* com.liferay.portal.util.PropsValues." +
 				"PORTAL_INSTANCE_HTTP_PORT)")
-		public Object enableClusterLink(ProceedingJoinPoint proceedingJoinPoint)
+		public Object setPortalPort(ProceedingJoinPoint proceedingJoinPoint)
 			throws Throwable {
 
 			return proceedingJoinPoint.proceed(new Object[] {PORTAL_PORT});
+		}
+
+		@Around(
+			"set(* com.liferay.portal.util.PropsValues." +
+				"PORTAL_INSTANCE_HTTPS_PORT)")
+		public Object setSecurePortalPort(
+				ProceedingJoinPoint proceedingJoinPoint)
+			throws Throwable {
+
+			return proceedingJoinPoint.proceed(
+				new Object[] {SECURE_PORTAL_PORT});
+		}
+
+	}
+
+	@Aspect
+	public static class SetWebServerProtocolAdvice {
+
+		@Around(
+			"set(* com.liferay.portal.util.PropsValues.WEB_SERVER_PROTOCOL)")
+		public Object setWebServerProtocol(
+				ProceedingJoinPoint proceedingJoinPoint)
+			throws Throwable {
+
+			return proceedingJoinPoint.proceed(new Object[] {"https"});
 		}
 
 	}
@@ -248,6 +277,8 @@ public abstract class BaseClusterExecutorImplTestCase
 
 			channel.setReceiver(
 				new MockClusterRequestReceiver(clusterExecutorImpl));
+
+			ClusterExecutorImpl.bindInetAddress = null;
 		}
 
 		clusterExecutorImpl.initialize();
@@ -567,24 +598,33 @@ public abstract class BaseClusterExecutorImplTestCase
 			new MockPortalExecutorManager());
 
 		if (loadSpringXML) {
+			String servletContextName = StringUtil.randomId();
+
 			Class<?> clazz = getClass();
 
 			ClassLoader classLoader = clazz.getClassLoader();
 
-			PortletClassLoaderUtil.setClassLoader(classLoader);
+			ClassLoaderPool.register(servletContextName, classLoader);
+			PortletClassLoaderUtil.setServletContextName(servletContextName);
 
-			ApplicationContext applicationContext =
-				new FileSystemXmlApplicationContext(
-					"portal-impl/test/unit/com/liferay/portal/cluster/" +
-						"test-spring.xml");
+			try {
+				ApplicationContext applicationContext =
+					new FileSystemXmlApplicationContext(
+						"portal-impl/test/unit/com/liferay/portal/cluster/" +
+							"test-spring.xml");
 
-			BeanLocator beanLocator = new BeanLocatorImpl(
-				classLoader, applicationContext);
+				BeanLocator beanLocator = new BeanLocatorImpl(
+					classLoader, applicationContext);
 
-			PortalBeanLocatorUtil.setBeanLocator(beanLocator);
+				PortalBeanLocatorUtil.setBeanLocator(beanLocator);
 
-			PortletBeanLocatorUtil.setBeanLocator(
-				SERVLET_CONTEXT_NAME, beanLocator);
+				PortletBeanLocatorUtil.setBeanLocator(
+					SERVLET_CONTEXT_NAME, beanLocator);
+			}
+			finally {
+				ClassLoaderPool.unregister(servletContextName);
+				PortletClassLoaderUtil.setServletContextName(null);
+			}
 		}
 
 		JDKLoggerTestUtil.configureJDKLogger(

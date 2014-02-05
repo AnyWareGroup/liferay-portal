@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.announcements.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AnnouncementsEntryLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsEntryLocalService
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsEntryLocalService
  * @generated
  */
+@ProviderType
 public class AnnouncementsEntryLocalServiceWrapper
 	implements AnnouncementsEntryLocalService,
 		ServiceWrapper<AnnouncementsEntryLocalService> {
@@ -168,11 +171,44 @@ public class AnnouncementsEntryLocalServiceWrapper
 		return _announcementsEntryLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _announcementsEntryLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsEntry fetchAnnouncementsEntry(
 		long entryId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _announcementsEntryLocalService.fetchAnnouncementsEntry(entryId);
+	}
+
+	/**
+	* Returns the announcements entry with the matching UUID and company.
+	*
+	* @param uuid the announcements entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching announcements entry, or <code>null</code> if a matching announcements entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.announcements.model.AnnouncementsEntry fetchAnnouncementsEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _announcementsEntryLocalService.fetchAnnouncementsEntryByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -197,6 +233,24 @@ public class AnnouncementsEntryLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _announcementsEntryLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the announcements entry with the matching UUID and company.
+	*
+	* @param uuid the announcements entry's UUID
+	* @param companyId the primary key of the company
+	* @return the matching announcements entry
+	* @throws PortalException if a matching announcements entry could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.announcements.model.AnnouncementsEntry getAnnouncementsEntryByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _announcementsEntryLocalService.getAnnouncementsEntryByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -270,7 +324,7 @@ public class AnnouncementsEntryLocalServiceWrapper
 		long userId, long classNameId, long classPK, java.lang.String title,
 		java.lang.String content, java.lang.String url, java.lang.String type,
 		int displayDateMonth, int displayDateDay, int displayDateYear,
-		int displayDateHour, int displayDateMinute, boolean autoDisplayDate,
+		int displayDateHour, int displayDateMinute, boolean displayImmediately,
 		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
 		int expirationDateHour, int expirationDateMinute, int priority,
 		boolean alert)
@@ -279,7 +333,7 @@ public class AnnouncementsEntryLocalServiceWrapper
 		return _announcementsEntryLocalService.addEntry(userId, classNameId,
 			classPK, title, content, url, type, displayDateMonth,
 			displayDateDay, displayDateYear, displayDateHour,
-			displayDateMinute, autoDisplayDate, expirationDateMonth,
+			displayDateMinute, displayImmediately, expirationDateMonth,
 			expirationDateDay, expirationDateYear, expirationDateHour,
 			expirationDateMinute, priority, alert);
 	}
@@ -289,6 +343,7 @@ public class AnnouncementsEntryLocalServiceWrapper
 	String, String, String, String, int, int, int, int, int,
 	boolean, int, int, int, int, int, int, boolean)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.announcements.model.AnnouncementsEntry addEntry(
 		long userId, long classNameId, long classPK, java.lang.String title,
@@ -455,21 +510,23 @@ public class AnnouncementsEntryLocalServiceWrapper
 		long userId, long entryId, java.lang.String title,
 		java.lang.String content, java.lang.String url, java.lang.String type,
 		int displayDateMonth, int displayDateDay, int displayDateYear,
-		int displayDateHour, int displayDateMinute, int expirationDateMonth,
-		int expirationDateDay, int expirationDateYear, int expirationDateHour,
-		int expirationDateMinute, int priority)
+		int displayDateHour, int displayDateMinute, boolean displayImmediately,
+		int expirationDateMonth, int expirationDateDay, int expirationDateYear,
+		int expirationDateHour, int expirationDateMinute, int priority)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _announcementsEntryLocalService.updateEntry(userId, entryId,
 			title, content, url, type, displayDateMonth, displayDateDay,
 			displayDateYear, displayDateHour, displayDateMinute,
-			expirationDateMonth, expirationDateDay, expirationDateYear,
-			expirationDateHour, expirationDateMinute, priority);
+			displayImmediately, expirationDateMonth, expirationDateDay,
+			expirationDateYear, expirationDateHour, expirationDateMinute,
+			priority);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AnnouncementsEntryLocalService getWrappedAnnouncementsEntryLocalService() {
 		return _announcementsEntryLocalService;
 	}
@@ -477,6 +534,7 @@ public class AnnouncementsEntryLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAnnouncementsEntryLocalService(
 		AnnouncementsEntryLocalService announcementsEntryLocalService) {
 		_announcementsEntryLocalService = announcementsEntryLocalService;

@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * This class is used by SOAP remote services, specifically {@link com.liferay.portlet.trash.service.http.TrashEntryServiceSoap}.
  *
- * @author    Brian Wing Shun Chan
- * @see       com.liferay.portlet.trash.service.http.TrashEntryServiceSoap
+ * @author Brian Wing Shun Chan
+ * @see com.liferay.portlet.trash.service.http.TrashEntryServiceSoap
  * @generated
  */
 public class TrashEntrySoap implements Serializable {
@@ -39,6 +39,7 @@ public class TrashEntrySoap implements Serializable {
 		soapModel.setCreateDate(model.getCreateDate());
 		soapModel.setClassNameId(model.getClassNameId());
 		soapModel.setClassPK(model.getClassPK());
+		soapModel.setSystemEventSetKey(model.getSystemEventSetKey());
 		soapModel.setTypeSettings(model.getTypeSettings());
 		soapModel.setStatus(model.getStatus());
 
@@ -157,6 +158,14 @@ public class TrashEntrySoap implements Serializable {
 		_classPK = classPK;
 	}
 
+	public long getSystemEventSetKey() {
+		return _systemEventSetKey;
+	}
+
+	public void setSystemEventSetKey(long systemEventSetKey) {
+		_systemEventSetKey = systemEventSetKey;
+	}
+
 	public String getTypeSettings() {
 		return _typeSettings;
 	}
@@ -181,6 +190,7 @@ public class TrashEntrySoap implements Serializable {
 	private Date _createDate;
 	private long _classNameId;
 	private long _classPK;
+	private long _systemEventSetKey;
 	private String _typeSettings;
 	private int _status;
 }

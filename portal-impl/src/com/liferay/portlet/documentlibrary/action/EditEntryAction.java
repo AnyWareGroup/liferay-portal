@@ -15,19 +15,17 @@
 package com.liferay.portlet.documentlibrary.action;
 
 import com.liferay.portal.DuplicateLockException;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.servlet.ServletResponseConstants;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -42,11 +40,13 @@ import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.SourceFileNameException;
 import com.liferay.portlet.documentlibrary.model.DLFileEntry;
 import com.liferay.portlet.documentlibrary.model.DLFileShortcut;
+import com.liferay.portlet.documentlibrary.model.DLFolder;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.documentlibrary.service.DLAppServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -71,8 +71,9 @@ public class EditEntryAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -88,18 +89,13 @@ public class EditEntryAction extends PortletAction {
 				checkOutEntries(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteEntries(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteEntries(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE)) {
 				moveEntries(actionRequest);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteEntries(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
-			}
-			else if (cmd.equals(Constants.RESTORE)) {
-				restoreEntries(actionRequest);
+				deleteEntries(actionRequest, true);
 			}
 
 			WindowState windowState = actionRequest.getWindowState();
@@ -161,8 +157,9 @@ public class EditEntryAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -176,7 +173,8 @@ public class EditEntryAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.document_library.error");
+				return actionMapping.findForward(
+					"portlet.document_library.error");
 			}
 			else {
 				throw e;
@@ -185,7 +183,7 @@ public class EditEntryAction extends PortletAction {
 
 		String forward = "portlet.document_library.edit_entry";
 
-		return mapping.findForward(getForward(renderRequest, forward));
+		return actionMapping.findForward(getForward(renderRequest, forward));
 	}
 
 	protected void cancelCheckedOutEntries(ActionRequest actionRequest)
@@ -262,16 +260,24 @@ public class EditEntryAction extends PortletAction {
 	}
 
 	protected void deleteEntries(
-			LiferayPortletConfig liferayPortletConfig,
 			ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
 		long[] deleteFolderIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "folderIds"), 0L);
 
-		for (long deleteFolderId : deleteFolderIds) {
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
+		for (int i = 0; i < deleteFolderIds.length; i++) {
+			long deleteFolderId = deleteFolderIds[i];
+
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFolderToTrash(deleteFolderId);
+				Folder folder = DLAppServiceUtil.moveFolderToTrash(
+					deleteFolderId);
+
+				if (folder.getModel() instanceof DLFolder) {
+					trashedModels.add((DLFolder)folder.getModel());
+				}
 			}
 			else {
 				DLAppServiceUtil.deleteFolder(deleteFolderId);
@@ -283,9 +289,15 @@ public class EditEntryAction extends PortletAction {
 		long[] deleteFileShortcutIds = StringUtil.split(
 			ParamUtil.getString(actionRequest, "fileShortcutIds"), 0L);
 
-		for (long deleteFileShortcutId : deleteFileShortcutIds) {
+		for (int i = 0; i < deleteFileShortcutIds.length; i++) {
+			long deleteFileShortcutId = deleteFileShortcutIds[i];
+
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFileShortcutToTrash(deleteFileShortcutId);
+				DLFileShortcut fileShortcut =
+					DLAppServiceUtil.moveFileShortcutToTrash(
+						deleteFileShortcutId);
+
+				trashedModels.add(fileShortcut);
 			}
 			else {
 				DLAppServiceUtil.deleteFileShortcut(deleteFileShortcutId);
@@ -297,38 +309,22 @@ public class EditEntryAction extends PortletAction {
 
 		for (long deleteFileEntryId : deleteFileEntryIds) {
 			if (moveToTrash) {
-				DLAppServiceUtil.moveFileEntryToTrash(deleteFileEntryId);
+				FileEntry fileEntry = DLAppServiceUtil.moveFileEntryToTrash(
+					deleteFileEntryId);
+
+				if (fileEntry.getModel() instanceof DLFileEntry) {
+					trashedModels.add((DLFileEntry)fileEntry.getModel());
+				}
 			}
 			else {
 				DLAppServiceUtil.deleteFileEntry(deleteFileEntryId);
 			}
 		}
 
-		if (moveToTrash &&
-			((deleteFileEntryIds.length > 0) ||
-			 (deleteFileShortcutIds.length > 0) ||
-			 (deleteFolderIds.length > 0))) {
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
 
-			Map<String, String[]> data = new HashMap<String, String[]>();
-
-			data.put(
-				"restoreFileEntryIds",
-				ArrayUtil.toStringArray(deleteFileEntryIds));
-			data.put(
-				"restoreFileShortcutIds",
-				ArrayUtil.toStringArray(deleteFileShortcutIds));
-			data.put(
-				"restoreFolderIds", ArrayUtil.toStringArray(deleteFolderIds));
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -367,32 +363,6 @@ public class EditEntryAction extends PortletAction {
 			DLAppServiceUtil.updateFileShortcut(
 				fileShortcutId, newFolderId, fileShortcut.getToFileEntryId(),
 				serviceContext);
-		}
-	}
-
-	protected void restoreEntries(ActionRequest actionRequest)
-		throws PortalException, SystemException {
-
-		long[] restoreFolderIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreFolderIds"), 0L);
-
-		for (long restoreFolderId : restoreFolderIds) {
-			DLAppServiceUtil.restoreFolderFromTrash(restoreFolderId);
-		}
-
-		long[] restoreFileEntryIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreFileEntryIds"), 0L);
-
-		for (long restoreFileEntryId : restoreFileEntryIds) {
-			DLAppServiceUtil.restoreFileEntryFromTrash(restoreFileEntryId);
-		}
-
-		long[] restoreFileShortcutIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreFileShortcutIds"), 0L);
-
-		for (long restoreFileShortcutId : restoreFileShortcutIds) {
-			DLAppServiceUtil.restoreFileShortcutFromTrash(
-				restoreFileShortcutId);
 		}
 	}
 

@@ -14,6 +14,7 @@
 
 package com.liferay.portal.apache.bridges.struts;
 
+import com.liferay.portal.kernel.servlet.DynamicServletRequest;
 import com.liferay.portal.kernel.servlet.PipingServletResponse;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.JavaConstants;
@@ -76,6 +77,7 @@ public class LiferayRequestDispatcher implements RequestDispatcher {
 	 * @deprecated As of 6.2.0, replaced by {@link #forward(ServletRequest,
 	 *             ServletResponse)}
 	 */
+	@Deprecated
 	public void forward(
 			ServletRequest servletRequest, ServletResponse servletResponse,
 			boolean named)
@@ -105,6 +107,7 @@ public class LiferayRequestDispatcher implements RequestDispatcher {
 	 * @deprecated As of 6.2.0, replaced by {@link #include(ServletRequest,
 	 *             ServletResponse)}
 	 */
+	@Deprecated
 	public void include(
 			ServletRequest servletRequest, ServletResponse servletResponse,
 			boolean named)
@@ -139,6 +142,9 @@ public class LiferayRequestDispatcher implements RequestDispatcher {
 			if (pos != -1) {
 				pathNoQueryString = _path.substring(0, pos);
 				queryString = _path.substring(pos + 1);
+
+				servletRequest = DynamicServletRequest.addQueryString(
+					(HttpServletRequest)servletRequest, queryString);
 			}
 
 			Set<String> servletURLPatterns = getServletURLPatterns(
@@ -189,6 +195,7 @@ public class LiferayRequestDispatcher implements RequestDispatcher {
 	 * @deprecated As of 6.2.0, replaced by {@link #invoke(ServletRequest,
 	 *             ServletResponse, boolean)}
 	 */
+	@Deprecated
 	public void invoke(
 			ServletRequest servletRequest, ServletResponse servletResponse,
 			boolean named, boolean include)
@@ -206,7 +213,7 @@ public class LiferayRequestDispatcher implements RequestDispatcher {
 		boolean named = false;
 
 		PortletRequestImpl portletRequestImpl =
-			(PortletRequestImpl)portletRequest;
+			PortletRequestImpl.getPortletRequestImpl(portletRequest);
 
 		return new PortletServletRequest(
 			request, portletRequestImpl, pathInfo, queryString, requestURI,
@@ -241,7 +248,7 @@ public class LiferayRequestDispatcher implements RequestDispatcher {
 		PortletResponse portletResponse) {
 
 		PortletRequestImpl portletRequestImpl =
-			(PortletRequestImpl)portletRequest;
+			PortletRequestImpl.getPortletRequestImpl(portletRequest);
 
 		Portlet portlet = portletRequestImpl.getPortlet();
 

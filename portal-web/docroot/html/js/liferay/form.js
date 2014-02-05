@@ -13,10 +13,17 @@ AUI.add(
 			return defaultAcceptFiles(val, node, ruleValue);
 		};
 
+		var number = function(val, node, ruleValue) {
+			var regex = /^[+\-]?(\d+)(\.\d+)?([eE][+-]?\d+)?$/;
+
+			return regex && regex.test(val);
+		};
+
 		A.mix(
 			DEFAULTS_FORM_VALIDATOR.RULES,
 			{
-				acceptFiles: acceptFiles
+				acceptFiles: acceptFiles,
+				number: number
 			},
 			true
 		);
@@ -88,9 +95,7 @@ AUI.add(
 								{
 									boundingBox: formNode,
 									fieldStrings: fieldStrings,
-									rules: rules,
-									validateOnBlur: false,
-									validateOnInput: true
+									rules: rules
 								}
 							);
 							instance.formValidator = formValidator;

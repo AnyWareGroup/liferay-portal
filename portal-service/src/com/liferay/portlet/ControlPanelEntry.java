@@ -29,7 +29,7 @@ public interface ControlPanelEntry {
 		throws Exception;
 
 	/**
-	 * @deprecated As of 6.2, with no direct replacement.<p>This method was
+	 * @deprecated As of 6.2.0, with no direct replacement.<p>This method was
 	 *             originally defined to determine if a portlet should be
 	 *             displayed in the Control Panel. In this version, this method
 	 *             should always return <code>false</code> and remains only to
@@ -39,12 +39,13 @@ public interface ControlPanelEntry {
 	 *             #hasAccessPermission} to determine if a portlet should be
 	 *             displayed in the Control Panel.</p>
 	 */
+	@Deprecated
 	public boolean isVisible(
 			PermissionChecker permissionChecker, Portlet portlet)
 		throws Exception;
 
 	/**
-	 * @deprecated As of 6.2, with no direct replacement.<p>This method was
+	 * @deprecated As of 6.2.0, with no direct replacement.<p>This method was
 	 *             originally defined to determine if a portlet should be
 	 *             displayed in the Control Panel. In this version, this method
 	 *             should always return <code>false</code> and remains only to
@@ -54,6 +55,7 @@ public interface ControlPanelEntry {
 	 *             #hasAccessPermission} to determine if a portlet should be
 	 *             displayed in the Control Panel.</p>
 	 */
+	@Deprecated
 	public boolean isVisible(
 			Portlet portlet, String category, ThemeDisplay themeDisplay)
 		throws Exception;

@@ -17,7 +17,7 @@ package com.liferay.portal.servlet.filters.i18n;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.util.CookieKeys;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
@@ -39,6 +39,9 @@ import java.util.Set;
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.struts.Globals;
 
 /**
  * @author Brian Wing Shun Chan
@@ -81,6 +84,12 @@ public class I18nFilter extends BasePortalFilter {
 			return null;
 		}
 
+		String method = request.getMethod();
+
+		if (method.equals(HttpMethods.POST)) {
+			return null;
+		}
+
 		String contextPath = PortalUtil.getPathContext();
 
 		String requestURI = request.getRequestURI();
@@ -94,50 +103,8 @@ public class I18nFilter extends BasePortalFilter {
 		requestURI = StringUtil.replace(
 			requestURI, StringPool.DOUBLE_SLASH, StringPool.SLASH);
 
-		String i18nLanguageId = requestURI.substring(1);
-
-		int pos = requestURI.indexOf(CharPool.SLASH, 1);
-
-		if (pos != -1) {
-			i18nLanguageId = i18nLanguageId.substring(0, pos - 1);
-		}
-
-		if (_languageIds.contains(i18nLanguageId)) {
-			return null;
-		}
-
-		String guestLanguageId = null;
-
-		User user = (User)request.getAttribute(WebKeys.USER);
-
-		if (user != null) {
-			guestLanguageId = user.getLanguageId();
-		}
-
-		if (Validator.isNull(guestLanguageId)) {
-			guestLanguageId = CookieKeys.getCookie(
-				request, CookieKeys.GUEST_LANGUAGE_ID, false);
-		}
-
-		String defaultLanguageId = LocaleUtil.toLanguageId(
-			LocaleUtil.getDefault());
-
-		if (Validator.isNull(guestLanguageId)) {
-			guestLanguageId = defaultLanguageId;
-		}
-
-		if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 1) {
-			if (!defaultLanguageId.equals(guestLanguageId)) {
-				i18nLanguageId = guestLanguageId;
-			}
-			else {
-				return null;
-			}
-		}
-		else if (PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE == 2) {
-			i18nLanguageId = LocaleUtil.toLanguageId(
-				PortalUtil.getLocale(request));
-		}
+		String i18nLanguageId = prependI18nLanguageId(
+			request, PropsValues.LOCALE_PREPEND_FRIENDLY_URL_STYLE);
 
 		if (i18nLanguageId == null) {
 			return null;
@@ -149,19 +116,8 @@ public class I18nFilter extends BasePortalFilter {
 			return null;
 		}
 
-		String i18nPathLanguageId = i18nLanguageId;
-
-		if (!LanguageUtil.isDuplicateLanguageCode(locale.getLanguage())) {
-			i18nPathLanguageId = locale.getLanguage();
-		}
-		else {
-			Locale priorityLocale = LanguageUtil.getLocale(
-				locale.getLanguage());
-
-			if (locale.equals(priorityLocale)) {
-				i18nPathLanguageId = locale.getLanguage();
-			}
-		}
+		String i18nPathLanguageId = PortalUtil.getI18nPathLanguageId(
+			locale, i18nLanguageId);
 
 		String i18nPath = StringPool.SLASH.concat(i18nPathLanguageId);
 
@@ -175,38 +131,23 @@ public class I18nFilter extends BasePortalFilter {
 			WebKeys.VIRTUAL_HOST_LAYOUT_SET);
 
 		if ((layoutSet != null) &&
-			(requestURI.startsWith(_PRIVATE_GROUP_SERVLET_MAPPING) ||
-			 requestURI.startsWith(_PRIVATE_USER_SERVLET_MAPPING) ||
-			 requestURI.startsWith(_PUBLIC_GROUP_SERVLET_MAPPING))) {
+			requestURI.startsWith(
+				PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING)) {
 
-			int x = requestURI.indexOf(StringPool.SLASH, 1);
+			int[] groupFriendlyURLIndex = PortalUtil.getGroupFriendlyURLIndex(
+				requestURI);
 
-			if (x == -1) {
+			if (groupFriendlyURLIndex != null) {
+				int x = groupFriendlyURLIndex[0];
+				int y = groupFriendlyURLIndex[1];
 
-				// /web
+				String groupFriendlyURL = requestURI.substring(x, y);
 
-				requestURI += StringPool.SLASH;
+				Group group = layoutSet.getGroup();
 
-				x = requestURI.indexOf(CharPool.SLASH, 1);
-			}
-
-			int y = requestURI.indexOf(CharPool.SLASH, x + 1);
-
-			if (y == -1) {
-
-				// /web/alpha
-
-				requestURI += StringPool.SLASH;
-
-				y = requestURI.indexOf(CharPool.SLASH, x + 1);
-			}
-
-			String groupFriendlyURL = requestURI.substring(x, y);
-
-			Group group = layoutSet.getGroup();
-
-			if (group.getFriendlyURL().equals(groupFriendlyURL)) {
-				redirect = contextPath + i18nPath + requestURI.substring(y);
+				if (groupFriendlyURL.equals(group.getFriendlyURL())) {
+					redirect = contextPath + i18nPath + requestURI.substring(y);
+				}
 			}
 		}
 
@@ -239,6 +180,55 @@ public class I18nFilter extends BasePortalFilter {
 		}
 	}
 
+	protected String prependI18nLanguageId(
+		HttpServletRequest request, int prependFriendlyUrlStyle) {
+
+		String userLanguageId = null;
+
+		User user = (User)request.getAttribute(WebKeys.USER);
+
+		if (user != null) {
+			userLanguageId = user.getLanguageId();
+		}
+
+		String guestLanguageId = userLanguageId;
+
+		if (Validator.isNull(guestLanguageId)) {
+			guestLanguageId = CookieKeys.getCookie(
+				request, CookieKeys.GUEST_LANGUAGE_ID, false);
+		}
+
+		String defaultLanguageId = LocaleUtil.toLanguageId(
+			LocaleUtil.getDefault());
+
+		if (Validator.isNull(guestLanguageId)) {
+			guestLanguageId = defaultLanguageId;
+		}
+
+		if (prependFriendlyUrlStyle == 1) {
+			if (!defaultLanguageId.equals(guestLanguageId)) {
+				return guestLanguageId;
+			}
+			else {
+				return null;
+			}
+		}
+		else if (prependFriendlyUrlStyle == 2) {
+			return LocaleUtil.toLanguageId(PortalUtil.getLocale(request));
+		}
+		else if (prependFriendlyUrlStyle == 3) {
+			if (user != null) {
+				HttpSession session = request.getSession();
+
+				session.setAttribute(Globals.LOCALE_KEY, user.getLocale());
+			}
+
+			return null;
+		}
+
+		return null;
+	}
+
 	@Override
 	protected void processFilter(
 			HttpServletRequest request, HttpServletResponse response,
@@ -261,15 +251,6 @@ public class I18nFilter extends BasePortalFilter {
 
 		response.sendRedirect(redirect);
 	}
-
-	private static final String _PRIVATE_GROUP_SERVLET_MAPPING =
-		PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_GROUP_SERVLET_MAPPING;
-
-	private static final String _PRIVATE_USER_SERVLET_MAPPING =
-		PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_USER_SERVLET_MAPPING;
-
-	private static final String _PUBLIC_GROUP_SERVLET_MAPPING =
-		PropsValues.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING;
 
 	private static Log _log = LogFactoryUtil.getLog(I18nFilter.class);
 

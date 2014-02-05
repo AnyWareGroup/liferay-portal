@@ -31,9 +31,10 @@ import java.util.List;
 public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 
 	/**
-	 * @deprecated As of 6.2.0, replaced by {@link #addWebsite( String, long,
+	 * @deprecated As of 6.2.0, replaced by {@link #addWebsite(String, long,
 	 *             String, int, boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Website addWebsite(
 			String className, long classPK, String url, int typeId,
@@ -71,7 +72,7 @@ public class WebsiteServiceImpl extends WebsiteServiceBaseImpl {
 			getPermissionChecker(), website.getClassNameId(),
 			website.getClassPK(), ActionKeys.UPDATE);
 
-		websiteLocalService.deleteWebsite(websiteId);
+		websiteLocalService.deleteWebsite(website);
 	}
 
 	@Override

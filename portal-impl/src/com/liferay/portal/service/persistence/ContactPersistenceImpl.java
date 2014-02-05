@@ -340,6 +340,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Contact> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
 
@@ -824,6 +828,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 	public Contact fetchByAccountId_Last(long accountId,
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByAccountId(accountId);
+
+		if (count == 0) {
+			return null;
+		}
 
 		List<Contact> list = findByAccountId(accountId, count - 1, count,
 				orderByComparator);
@@ -1334,6 +1342,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByC_C(classNameId, classPK);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Contact> list = findByC_C(classNameId, classPK, count - 1, count,
 				orderByComparator);
 
@@ -1572,6 +1584,10 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 
 	private static final String _FINDER_COLUMN_C_C_CLASSNAMEID_2 = "contact.classNameId = ? AND ";
 	private static final String _FINDER_COLUMN_C_C_CLASSPK_2 = "contact.classPK = ?";
+
+	public ContactPersistenceImpl() {
+		setModelClass(Contact.class);
+	}
 
 	/**
 	 * Caches the contact in the entity cache if it is enabled.
@@ -1852,7 +1868,9 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 		}
 
 		EntityCacheUtil.putResult(ContactModelImpl.ENTITY_CACHE_ENABLED,
-			ContactImpl.class, contact.getPrimaryKey(), contact);
+			ContactImpl.class, contact.getPrimaryKey(), contact, false);
+
+		contact.resetOriginalValues();
 
 		return contact;
 	}
@@ -1867,6 +1885,7 @@ public class ContactPersistenceImpl extends BasePersistenceImpl<Contact>
 		contactImpl.setNew(contact.isNew());
 		contactImpl.setPrimaryKey(contact.getPrimaryKey());
 
+		contactImpl.setMvccVersion(contact.getMvccVersion());
 		contactImpl.setContactId(contact.getContactId());
 		contactImpl.setCompanyId(contact.getCompanyId());
 		contactImpl.setUserId(contact.getUserId());

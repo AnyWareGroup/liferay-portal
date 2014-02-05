@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,9 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.ResourcePermissionModelImpl
  * @generated
  */
-public interface ResourcePermissionModel extends BaseModel<ResourcePermission> {
+@ProviderType
+public interface ResourcePermissionModel extends BaseModel<ResourcePermission>,
+	MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +58,22 @@ public interface ResourcePermissionModel extends BaseModel<ResourcePermission> {
 	 * @param primaryKey the primary key of this resource permission
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this resource permission.
+	 *
+	 * @return the mvcc version of this resource permission
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this resource permission.
+	 *
+	 * @param mvccVersion the mvcc version of this resource permission
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the resource permission ID of this resource permission.

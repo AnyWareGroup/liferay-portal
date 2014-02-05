@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SCFrameworkVersionLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SCFrameworkVersionLocalService
+ * @author Brian Wing Shun Chan
+ * @see SCFrameworkVersionLocalService
  * @generated
  */
+@ProviderType
 public class SCFrameworkVersionLocalServiceWrapper
 	implements SCFrameworkVersionLocalService,
 		ServiceWrapper<SCFrameworkVersionLocalService> {
@@ -166,6 +169,23 @@ public class SCFrameworkVersionLocalServiceWrapper
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _scFrameworkVersionLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _scFrameworkVersionLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
 	}
 
 	@Override
@@ -571,6 +591,7 @@ public class SCFrameworkVersionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SCFrameworkVersionLocalService getWrappedSCFrameworkVersionLocalService() {
 		return _scFrameworkVersionLocalService;
 	}
@@ -578,6 +599,7 @@ public class SCFrameworkVersionLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSCFrameworkVersionLocalService(
 		SCFrameworkVersionLocalService scFrameworkVersionLocalService) {
 		_scFrameworkVersionLocalService = scFrameworkVersionLocalService;

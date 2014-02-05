@@ -113,6 +113,8 @@ public class LayoutRevisionPersistenceTest {
 
 		LayoutRevision newLayoutRevision = _persistence.create(pk);
 
+		newLayoutRevision.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayoutRevision.setGroupId(ServiceTestUtil.nextLong());
 
 		newLayoutRevision.setCompanyId(ServiceTestUtil.nextLong());
@@ -151,8 +153,6 @@ public class LayoutRevisionPersistenceTest {
 
 		newLayoutRevision.setTypeSettings(ServiceTestUtil.randomString());
 
-		newLayoutRevision.setIconImage(ServiceTestUtil.randomBoolean());
-
 		newLayoutRevision.setIconImageId(ServiceTestUtil.nextLong());
 
 		newLayoutRevision.setThemeId(ServiceTestUtil.randomString());
@@ -177,6 +177,8 @@ public class LayoutRevisionPersistenceTest {
 
 		LayoutRevision existingLayoutRevision = _persistence.findByPrimaryKey(newLayoutRevision.getPrimaryKey());
 
+		Assert.assertEquals(existingLayoutRevision.getMvccVersion(),
+			newLayoutRevision.getMvccVersion());
 		Assert.assertEquals(existingLayoutRevision.getLayoutRevisionId(),
 			newLayoutRevision.getLayoutRevisionId());
 		Assert.assertEquals(existingLayoutRevision.getGroupId(),
@@ -219,8 +221,6 @@ public class LayoutRevisionPersistenceTest {
 			newLayoutRevision.getRobots());
 		Assert.assertEquals(existingLayoutRevision.getTypeSettings(),
 			newLayoutRevision.getTypeSettings());
-		Assert.assertEquals(existingLayoutRevision.getIconImage(),
-			newLayoutRevision.getIconImage());
 		Assert.assertEquals(existingLayoutRevision.getIconImageId(),
 			newLayoutRevision.getIconImageId());
 		Assert.assertEquals(existingLayoutRevision.getThemeId(),
@@ -280,13 +280,13 @@ public class LayoutRevisionPersistenceTest {
 
 	protected OrderByComparator getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create("LayoutRevision",
-			"layoutRevisionId", true, "groupId", true, "companyId", true,
-			"userId", true, "userName", true, "createDate", true,
-			"modifiedDate", true, "layoutSetBranchId", true, "layoutBranchId",
-			true, "parentLayoutRevisionId", true, "head", true, "major", true,
-			"plid", true, "privateLayout", true, "name", true, "title", true,
-			"description", true, "keywords", true, "robots", true,
-			"typeSettings", true, "iconImage", true, "iconImageId", true,
+			"mvccVersion", true, "layoutRevisionId", true, "groupId", true,
+			"companyId", true, "userId", true, "userName", true, "createDate",
+			true, "modifiedDate", true, "layoutSetBranchId", true,
+			"layoutBranchId", true, "parentLayoutRevisionId", true, "head",
+			true, "major", true, "plid", true, "privateLayout", true, "name",
+			true, "title", true, "description", true, "keywords", true,
+			"robots", true, "typeSettings", true, "iconImageId", true,
 			"themeId", true, "colorSchemeId", true, "wapThemeId", true,
 			"wapColorSchemeId", true, "css", true, "status", true,
 			"statusByUserId", true, "statusByUserName", true, "statusDate", true);
@@ -429,6 +429,8 @@ public class LayoutRevisionPersistenceTest {
 
 		LayoutRevision layoutRevision = _persistence.create(pk);
 
+		layoutRevision.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layoutRevision.setGroupId(ServiceTestUtil.nextLong());
 
 		layoutRevision.setCompanyId(ServiceTestUtil.nextLong());
@@ -466,8 +468,6 @@ public class LayoutRevisionPersistenceTest {
 		layoutRevision.setRobots(ServiceTestUtil.randomString());
 
 		layoutRevision.setTypeSettings(ServiceTestUtil.randomString());
-
-		layoutRevision.setIconImage(ServiceTestUtil.randomBoolean());
 
 		layoutRevision.setIconImageId(ServiceTestUtil.nextLong());
 

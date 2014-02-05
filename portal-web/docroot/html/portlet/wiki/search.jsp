@@ -55,14 +55,12 @@ portletURL.setParameter("keywords", keywords);
 		title="search"
 	/>
 
-	<span class="form-search">
-		<aui:input inlineField="<%= true %>" label="" name="keywords" size="30" title="search-pages" type="text" value="<%= keywords %>" />
-
-		<aui:button type="submit" value="search" />
-	</span>
+	<div class="form-search">
+		<liferay-ui:input-search autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" placeholder='<%= LanguageUtil.get(locale, "keywords") %>' title='<%= LanguageUtil.get(locale, "search-pages") %>' />
+	</div>
 
 	<liferay-ui:search-container
-		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>") %>'
+		emptyResultsMessage='<%= LanguageUtil.format(pageContext, "no-pages-were-found-that-matched-the-keywords-x", "<strong>" + HtmlUtil.escape(keywords) + "</strong>", false) %>'
 		iteratorURL="<%= portletURL %>"
 	>
 
@@ -90,13 +88,6 @@ portletURL.setParameter("keywords", keywords);
 
 		searchContainer.setTotal(hits.getLength());
 
-		if (searchContainer.isRecalculateCur()) {
-			searchContext.setEnd(searchContainer.getEnd());
-			searchContext.setStart(searchContainer.getStart());
-
-			hits = indexer.search(searchContext);
-		}
-
 		PortletURL hitURL = renderResponse.createRenderURL();
 
 		hitURL.setParameter("struts_action", "/wiki/view");
@@ -117,7 +108,7 @@ portletURL.setParameter("keywords", keywords);
 
 			String title = wikiPage.getTitle();
 
-			if (title.equalsIgnoreCase(keywords)) {
+			if (StringUtil.equalsIgnoreCase(title, keywords)) {
 				createNewPage = false;
 			}
 
@@ -137,7 +128,7 @@ portletURL.setParameter("keywords", keywords);
 				containerName="<%= curNode.getName() %>"
 				containerType='<%= LanguageUtil.get(locale, "wiki-node") %>'
 				cssClass='<%= MathUtil.isEven(index) ? "search" : "search alt" %>'
-				description="<%= (summary != null) ? HtmlUtil.escape(summary.getContent()) : wikiPage.getSummary() %>"
+				description="<%= (summary != null) ? HtmlUtil.escape(summary.getContent()) : HtmlUtil.escape(wikiPage.getSummary()) %>"
 				fileEntryTuples="<%= searchResult.getFileEntryTuples() %>"
 				mbMessages="<%= searchResult.getMBMessages() %>"
 				queryTerms="<%= hits.getQueryTerms() %>"
@@ -161,9 +152,3 @@ portletURL.setParameter("keywords", keywords);
 		<strong><aui:a cssClass="new-page" href="<%= addPageURL.toString() %>" label="create-a-new-page-on-this-topic" /></strong>
 	</c:if>
 </aui:form>
-
-<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-	<aui:script>
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />keywords);
-	</aui:script>
-</c:if>

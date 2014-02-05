@@ -21,11 +21,11 @@ String tabs2 = ParamUtil.getString(request, "tabs2", "display-settings");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
-String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", BlogsUtil.getEmailFromName(preferences, company.getCompanyId()));
-String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", BlogsUtil.getEmailFromAddress(preferences, company.getCompanyId()));
+String emailFromName = ParamUtil.getString(request, "preferences--emailFromName--", BlogsUtil.getEmailFromName(portletPreferences, company.getCompanyId()));
+String emailFromAddress = ParamUtil.getString(request, "preferences--emailFromAddress--", BlogsUtil.getEmailFromAddress(portletPreferences, company.getCompanyId()));
 
-boolean emailEntryAddedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryAddedEnabled--", BlogsUtil.getEmailEntryAddedEnabled(preferences));
-boolean emailEntryUpdatedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryUpdatedEnabled--", BlogsUtil.getEmailEntryUpdatedEnabled(preferences));
+boolean emailEntryAddedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryAddedEnabled--", BlogsUtil.getEmailEntryAddedEnabled(portletPreferences));
+boolean emailEntryUpdatedEnabled = ParamUtil.getBoolean(request, "preferences--emailEntryUpdatedEnabled--", BlogsUtil.getEmailEntryUpdatedEnabled(portletPreferences));
 
 String emailParam = StringPool.BLANK;
 String defaultEmailSubject = StringPool.BLANK;
@@ -33,13 +33,13 @@ String defaultEmailBody = StringPool.BLANK;
 
 if (tabs2.equals("entry-added-email")) {
 	emailParam = "emailEntryAdded";
-	defaultEmailSubject = ContentUtil.get(PropsUtil.get(PropsKeys.BLOGS_EMAIL_ENTRY_ADDED_SUBJECT));
-	defaultEmailBody = ContentUtil.get(PropsUtil.get(PropsKeys.BLOGS_EMAIL_ENTRY_ADDED_BODY));
+	defaultEmailSubject = ContentUtil.get(PropsValues.BLOGS_EMAIL_ENTRY_ADDED_SUBJECT);
+	defaultEmailBody = ContentUtil.get(PropsValues.BLOGS_EMAIL_ENTRY_ADDED_BODY);
 }
 else if (tabs2.equals("entry-updated-email")) {
 	emailParam = "emailEntryUpdated";
-	defaultEmailSubject = ContentUtil.get(PropsUtil.get(PropsKeys.BLOGS_EMAIL_ENTRY_UPDATED_SUBJECT));
-	defaultEmailBody = ContentUtil.get(PropsUtil.get(PropsKeys.BLOGS_EMAIL_ENTRY_UPDATED_BODY));
+	defaultEmailSubject = ContentUtil.get(PropsValues.BLOGS_EMAIL_ENTRY_UPDATED_SUBJECT);
+	defaultEmailBody = ContentUtil.get(PropsValues.BLOGS_EMAIL_ENTRY_UPDATED_BODY);
 }
 
 String currentLanguageId = LanguageUtil.getLanguageId(request);
@@ -47,10 +47,10 @@ String currentLanguageId = LanguageUtil.getLanguageId(request);
 String emailSubjectParam = emailParam + "Subject_" + currentLanguageId;
 String emailBodyParam = emailParam + "Body_" + currentLanguageId;
 
-String emailSubject = PrefsParamUtil.getString(preferences, request, emailSubjectParam, defaultEmailSubject);
-String emailBody = PrefsParamUtil.getString(preferences, request, emailBodyParam, defaultEmailBody);
+String emailSubject = PrefsParamUtil.getString(portletPreferences, request, emailSubjectParam, defaultEmailSubject);
+String emailBody = PrefsParamUtil.getString(portletPreferences, request, emailBodyParam, defaultEmailBody);
 
-String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("socialBookmarksTypes", PropsUtil.get(PropsKeys.SOCIAL_BOOKMARK_TYPES)));
+String socialBookmarkTypes = portletPreferences.getValue("socialBookmarksTypes", PropsUtil.get(PropsKeys.SOCIAL_BOOKMARK_TYPES));
 %>
 
 <liferay-portlet:renderURL portletConfiguration="true" var="portletURL">
@@ -96,16 +96,12 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 				<aui:input cssClass="lfr-input-text-container" label="address" name="preferences--emailFromAddress--" value="<%= emailFromAddress %>" />
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
-					<dt>
-						[$BLOGS_ENTRY_STATUS_BY_USER_NAME$]
-					</dt>
-					<dd>
-						<liferay-ui:message key="the-user-who-updated-the-blog-entry" />
-					</dd>
 					<dt>
 						[$BLOGS_ENTRY_USER_ADDRESS$]
 					</dt>
@@ -149,7 +145,7 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 						<liferay-ui:message key="the-site-name-associated-with-the-blog" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 		</c:when>
 		<c:when test='<%= tabs2.startsWith("entry-") %>'>
 			<aui:fieldset>
@@ -165,13 +161,13 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 				<aui:select label="language" name="languageId" onChange='<%= renderResponse.getNamespace() + "updateLanguage(this);" %>'>
 
 					<%
-					Locale[] locales = LanguageUtil.getAvailableLocales();
+					Locale[] locales = LanguageUtil.getAvailableLocales(themeDisplay.getSiteGroupId());
 
 					for (int i = 0; i < locales.length; i++) {
 						String style = StringPool.BLANK;
 
-						if (Validator.isNotNull(preferences.getValue(emailParam + "Subject_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK)) ||
-							Validator.isNotNull(preferences.getValue(emailParam + "Body_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK))) {
+						if (Validator.isNotNull(portletPreferences.getValue(emailParam + "Subject_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK)) ||
+							Validator.isNotNull(portletPreferences.getValue(emailParam + "Body_" + LocaleUtil.toLanguageId(locales[i]), StringPool.BLANK))) {
 
 							style = "font-weight: bold;";
 						}
@@ -194,10 +190,36 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 				</aui:field-wrapper>
 			</aui:fieldset>
 
-			<div class="definition-of-terms">
-				<h4><liferay-ui:message key="definition-of-terms" /></h4>
+			<aui:fieldset cssClass="definition-of-terms">
+				<legend>
+					<liferay-ui:message key="definition-of-terms" />
+				</legend>
 
 				<dl>
+					<dt>
+						[$BLOGS_ENTRY_CONTENT$]
+					</dt>
+					<dd>
+						<liferay-ui:message key="the-blog-entry-content" />
+					</dd>
+					<dt>
+						[$BLOGS_ENTRY_DESCRIPTION$]
+					</dt>
+					<dd>
+						<liferay-ui:message key="the-blog-entry-description" />
+					</dd>
+					<dt>
+						[$BLOGS_ENTRY_STATUS_BY_USER_NAME$]
+					</dt>
+					<dd>
+						<liferay-ui:message key="the-user-who-updated-the-blog-entry" />
+					</dd>
+					<dt>
+						[$BLOGS_ENTRY_TITLE$]
+					</dt>
+					<dd>
+						<liferay-ui:message key="the-blog-entry-title" />
+					</dd>
 					<dt>
 						[$BLOGS_ENTRY_USER_ADDRESS$]
 					</dt>
@@ -277,7 +299,7 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 						<liferay-ui:message key="the-name-of-the-email-recipient" />
 					</dd>
 				</dl>
-			</div>
+			</aui:fieldset>
 
 		</c:when>
 		<c:when test='<%= tabs2.equals("display-settings") %>'>
@@ -305,6 +327,7 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 
 	function <portlet:namespace />updateLanguage() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = '';
+
 		submitForm(document.<portlet:namespace />fm);
 	}
 
@@ -320,8 +343,6 @@ String[] socialBookmarksTypesArray = StringUtil.split(preferences.getValue("soci
 		},
 		['liferay-util-list-fields']
 	);
-
-	Liferay.Util.toggleBoxes('<portlet:namespace />enableSocialBookmarksCheckbox','<portlet:namespace />socialBookmarksOptions');
 </aui:script>
 
 <%!

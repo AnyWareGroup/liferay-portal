@@ -25,36 +25,86 @@ import com.liferay.portal.util.ClassLoaderUtil;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
 
 /**
  * @author Raymond Augé
  */
-public class DoPrivilegedFactory implements BeanPostProcessor {
+public class DoPrivilegedFactory
+	extends InstantiationAwareBeanPostProcessorAdapter {
+
+	public static boolean isEarlyBeanReference(String beanName) {
+		return _earlyBeanReferenceNames.contains(beanName);
+	}
 
 	public static <T> T wrap(T bean) {
-		return AccessController.doPrivileged(new BeanPrivilegedAction<T>(bean));
+		Class<?> clazz = bean.getClass();
+
+		if (clazz.isPrimitive()) {
+			return bean;
+		}
+
+		Package pkg = clazz.getPackage();
+
+		if (pkg != null) {
+			String packageName = pkg.getName();
+
+			if (packageName.startsWith("java.")) {
+				return bean;
+			}
+		}
+
+		Class<?>[] interfaces = ReflectionUtil.getInterfaces(bean);
+
+		if (interfaces.length <= 0) {
+			return bean;
+		}
+
+		return AccessController.doPrivileged(
+			new BeanPrivilegedAction<T>(bean, interfaces));
 	}
 
 	public DoPrivilegedFactory() {
 	}
 
 	@Override
+	public Object getEarlyBeanReference(Object bean, String beanName)
+		throws BeansException {
+
+		if (_isWrap(bean, beanName)) {
+			_earlyBeanReferenceNames.add(beanName);
+		}
+
+		return bean;
+	}
+
+	@Override
 	public Object postProcessAfterInitialization(Object bean, String beanName)
 		throws BeansException {
 
-		if (SecurityManagerUtil.isPACLDisabled()) {
+		if (!SecurityManagerUtil.ENABLED) {
 			return bean;
 		}
 
-		Class<?> clazz = bean.getClass();
+		if (!_isWrap(bean, beanName)) {
+			return bean;
+		}
 
-		if (!_isDoPrivileged(clazz) && !_isFinderOrPersistence(beanName)) {
+		if (isEarlyBeanReference(beanName)) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Postpone wrapping early reference of " + beanName);
+			}
+
 			return bean;
 		}
 
 		if (_log.isDebugEnabled()) {
+			Class<?> clazz = bean.getClass();
+
 			_log.debug(
 				"Wrapping calls to bean " + beanName + " of type " +
 					clazz + " with access controller checking");
@@ -96,48 +146,37 @@ public class DoPrivilegedFactory implements BeanPostProcessor {
 		return false;
 	}
 
+	private boolean _isWrap(Object bean, String beanName) {
+		Class<?> clazz = bean.getClass();
+
+		if (_isDoPrivileged(clazz) || _isFinderOrPersistence(beanName)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	private static final String _BEAN_NAME_SUFFIX_FINDER = "Finder";
 
 	private static final String _BEAN_NAME_SUFFIX_PERSISTENCE = "Persistence";
 
 	private static Log _log = LogFactoryUtil.getLog(DoPrivilegedFactory.class);
 
+	private static Set<String> _earlyBeanReferenceNames = new HashSet<String>();
+
 	private static class BeanPrivilegedAction <T>
 		implements PrivilegedAction<T> {
 
-		public BeanPrivilegedAction(T bean) {
+		public BeanPrivilegedAction(T bean, Class<?>[] interfaces) {
 			_bean = bean;
+			_interfaces = ArrayUtil.append(interfaces, DoPrivilegedBean.class);
 		}
 
 		@Override
 		public T run() {
-			Class<?> clazz = _bean.getClass();
-
-			if (clazz.isPrimitive()) {
-				return _bean;
-			}
-
-			Package pkg = clazz.getPackage();
-
-			if (pkg != null) {
-				String packageName = pkg.getName();
-
-				if (packageName.startsWith("java.")) {
-					return _bean;
-				}
-			}
-
-			Class<?>[] interfaces = ReflectionUtil.getInterfaces(_bean);
-
-			if (interfaces.length <= 0) {
-				return _bean;
-			}
-
-			interfaces = ArrayUtil.append(interfaces, DoPrivilegedBean.class);
-
 			try {
 				return (T)ProxyUtil.newProxyInstance(
-					ClassLoaderUtil.getPortalClassLoader(), interfaces,
+					ClassLoaderUtil.getPortalClassLoader(), _interfaces,
 					new DoPrivilegedHandler(_bean));
 			}
 			catch (Exception e) {
@@ -150,6 +189,7 @@ public class DoPrivilegedFactory implements BeanPostProcessor {
 		}
 
 		private T _bean;
+		private Class<?>[] _interfaces;
 
 	}
 

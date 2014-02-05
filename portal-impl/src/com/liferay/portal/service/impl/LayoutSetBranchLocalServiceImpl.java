@@ -122,7 +122,6 @@ public class LayoutSetBranchLocalServiceImpl
 		layoutSetBranch.setName(name);
 		layoutSetBranch.setDescription(description);
 		layoutSetBranch.setMaster(master);
-		layoutSetBranch.setLogo(logo);
 		layoutSetBranch.setLogoId(logoId);
 
 		if (logo) {
@@ -248,6 +247,12 @@ public class LayoutSetBranchLocalServiceImpl
 			}
 		}
 
+		LayoutSet layoutSet = layoutSetBranch.getLayoutSet();
+
+		StagingUtil.setRecentLayoutSetBranchId(
+			user, layoutSet.getLayoutSetId(),
+			layoutSetBranch.getLayoutSetBranchId());
+
 		return layoutSetBranch;
 	}
 
@@ -323,6 +328,15 @@ public class LayoutSetBranchLocalServiceImpl
 	}
 
 	@Override
+	public LayoutSetBranch fetchLayoutSetBranch(
+			long groupId, boolean privateLayout, String name)
+		throws SystemException {
+
+		return layoutSetBranchPersistence.fetchByG_P_N(
+			groupId, privateLayout, name);
+	}
+
+	@Override
 	public LayoutSetBranch getLayoutSetBranch(
 			long groupId, boolean privateLayout, String name)
 		throws PortalException, SystemException {
@@ -346,13 +360,15 @@ public class LayoutSetBranchLocalServiceImpl
 			long groupId, boolean privateLayout)
 		throws PortalException, SystemException {
 
-		return layoutSetBranchFinder.findByMaster(groupId, privateLayout);
+		return layoutSetBranchPersistence.findByG_P_M_First(
+			groupId, privateLayout, true, null);
 	}
 
 	/**
 	 * @deprecated As of 6.2.0, replaced by {@link #getUserLayoutSetBranch(long,
 	 *             long, boolean, long, long)}
 	 */
+	@Deprecated
 	@Override
 	public LayoutSetBranch getUserLayoutSetBranch(
 			long userId, long groupId, boolean privateLayout,
@@ -384,10 +400,11 @@ public class LayoutSetBranchLocalServiceImpl
 		}
 
 		if (layoutSetBranchId > 0) {
-			try {
-				return getLayoutSetBranch(layoutSetBranchId);
-			}
-			catch (NoSuchLayoutSetBranchException nslsbe) {
+			LayoutSetBranch layoutSetBranch = fetchLayoutSetBranch(
+				layoutSetBranchId);
+
+			if (layoutSetBranch != null) {
+				return layoutSetBranch;
 			}
 		}
 
@@ -431,7 +448,8 @@ public class LayoutSetBranchLocalServiceImpl
 			sb.append(
 				LanguageUtil.format(
 					locale, "merged-from-x-x",
-					new String[] {mergeLayoutSetBranch.getName(), nowString}));
+					new String[] {mergeLayoutSetBranch.getName(), nowString},
+					false));
 
 			LayoutBranch layoutBranch =
 				layoutBranchLocalService.addLayoutBranch(
@@ -549,7 +567,8 @@ public class LayoutSetBranchLocalServiceImpl
 		if (master) {
 			try {
 				LayoutSetBranch masterLayoutSetBranch =
-					layoutSetBranchFinder.findByMaster(groupId, privateLayout);
+					layoutSetBranchPersistence.findByG_P_M_First(
+						groupId, privateLayout, true, null);
 
 				if (layoutSetBranchId !=
 						masterLayoutSetBranch.getLayoutSetBranchId()) {

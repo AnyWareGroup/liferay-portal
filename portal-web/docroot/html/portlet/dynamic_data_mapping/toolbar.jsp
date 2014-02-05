@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/dynamic_data_mapping/init.jsp" %>
 
 <%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 
 long groupId = ParamUtil.getLong(request, "groupId", scopeGroupId);
 %>
@@ -29,16 +29,14 @@ long groupId = ParamUtil.getLong(request, "groupId", scopeGroupId);
 			<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 		</portlet:renderURL>
 
-		<aui:nav-item href="<%= viewStructuresURL %>" label="view-all" selected='<%= toolbarItem.equals("view-all") %>' />
-
-		<c:if test="<%= DDMPermission.contains(permissionChecker, scopeGroupId, ddmDisplay.getResourceName(), ddmDisplay.getAddStructureActionId()) %>">
+		<c:if test="<%= ddmDisplay.isShowAddStructureButton() && DDMPermission.contains(permissionChecker, groupId, ddmDisplay.getResourceName(), ddmDisplay.getAddStructureActionId()) %>">
 			<portlet:renderURL var="addStructureURL">
 				<portlet:param name="struts_action" value="/dynamic_data_mapping/edit_structure" />
 				<portlet:param name="redirect" value="<%= viewStructuresURL %>" />
 				<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 			</portlet:renderURL>
 
-			<aui:nav-item href="<%= addStructureURL %>" iconClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
+			<aui:nav-item href="<%= addStructureURL %>" iconCssClass="icon-plus" label="add" selected='<%= toolbarItem.equals("add") %>' />
 		</c:if>
 	</aui:nav>
 

@@ -14,9 +14,7 @@
 
 package com.liferay.portlet.usersadmin.util;
 
-import com.liferay.portal.NoSuchOrganizationException;
-import com.liferay.portal.NoSuchUserException;
-import com.liferay.portal.NoSuchUserGroupException;
+import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Document;
@@ -30,8 +28,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.util.UniqueList;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.Address;
@@ -74,6 +72,7 @@ import com.liferay.portal.service.permission.UserGroupPermissionUtil;
 import com.liferay.portal.service.permission.UserGroupRolePermissionUtil;
 import com.liferay.portal.service.persistence.UserGroupRolePK;
 import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 import com.liferay.portal.util.comparator.GroupNameComparator;
 import com.liferay.portal.util.comparator.GroupTypeComparator;
@@ -197,10 +196,10 @@ public class UsersAdminImpl implements UsersAdmin {
 		while (itr.hasNext()) {
 			Role groupRole = itr.next();
 
-			String name = groupRole.getName();
+			String roleName = groupRole.getName();
 
-			if (name.equals(RoleConstants.ORGANIZATION_USER) ||
-				name.equals(RoleConstants.SITE_MEMBER)) {
+			if (roleName.equals(RoleConstants.ORGANIZATION_USER) ||
+				roleName.equals(RoleConstants.SITE_MEMBER)) {
 
 				itr.remove();
 			}
@@ -217,13 +216,13 @@ public class UsersAdminImpl implements UsersAdmin {
 		while (itr.hasNext()) {
 			Role groupRole = itr.next();
 
-			String groupRoleName = groupRole.getName();
+			String roleName = groupRole.getName();
 
-			if (groupRoleName.equals(
+			if (roleName.equals(
 					RoleConstants.ORGANIZATION_ADMINISTRATOR) ||
-				groupRoleName.equals(RoleConstants.ORGANIZATION_OWNER) ||
-				groupRoleName.equals(RoleConstants.SITE_ADMINISTRATOR) ||
-				groupRoleName.equals(RoleConstants.SITE_OWNER)) {
+				roleName.equals(RoleConstants.ORGANIZATION_OWNER) ||
+				roleName.equals(RoleConstants.SITE_ADMINISTRATOR) ||
+				roleName.equals(RoleConstants.SITE_OWNER)) {
 
 				itr.remove();
 			}
@@ -232,7 +231,7 @@ public class UsersAdminImpl implements UsersAdmin {
 		Group group = GroupLocalServiceUtil.getGroup(groupId);
 
 		if (GroupPermissionUtil.contains(
-				permissionChecker, groupId, ActionKeys.ASSIGN_USER_ROLES) ||
+				permissionChecker, group, ActionKeys.ASSIGN_USER_ROLES) ||
 			OrganizationPermissionUtil.contains(
 				permissionChecker, group.getOrganizationId(),
 				ActionKeys.ASSIGN_USER_ROLES)) {
@@ -273,8 +272,7 @@ public class UsersAdminImpl implements UsersAdmin {
 			Group group = itr.next();
 
 			if (!GroupPermissionUtil.contains(
-					permissionChecker, group.getGroupId(),
-					ActionKeys.ASSIGN_MEMBERS)) {
+					permissionChecker, group, ActionKeys.ASSIGN_MEMBERS)) {
 
 				itr.remove();
 			}
@@ -301,7 +299,7 @@ public class UsersAdminImpl implements UsersAdmin {
 			Organization organization = itr.next();
 
 			if (!OrganizationPermissionUtil.contains(
-					permissionChecker, organization.getOrganizationId(),
+					permissionChecker, organization,
 					ActionKeys.ASSIGN_MEMBERS)) {
 
 				itr.remove();
@@ -322,13 +320,13 @@ public class UsersAdminImpl implements UsersAdmin {
 		while (itr.hasNext()) {
 			Role role = itr.next();
 
-			String name = role.getName();
+			String roleName = role.getName();
 
-			if (name.equals(RoleConstants.GUEST) ||
-				name.equals(RoleConstants.ORGANIZATION_USER) ||
-				name.equals(RoleConstants.OWNER) ||
-				name.equals(RoleConstants.SITE_MEMBER) ||
-				name.equals(RoleConstants.USER)) {
+			if (roleName.equals(RoleConstants.GUEST) ||
+				roleName.equals(RoleConstants.ORGANIZATION_USER) ||
+				roleName.equals(RoleConstants.OWNER) ||
+				roleName.equals(RoleConstants.SITE_MEMBER) ||
+				roleName.equals(RoleConstants.USER)) {
 
 				itr.remove();
 			}
@@ -407,10 +405,10 @@ public class UsersAdminImpl implements UsersAdmin {
 
 			Role role = userGroupRole.getRole();
 
-			String name = role.getName();
+			String roleName = role.getName();
 
-			if (name.equals(RoleConstants.ORGANIZATION_USER) ||
-				name.equals(RoleConstants.SITE_MEMBER)) {
+			if (roleName.equals(RoleConstants.ORGANIZATION_USER) ||
+				roleName.equals(RoleConstants.SITE_MEMBER)) {
 
 				itr.remove();
 			}
@@ -499,18 +497,18 @@ public class UsersAdminImpl implements UsersAdmin {
 				actionRequest, "addressCity" + addressesIndex);
 			String zip = ParamUtil.getString(
 				actionRequest, "addressZip" + addressesIndex);
+			long countryId = ParamUtil.getLong(
+				actionRequest, "addressCountryId" + addressesIndex);
 
 			if (Validator.isNull(street1) && Validator.isNull(street2) &&
 				Validator.isNull(street3) && Validator.isNull(city) &&
-				Validator.isNull(zip)) {
+				Validator.isNull(zip) && (countryId == 0)) {
 
 				continue;
 			}
 
 			long regionId = ParamUtil.getLong(
 				actionRequest, "addressRegionId" + addressesIndex);
-			long countryId = ParamUtil.getLong(
-				actionRequest, "addressCountryId" + addressesIndex);
 			int typeId = ParamUtil.getInteger(
 				actionRequest, "addressTypeId" + addressesIndex);
 			boolean mailing = ParamUtil.getBoolean(
@@ -667,27 +665,23 @@ public class UsersAdminImpl implements UsersAdmin {
 	}
 
 	@Override
-	public Tuple getOrganizations(Hits hits)
+	public List<Organization> getOrganizations(Hits hits)
 		throws PortalException, SystemException {
 
-		List<Organization> organizations = new ArrayList<Organization>();
-		boolean corruptIndex = false;
-
 		List<Document> documents = hits.toList();
+
+		List<Organization> organizations = new ArrayList<Organization>(
+			documents.size());
 
 		for (Document document : documents) {
 			long organizationId = GetterUtil.getLong(
 				document.get(Field.ORGANIZATION_ID));
 
-			try {
-				Organization organization =
-					OrganizationLocalServiceUtil.getOrganization(
-						organizationId);
+			Organization organization =
+				OrganizationLocalServiceUtil.fetchOrganization(organizationId);
 
-				organizations.add(organization);
-			}
-			catch (NoSuchOrganizationException nsoe) {
-				corruptIndex = true;
+			if (organization == null) {
+				organizations = null;
 
 				Indexer indexer = IndexerRegistryUtil.getIndexer(
 					Organization.class);
@@ -697,9 +691,12 @@ public class UsersAdminImpl implements UsersAdmin {
 
 				indexer.delete(companyId, document.getUID());
 			}
+			else if (organizations != null) {
+				organizations.add(organization);
+			}
 		}
 
-		return new Tuple(organizations, corruptIndex);
+		return organizations;
 	}
 
 	@Override
@@ -890,9 +887,9 @@ public class UsersAdminImpl implements UsersAdmin {
 
 		List<UserGroupRole> userGroupRoles = new UniqueList<UserGroupRole>();
 
-		long[] groupRolesRoleIds= StringUtil.split(
+		long[] groupRolesRoleIds = StringUtil.split(
 			ParamUtil.getString(portletRequest, "groupRolesRoleIds"), 0L);
-		long[] groupRolesGroupIds= StringUtil.split(
+		long[] groupRolesGroupIds = StringUtil.split(
 			ParamUtil.getString(portletRequest, "groupRolesGroupIds"), 0L);
 
 		if (groupRolesGroupIds.length != groupRolesRoleIds.length) {
@@ -926,26 +923,22 @@ public class UsersAdminImpl implements UsersAdmin {
 	}
 
 	@Override
-	public Tuple getUserGroups(Hits hits)
+	public List<UserGroup> getUserGroups(Hits hits)
 		throws PortalException, SystemException {
 
-		List<UserGroup> userGroups = new ArrayList<UserGroup>();
-		boolean corruptIndex = false;
-
 		List<Document> documents = hits.toList();
+
+		List<UserGroup> userGroups = new ArrayList<UserGroup>(documents.size());
 
 		for (Document document : documents) {
 			long userGroupId = GetterUtil.getLong(
 				document.get(Field.USER_GROUP_ID));
 
-			try {
-				UserGroup userGroup = UserGroupLocalServiceUtil.getUserGroup(
-					userGroupId);
+			UserGroup userGroup = UserGroupLocalServiceUtil.fetchUserGroup(
+				userGroupId);
 
-				userGroups.add(userGroup);
-			}
-			catch (NoSuchUserGroupException nsuge) {
-				corruptIndex = true;
+			if (userGroup == null) {
+				userGroups = null;
 
 				Indexer indexer = IndexerRegistryUtil.getIndexer(
 					UserGroup.class);
@@ -955,9 +948,12 @@ public class UsersAdminImpl implements UsersAdmin {
 
 				indexer.delete(companyId, document.getUID());
 			}
+			else if (userGroups != null) {
+				userGroups.add(userGroup);
+			}
 		}
 
-		return new Tuple(userGroups, corruptIndex);
+		return userGroups;
 	}
 
 	@Override
@@ -995,22 +991,20 @@ public class UsersAdminImpl implements UsersAdmin {
 	}
 
 	@Override
-	public Tuple getUsers(Hits hits) throws PortalException, SystemException {
-		List<User> users = new ArrayList<User>();
-		boolean corruptIndex = false;
+	public List<User> getUsers(Hits hits)
+		throws PortalException, SystemException {
 
 		List<Document> documents = hits.toList();
+
+		List<User> users = new ArrayList<User>(documents.size());
 
 		for (Document document : documents) {
 			long userId = GetterUtil.getLong(document.get(Field.USER_ID));
 
-			try {
-				User user = UserLocalServiceUtil.getUser(userId);
+			User user = UserLocalServiceUtil.fetchUser(userId);
 
-				users.add(user);
-			}
-			catch (NoSuchUserException nsue) {
-				corruptIndex = true;
+			if (user == null) {
+				users = null;
 
 				Indexer indexer = IndexerRegistryUtil.getIndexer(User.class);
 
@@ -1019,9 +1013,12 @@ public class UsersAdminImpl implements UsersAdmin {
 
 				indexer.delete(companyId, document.getUID());
 			}
+			else if (users != null) {
+				users.add(user);
+			}
 		}
 
-		return new Tuple(users, corruptIndex);
+		return users;
 	}
 
 	@Override
@@ -1079,70 +1076,80 @@ public class UsersAdminImpl implements UsersAdmin {
 		return websites;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #hasUpdateFieldPermission(User, String)}
+	 */
+	@Deprecated
 	@Override
 	public boolean hasUpdateEmailAddress(
 			PermissionChecker permissionChecker, User user)
 		throws PortalException, SystemException {
 
-		String[] fieldEditiableUserEmailAddress =
-			PropsValues.
-				FIELD_EDITABLE_COM_LIFERAY_PORTAL_MODEL_USER_EMAILADDRESS;
+		return hasUpdateFieldPermission(user, "emailAddress");
+	}
 
-		if (ArrayUtil.contains(
-				fieldEditiableUserEmailAddress, "administrator") &&
-			permissionChecker.isCompanyAdmin()) {
+	@Override
+	public boolean hasUpdateFieldPermission(User user, String field)
+		throws PortalException, SystemException {
 
+		if (user == null) {
 			return true;
 		}
 
-		if (ArrayUtil.contains(
-				fieldEditiableUserEmailAddress, "user-with-mx") &&
-			user.hasCompanyMx()) {
+		for (String userType : PropsValues.FIELD_EDITABLE_USER_TYPES) {
+			if (userType.equals("user-with-mx") && user.hasCompanyMx()) {
+				return true;
+			}
 
-			return true;
+			if (userType.equals("user-without-mx") && !user.hasCompanyMx()) {
+				return true;
+			}
 		}
 
-		if (ArrayUtil.contains(
-				fieldEditiableUserEmailAddress, "user-without-mx") &&
-			!user.hasCompanyMx()) {
+		for (String roleName : PropsValues.FIELD_EDITABLE_ROLES) {
+			Role role = RoleLocalServiceUtil.fetchRole(
+				user.getCompanyId(), roleName);
 
-			return true;
+			if ((role != null) &&
+				RoleLocalServiceUtil.hasUserRole(
+					user.getUserId(), role.getRoleId())) {
+
+				return true;
+			}
+		}
+
+		String emailAddress = user.getEmailAddress();
+
+		for (String domainName : PropsValues.FIELD_EDITABLE_DOMAINS) {
+			if (emailAddress.endsWith(domainName)) {
+				return true;
+			}
+		}
+
+		String[] fieldEditableDomainNames = PropsUtil.getArray(
+			PropsKeys.FIELD_EDITABLE_DOMAINS, new Filter(field));
+
+		for (String domainName : fieldEditableDomainNames) {
+			if (emailAddress.endsWith(domainName)) {
+				return true;
+			}
 		}
 
 		return false;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link
+	 *             #hasUpdateFieldPermission(User, String)}
+	 */
+	@Deprecated
 	@Override
 	public boolean hasUpdateScreenName(
 			PermissionChecker permissionChecker, User user)
 		throws PortalException, SystemException {
 
-		String[] fieldEditiableUserScreenName =
-			PropsValues.
-				FIELD_EDITABLE_COM_LIFERAY_PORTAL_MODEL_USER_SCREENNAME;
-
-		if (ArrayUtil.contains(
-				fieldEditiableUserScreenName, "administrator") &&
-			permissionChecker.isCompanyAdmin()) {
-
-			return true;
-		}
-
-		if (ArrayUtil.contains(
-				fieldEditiableUserScreenName, "user-with-mx") &&
-			user.hasCompanyMx()) {
-
-			return true;
-		}
-
-		if (ArrayUtil.contains(
-				fieldEditiableUserScreenName, "user-without-mx") &&
-			!user.hasCompanyMx()) {
-
-			return true;
-		}
-
-		return false;
+		return hasUpdateFieldPermission(user, "screenName");
 	}
 
 	@Override

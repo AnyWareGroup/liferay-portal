@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -64,8 +65,9 @@ public class EditExpandoAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -106,8 +108,9 @@ public class EditExpandoAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -119,14 +122,14 @@ public class EditExpandoAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.expando.error");
+				return actionMapping.findForward("portlet.expando.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.expando.edit_expando"));
 	}
 
@@ -162,8 +165,15 @@ public class EditExpandoAction extends PortletAction {
 		throws Exception {
 
 		int type = 0;
-		UnicodeProperties properties = expandoBridge.getAttributeProperties(
-			name);
+
+		UnicodeProperties properties = null;
+
+		try {
+			properties = expandoBridge.getAttributeProperties(name);
+		}
+		catch (Exception e) {
+			properties = new UnicodeProperties();
+		}
 
 		if (preset.equals("PresetSelectionIntegerArray()")) {
 			type = ExpandoColumnConstants.INTEGER_ARRAY;
@@ -364,6 +374,10 @@ public class EditExpandoAction extends PortletAction {
 			}
 
 			value = StringUtil.split(paramValue, delimiter);
+		}
+		else if (type == ExpandoColumnConstants.STRING_LOCALIZED) {
+			value = (Serializable)LocalizationUtil.getLocalizationMap(
+				portletRequest, name);
 		}
 		else {
 			value = ParamUtil.getString(portletRequest, name);

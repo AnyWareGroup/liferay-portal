@@ -19,10 +19,10 @@
 <%
 DDLRecordSet recordSet = (DDLRecordSet)request.getAttribute(WebKeys.DYNAMIC_DATA_LISTS_RECORD_SET);
 
-boolean editable = false;
+boolean editable = ParamUtil.getBoolean(request, "editable", true);
 
-if (DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.ADD_RECORD) && DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.UPDATE)) {
-	editable = DDLUtil.isEditable(request, portletDisplay.getId(), themeDisplay.getScopeGroupId());
+if (editable || portletName.equals(PortletKeys.DYNAMIC_DATA_LISTS)) {
+	editable = DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.ADD_RECORD) && DDLRecordSetPermission.contains(permissionChecker, recordSet.getRecordSetId(), ActionKeys.UPDATE);
 }
 
 DDMStructure ddmStructure = recordSet.getDDMStructure();
@@ -30,7 +30,7 @@ DDMStructure ddmStructure = recordSet.getDDMStructure();
 
 <div class="lfr-spreadsheet-container">
 	<div id="<portlet:namespace />spreadsheet">
-		<div class="yui3-widget yui3-datatable" id="<portlet:namespace />dataTable">
+		<div class="table-striped yui3-widget yui3-datatable" id="<portlet:namespace />dataTable">
 			<div class="yui3-datatable-scrollable yui3-datatable-content" id="<portlet:namespace />dataTableContent"></div>
 		</div>
 	</div>

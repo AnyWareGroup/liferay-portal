@@ -14,11 +14,15 @@
 
 package com.liferay.portlet.bookmarks.asset;
 
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.trash.TrashRenderer;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portal.security.permission.PermissionChecker;
 import com.liferay.portal.theme.ThemeDisplay;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.WebKeys;
@@ -27,6 +31,7 @@ import com.liferay.portlet.asset.model.BaseAssetRenderer;
 import com.liferay.portlet.bookmarks.model.BookmarksFolder;
 import com.liferay.portlet.bookmarks.service.BookmarksEntryServiceUtil;
 import com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil;
+import com.liferay.portlet.bookmarks.service.permission.BookmarksFolderPermission;
 import com.liferay.portlet.trash.util.TrashUtil;
 
 import java.util.Date;
@@ -154,8 +159,10 @@ public class BookmarksFolderAssetRenderer
 			WindowState windowState)
 		throws Exception {
 
-		PortletURL portletURL = liferayPortletResponse.createLiferayPortletURL(
-			PortletKeys.BOOKMARKS, PortletRequest.RENDER_PHASE);
+		AssetRendererFactory assetRendererFactory = getAssetRendererFactory();
+
+		PortletURL portletURL = assetRendererFactory.getURLView(
+			liferayPortletResponse, windowState);
 
 		portletURL.setParameter("struts_action", "/bookmarks/view");
 		portletURL.setParameter(
@@ -189,6 +196,22 @@ public class BookmarksFolderAssetRenderer
 	@Override
 	public String getUuid() {
 		return _folder.getUuid();
+	}
+
+	@Override
+	public boolean hasEditPermission(PermissionChecker permissionChecker)
+		throws PortalException, SystemException {
+
+		return BookmarksFolderPermission.contains(
+			permissionChecker, _folder, ActionKeys.UPDATE);
+	}
+
+	@Override
+	public boolean hasViewPermission(PermissionChecker permissionChecker)
+		throws PortalException, SystemException {
+
+		return BookmarksFolderPermission.contains(
+			permissionChecker, _folder, ActionKeys.VIEW);
 	}
 
 	@Override

@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Repository}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Repository
+ * @author Brian Wing Shun Chan
+ * @see Repository
  * @generated
  */
+@ProviderType
 public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	public RepositoryWrapper(Repository repository) {
 		_repository = repository;
@@ -46,6 +52,7 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("repositoryId", getRepositoryId());
 		attributes.put("groupId", getGroupId());
@@ -66,6 +73,12 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -169,6 +182,26 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_repository.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this repository.
+	*
+	* @return the mvcc version of this repository
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _repository.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this repository.
+	*
+	* @param mvccVersion the mvcc version of this repository
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_repository.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -603,9 +636,34 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 		_repository.setTypeSettingsProperties(typeSettingsProperties);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RepositoryWrapper)) {
+			return false;
+		}
+
+		RepositoryWrapper repositoryWrapper = (RepositoryWrapper)obj;
+
+		if (Validator.equals(_repository, repositoryWrapper._repository)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _repository.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Repository getWrappedRepository() {
 		return _repository;
 	}
@@ -613,6 +671,16 @@ public class RepositoryWrapper implements Repository, ModelWrapper<Repository> {
 	@Override
 	public Repository getWrappedModel() {
 		return _repository;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _repository.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _repository.isFinderCacheEnabled();
 	}
 
 	@Override

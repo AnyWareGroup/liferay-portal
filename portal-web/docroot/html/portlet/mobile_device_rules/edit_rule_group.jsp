@@ -28,8 +28,14 @@ long ruleGroupId = BeanParamUtil.getLong(ruleGroup, request, "ruleGroupId");
 <liferay-ui:header
 	backURL="<%= backURL %>"
 	localizeTitle="<%= (ruleGroup == null) %>"
-	title='<%= (ruleGroup == null) ? "new-rule-group" : ruleGroup.getName(locale) %>'
+	title='<%= (ruleGroup == null) ? "new-device-family" : ruleGroup.getName(locale) %>'
 />
+
+<c:if test="<%= ruleGroup == null %>">
+	<div class="alert alert-info">
+		<liferay-ui:message key="device-family-help" />
+	</div>
+</c:if>
 
 <portlet:actionURL var="editRuleGroupURL">
 	<portlet:param name="struts_action" value="/mobile_device_rules/edit_rule_group" />
@@ -42,12 +48,12 @@ long ruleGroupId = BeanParamUtil.getLong(ruleGroup, request, "ruleGroupId");
 	<aui:input name="ruleGroupId" type="hidden" value="<%= ruleGroupId %>" />
 	<aui:input name="groupId" type="hidden" value="<%= groupId %>" />
 
-	<liferay-ui:error exception="<%= NoSuchRuleGroupException.class %>" message="rule-group-does-not-exist" />
+	<liferay-ui:error exception="<%= NoSuchRuleGroupException.class %>" message="device-family-does-not-exist" />
 
 	<aui:model-context bean="<%= ruleGroup %>" model="<%= MDRRuleGroup.class %>" />
 
 	<aui:fieldset>
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) || windowState.equals(LiferayWindowState.POP_UP) %>" name="name" />
 
 		<aui:input name="description" />
 	</aui:fieldset>
@@ -56,7 +62,7 @@ long ruleGroupId = BeanParamUtil.getLong(ruleGroup, request, "ruleGroupId");
 		<aui:fieldset>
 			<c:if test="<%= MDRRuleLocalServiceUtil.getRulesCount(ruleGroupId) == 0 %>">
 				<div class="alert alert-info">
-					<liferay-ui:message key="no-rules-are-configured-for-this-rule-group" />
+					<liferay-ui:message key="no-classification-rules-are-configured-for-this-device-family" />
 				</div>
 			</c:if>
 
@@ -69,7 +75,7 @@ long ruleGroupId = BeanParamUtil.getLong(ruleGroup, request, "ruleGroupId");
 			<liferay-ui:icon
 				image="manage_nodes"
 				label="<%= true %>"
-				message="manage-rules"
+				message="manage-classification-rules"
 				url="<%= editRulesURL.toString() %>"
 			/>
 		</aui:fieldset>

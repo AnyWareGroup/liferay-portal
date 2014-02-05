@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.SubscriptionLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class SubscriptionLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -165,6 +168,21 @@ public class SubscriptionLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portal.model.Subscription fetchSubscription(
@@ -422,6 +440,7 @@ public class SubscriptionLocalServiceUtil {
 	* @param userId the primary key of the user
 	* @param start the lower bound of the range of results
 	* @param end the upper bound of the range of results (not inclusive)
+	* @param orderByComparator the comparator to order the subscriptions
 	* @return the range of subscriptions of the user
 	* @throws SystemException if a system exception occurred
 	*/
@@ -509,6 +528,7 @@ public class SubscriptionLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(SubscriptionLocalService service) {
 	}
 

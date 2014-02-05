@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.polls.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link PollsVote}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PollsVote
+ * @author Brian Wing Shun Chan
+ * @see PollsVote
  * @generated
  */
+@ProviderType
 public class PollsVoteWrapper implements PollsVote, ModelWrapper<PollsVote> {
 	public PollsVoteWrapper(PollsVote pollsVote) {
 		_pollsVote = pollsVote;
@@ -505,9 +510,34 @@ public class PollsVoteWrapper implements PollsVote, ModelWrapper<PollsVote> {
 		return _pollsVote.getChoice();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PollsVoteWrapper)) {
+			return false;
+		}
+
+		PollsVoteWrapper pollsVoteWrapper = (PollsVoteWrapper)obj;
+
+		if (Validator.equals(_pollsVote, pollsVoteWrapper._pollsVote)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _pollsVote.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PollsVote getWrappedPollsVote() {
 		return _pollsVote;
 	}
@@ -515,6 +545,16 @@ public class PollsVoteWrapper implements PollsVote, ModelWrapper<PollsVote> {
 	@Override
 	public PollsVote getWrappedModel() {
 		return _pollsVote;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _pollsVote.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _pollsVote.isFinderCacheEnabled();
 	}
 
 	@Override

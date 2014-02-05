@@ -151,6 +151,7 @@ public class TextFormatter {
 	 * @deprecated As of 6.2.0, replaced by {@link #formatStorageSize(double,
 	 *             Locale)}
 	 */
+	@Deprecated
 	public static String formatKB(double size, Locale locale) {
 		NumberFormat numberFormat = NumberFormat.getInstance(locale);
 
@@ -164,6 +165,7 @@ public class TextFormatter {
 	 * @deprecated As of 6.2.0, replaced by {@link #formatStorageSize(int,
 	 *             Locale)}
 	 */
+	@Deprecated
 	public static String formatKB(int size, Locale locale) {
 		return formatKB((double)size, locale);
 	}
@@ -173,7 +175,7 @@ public class TextFormatter {
 			return name;
 		}
 
-		char[] chars = name.toLowerCase().trim().toCharArray();
+		char[] chars = StringUtil.toLowerCase(name).trim().toCharArray();
 
 		if (chars.length > 0) {
 			chars[0] = Character.toUpperCase(chars[0]);
@@ -243,16 +245,16 @@ public class TextFormatter {
 
 	private static String _formatA(String s) {
 		return StringUtil.replace(
-			s.toUpperCase(), CharPool.SPACE, CharPool.UNDERLINE);
+			StringUtil.toUpperCase(s), CharPool.SPACE, CharPool.UNDERLINE);
 	}
 
 	private static String _formatB(String s) {
-		return StringUtil.strip(s.toLowerCase(), CharPool.SPACE);
+		return StringUtil.strip(StringUtil.toLowerCase(s), CharPool.SPACE);
 	}
 
 	private static String _formatC(String s) {
 		return StringUtil.replace(
-			s.toLowerCase(), CharPool.SPACE, CharPool.UNDERLINE);
+			StringUtil.toLowerCase(s), CharPool.SPACE, CharPool.UNDERLINE);
 	}
 
 	private static String _formatD(String s) {
@@ -260,14 +262,15 @@ public class TextFormatter {
 	}
 
 	private static String _formatE(String s) {
-		return s.toLowerCase();
+		return StringUtil.toLowerCase(s);
 	}
 
 	private static String _formatF(String s) {
 		s = StringUtil.strip(s, CharPool.SPACE);
 
 		if (Character.isUpperCase(s.charAt(0))) {
-			s = s.substring(0, 1).toLowerCase().concat(s.substring(1));
+			s = StringUtil.toLowerCase(s.substring(0, 1)).concat(
+				s.substring(1));
 		}
 
 		return s;
@@ -275,7 +278,8 @@ public class TextFormatter {
 
 	private static String _formatG(String s) {
 		if (Character.isLowerCase(s.charAt(0))) {
-			s = s.substring(0, 1).toUpperCase().concat(s.substring(1));
+			s = StringUtil.toUpperCase(s.substring(0, 1)).concat(
+				s.substring(1));
 		}
 
 		return s;
@@ -301,7 +305,7 @@ public class TextFormatter {
 
 	private static String _formatI(String s) {
 		if (s.length() == 1) {
-			return s.toLowerCase();
+			return StringUtil.toLowerCase(s);
 		}
 
 		if (Character.isLowerCase(s.charAt(0))) {
@@ -311,7 +315,8 @@ public class TextFormatter {
 		if (Character.isUpperCase(s.charAt(0)) &&
 			Character.isLowerCase(s.charAt(1))) {
 
-			return s = s.substring(0, 1).toLowerCase().concat(s.substring(1));
+			return s = StringUtil.toLowerCase(s.substring(0, 1)).concat(
+				s.substring(1));
 		}
 
 		StringBuilder sb = new StringBuilder(s);
@@ -336,7 +341,7 @@ public class TextFormatter {
 		s = StringUtil.replace(s, CharPool.DASH, CharPool.SPACE);
 		s = StringUtil.replace(s, CharPool.UNDERLINE, CharPool.SPACE);
 
-		StringBuilder sb = new StringBuilder(s.toLowerCase());
+		StringBuilder sb = new StringBuilder(StringUtil.toLowerCase(s));
 
 		for (int i = 0; i < s.length(); i++) {
 			if ((i == 0) || (s.charAt(i - 1) == ' ')) {
@@ -356,7 +361,7 @@ public class TextFormatter {
 
 	private static String _formatL(String s) {
 		if (s.length() == 1) {
-			return s.toLowerCase();
+			return StringUtil.toLowerCase(s);
 		}
 		else if (Character.isLowerCase(s.charAt(0)) ||
 				 (Character.isUpperCase(s.charAt(0)) &&
@@ -365,7 +370,8 @@ public class TextFormatter {
 			return s;
 		}
 		else {
-			return s = s.substring(0, 1).toLowerCase().concat(s.substring(1));
+			return s = StringUtil.toLowerCase(s.substring(0, 1)).concat(
+				s.substring(1));
 		}
 	}
 
@@ -397,7 +403,7 @@ public class TextFormatter {
 	}
 
 	private static String _formatP(String s) {
-		StringBuilder sb = new StringBuilder(s.toLowerCase());
+		StringBuilder sb = new StringBuilder(StringUtil.toLowerCase(s));
 
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);

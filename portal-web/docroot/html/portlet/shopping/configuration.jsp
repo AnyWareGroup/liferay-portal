@@ -90,7 +90,7 @@ else if (tabs3.equals("shipping-email")) {
 					List leftList = new ArrayList();
 
 					for (String ccType : ccTypes2) {
-						leftList.add(new KeyValuePair(ccType, LanguageUtil.get(pageContext, "cc_" + ccType)));
+						leftList.add(new KeyValuePair(HtmlUtil.escapeAttribute(ccType), LanguageUtil.get(pageContext, "cc_" + HtmlUtil.escape(ccType))));
 					}
 
 					// Right list
@@ -150,7 +150,7 @@ else if (tabs3.equals("shipping-email")) {
 		</c:when>
 		<c:when test='<%= tabs2.equals("shipping-calculation") %>'>
 			<div class="alert alert-info">
-				<liferay-ui:message key="calculate-a-flat-shipping-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span> <liferay-ui:message key="calculate-the-shipping-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
+				<liferay-ui:message key="calculate-a-flat-shipping-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="calculate-the-shipping-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
 			</div>
 
 			<aui:fieldset>
@@ -190,7 +190,7 @@ else if (tabs3.equals("shipping-email")) {
 		</c:when>
 		<c:when test='<%= tabs2.equals("insurance-calculation") %>'>
 			<div class="alert alert-info">
-				<liferay-ui:message key="calculate-a-flat-insurance-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= LanguageUtil.get(pageContext, "or").toUpperCase() %> --</span> <liferay-ui:message key="calculate-the-insurance-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
+				<liferay-ui:message key="calculate-a-flat-insurance-amount-based-on-the-total-amount-of-the-purchase" /> <span style="font-size: xx-small;">-- <%= StringUtil.toUpperCase(LanguageUtil.get(pageContext, "or")) %> --</span> <liferay-ui:message key="calculate-the-insurance-based-on-a-percentage-of-the-total-amount-of-the-purchase" />
 			</div>
 
 			<aui:fieldset>
@@ -268,8 +268,10 @@ else if (tabs3.equals("shipping-email")) {
 							<aui:input name="<%= editorParam %>" type="hidden" value="" />
 						</aui:field-wrapper>
 
-						<div class="definition-of-terms">
-							<h4><liferay-ui:message key="definition-of-terms" /></h4>
+						<aui:fieldset cssClass="definition-of-terms">
+							<legend>
+								<liferay-ui:message key="definition-of-terms" />
+							</legend>
 
 							<dl>
 								<dt>
@@ -339,7 +341,7 @@ else if (tabs3.equals("shipping-email")) {
 									<liferay-ui:message key="the-name-of-the-email-recipient" />
 								</dd>
 							</dl>
-						</div>
+						</aui:fieldset>
 					</aui:fieldset>
 				</c:when>
 				<c:otherwise>

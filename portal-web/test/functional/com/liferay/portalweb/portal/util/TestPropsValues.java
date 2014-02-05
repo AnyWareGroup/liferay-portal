@@ -33,6 +33,21 @@ public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
 	public static final String CLUSTER_NODE_2 = TestPropsUtil.get(
 		"cluster.node2");
 
+	public static final String EMAIL_ADDRESS_1 = TestPropsUtil.get(
+		"email.address.1");
+
+	public static final String EMAIL_ADDRESS_2 = TestPropsUtil.get(
+		"email.address.2");
+
+	public static final String EMAIL_PASSWORD_1 = TestPropsUtil.get(
+		"email.password.1");
+
+	public static final String EMAIL_PASSWORD_2 = TestPropsUtil.get(
+		"email.password.2");
+
+	public static final String[] FIXED_ISSUES = StringUtil.split(
+		TestPropsUtil.get("fixed.issues"));
+
 	public static final String OUTPUT_DIR = TestPropsUtil.get("output.dir");
 
 	public static final String PORTAL_URL = TestPropsUtil.get("portal.url");
@@ -58,8 +73,26 @@ public class TestPropsValues extends com.liferay.portal.util.TestPropsValues {
 	public static final int SELENIUM_PORT = GetterUtil.getInteger(
 		TestPropsUtil.get("selenium.port"));
 
+	public static final boolean TEAR_DOWN_BEFORE_TEST = GetterUtil.getBoolean(
+		TestPropsUtil.get("tear.down.before.test"));
+
+	public static final boolean TEST_ASSERT_LIFERAY_ERRORS =
+		GetterUtil.getBoolean(TestPropsUtil.get("test.assert.liferay.errors"));
+
+	public static final boolean TEST_ASSSERT_JAVASCRIPT_ERRORS =
+		GetterUtil.getBoolean(
+			TestPropsUtil.get("test.assert.javascript.errors"));
+
+	public static final String TEST_BASEDIR = TestPropsUtil.get("test.basedir");
+
 	public static final boolean TEST_DATABASE_MINIMAL = GetterUtil.getBoolean(
 		TestPropsUtil.get("test.database.minimal"));
+
+	public static final boolean TEST_SKIP_TEAR_DOWN = GetterUtil.getBoolean(
+		TestPropsUtil.get("test.skip.tear.down"));
+
+	public static final boolean TESTING_CLASS_METHOD = GetterUtil.getBoolean(
+		TestPropsUtil.get("testing.class.method"));
 
 	public static final String[] THEME_IDS = StringUtil.split(
 		TestPropsUtil.get("theme.ids"));

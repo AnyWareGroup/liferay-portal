@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.asset.service.impl.AssetEntryLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class AssetEntryLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -163,6 +166,21 @@ public class AssetEntryLocalServiceUtil {
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	public static long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	public static com.liferay.portlet.asset.model.AssetEntry fetchAssetEntry(
@@ -667,11 +685,10 @@ public class AssetEntryLocalServiceUtil {
 		return getService().incrementViewCounter(userId, className, classPK);
 	}
 
-	public static com.liferay.portlet.asset.model.AssetEntry incrementViewCounter(
-		long userId, java.lang.String className, long classPK, int increment)
+	public static void incrementViewCounter(long userId,
+		java.lang.String className, long classPK, int increment)
 		throws com.liferay.portal.kernel.exception.SystemException {
-		return getService()
-				   .incrementViewCounter(userId, className, classPK, increment);
+		getService().incrementViewCounter(userId, className, classPK, increment);
 	}
 
 	public static void reindex(
@@ -684,6 +701,7 @@ public class AssetEntryLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, long[], long,
 	String, String, int, int, int)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.kernel.search.Hits search(long companyId,
 		long[] groupIds, long userId, java.lang.String className,
 		java.lang.String keywords, int start, int end)
@@ -707,6 +725,7 @@ public class AssetEntryLocalServiceUtil {
 	String, String, String, String, String, String, int, boolean,
 	int, int)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.kernel.search.Hits search(long companyId,
 		long[] groupIds, long userId, java.lang.String className,
 		java.lang.String userName, java.lang.String title,
@@ -736,6 +755,7 @@ public class AssetEntryLocalServiceUtil {
 	* @deprecated As of 6.2.0, replaced by {@link #search(long, long[], long,
 	String, String, int, int, int)}
 	*/
+	@Deprecated
 	public static com.liferay.portal.kernel.search.Hits search(long companyId,
 		long[] groupIds, java.lang.String className, java.lang.String keywords,
 		int start, int end)
@@ -779,6 +799,7 @@ public class AssetEntryLocalServiceUtil {
 	Date, Date, String, String, String, String, String, String,
 	int, int, Integer, boolean)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetEntry updateEntry(
 		long userId, long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,
@@ -804,6 +825,7 @@ public class AssetEntryLocalServiceUtil {
 	boolean, Date, Date, Date, String, String, String, String,
 	String, String, int, int, Integer, boolean)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.asset.model.AssetEntry updateEntry(
 		long userId, long groupId, java.lang.String className, long classPK,
 		java.lang.String classUuid, long classTypeId, long[] categoryIds,
@@ -868,6 +890,7 @@ public class AssetEntryLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(AssetEntryLocalService service) {
 	}
 

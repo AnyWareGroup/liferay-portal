@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.ListTypeModelImpl
  * @generated
  */
-public interface ListTypeModel extends BaseModel<ListType> {
+@ProviderType
+public interface ListTypeModel extends BaseModel<ListType>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +57,22 @@ public interface ListTypeModel extends BaseModel<ListType> {
 	 * @param primaryKey the primary key of this list type
 	 */
 	public void setPrimaryKey(int primaryKey);
+
+	/**
+	 * Returns the mvcc version of this list type.
+	 *
+	 * @return the mvcc version of this list type
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this list type.
+	 *
+	 * @param mvccVersion the mvcc version of this list type
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the list type ID of this list type.

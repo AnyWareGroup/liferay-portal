@@ -14,6 +14,7 @@
 
 package com.liferay.portal.theme;
 
+import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -40,7 +41,6 @@ public class PortletDisplay implements Serializable {
 	}
 
 	public void copyFrom(PortletDisplay master) {
-		_access = master.isAccess();
 		_active = master.isActive();
 		_columnCount = master.getColumnCount();
 		_columnId = master.getColumnId();
@@ -106,7 +106,6 @@ public class PortletDisplay implements Serializable {
 	}
 
 	public void copyTo(PortletDisplay slave) {
-		slave.setAccess(_access);
 		slave.setActive(_active);
 		slave.setColumnCount(_columnCount);
 		slave.setColumnId(_columnId);
@@ -249,9 +248,9 @@ public class PortletDisplay implements Serializable {
 	}
 
 	public String getURLConfigurationJS() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(11);
 
-		sb.append("Liferay.Portlet.openConfiguration(\'#p_p_id_");
+		sb.append("Liferay.Portlet.openWindow(\'#p_p_id_");
 		sb.append(_id);
 		sb.append("_\', \'");
 		sb.append(_id);
@@ -259,6 +258,8 @@ public class PortletDisplay implements Serializable {
 		sb.append(_urlConfiguration);
 		sb.append(" \', \'");
 		sb.append(_namespace);
+		sb.append(" \', \'");
+		sb.append(LanguageUtil.get(_themeDisplay.getLocale(), "configuration"));
 		sb.append("\'); return false;");
 
 		return sb.toString();
@@ -308,8 +309,12 @@ public class PortletDisplay implements Serializable {
 		return _urlRefresh;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 with no direct replacement
+	 */
+	@Deprecated
 	public boolean isAccess() {
-		return _access;
+		return true;
 	}
 
 	public boolean isActive() {
@@ -449,7 +454,6 @@ public class PortletDisplay implements Serializable {
 			_log.debug("Recycling instance " + hashCode());
 		}
 
-		_access = false;
 		_active = false;
 		_columnCount = 0;
 		_columnId = StringPool.BLANK;
@@ -513,8 +517,11 @@ public class PortletDisplay implements Serializable {
 		_webDAVEnabled = false;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0 with no direct replacement
+	 */
+	@Deprecated
 	public void setAccess(boolean access) {
-		_access = access;
 	}
 
 	public void setActive(boolean active) {
@@ -789,7 +796,6 @@ public class PortletDisplay implements Serializable {
 	private static StringBundler _blankStringBundler = new StringBundler(
 		StringPool.BLANK);
 
-	private boolean _access;
 	private boolean _active;
 	private int _columnCount;
 	private String _columnId = StringPool.BLANK;

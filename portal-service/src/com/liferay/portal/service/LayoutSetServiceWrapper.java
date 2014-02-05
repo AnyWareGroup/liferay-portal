@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutSetService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutSetService
+ * @author Brian Wing Shun Chan
+ * @see LayoutSetService
  * @generated
  */
+@ProviderType
 public class LayoutSetServiceWrapper implements LayoutSetService,
 	ServiceWrapper<LayoutSetService> {
 	public LayoutSetServiceWrapper(LayoutSetService layoutSetService) {
@@ -140,6 +143,7 @@ public class LayoutSetServiceWrapper implements LayoutSetService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutSetService getWrappedLayoutSetService() {
 		return _layoutSetService;
 	}
@@ -147,6 +151,7 @@ public class LayoutSetServiceWrapper implements LayoutSetService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutSetService(LayoutSetService layoutSetService) {
 		_layoutSetService = layoutSetService;
 	}

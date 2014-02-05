@@ -26,6 +26,7 @@ public interface TemplateConstants {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public static final String JOURNAL_SEPARATOR = "_JOURNAL_CONTEXT_";
 
 	public static final String LANG_TYPE_CSS = "css";
@@ -37,6 +38,8 @@ public interface TemplateConstants {
 	public static final String LANG_TYPE_XSL = "xsl";
 
 	public static final String SERVLET_SEPARATOR = "_SERVLET_CONTEXT_";
+
+	public static final String TEMPLATE_ID = "template_id";
 
 	public static final String TEMPLATE_RESOURCE_UUID_PREFIX =
 		"TEMPLATE_RESOURCE_UUID";

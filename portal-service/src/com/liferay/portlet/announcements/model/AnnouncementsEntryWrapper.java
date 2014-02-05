@@ -14,6 +14,10 @@
 
 package com.liferay.portlet.announcements.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.Date;
@@ -25,10 +29,11 @@ import java.util.Map;
  * This class is a wrapper for {@link AnnouncementsEntry}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsEntry
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsEntry
  * @generated
  */
+@ProviderType
 public class AnnouncementsEntryWrapper implements AnnouncementsEntry,
 	ModelWrapper<AnnouncementsEntry> {
 	public AnnouncementsEntryWrapper(AnnouncementsEntry announcementsEntry) {
@@ -694,9 +699,35 @@ public class AnnouncementsEntryWrapper implements AnnouncementsEntry,
 		return _announcementsEntry.getGroupId();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AnnouncementsEntryWrapper)) {
+			return false;
+		}
+
+		AnnouncementsEntryWrapper announcementsEntryWrapper = (AnnouncementsEntryWrapper)obj;
+
+		if (Validator.equals(_announcementsEntry,
+					announcementsEntryWrapper._announcementsEntry)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _announcementsEntry.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public AnnouncementsEntry getWrappedAnnouncementsEntry() {
 		return _announcementsEntry;
 	}
@@ -704,6 +735,16 @@ public class AnnouncementsEntryWrapper implements AnnouncementsEntry,
 	@Override
 	public AnnouncementsEntry getWrappedModel() {
 		return _announcementsEntry;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _announcementsEntry.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _announcementsEntry.isFinderCacheEnabled();
 	}
 
 	@Override

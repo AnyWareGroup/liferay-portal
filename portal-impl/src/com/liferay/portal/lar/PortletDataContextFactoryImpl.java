@@ -14,6 +14,7 @@
 
 package com.liferay.portal.lar;
 
+import com.liferay.portal.kernel.lar.ManifestSummary;
 import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.lar.PortletDataContextFactory;
 import com.liferay.portal.kernel.lar.PortletDataException;
@@ -24,6 +25,7 @@ import com.liferay.portal.kernel.zip.ZipReader;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Layout;
+import com.liferay.portal.security.auth.CompanyThreadLocal;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.theme.ThemeDisplay;
 
@@ -36,6 +38,42 @@ import java.util.Map;
  */
 public class PortletDataContextFactoryImpl
 	implements PortletDataContextFactory {
+
+	@Override
+	public PortletDataContext clonePortletDataContext(
+		PortletDataContext portletDataContext) {
+
+		PortletDataContext clonePortletDataContext =
+			new PortletDataContextImpl();
+
+		clonePortletDataContext.setCompanyId(portletDataContext.getCompanyId());
+		clonePortletDataContext.setCompanyGroupId(
+			portletDataContext.getCompanyGroupId());
+		clonePortletDataContext.setDataStrategy(
+			portletDataContext.getDataStrategy());
+		clonePortletDataContext.setEndDate(portletDataContext.getEndDate());
+		clonePortletDataContext.setGroupId(portletDataContext.getGroupId());
+
+		ManifestSummary manifestSummary =
+			portletDataContext.getManifestSummary();
+
+		clonePortletDataContext.setManifestSummary(
+			(ManifestSummary)manifestSummary.clone());
+
+		clonePortletDataContext.setNewLayouts(
+			portletDataContext.getNewLayouts());
+		clonePortletDataContext.setParameterMap(
+			portletDataContext.getParameterMap());
+		clonePortletDataContext.setScopeGroupId(
+			portletDataContext.getScopeGroupId());
+		clonePortletDataContext.setStartDate(portletDataContext.getStartDate());
+		clonePortletDataContext.setUserIdStrategy(
+			portletDataContext.getUserIdStrategy());
+		clonePortletDataContext.setUserPersonalSiteGroupId(
+			portletDataContext.getUserPersonalSiteGroupId());
+
+		return clonePortletDataContext;
+	}
 
 	@Override
 	public PortletDataContext createExportPortletDataContext(
@@ -80,19 +118,28 @@ public class PortletDataContextFactoryImpl
 
 	@Override
 	public PortletDataContext createPreparePortletDataContext(
-			ThemeDisplay themeDisplay, Date startDate, Date endDate)
+			long companyId, long groupId, Date startDate, Date endDate)
 		throws PortletDataException {
 
 		validateDateRange(startDate, endDate);
 
 		PortletDataContext portletDataContext = createPortletDataContext(
-			themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId());
+			companyId, groupId);
 
-		portletDataContext.setCompanyId(themeDisplay.getCompanyId());
 		portletDataContext.setEndDate(endDate);
 		portletDataContext.setStartDate(startDate);
 
 		return portletDataContext;
+	}
+
+	@Override
+	public PortletDataContext createPreparePortletDataContext(
+			ThemeDisplay themeDisplay, Date startDate, Date endDate)
+		throws PortletDataException {
+
+		return createPreparePortletDataContext(
+			themeDisplay.getCompanyId(), themeDisplay.getScopeGroupId(),
+			startDate, endDate);
 	}
 
 	protected PortletDataContext createPortletDataContext(
@@ -107,7 +154,9 @@ public class PortletDataContextFactoryImpl
 			portletDataContext.setCompanyGroupId(companyGroup.getGroupId());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e);
+			if (!CompanyThreadLocal.isDeleteInProcess()) {
+				throw new IllegalStateException(e);
+			}
 		}
 
 		portletDataContext.setCompanyId(companyId);
@@ -122,7 +171,9 @@ public class PortletDataContextFactoryImpl
 				userPersonalSiteGroup.getGroupId());
 		}
 		catch (Exception e) {
-			throw new IllegalStateException(e);
+			if (!CompanyThreadLocal.isDeleteInProcess()) {
+				throw new IllegalStateException(e);
+			}
 		}
 
 		return portletDataContext;

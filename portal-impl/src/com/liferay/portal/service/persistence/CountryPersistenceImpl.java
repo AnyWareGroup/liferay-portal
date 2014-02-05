@@ -1062,6 +1062,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByActive(active);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Country> list = findByActive(active, count - 1, count,
 				orderByComparator);
 
@@ -1285,6 +1289,10 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 	}
 
 	private static final String _FINDER_COLUMN_ACTIVE_ACTIVE_2 = "country.active = ?";
+
+	public CountryPersistenceImpl() {
+		setModelClass(Country.class);
+	}
 
 	/**
 	 * Caches the country in the entity cache if it is enabled.
@@ -1632,10 +1640,12 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 		}
 
 		EntityCacheUtil.putResult(CountryModelImpl.ENTITY_CACHE_ENABLED,
-			CountryImpl.class, country.getPrimaryKey(), country);
+			CountryImpl.class, country.getPrimaryKey(), country, false);
 
 		clearUniqueFindersCache(country);
 		cacheUniqueFindersCache(country);
+
+		country.resetOriginalValues();
 
 		return country;
 	}
@@ -1650,6 +1660,7 @@ public class CountryPersistenceImpl extends BasePersistenceImpl<Country>
 		countryImpl.setNew(country.isNew());
 		countryImpl.setPrimaryKey(country.getPrimaryKey());
 
+		countryImpl.setMvccVersion(country.getMvccVersion());
 		countryImpl.setCountryId(country.getCountryId());
 		countryImpl.setName(country.getName());
 		countryImpl.setA2(country.getA2());

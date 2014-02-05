@@ -63,10 +63,11 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 	 */
 	public static final String TABLE_NAME = "ClassName_";
 	public static final Object[][] TABLE_COLUMNS = {
+			{ "mvccVersion", Types.BIGINT },
 			{ "classNameId", Types.BIGINT },
 			{ "value", Types.VARCHAR }
 		};
-	public static final String TABLE_SQL_CREATE = "create table ClassName_ (classNameId LONG not null primary key,value VARCHAR(200) null)";
+	public static final String TABLE_SQL_CREATE = "create table ClassName_ (mvccVersion LONG default 0,classNameId LONG not null primary key,value VARCHAR(200) null)";
 	public static final String TABLE_SQL_DROP = "drop table ClassName_";
 	public static final String ORDER_BY_JPQL = " ORDER BY className.classNameId ASC";
 	public static final String ORDER_BY_SQL = " ORDER BY ClassName_.classNameId ASC";
@@ -98,6 +99,7 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 
 		ClassName model = new ClassNameImpl();
 
+		model.setMvccVersion(soapModel.getMvccVersion());
 		model.setClassNameId(soapModel.getClassNameId());
 		model.setValue(soapModel.getValue());
 
@@ -164,14 +166,24 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("value", getValue());
+
+		attributes.put("entityCacheEnabled", isEntityCacheEnabled());
+		attributes.put("finderCacheEnabled", isFinderCacheEnabled());
 
 		return attributes;
 	}
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long classNameId = (Long)attributes.get("classNameId");
 
 		if (classNameId != null) {
@@ -183,6 +195,17 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 		if (value != null) {
 			setValue(value);
 		}
+	}
+
+	@JSON
+	@Override
+	public long getMvccVersion() {
+		return _mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_mvccVersion = mvccVersion;
 	}
 
 	@Override
@@ -205,8 +228,8 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 		setClassNameId(classNameId);
 	}
 
-	@Override
 	@JSON
+	@Override
 	public long getClassNameId() {
 		return _classNameId;
 	}
@@ -216,8 +239,8 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 		_classNameId = classNameId;
 	}
 
-	@Override
 	@JSON
+	@Override
 	public String getValue() {
 		if (_value == null) {
 			return StringPool.BLANK;
@@ -273,6 +296,7 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 	public Object clone() {
 		ClassNameImpl classNameImpl = new ClassNameImpl();
 
+		classNameImpl.setMvccVersion(getMvccVersion());
 		classNameImpl.setClassNameId(getClassNameId());
 		classNameImpl.setValue(getValue());
 
@@ -324,6 +348,16 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 	}
 
 	@Override
+	public boolean isEntityCacheEnabled() {
+		return ENTITY_CACHE_ENABLED;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return FINDER_CACHE_ENABLED;
+	}
+
+	@Override
 	public void resetOriginalValues() {
 		ClassNameModelImpl classNameModelImpl = this;
 
@@ -335,6 +369,8 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 	@Override
 	public CacheModel<ClassName> toCacheModel() {
 		ClassNameCacheModel classNameCacheModel = new ClassNameCacheModel();
+
+		classNameCacheModel.mvccVersion = getMvccVersion();
 
 		classNameCacheModel.classNameId = getClassNameId();
 
@@ -351,9 +387,11 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(7);
 
-		sb.append("{classNameId=");
+		sb.append("{mvccVersion=");
+		sb.append(getMvccVersion());
+		sb.append(", classNameId=");
 		sb.append(getClassNameId());
 		sb.append(", value=");
 		sb.append(getValue());
@@ -364,12 +402,16 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 
 	@Override
 	public String toXmlString() {
-		StringBundler sb = new StringBundler(10);
+		StringBundler sb = new StringBundler(13);
 
 		sb.append("<model><model-name>");
 		sb.append("com.liferay.portal.model.ClassName");
 		sb.append("</model-name>");
 
+		sb.append(
+			"<column><column-name>mvccVersion</column-name><column-value><![CDATA[");
+		sb.append(getMvccVersion());
+		sb.append("]]></column-value></column>");
 		sb.append(
 			"<column><column-name>classNameId</column-name><column-value><![CDATA[");
 		sb.append(getClassNameId());
@@ -388,6 +430,7 @@ public class ClassNameModelImpl extends BaseModelImpl<ClassName>
 	private static Class<?>[] _escapedModelInterfaces = new Class[] {
 			ClassName.class
 		};
+	private long _mvccVersion;
 	private long _classNameId;
 	private String _value;
 	private String _originalValue;

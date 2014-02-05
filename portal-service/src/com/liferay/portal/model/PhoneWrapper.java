@@ -14,6 +14,11 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.lar.StagedModelType;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +28,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Phone}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Phone
+ * @author Brian Wing Shun Chan
+ * @see Phone
  * @generated
  */
+@ProviderType
 public class PhoneWrapper implements Phone, ModelWrapper<Phone> {
 	public PhoneWrapper(Phone phone) {
 		_phone = phone;
@@ -46,6 +52,7 @@ public class PhoneWrapper implements Phone, ModelWrapper<Phone> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("uuid", getUuid());
 		attributes.put("phoneId", getPhoneId());
 		attributes.put("companyId", getCompanyId());
@@ -65,6 +72,12 @@ public class PhoneWrapper implements Phone, ModelWrapper<Phone> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		String uuid = (String)attributes.get("uuid");
 
 		if (uuid != null) {
@@ -162,6 +175,26 @@ public class PhoneWrapper implements Phone, ModelWrapper<Phone> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_phone.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this phone.
+	*
+	* @return the mvcc version of this phone
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _phone.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this phone.
+	*
+	* @param mvccVersion the mvcc version of this phone
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_phone.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -582,9 +615,34 @@ public class PhoneWrapper implements Phone, ModelWrapper<Phone> {
 		return _phone.getType();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PhoneWrapper)) {
+			return false;
+		}
+
+		PhoneWrapper phoneWrapper = (PhoneWrapper)obj;
+
+		if (Validator.equals(_phone, phoneWrapper._phone)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return _phone.getStagedModelType();
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Phone getWrappedPhone() {
 		return _phone;
 	}
@@ -592,6 +650,16 @@ public class PhoneWrapper implements Phone, ModelWrapper<Phone> {
 	@Override
 	public Phone getWrappedModel() {
 		return _phone;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _phone.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _phone.isFinderCacheEnabled();
 	}
 
 	@Override

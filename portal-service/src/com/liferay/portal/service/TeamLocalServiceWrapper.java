@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link TeamLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       TeamLocalService
+ * @author Brian Wing Shun Chan
+ * @see TeamLocalService
  * @generated
  */
+@ProviderType
 public class TeamLocalServiceWrapper implements TeamLocalService,
 	ServiceWrapper<TeamLocalService> {
 	public TeamLocalServiceWrapper(TeamLocalService teamLocalService) {
@@ -161,6 +164,22 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _teamLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _teamLocalService.dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	@Override
@@ -625,6 +644,7 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public TeamLocalService getWrappedTeamLocalService() {
 		return _teamLocalService;
 	}
@@ -632,6 +652,7 @@ public class TeamLocalServiceWrapper implements TeamLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedTeamLocalService(TeamLocalService teamLocalService) {
 		_teamLocalService = teamLocalService;
 	}

@@ -10,7 +10,7 @@
 <tbody>
 <tr>
 	<td>PAGE_NAME</td>
-	<td>//iframe[contains(@src,'dynamicdatalists')]</td>
+	<td></td>
 	<td>CPDynamicdatalistsDatadefinitions</td>
 </tr>
 <tr>
@@ -19,8 +19,23 @@
 	<td></td>
 </tr>
 <tr>
+	<td>DATA_DEFINITIONS_IFRAME</td>
+	<td>//iframe[contains(@src,'dynamic_data_lists')]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>SUCCESS_MESSAGE</td>
-	<td>//div[@class='alert alert-success']</td>
+	<td>//div[contains(@class,'alert') and contains(@class,'alert-success')]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE_1</td>
+	<td>xPath=(//div[@class='alert alert-error'])[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>ERROR_MESSAGE_2</td>
+	<td>xPath=(//div[@class='alert alert-error'])[2]</td>
 	<td></td>
 </tr>
 <tr>
@@ -78,6 +93,11 @@
 <tr>
 	<td>DATA_DEFINITION_TABLE_ID_1</td>
 	<td>xpath=(//div[@id='_166_ddmStructuresSearchContainer']//tr/td[2]/a)[1]</td>
+	<td></td>
+</tr>
+<tr>
+	<td>DATA_DEFINITION_TABLE_NAME</td>
+	<td>//div[@id='_166_ddmStructuresSearchContainer']//tr/td[3]/a[contains(.,'${key_dataDefinitionName}')][1]</td>
 	<td></td>
 </tr>
 <tr>

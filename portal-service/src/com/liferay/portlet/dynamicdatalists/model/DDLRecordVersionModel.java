@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatalists.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.BaseModel;
@@ -40,6 +42,7 @@ import java.util.Date;
  * @see com.liferay.portlet.dynamicdatalists.model.impl.DDLRecordVersionModelImpl
  * @generated
  */
+@ProviderType
 public interface DDLRecordVersionModel extends BaseModel<DDLRecordVersion>,
 	WorkflowedModel {
 	/*
@@ -318,6 +321,7 @@ public interface DDLRecordVersionModel extends BaseModel<DDLRecordVersion>,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #isApproved()}
 	 */
+	@Deprecated
 	@Override
 	public boolean getApproved();
 
@@ -368,14 +372,6 @@ public interface DDLRecordVersionModel extends BaseModel<DDLRecordVersion>,
 	 */
 	@Override
 	public boolean isIncomplete();
-
-	/**
-	 * Returns <code>true</code> if this d d l record version is in the Recycle Bin.
-	 *
-	 * @return <code>true</code> if this d d l record version is in the Recycle Bin; <code>false</code> otherwise
-	 */
-	@Override
-	public boolean isInTrash();
 
 	/**
 	 * Returns <code>true</code> if this d d l record version is pending.

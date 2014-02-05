@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link MBThreadService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       MBThreadService
+ * @author Brian Wing Shun Chan
+ * @see MBThreadService
  * @generated
  */
+@ProviderType
 public class MBThreadServiceWrapper implements MBThreadService,
 	ServiceWrapper<MBThreadService> {
 	public MBThreadServiceWrapper(MBThreadService mbThreadService) {
@@ -178,6 +181,25 @@ public class MBThreadServiceWrapper implements MBThreadService,
 	}
 
 	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbThreadService.search(groupId, creatorUserId, status, start,
+			end);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, long startDate, long endDate, int status,
+		int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbThreadService.search(groupId, creatorUserId, startDate,
+			endDate, status, start, end);
+	}
+
+	@Override
 	public com.liferay.portlet.messageboards.model.MBThread splitThread(
 		long messageId, java.lang.String subject,
 		com.liferay.portal.service.ServiceContext serviceContext)
@@ -196,6 +218,7 @@ public class MBThreadServiceWrapper implements MBThreadService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBThreadService getWrappedMBThreadService() {
 		return _mbThreadService;
 	}
@@ -203,6 +226,7 @@ public class MBThreadServiceWrapper implements MBThreadService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBThreadService(MBThreadService mbThreadService) {
 		_mbThreadService = mbThreadService;
 	}

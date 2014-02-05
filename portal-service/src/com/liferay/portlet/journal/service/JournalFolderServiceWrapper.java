@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.journal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link JournalFolderService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       JournalFolderService
+ * @author Brian Wing Shun Chan
+ * @see JournalFolderService
  * @generated
  */
+@ProviderType
 public class JournalFolderServiceWrapper implements JournalFolderService,
 	ServiceWrapper<JournalFolderService> {
 	public JournalFolderServiceWrapper(
@@ -130,6 +133,15 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 
 	@Override
 	public java.util.List<java.lang.Object> getFoldersAndArticles(
+		long groupId, long folderId, int status, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator obc)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderService.getFoldersAndArticles(groupId, folderId,
+			status, start, end, obc);
+	}
+
+	@Override
+	public java.util.List<java.lang.Object> getFoldersAndArticles(
 		long groupId, long folderId, int start, int end,
 		com.liferay.portal.kernel.util.OrderByComparator obc)
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -166,10 +178,30 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	}
 
 	@Override
+	public int getFoldersCount(long groupId, long parentFolderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _journalFolderService.getFoldersCount(groupId, parentFolderId,
+			status);
+	}
+
+	/**
+	* @deprecated As of 7.0.0, replaced by {@link #getSubfolderIds(List, long,
+	long, boolean)}
+	*/
+	@Deprecated
+	@Override
 	public void getSubfolderIds(java.util.List<java.lang.Long> folderIds,
 		long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_journalFolderService.getSubfolderIds(folderIds, groupId, folderId);
+	}
+
+	@Override
+	public void getSubfolderIds(java.util.List<java.lang.Long> folderIds,
+		long groupId, long folderId, boolean recurse)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_journalFolderService.getSubfolderIds(folderIds, groupId, folderId,
+			recurse);
 	}
 
 	@Override
@@ -200,10 +232,11 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	}
 
 	@Override
-	public void moveFolderToTrash(long folderId)
+	public com.liferay.portlet.journal.model.JournalFolder moveFolderToTrash(
+		long folderId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		_journalFolderService.moveFolderToTrash(folderId);
+		return _journalFolderService.moveFolderToTrash(folderId);
 	}
 
 	@Override
@@ -227,6 +260,7 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public JournalFolderService getWrappedJournalFolderService() {
 		return _journalFolderService;
 	}
@@ -234,6 +268,7 @@ public class JournalFolderServiceWrapper implements JournalFolderService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedJournalFolderService(
 		JournalFolderService journalFolderService) {
 		_journalFolderService = journalFolderService;

@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialRequestLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRequestLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialRequestLocalService
  * @generated
  */
+@ProviderType
 public class SocialRequestLocalServiceWrapper
 	implements SocialRequestLocalService,
 		ServiceWrapper<SocialRequestLocalService> {
@@ -167,11 +170,60 @@ public class SocialRequestLocalServiceWrapper
 		return _socialRequestLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialRequestLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.social.model.SocialRequest fetchSocialRequest(
 		long requestId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _socialRequestLocalService.fetchSocialRequest(requestId);
+	}
+
+	/**
+	* Returns the social request with the matching UUID and company.
+	*
+	* @param uuid the social request's UUID
+	* @param companyId the primary key of the company
+	* @return the matching social request, or <code>null</code> if a matching social request could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRequest fetchSocialRequestByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialRequestLocalService.fetchSocialRequestByUuidAndCompanyId(uuid,
+			companyId);
+	}
+
+	/**
+	* Returns the social request matching the UUID and group.
+	*
+	* @param uuid the social request's UUID
+	* @param groupId the primary key of the group
+	* @return the matching social request, or <code>null</code> if a matching social request could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRequest fetchSocialRequestByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialRequestLocalService.fetchSocialRequestByUuidAndGroupId(uuid,
+			groupId);
 	}
 
 	/**
@@ -196,6 +248,24 @@ public class SocialRequestLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _socialRequestLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the social request with the matching UUID and company.
+	*
+	* @param uuid the social request's UUID
+	* @param companyId the primary key of the company
+	* @return the matching social request
+	* @throws PortalException if a matching social request could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRequest getSocialRequestByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _socialRequestLocalService.getSocialRequestByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -353,6 +423,12 @@ public class SocialRequestLocalServiceWrapper
 		com.liferay.portlet.social.model.SocialRequest request)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		_socialRequestLocalService.deleteRequest(request);
+	}
+
+	@Override
+	public void deleteRequests(long className, long classPK)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		_socialRequestLocalService.deleteRequests(className, classPK);
 	}
 
 	/**
@@ -618,6 +694,7 @@ public class SocialRequestLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialRequestLocalService getWrappedSocialRequestLocalService() {
 		return _socialRequestLocalService;
 	}
@@ -625,6 +702,7 @@ public class SocialRequestLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialRequestLocalService(
 		SocialRequestLocalService socialRequestLocalService) {
 		_socialRequestLocalService = socialRequestLocalService;

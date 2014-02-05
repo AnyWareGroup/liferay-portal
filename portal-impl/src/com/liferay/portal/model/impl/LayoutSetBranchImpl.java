@@ -95,6 +95,15 @@ public class LayoutSetBranchImpl extends LayoutSetBranchBaseImpl {
 	}
 
 	@Override
+	public boolean getLogo() {
+		if (getLogoId() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public String getSettings() {
 		if (_settingsProperties == null) {
 			return super.getSettings();
@@ -203,6 +212,11 @@ public class LayoutSetBranchImpl extends LayoutSetBranchBaseImpl {
 	}
 
 	@Override
+	public boolean isLogo() {
+		return getLogo();
+	}
+
+	@Override
 	public void setSettings(String settings) {
 		_settingsProperties = null;
 
@@ -216,7 +230,7 @@ public class LayoutSetBranchImpl extends LayoutSetBranchBaseImpl {
 		super.setSettings(_settingsProperties.toString());
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(LayoutSetImpl.class);
+	private static Log _log = LogFactoryUtil.getLog(LayoutSetBranchImpl.class);
 
 	private LayoutSet _layoutSet;
 	private UnicodeProperties _settingsProperties;

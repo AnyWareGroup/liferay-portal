@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.softwarecatalog.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SCProductEntryService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SCProductEntryService
+ * @author Brian Wing Shun Chan
+ * @see SCProductEntryService
  * @generated
  */
+@ProviderType
 public class SCProductEntryServiceWrapper implements SCProductEntryService,
 	ServiceWrapper<SCProductEntryService> {
 	public SCProductEntryServiceWrapper(
@@ -99,6 +102,7 @@ public class SCProductEntryServiceWrapper implements SCProductEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SCProductEntryService getWrappedSCProductEntryService() {
 		return _scProductEntryService;
 	}
@@ -106,6 +110,7 @@ public class SCProductEntryServiceWrapper implements SCProductEntryService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSCProductEntryService(
 		SCProductEntryService scProductEntryService) {
 		_scProductEntryService = scProductEntryService;

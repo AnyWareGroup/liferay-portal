@@ -14,13 +14,15 @@
 
 package com.liferay.portlet.currencyconverter.action;
 
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.struts.PortletAction;
+import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.PortletKeys;
+import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -41,8 +43,9 @@ public class EditPreferencesAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
@@ -51,15 +54,19 @@ public class EditPreferencesAction extends PortletAction {
 			return;
 		}
 
-		PortletPreferences preferences = actionRequest.getPreferences();
+		PortletPreferences portletPreferences =
+			PortletPreferencesFactoryUtil.getPortletPreferences(
+				PortalUtil.getHttpServletRequest(actionRequest),
+				PortletKeys.CURRENCY_CONVERTER);
 
 		String[] symbols = StringUtil.split(
-			ParamUtil.getString(actionRequest, "symbols").toUpperCase());
+			StringUtil.toUpperCase(
+				ParamUtil.getString(actionRequest, "symbols")));
 
-		preferences.setValues("symbols", symbols);
+		portletPreferences.setValues("symbols", symbols);
 
 		try {
-			preferences.store();
+			portletPreferences.store();
 		}
 		catch (ValidatorException ve) {
 			SessionErrors.add(
@@ -68,22 +75,20 @@ public class EditPreferencesAction extends PortletAction {
 			return;
 		}
 
-		LiferayPortletConfig liferayPortletConfig =
-			(LiferayPortletConfig)portletConfig;
-
 		SessionMessages.add(
 			actionRequest,
-			liferayPortletConfig.getPortletId() +
+			PortalUtil.getPortletId(actionRequest) +
 				SessionMessages.KEY_SUFFIX_UPDATED_PREFERENCES);
 	}
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
-		return mapping.findForward("portlet.currency_converter.edit");
+		return actionMapping.findForward("portlet.currency_converter.edit");
 	}
 
 }

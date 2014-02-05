@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.KMPSearch;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.servlet.filters.dynamiccss.DynamicCSSUtil;
@@ -294,7 +295,8 @@ public class StripFilter extends BasePortalFilter {
 				if (PropsValues.STRIP_CSS_SASS_ENABLED) {
 					try {
 						content = DynamicCSSUtil.parseSass(
-							_servletContext, request, null, content);
+							_servletContext, request, request.getRequestURI(),
+							content);
 					}
 					catch (ScriptingException se) {
 						_log.error("Unable to parse SASS on CSS " + key, se);
@@ -360,7 +362,9 @@ public class StripFilter extends BasePortalFilter {
 			filterChain);
 
 		String contentType = GetterUtil.getString(
-			bufferCacheServletResponse.getContentType()).toLowerCase();
+			bufferCacheServletResponse.getContentType());
+
+		contentType = StringUtil.toLowerCase(contentType);
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Stripping content of type " + contentType);

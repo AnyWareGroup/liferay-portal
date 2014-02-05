@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -35,7 +37,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.UserIdMapperModelImpl
  * @generated
  */
-public interface UserIdMapperModel extends BaseModel<UserIdMapper> {
+@ProviderType
+public interface UserIdMapperModel extends BaseModel<UserIdMapper>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -55,6 +58,22 @@ public interface UserIdMapperModel extends BaseModel<UserIdMapper> {
 	 * @param primaryKey the primary key of this user ID mapper
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this user ID mapper.
+	 *
+	 * @return the mvcc version of this user ID mapper
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this user ID mapper.
+	 *
+	 * @param mvccVersion the mvcc version of this user ID mapper
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the user ID mapper ID of this user ID mapper.

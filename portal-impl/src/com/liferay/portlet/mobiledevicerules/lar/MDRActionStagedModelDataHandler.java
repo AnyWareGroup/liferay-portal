@@ -14,6 +14,7 @@
 
 package com.liferay.portlet.mobiledevicerules.lar;
 
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.lar.BaseStagedModelDataHandler;
 import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataContext;
@@ -22,6 +23,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
@@ -33,7 +35,6 @@ import com.liferay.portlet.mobiledevicerules.model.MDRAction;
 import com.liferay.portlet.mobiledevicerules.model.MDRRuleGroupInstance;
 import com.liferay.portlet.mobiledevicerules.service.MDRActionLocalServiceUtil;
 import com.liferay.portlet.mobiledevicerules.service.MDRRuleGroupInstanceLocalServiceUtil;
-import com.liferay.portlet.mobiledevicerules.service.persistence.MDRActionUtil;
 
 import java.util.Map;
 
@@ -44,6 +45,20 @@ public class MDRActionStagedModelDataHandler
 	extends BaseStagedModelDataHandler<MDRAction> {
 
 	public static final String[] CLASS_NAMES = {MDRAction.class.getName()};
+
+	@Override
+	public void deleteStagedModel(
+			String uuid, long groupId, String className, String extraData)
+		throws SystemException {
+
+		MDRAction action =
+			MDRActionLocalServiceUtil.fetchMDRActionByUuidAndGroupId(
+				uuid, groupId);
+
+		if (action != null) {
+			MDRActionLocalServiceUtil.deleteAction(action);
+		}
+	}
 
 	@Override
 	public String[] getClassNames() {
@@ -64,8 +79,9 @@ public class MDRActionStagedModelDataHandler
 			MDRRuleGroupInstanceLocalServiceUtil.getRuleGroupInstance(
 				action.getRuleGroupInstanceId());
 
-		StagedModelDataHandlerUtil.exportStagedModel(
-			portletDataContext, ruleGroupInstance);
+		StagedModelDataHandlerUtil.exportReferenceStagedModel(
+			portletDataContext, action, ruleGroupInstance,
+			PortletDataContext.REFERENCE_TYPE_PARENT);
 
 		Element actionElement = portletDataContext.getExportDataElement(action);
 
@@ -94,8 +110,7 @@ public class MDRActionStagedModelDataHandler
 		}
 
 		portletDataContext.addClassedModel(
-			actionElement, ExportImportPathUtil.getModelPath(action), action,
-			MDRPortletDataHandler.NAMESPACE);
+			actionElement, ExportImportPathUtil.getModelPath(action), action);
 	}
 
 	@Override
@@ -103,16 +118,9 @@ public class MDRActionStagedModelDataHandler
 			PortletDataContext portletDataContext, MDRAction action)
 		throws Exception {
 
-		String ruleGroupInstancePath = ExportImportPathUtil.getModelPath(
-			portletDataContext, MDRRuleGroupInstance.class.getName(),
+		StagedModelDataHandlerUtil.importReferenceStagedModel(
+			portletDataContext, action, MDRRuleGroupInstance.class,
 			action.getRuleGroupInstanceId());
-
-		MDRRuleGroupInstance ruleGroupInstance =
-			(MDRRuleGroupInstance)portletDataContext.getZipEntryAsObject(
-				ruleGroupInstancePath);
-
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, ruleGroupInstance);
 
 		Map<Long, Long> ruleGroupInstanceIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
@@ -123,7 +131,7 @@ public class MDRActionStagedModelDataHandler
 			action.getRuleGroupInstanceId());
 
 		ServiceContext serviceContext = portletDataContext.createServiceContext(
-			action, MDRPortletDataHandler.NAMESPACE);
+			action);
 
 		serviceContext.setUserId(
 			portletDataContext.getUserId(action.getUserUuid()));
@@ -136,8 +144,9 @@ public class MDRActionStagedModelDataHandler
 		MDRAction importedAction = null;
 
 		if (portletDataContext.isDataStrategyMirror()) {
-			MDRAction existingAction = MDRActionUtil.fetchByUUID_G(
-				action.getUuid(), portletDataContext.getScopeGroupId());
+			MDRAction existingAction =
+				MDRActionLocalServiceUtil.fetchMDRActionByUuidAndGroupId(
+					action.getUuid(), portletDataContext.getScopeGroupId());
 
 			if (existingAction == null) {
 				serviceContext.setUuid(action.getUuid());
@@ -161,8 +170,7 @@ public class MDRActionStagedModelDataHandler
 				action.getTypeSettingsProperties(), serviceContext);
 		}
 
-		portletDataContext.importClassedModel(
-			action, importedAction, MDRPortletDataHandler.NAMESPACE);
+		portletDataContext.importClassedModel(action, importedAction);
 	}
 
 	protected void validateLayout(Element actionElement, MDRAction action) {
@@ -195,11 +203,15 @@ public class MDRActionStagedModelDataHandler
 		}
 		catch (Exception e) {
 			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to find layout with uuid " + layoutUuid +
-						" in group " + groupId + ". Site redirect may not " +
-							"match target layout.",
-					e);
+				StringBundler sb = new StringBundler(5);
+
+				sb.append("Unable to find layout with uuid ");
+				sb.append(layoutUuid);
+				sb.append(" in group ");
+				sb.append(groupId);
+				sb.append(". Site redirect may not match the target layout.");
+
+				_log.warn(sb.toString(), e);
 			}
 		}
 	}

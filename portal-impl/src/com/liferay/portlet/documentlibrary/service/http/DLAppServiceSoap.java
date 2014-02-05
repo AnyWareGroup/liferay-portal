@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.documentlibrary.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -46,11 +48,12 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       DLAppServiceHttp
- * @see       com.liferay.portlet.documentlibrary.service.DLAppServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see DLAppServiceHttp
+ * @see com.liferay.portlet.documentlibrary.service.DLAppServiceUtil
  * @generated
  */
+@ProviderType
 public class DLAppServiceSoap {
 	/**
 	* Adds a file entry and associated metadata. It is created based on a byte
@@ -248,6 +251,7 @@ public class DLAppServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	String, ServiceContext)}
 	*/
+	@Deprecated
 	public static void checkInFileEntry(long fileEntryId,
 		java.lang.String lockUuid) throws RemoteException {
 		try {
@@ -745,6 +749,23 @@ public class DLAppServiceSoap {
 			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> returnValue =
 				DLAppServiceUtil.getFileEntries(repositoryId, folderId,
 					fileEntryTypeId, start, end, obc);
+
+			return com.liferay.portal.kernel.repository.model.FileEntrySoap.toSoapModels(returnValue);
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw new RemoteException(e.getMessage());
+		}
+	}
+
+	public static com.liferay.portal.kernel.repository.model.FileEntrySoap[] getFileEntries(
+		long repositoryId, long folderId, java.lang.String[] mimeTypes)
+		throws RemoteException {
+		try {
+			java.util.List<com.liferay.portal.kernel.repository.model.FileEntry> returnValue =
+				DLAppServiceUtil.getFileEntries(repositoryId, folderId,
+					mimeTypes);
 
 			return com.liferay.portal.kernel.repository.model.FileEntrySoap.toSoapModels(returnValue);
 		}
@@ -1914,8 +1935,7 @@ public class DLAppServiceSoap {
 	* @return the temporary file entry names
 	* @throws PortalException if the folder was invalid
 	* @throws SystemException if a system exception occurred
-	* @see com.liferay.portlet.documentlibrary.service.impl.DLAppServiceImpl#addTempFileEntry(
-	long, long, String, String, File)
+	* @see #addTempFileEntry(long, long, String, String, File, String)
 	* @see com.liferay.portal.kernel.util.TempFileUtil
 	*/
 	public static java.lang.String[] getTempFileEntryNames(long groupId,
@@ -1994,6 +2014,7 @@ public class DLAppServiceSoap {
 	* Moves the file entry with the primary key to the trash portlet.
 	*
 	* @param fileEntryId the primary key of the file entry
+	* @return the file entry
 	* @throws PortalException if the file entry could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2122,6 +2143,7 @@ public class DLAppServiceSoap {
 	* Moves the folder with the primary key to the trash portlet.
 	*
 	* @param folderId the primary key of the folder
+	* @return the file entry
 	* @throws PortalException if the folder could not be found
 	* @throws SystemException if a system exception occurred
 	*/
@@ -2269,6 +2291,7 @@ public class DLAppServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	boolean, String, ServiceContext)}.
 	*/
+	@Deprecated
 	public static void unlockFileEntry(long fileEntryId)
 		throws RemoteException {
 		try {
@@ -2285,6 +2308,7 @@ public class DLAppServiceSoap {
 	* @deprecated As of 6.2.0, replaced by {@link #checkInFileEntry(long,
 	String)}.
 	*/
+	@Deprecated
 	public static void unlockFileEntry(long fileEntryId,
 		java.lang.String lockUuid) throws RemoteException {
 		try {

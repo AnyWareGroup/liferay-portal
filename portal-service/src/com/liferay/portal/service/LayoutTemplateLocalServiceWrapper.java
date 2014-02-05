@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link LayoutTemplateLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       LayoutTemplateLocalService
+ * @author Brian Wing Shun Chan
+ * @see LayoutTemplateLocalService
  * @generated
  */
+@ProviderType
 public class LayoutTemplateLocalServiceWrapper
 	implements LayoutTemplateLocalService,
 		ServiceWrapper<LayoutTemplateLocalService> {
@@ -85,7 +88,7 @@ public class LayoutTemplateLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.lang.Boolean>> init(
+	public java.util.List<com.liferay.portal.model.LayoutTemplate> init(
 		javax.servlet.ServletContext servletContext, java.lang.String[] xmls,
 		com.liferay.portal.kernel.plugin.PluginPackage pluginPackage) {
 		return _layoutTemplateLocalService.init(servletContext, xmls,
@@ -93,7 +96,7 @@ public class LayoutTemplateLocalServiceWrapper
 	}
 
 	@Override
-	public java.util.List<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.lang.Boolean>> init(
+	public java.util.List<com.liferay.portal.model.LayoutTemplate> init(
 		java.lang.String servletContextName,
 		javax.servlet.ServletContext servletContext, java.lang.String[] xmls,
 		com.liferay.portal.kernel.plugin.PluginPackage pluginPackage) {
@@ -104,12 +107,12 @@ public class LayoutTemplateLocalServiceWrapper
 	@Override
 	public void readLayoutTemplate(java.lang.String servletContextName,
 		javax.servlet.ServletContext servletContext,
-		java.util.Set<com.liferay.portal.kernel.util.ObjectValuePair<java.lang.String, java.lang.Boolean>> layoutTemplateIdOVPs,
+		java.util.Set<com.liferay.portal.model.LayoutTemplate> layoutTemplates,
 		com.liferay.portal.kernel.xml.Element element, boolean standard,
 		java.lang.String themeId,
 		com.liferay.portal.kernel.plugin.PluginPackage pluginPackage) {
 		_layoutTemplateLocalService.readLayoutTemplate(servletContextName,
-			servletContext, layoutTemplateIdOVPs, element, standard, themeId,
+			servletContext, layoutTemplates, element, standard, themeId,
 			pluginPackage);
 	}
 
@@ -128,6 +131,7 @@ public class LayoutTemplateLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public LayoutTemplateLocalService getWrappedLayoutTemplateLocalService() {
 		return _layoutTemplateLocalService;
 	}
@@ -135,6 +139,7 @@ public class LayoutTemplateLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedLayoutTemplateLocalService(
 		LayoutTemplateLocalService layoutTemplateLocalService) {
 		_layoutTemplateLocalService = layoutTemplateLocalService;

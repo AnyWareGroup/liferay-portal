@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.RandomAccessInputStream;
@@ -73,7 +74,7 @@ public class ServletResponseUtil {
 		if (!rangeString.matches(_RANGE_REGEX)) {
 			throw new IOException(
 				"Range header does not match regular expression " +
-				rangeString);
+					rangeString);
 		}
 
 		List<Range> ranges = new ArrayList<Range>();
@@ -123,6 +124,19 @@ public class ServletResponseUtil {
 		return ranges;
 	}
 
+	public static boolean isClientAbortException(IOException ioe) {
+		Class<?> clazz = ioe.getClass();
+
+		String className = clazz.getName();
+
+		if (className.equals(_CLIENT_ABORT_EXCEPTION)) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	public static void sendFile(
 			HttpServletRequest request, HttpServletResponse response,
 			String fileName, byte[] bytes)
@@ -153,44 +167,46 @@ public class ServletResponseUtil {
 
 	public static void sendFile(
 			HttpServletRequest request, HttpServletResponse response,
-			String fileName, InputStream is)
+			String fileName, InputStream inputStream)
 		throws IOException {
 
-		sendFile(request, response, fileName, is, null);
+		sendFile(request, response, fileName, inputStream, null);
 	}
 
 	public static void sendFile(
 			HttpServletRequest request, HttpServletResponse response,
-			String fileName, InputStream is, long contentLength,
+			String fileName, InputStream inputStream, long contentLength,
 			String contentType)
 		throws IOException {
 
-		sendFile(request, response, fileName, is, 0, contentType, null);
+		sendFile(
+			request, response, fileName, inputStream, 0, contentType, null);
 	}
 
 	public static void sendFile(
 			HttpServletRequest request, HttpServletResponse response,
-			String fileName, InputStream is, long contentLength,
+			String fileName, InputStream inputStream, long contentLength,
 			String contentType, String contentDispositionType)
 		throws IOException {
 
 		setHeaders(
 			request, response, fileName, contentType, contentDispositionType);
 
-		write(response, is, contentLength);
+		write(response, inputStream, contentLength);
 	}
 
 	public static void sendFile(
 			HttpServletRequest request, HttpServletResponse response,
-			String fileName, InputStream is, String contentType)
+			String fileName, InputStream inputStream, String contentType)
 		throws IOException {
 
-		sendFile(request, response, fileName, is, 0, contentType);
+		sendFile(request, response, fileName, inputStream, 0, contentType);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void sendFile(
 			HttpServletResponse response, String fileName, byte[] bytes)
 		throws IOException {
@@ -201,6 +217,7 @@ public class ServletResponseUtil {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void sendFile(
 			HttpServletResponse response, String fileName, byte[] bytes,
 			String contentType)
@@ -212,33 +229,38 @@ public class ServletResponseUtil {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void sendFile(
-			HttpServletResponse response, String fileName, InputStream is)
+			HttpServletResponse response, String fileName,
+			InputStream inputStream)
 		throws IOException {
 
-		sendFile(null, response, fileName, is);
+		sendFile(null, response, fileName, inputStream);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void sendFile(
-			HttpServletResponse response, String fileName, InputStream is,
-			int contentLength, String contentType)
+			HttpServletResponse response, String fileName,
+			InputStream inputStream, int contentLength, String contentType)
 		throws IOException {
 
-		sendFile(null, response, fileName, is, contentLength, contentType);
+		sendFile(
+			null, response, fileName, inputStream, contentLength, contentType);
 	}
 
 	/**
 	 * @deprecated As of 6.1.0
 	 */
+	@Deprecated
 	public static void sendFile(
-			HttpServletResponse response, String fileName, InputStream is,
-			String contentType)
+			HttpServletResponse response, String fileName,
+			InputStream inputStream, String contentType)
 		throws IOException {
 
-		sendFile(null, response, fileName, is, contentType);
+		sendFile(null, response, fileName, inputStream, contentType);
 	}
 
 	public static void write(
@@ -526,28 +548,37 @@ public class ServletResponseUtil {
 		}
 	}
 
-	public static void write(HttpServletResponse response, InputStream is)
+	public static void write(
+			HttpServletResponse response, InputStream inputStream)
 		throws IOException {
 
-		write(response, is, 0);
+		write(response, inputStream, 0);
 	}
 
 	public static void write(
-			HttpServletResponse response, InputStream is, long contentLength)
+			HttpServletResponse response, InputStream inputStream,
+			long contentLength)
 		throws IOException {
 
-		if (response.isCommitted()) {
-			return;
+		OutputStream outputStream = null;
+
+		try {
+			if (response.isCommitted()) {
+				return;
+			}
+
+			if (contentLength > 0) {
+				response.setHeader(
+					HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength));
+			}
+
+			response.flushBuffer();
+
+			StreamUtil.transfer(inputStream, response.getOutputStream(), false);
 		}
-
-		if (contentLength > 0) {
-			response.setHeader(
-				HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength));
+		finally {
+			StreamUtil.cleanUp(inputStream, outputStream);
 		}
-
-		response.flushBuffer();
-
-		StreamUtil.transfer(is, response.getOutputStream());
 	}
 
 	public static void write(HttpServletResponse response, String s)
@@ -595,19 +626,6 @@ public class ServletResponseUtil {
 			randomAccessInputStream.seek(start);
 
 			StreamUtil.transfer(randomAccessInputStream, outputStream, length);
-		}
-	}
-
-	protected static boolean isClientAbortException(IOException ioe) {
-		Class<?> clazz = ioe.getClass();
-
-		String className = clazz.getName();
-
-		if (className.equals(_CLIENT_ABORT_EXCEPTION)) {
-			return true;
-		}
-		else {
-			return false;
 		}
 	}
 
@@ -665,7 +683,9 @@ public class ServletResponseUtil {
 
 		if (Validator.isNull(contentDispositionType)) {
 			String extension = GetterUtil.getString(
-				FileUtil.getExtension(fileName)).toLowerCase();
+				FileUtil.getExtension(fileName));
+
+			extension = StringUtil.toLowerCase(extension);
 
 			String[] mimeTypesContentDispositionInline = null;
 
@@ -681,6 +701,10 @@ public class ServletResponseUtil {
 					mimeTypesContentDispositionInline, extension)) {
 
 				contentDispositionType = HttpHeaders.CONTENT_DISPOSITION_INLINE;
+
+				contentType = MimeTypesUtil.getContentType(fileName);
+
+				response.setContentType(contentType);
 			}
 			else {
 				contentDispositionType =

@@ -20,9 +20,11 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
+import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.ResourceConstants;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portlet.messageboards.CategoryNameException;
@@ -35,6 +37,7 @@ import com.liferay.portlet.messageboards.model.MBThread;
 import com.liferay.portlet.messageboards.model.impl.MBCategoryImpl;
 import com.liferay.portlet.messageboards.service.base.MBCategoryLocalServiceBaseImpl;
 import com.liferay.portlet.trash.model.TrashEntry;
+import com.liferay.portlet.trash.model.TrashVersion;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -192,11 +195,11 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	public void deleteCategories(long groupId)
 		throws PortalException, SystemException {
 
-		List<MBCategory> categories = mbCategoryPersistence.findByG_P(
-			groupId, MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID);
+		List<MBCategory> categories = mbCategoryPersistence.findByGroupId(
+			groupId);
 
 		for (MBCategory category : categories) {
-			deleteCategory(category);
+			mbCategoryLocalService.deleteCategory(category);
 		}
 	}
 
@@ -207,10 +210,13 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		MBCategory category = mbCategoryPersistence.findByPrimaryKey(
 			categoryId);
 
-		deleteCategory(category);
+		mbCategoryLocalService.deleteCategory(category);
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteCategory(MBCategory category)
 		throws PortalException, SystemException {
 
@@ -218,6 +224,9 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	}
 
 	@Override
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE)
 	public void deleteCategory(
 			MBCategory category, boolean includeTrashedEntries)
 		throws PortalException, SystemException {
@@ -228,7 +237,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 			category.getGroupId(), category.getCategoryId());
 
 		for (MBCategory curCategory : categories) {
-			if (includeTrashedEntries || !curCategory.isInTrash()) {
+			if (includeTrashedEntries || !curCategory.isInTrashExplicitly()) {
 				deleteCategory(curCategory, includeTrashedEntries);
 			}
 		}
@@ -263,8 +272,7 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Expando
 
-		expandoValueLocalService.deleteValues(
-			MBCategory.class.getName(), category.getCategoryId());
+		expandoRowLocalService.deleteRows(category.getCategoryId());
 
 		// Resources
 
@@ -274,8 +282,14 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		// Trash
 
-		trashEntryLocalService.deleteEntry(
-			MBCategory.class.getName(), category.getCategoryId());
+		if (category.isInTrashExplicitly()) {
+			trashEntryLocalService.deleteEntry(
+				MBCategory.class.getName(), category.getCategoryId());
+		}
+		else {
+			trashVersionLocalService.deleteTrashVersion(
+				MBCategory.class.getName(), category.getCategoryId());
+		}
 
 		// Category
 
@@ -319,6 +333,21 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 	@Override
 	public List<MBCategory> getCategories(
+			long groupId, long excludedCategoryId, long parentCategoryId,
+			int status, int start, int end)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.findByNotC_G_P(
+				groupId, excludedCategoryId, parentCategoryId, start, end);
+		}
+
+		return mbCategoryPersistence.findByNotC_G_P_S(
+			groupId, excludedCategoryId, parentCategoryId, status, start, end);
+	}
+
+	@Override
+	public List<MBCategory> getCategories(
 			long groupId, long[] parentCategoryIds, int start, int end)
 		throws SystemException {
 
@@ -339,6 +368,22 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		return mbCategoryPersistence.findByG_P_S(
 			groupId, parentCategoryIds, status, start, end);
+	}
+
+	@Override
+	public List<MBCategory> getCategories(
+			long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+			int status, int start, int end)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.findByNotC_G_P(
+				excludedCategoryIds, groupId, parentCategoryIds, start, end);
+		}
+
+		return mbCategoryPersistence.findByNotC_G_P_S(
+			excludedCategoryIds, groupId, parentCategoryIds, status, start,
+			end);
 	}
 
 	@Override
@@ -394,6 +439,21 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	}
 
 	@Override
+	public int getCategoriesCount(
+			long groupId, long excludedCategoryId, long parentCategoryId,
+			int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.countByNotC_G_P(
+				groupId, excludedCategoryId, parentCategoryId);
+		}
+
+		return mbCategoryPersistence.countByNotC_G_P_S(
+			groupId, excludedCategoryId, parentCategoryId, status);
+	}
+
+	@Override
 	public int getCategoriesCount(long groupId, long[] parentCategoryIds)
 		throws SystemException {
 
@@ -411,6 +471,21 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 
 		return mbCategoryPersistence.countByG_P_S(
 			groupId, parentCategoryIds, status);
+	}
+
+	@Override
+	public int getCategoriesCount(
+			long groupId, long[] excludedCategoryIds, long[] parentCategoryIds,
+			int status)
+		throws SystemException {
+
+		if (status == WorkflowConstants.STATUS_ANY) {
+			return mbCategoryPersistence.countByNotC_G_P(
+				excludedCategoryIds, groupId, parentCategoryIds);
+		}
+
+		return mbCategoryPersistence.countByNotC_G_P_S(
+			excludedCategoryIds, groupId, parentCategoryIds, status);
 	}
 
 	@Override
@@ -537,11 +612,43 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		MBCategory category = mbCategoryPersistence.findByPrimaryKey(
 			categoryId);
 
-		if (category.isInTrash()) {
+		if (category.isInTrashExplicitly()) {
 			restoreCategoryFromTrash(userId, categoryId);
 		}
 		else {
-			updateStatus(userId, categoryId, category.getStatus());
+
+			// Category
+
+			TrashEntry trashEntry = category.getTrashEntry();
+
+			TrashVersion trashVersion =
+				trashVersionLocalService.fetchVersion(
+					trashEntry.getEntryId(), MBCategory.class.getName(),
+					category.getCategoryId());
+
+			int status = WorkflowConstants.STATUS_APPROVED;
+
+			if (trashVersion != null) {
+				status = trashVersion.getStatus();
+			}
+
+			updateStatus(userId, categoryId, status);
+
+			// Trash
+
+			if (trashVersion != null) {
+				trashVersionLocalService.deleteTrashVersion(trashVersion);
+			}
+
+			// Categories and threads
+
+			User user = userPersistence.findByPrimaryKey(userId);
+
+			List<Object> categoriesAndThreads = getCategoriesAndThreads(
+				category.getGroupId(), categoryId);
+
+			restoreDependentsFromTrash(
+				user, categoriesAndThreads, trashEntry.getEntryId());
 		}
 
 		return moveCategory(categoryId, newCategoryId, false);
@@ -551,8 +658,29 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	public MBCategory moveCategoryToTrash(long userId, long categoryId)
 		throws PortalException, SystemException {
 
-		return updateStatus(
+		// Category
+
+		MBCategory category = updateStatus(
 			userId, categoryId, WorkflowConstants.STATUS_IN_TRASH);
+
+		// Trash
+
+		TrashEntry trashEntry = trashEntryLocalService.addTrashEntry(
+			userId, category.getGroupId(), MBCategory.class.getName(),
+			categoryId, category.getUuid(), null,
+			WorkflowConstants.STATUS_APPROVED, null, null);
+
+		// Categories and threads
+
+		User user = userPersistence.findByPrimaryKey(userId);
+
+		List<Object> categoriesAndThreads = getCategoriesAndThreads(
+			category.getGroupId(), categoryId);
+
+		moveDependentsToTrash(
+			user, categoriesAndThreads, trashEntry.getEntryId());
+
+		return category;
 	}
 
 	@Override
@@ -564,7 +692,18 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		TrashEntry trashEntry = trashEntryLocalService.getEntry(
 			MBCategory.class.getName(), categoryId);
 
-		updateStatus(userId, categoryId, WorkflowConstants.STATUS_APPROVED);
+		MBCategory category = updateStatus(
+			userId, categoryId, WorkflowConstants.STATUS_APPROVED);
+
+		// Categories and threads
+
+		User user = userPersistence.findByPrimaryKey(userId);
+
+		List<Object> categoriesAndThreads = getCategoriesAndThreads(
+			category.getGroupId(), categoryId);
+
+		restoreDependentsFromTrash(
+			user, categoriesAndThreads, trashEntry.getEntryId());
 
 		// Trash
 
@@ -678,40 +817,6 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 	}
 
 	@Override
-	public void updateDependentStatus(
-			User user, List<Object> categoriesAndThreads, int status)
-		throws PortalException, SystemException {
-
-		for (Object object : categoriesAndThreads) {
-			if (object instanceof MBThread) {
-				MBThread thread = (MBThread)object;
-
-				if ((status == WorkflowConstants.STATUS_APPROVED) &&
-					(thread.getStatus() == WorkflowConstants.STATUS_IN_TRASH)) {
-
-					continue;
-				}
-
-				mbThreadLocalService.updateStatus(
-					user.getUserId(), thread.getThreadId(), status, status);
-			}
-			else if (object instanceof MBCategory) {
-				MBCategory category = (MBCategory)object;
-
-				if (category.isInTrash()) {
-					continue;
-				}
-
-				updateDependentStatus(
-					user,
-					getCategoriesAndThreads(
-						category.getGroupId(), category.getCategoryId()),
-					status);
-			}
-		}
-	}
-
-	@Override
 	public MBCategory updateStatus(long userId, long categoryId, int status)
 		throws PortalException, SystemException {
 
@@ -728,21 +833,6 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		category.setStatusDate(new Date());
 
 		mbCategoryPersistence.update(category);
-
-		// Categories and threads
-
-		List<Object> categoriesAndThreads = getCategoriesAndThreads(
-			category.getGroupId(), categoryId);
-
-		updateDependentStatus(user, categoriesAndThreads, status);
-
-		// Trash
-
-		if (status == WorkflowConstants.STATUS_IN_TRASH) {
-			trashEntryLocalService.addTrashEntry(
-				userId, category.getGroupId(), MBCategory.class.getName(),
-				categoryId, WorkflowConstants.STATUS_APPROVED, null, null);
-		}
 
 		return category;
 	}
@@ -782,28 +872,26 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		if (category.getCategoryId() == parentCategoryId) {
 			return category.getParentCategoryId();
 		}
-		else {
-			MBCategory parentCategory = mbCategoryPersistence.fetchByPrimaryKey(
-				parentCategoryId);
 
-			if ((parentCategory == null) ||
-				(category.getGroupId() != parentCategory.getGroupId())) {
+		MBCategory parentCategory = mbCategoryPersistence.fetchByPrimaryKey(
+			parentCategoryId);
 
-				return category.getParentCategoryId();
-			}
+		if ((parentCategory == null) ||
+			(category.getGroupId() != parentCategory.getGroupId())) {
 
-			List<Long> subcategoryIds = new ArrayList<Long>();
-
-			getSubcategoryIds(
-				subcategoryIds, category.getGroupId(),
-				category.getCategoryId());
-
-			if (subcategoryIds.contains(parentCategoryId)) {
-				return category.getParentCategoryId();
-			}
-
-			return parentCategoryId;
+			return category.getParentCategoryId();
 		}
+
+		List<Long> subcategoryIds = new ArrayList<Long>();
+
+		getSubcategoryIds(
+			subcategoryIds, category.getGroupId(), category.getCategoryId());
+
+		if (subcategoryIds.contains(parentCategoryId)) {
+			return category.getParentCategoryId();
+		}
+
+		return parentCategoryId;
 	}
 
 	protected void mergeCategories(MBCategory fromCategory, long toCategoryId)
@@ -864,6 +952,178 @@ public class MBCategoryLocalServiceImpl extends MBCategoryLocalServiceBaseImpl {
 		mbCategoryPersistence.update(toCategory);
 
 		deleteCategory(fromCategory);
+	}
+
+	protected void moveDependentsToTrash(
+			User user, List<Object> categoriesAndThreads, long trashEntryId)
+		throws PortalException, SystemException {
+
+		for (Object object : categoriesAndThreads) {
+			if (object instanceof MBThread) {
+
+				// Thread
+
+				MBThread thread = (MBThread)object;
+
+				int oldStatus = thread.getStatus();
+
+				if (oldStatus == WorkflowConstants.STATUS_IN_TRASH) {
+					continue;
+				}
+
+				thread.setStatus(WorkflowConstants.STATUS_IN_TRASH);
+
+				mbThreadPersistence.update(thread);
+
+				// Trash
+
+				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
+					trashVersionLocalService.addTrashVersion(
+						trashEntryId, MBThread.class.getName(),
+						thread.getThreadId(), oldStatus, null);
+				}
+
+				// Threads
+
+				mbThreadLocalService.moveDependentsToTrash(
+					user.getUserId(), thread.getThreadId(), trashEntryId);
+
+				// Indexer
+
+				Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+					MBThread.class);
+
+				indexer.reindex(thread);
+			}
+			else if (object instanceof MBCategory) {
+
+				// Category
+
+				MBCategory category = (MBCategory)object;
+
+				if (category.isInTrash()) {
+					continue;
+				}
+
+				int oldStatus = category.getStatus();
+
+				category.setStatus(WorkflowConstants.STATUS_IN_TRASH);
+
+				mbCategoryPersistence.update(category);
+
+				// Trash
+
+				if (oldStatus != WorkflowConstants.STATUS_APPROVED) {
+					trashVersionLocalService.addTrashVersion(
+						trashEntryId, MBCategory.class.getName(),
+						category.getCategoryId(), oldStatus, null);
+				}
+
+				// Categories and threads
+
+				moveDependentsToTrash(
+					user,
+					getCategoriesAndThreads(
+						category.getGroupId(), category.getCategoryId()),
+					trashEntryId);
+			}
+		}
+	}
+
+	protected void restoreDependentsFromTrash(
+			User user, List<Object> categoriesAndThreads, long trashEntryId)
+		throws PortalException, SystemException {
+
+		for (Object object : categoriesAndThreads) {
+			if (object instanceof MBThread) {
+
+				// Thread
+
+				MBThread thread = (MBThread)object;
+
+				TrashEntry trashEntry = trashEntryLocalService.fetchEntry(
+					MBThread.class.getName(), thread.getThreadId());
+
+				if (trashEntry != null) {
+					continue;
+				}
+
+				TrashVersion trashVersion =
+					trashVersionLocalService.fetchVersion(
+						trashEntryId, MBThread.class.getName(),
+						thread.getThreadId());
+
+				int oldStatus = WorkflowConstants.STATUS_APPROVED;
+
+				if (trashVersion != null) {
+					oldStatus = trashVersion.getStatus();
+				}
+
+				thread.setStatus(oldStatus);
+
+				mbThreadPersistence.update(thread);
+
+				// Threads
+
+				mbThreadLocalService.restoreDependentsFromTrash(
+					user.getUserId(), thread.getThreadId(), trashEntryId);
+
+				// Trash
+
+				if (trashVersion != null) {
+					trashVersionLocalService.deleteTrashVersion(trashVersion);
+				}
+
+				// Indexer
+
+				Indexer indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+					MBThread.class);
+
+				indexer.reindex(thread);
+			}
+			else if (object instanceof MBCategory) {
+
+				// Category
+
+				MBCategory category = (MBCategory)object;
+
+				TrashEntry trashEntry = trashEntryLocalService.fetchEntry(
+					MBCategory.class.getName(), category.getCategoryId());
+
+				if (trashEntry != null) {
+					continue;
+				}
+
+				TrashVersion trashVersion =
+					trashVersionLocalService.fetchVersion(
+						trashEntryId, MBCategory.class.getName(),
+						category.getCategoryId());
+
+				int oldStatus = WorkflowConstants.STATUS_APPROVED;
+
+				if (trashVersion != null) {
+					oldStatus = trashVersion.getStatus();
+				}
+
+				category.setStatus(oldStatus);
+
+				mbCategoryPersistence.update(category);
+
+				// Categories and threads
+
+				restoreDependentsFromTrash(
+					user,
+					getCategoriesAndThreads(
+						category.getGroupId(), category.getCategoryId()),
+					trashEntryId);
+
+				// Trash
+
+				if (trashVersion != null) {
+					trashVersionLocalService.deleteTrashVersion(trashVersion);
+				}
+			}
+		}
 	}
 
 	protected void updateChildCategoriesDisplayStyle(

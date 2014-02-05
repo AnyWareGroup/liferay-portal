@@ -22,8 +22,6 @@ String tabs2 = (String)request.getAttribute("edit_site_assignments.jsp-tabs2");
 
 int cur = (Integer)request.getAttribute("edit_site_assignments.jsp-cur");
 
-String redirect = ParamUtil.getString(request, "redirect");
-
 Group group = (Group)request.getAttribute("edit_site_assignments.jsp-group");
 
 PortletURL portletURL = (PortletURL)request.getAttribute("edit_site_assignments.jsp-portletURL");
@@ -33,7 +31,7 @@ PortletURL viewUserGroupsURL = renderResponse.createRenderURL();
 viewUserGroupsURL.setParameter("struts_action", "/sites_admin/edit_site_assignments");
 viewUserGroupsURL.setParameter("tabs1", "user-groups");
 viewUserGroupsURL.setParameter("tabs2", tabs2);
-viewUserGroupsURL.setParameter("redirect", redirect);
+viewUserGroupsURL.setParameter("redirect", currentURL);
 viewUserGroupsURL.setParameter("groupId", String.valueOf(group.getGroupId()));
 
 UserGroupGroupChecker userGroupGroupChecker = null;
@@ -70,7 +68,7 @@ userGroupSearch.setEmptyResultsMessage(emptyResultsMessage);
 	</c:if>
 
 	<%
-	UserGroupSearchTerms searchTerms = (UserGroupSearchTerms)searchContainer.getSearchTerms();
+	UserGroupDisplayTerms searchTerms = (UserGroupDisplayTerms)searchContainer.getSearchTerms();
 
 	LinkedHashMap<String, Object> userGroupParams = new LinkedHashMap<String, Object>();
 
@@ -79,10 +77,9 @@ userGroupSearch.setEmptyResultsMessage(emptyResultsMessage);
 	}
 	%>
 
-	<liferay-ui:search-container-results
-		results="<%= UserGroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), userGroupParams, searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-		total="<%= UserGroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), userGroupParams) %>"
-	/>
+	<liferay-ui:search-container-results>
+		<%@ include file="/html/portlet/user_groups_admin/user_group_search_results.jspf" %>
+	</liferay-ui:search-container-results>
 
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.model.UserGroup"
@@ -146,9 +143,12 @@ userGroupSearch.setEmptyResultsMessage(emptyResultsMessage);
 				viewUserGroupsURL.setParameter("tabs2", "available");
 				%>
 
-				<aui:button-row>
-					<aui:button href="<%= viewUserGroupsURL.toString() %>" value="assign-user-groups" />
-				</aui:button-row>
+				<liferay-ui:icon
+					image="../aui/globe"
+					label="<%= true %>"
+					message="assign-user-groups"
+					url="<%= viewUserGroupsURL.toString() %>"
+				/>
 
 				<%
 				viewUserGroupsURL.setParameter("tabs2", "current");
@@ -164,7 +164,7 @@ userGroupSearch.setEmptyResultsMessage(emptyResultsMessage);
 				%>
 
 				<aui:button-row>
-					<aui:button onClick="<%= taglibOnClick %>" value="save" />
+					<aui:button onClick="<%= taglibOnClick %>" primary="<%= true %>" value="save" />
 				</aui:button-row>
 			</c:otherwise>
 		</c:choose>
@@ -172,14 +172,10 @@ userGroupSearch.setEmptyResultsMessage(emptyResultsMessage);
 
 	<c:choose>
 		<c:when test='<%= tabs1.equals("summary") && (total > 0) %>'>
-			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-user-groups" : "x-user-group", total) %>'>
+			<liferay-ui:panel collapsible="<%= true %>" extended="<%= false %>" persistState="<%= true %>" title='<%= LanguageUtil.format(pageContext, (total > 1) ? "x-user-groups" : "x-user-group", total, false) %>'>
 				<span class="form-search">
-					<aui:input inlineField="<%= true %>" label="" name='<%= DisplayTerms.KEYWORDS + "_user_groups" %>' size="30" value="" />
-
-					<aui:button type="submit" value="search" />
+					<liferay-ui:input-search name='<%= DisplayTerms.KEYWORDS + "_user_groups" %>' />
 				</span>
-
-				<br /><br />
 
 				<liferay-ui:search-iterator paginate="<%= false %>" />
 
@@ -187,8 +183,6 @@ userGroupSearch.setEmptyResultsMessage(emptyResultsMessage);
 					<a href="<%= viewUserGroupsURL %>"><liferay-ui:message key="view-more" /> &raquo;</a>
 				</c:if>
 			</liferay-ui:panel>
-
-			<div class="separator"><!-- --></div>
 		</c:when>
 		<c:when test='<%= !tabs1.equals("summary") %>'>
 			<c:if test="<%= total > userGroupSearch.getDelta() %>">

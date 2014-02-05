@@ -198,7 +198,7 @@ public class ReleasePersistenceImpl extends BasePersistenceImpl<Release>
 				QueryPos qPos = QueryPos.getInstance(q);
 
 				if (bindServletContextName) {
-					qPos.add(servletContextName.toLowerCase());
+					qPos.add(StringUtil.toLowerCase(servletContextName));
 				}
 
 				List<Release> list = q.list();
@@ -304,7 +304,7 @@ public class ReleasePersistenceImpl extends BasePersistenceImpl<Release>
 				QueryPos qPos = QueryPos.getInstance(q);
 
 				if (bindServletContextName) {
-					qPos.add(servletContextName.toLowerCase());
+					qPos.add(StringUtil.toLowerCase(servletContextName));
 				}
 
 				count = (Long)q.uniqueResult();
@@ -330,6 +330,10 @@ public class ReleasePersistenceImpl extends BasePersistenceImpl<Release>
 		"lower(release.servletContextName) = ?";
 	private static final String _FINDER_COLUMN_SERVLETCONTEXTNAME_SERVLETCONTEXTNAME_3 =
 		"(release.servletContextName IS NULL OR release.servletContextName = '')";
+
+	public ReleasePersistenceImpl() {
+		setModelClass(Release.class);
+	}
 
 	/**
 	 * Caches the release in the entity cache if it is enabled.
@@ -599,10 +603,12 @@ public class ReleasePersistenceImpl extends BasePersistenceImpl<Release>
 		}
 
 		EntityCacheUtil.putResult(ReleaseModelImpl.ENTITY_CACHE_ENABLED,
-			ReleaseImpl.class, release.getPrimaryKey(), release);
+			ReleaseImpl.class, release.getPrimaryKey(), release, false);
 
 		clearUniqueFindersCache(release);
 		cacheUniqueFindersCache(release);
+
+		release.resetOriginalValues();
 
 		return release;
 	}
@@ -617,6 +623,7 @@ public class ReleasePersistenceImpl extends BasePersistenceImpl<Release>
 		releaseImpl.setNew(release.isNew());
 		releaseImpl.setPrimaryKey(release.getPrimaryKey());
 
+		releaseImpl.setMvccVersion(release.getMvccVersion());
 		releaseImpl.setReleaseId(release.getReleaseId());
 		releaseImpl.setCreateDate(release.getCreateDate());
 		releaseImpl.setModifiedDate(release.getModifiedDate());

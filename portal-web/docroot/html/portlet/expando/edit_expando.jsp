@@ -79,11 +79,11 @@ portletURL.setParameter("modelResource", modelResource);
 				<aui:field-wrapper helpMessage="custom-field-key-help" label="key">
 					<aui:input name="name" type="hidden" value="<%= column.getName() %>" />
 
-					<%= HtmlUtil.escape(column.getName()) %>
+					<liferay-ui:input-resource url="<%= column.getName() %>" />
 				</aui:field-wrapper>
 			</c:when>
 			<c:otherwise>
-				<aui:input helpMessage="custom-field-key-help" label="key" name="name" />
+				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" helpMessage="custom-field-key-help" label="key" name="name" />
 			</c:otherwise>
 		</c:choose>
 
@@ -92,7 +92,7 @@ portletURL.setParameter("modelResource", modelResource);
 				<aui:field-wrapper label="type">
 					<aui:input name="type" type="hidden" value="<%= type %>" />
 
-					<liferay-ui:message key="<%= ExpandoColumnConstants.getTypeLabel(type) %>" />
+					<liferay-ui:input-resource url="<%= LanguageUtil.get(pageContext, ExpandoColumnConstants.getTypeLabel(type)) %>" />
 				</aui:field-wrapper>
 			</c:when>
 			<c:otherwise>
@@ -110,7 +110,7 @@ portletURL.setParameter("modelResource", modelResource);
 
 						<%
 						for (int curType : ExpandoColumnConstants.TYPES) {
-							if ((curType == ExpandoColumnConstants.BOOLEAN_ARRAY) || (curType == ExpandoColumnConstants.DATE_ARRAY)) {
+							if ((curType == ExpandoColumnConstants.BOOLEAN_ARRAY) || (curType == ExpandoColumnConstants.DATE_ARRAY) || (curType == ExpandoColumnConstants.STRING_ARRAY_LOCALIZED)) {
 								continue;
 							}
 						%>
@@ -160,8 +160,6 @@ portletURL.setParameter("modelResource", modelResource);
 							monthParam="defaultValueMonth"
 							monthValue="<%= defaultValueDate.get(Calendar.MONTH) %>"
 							yearParam="defaultValueYear"
-							yearRangeEnd="<%= defaultValueDate.get(Calendar.YEAR) + 100 %>"
-							yearRangeStart="<%= defaultValueDate.get(Calendar.YEAR) - 100 %>"
 							yearValue="<%= defaultValueDate.get(Calendar.YEAR) %>"
 						/>
 
@@ -171,7 +169,6 @@ portletURL.setParameter("modelResource", modelResource);
 							disabled="<%= false %>"
 							hourParam="defaultValueHour"
 							hourValue="<%= defaultValueDate.get(Calendar.HOUR) %>"
-							minuteInterval="<%= 1 %>"
 							minuteParam="defaultValueMinute"
 							minuteValue="<%= defaultValueDate.get(Calendar.MINUTE) %>"
 						/>
@@ -180,25 +177,39 @@ portletURL.setParameter("modelResource", modelResource);
 				<c:when test="<%= type == ExpandoColumnConstants.DATE_ARRAY %>">
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.DOUBLE_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((double[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((double[])defaultValue, StringPool.NEW_LINE) %>" />
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.FLOAT_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((float[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((float[])defaultValue, StringPool.NEW_LINE) %>" />
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.INTEGER_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((int[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((int[])defaultValue, StringPool.NEW_LINE) %>" />
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.LONG_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((long[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((long[])defaultValue, StringPool.NEW_LINE) %>" />
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.NUMBER_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((Number[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((Number[])defaultValue, StringPool.NEW_LINE) %>" />
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.SHORT_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((short[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((short[])defaultValue, StringPool.NEW_LINE) %>" />
 				</c:when>
 				<c:when test="<%= type == ExpandoColumnConstants.STRING_ARRAY %>">
-					<aui:input cssClass="lfr-textarea-container" name="defaultValue" type="textarea" value="<%= StringUtil.merge((String[])defaultValue, StringPool.NEW_LINE) %>" />
+					<aui:input cssClass="lfr-textarea-container" helpMessage="enter-one-value-per-line" label="values" name="defaultValue" required="<%= true %>" type="textarea" value="<%= StringUtil.merge((String[])defaultValue, StringPool.NEW_LINE) %>" />
+				</c:when>
+				<c:when test="<%= type == ExpandoColumnConstants.STRING_LOCALIZED %>">
+
+					<%
+					String xml = StringPool.BLANK;
+
+					if (defaultValue != null) {
+						xml = LocalizationUtil.updateLocalization((Map<Locale,String>)defaultValue, StringPool.BLANK, "Data", LocaleUtil.toLanguageId(locale));
+					}
+					%>
+
+					<aui:field-wrapper label="default-value">
+						<liferay-ui:input-localized cssClass="lfr-input-text-container" name="defaultValue" xml="<%= xml %>" />
+					</aui:field-wrapper>
 				</c:when>
 				<c:otherwise>
 					<aui:input cssClass="lfr-input-text-container" name="defaultValue" type="text" value="<%= String.valueOf(defaultValue) %>" />
@@ -275,12 +286,9 @@ portletURL.setParameter("modelResource", modelResource);
 <aui:script>
 	function <portlet:namespace />saveExpando(options) {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (column == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) && (column == null) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

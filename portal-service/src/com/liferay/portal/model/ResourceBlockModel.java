@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.ResourceBlockModelImpl
  * @generated
  */
-public interface ResourceBlockModel extends BaseModel<ResourceBlock> {
+@ProviderType
+public interface ResourceBlockModel extends BaseModel<ResourceBlock>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +57,22 @@ public interface ResourceBlockModel extends BaseModel<ResourceBlock> {
 	 * @param primaryKey the primary key of this resource block
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this resource block.
+	 *
+	 * @return the mvcc version of this resource block
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this resource block.
+	 *
+	 * @param mvccVersion the mvcc version of this resource block
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the resource block ID of this resource block.

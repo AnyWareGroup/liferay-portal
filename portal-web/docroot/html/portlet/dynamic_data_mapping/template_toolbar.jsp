@@ -17,7 +17,7 @@
 <%@ include file="/html/portlet/dynamic_data_mapping/init.jsp" %>
 
 <%
-String toolbarItem = ParamUtil.getString(request, "toolbarItem", "view-all");
+String toolbarItem = ParamUtil.getString(request, "toolbarItem");
 
 String redirect = ParamUtil.getString(request, "redirect");
 
@@ -28,7 +28,6 @@ long classPK = ParamUtil.getLong(request, "classPK");
 
 <aui:nav-bar>
 	<aui:nav>
-		<aui:nav-item href="<%= PortalUtil.escapeRedirect(redirect) %>" label="view-all" selected='<%= toolbarItem.equals("view-all") %>' />
 
 		<%
 		String message = "add";
@@ -52,7 +51,7 @@ long classPK = ParamUtil.getLong(request, "classPK");
 					}
 					%>
 
-					<aui:nav-item href="<%= addTemplateURL %>" iconClass="icon-plus" label="<%= message %>" selected='<%= toolbarItem.equals("add-form-template") %>' />
+					<aui:nav-item href="<%= addTemplateURL %>" iconCssClass="icon-plus" label="<%= message %>" selected='<%= toolbarItem.equals("add-form-template") %>' />
 				</c:if>
 
 				<c:if test="<%= DDMPermission.contains(permissionChecker, scopeGroupId, ddmDisplay.getResourceName(), ddmDisplay.getAddTemplateActionId()) && (Validator.isNull(templateTypeValue) || templateTypeValue.equals(DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY)) %>">
@@ -71,7 +70,7 @@ long classPK = ParamUtil.getLong(request, "classPK");
 					}
 					%>
 
-					<aui:nav-item href="<%= addTemplateURL %>" iconClass="icon-plus" label="<%= message %>" selected='<%= toolbarItem.equals("add-display-template") %>' />
+					<aui:nav-item href="<%= addTemplateURL %>" iconCssClass="icon-plus" label="<%= message %>" selected='<%= toolbarItem.equals("add-display-template") %>' />
 				</c:if>
 			</c:when>
 			<c:otherwise>
@@ -80,21 +79,35 @@ long classPK = ParamUtil.getLong(request, "classPK");
 				List<TemplateHandler> templateHandlers = new ArrayList<TemplateHandler>();
 
 				if (classNameId > 0) {
-					templateHandlers.add(TemplateHandlerRegistryUtil.getTemplateHandler(classNameId));
+					TemplateHandler templateHandler = TemplateHandlerRegistryUtil.getTemplateHandler(classNameId);
+
+					if (DDMPermission.contains(permissionChecker, scopeGroupId, templateHandler.getResourceName(), ActionKeys.ADD_PORTLET_DISPLAY_TEMPLATE)) {
+						templateHandlers.add(templateHandler);
+					}
 				}
 				else {
-					templateHandlers.addAll(getPortletDisplayTemplateHandlers(permissionChecker, scopeGroupId));
+					templateHandlers = PortletDisplayTemplateUtil.getPortletDisplayTemplateHandlers();
+
+					Iterator<TemplateHandler> itr = templateHandlers.iterator();
+
+					while (itr.hasNext()) {
+						TemplateHandler templateHandler = itr.next();
+
+						if (!DDMPermission.contains(permissionChecker, scopeGroupId, templateHandler.getResourceName(), ActionKeys.ADD_PORTLET_DISPLAY_TEMPLATE)) {
+							itr.remove();
+						}
+					}
 				}
 
 				if (!templateHandlers.isEmpty()) {
+					ListUtil.sort(templateHandlers, new TemplateHandlerComparator(locale));
 				%>
 
-					<aui:nav-item dropdown="<%= true %>" iconClass="icon-plus" label="add">
+					<aui:nav-item dropdown="<%= true %>" iconCssClass="icon-plus" label="add">
 						<liferay-portlet:renderURL varImpl="addPortletDisplayTemplateURL">
 							<portlet:param name="struts_action" value="/dynamic_data_mapping/edit_template" />
 							<portlet:param name="redirect" value="<%= redirect %>" />
-							<portlet:param name="backURL" value="<%= redirect %>" />
-							<portlet:param name="groupId" value="<%= String.valueOf(scopeGroupId) %>" />
+							<portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" />
 							<portlet:param name="type" value="<%= DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY %>" />
 						</liferay-portlet:renderURL>
 
@@ -106,7 +119,7 @@ long classPK = ParamUtil.getLong(request, "classPK");
 
 							<aui:nav-item
 								href="<%= addPortletDisplayTemplateURL.toString() %>"
-								iconClass="icon-list-alt"
+								iconCssClass="icon-list-alt"
 								label="<%= templateHandler.getName(locale) %>"
 							/>
 
@@ -126,19 +139,3 @@ long classPK = ParamUtil.getLong(request, "classPK");
 
 	<aui:nav-bar-search cssClass="pull-right" file="/html/portlet/dynamic_data_mapping/template_search.jsp" />
 </aui:nav-bar>
-
-<%!
-public List<TemplateHandler> getPortletDisplayTemplateHandlers(PermissionChecker permissionChecker, long scopeGroupId) {
-	List<TemplateHandler> templateHandlers = TemplateHandlerRegistryUtil.getTemplateHandlers();
-
-	List<TemplateHandler> allowedPortletDisplayTemplateHandlers = new ArrayList<TemplateHandler>();
-
-	for (TemplateHandler templateHandler : templateHandlers) {
-		if ((templateHandler instanceof BasePortletDisplayTemplateHandler) && DDMPermission.contains(permissionChecker, scopeGroupId, templateHandler.getResourceName(), ActionKeys.ADD_PORTLET_DISPLAY_TEMPLATE)) {
-			allowedPortletDisplayTemplateHandlers.add(templateHandler);
-		}
-	}
-
-	return allowedPortletDisplayTemplateHandlers;
-}
-%>

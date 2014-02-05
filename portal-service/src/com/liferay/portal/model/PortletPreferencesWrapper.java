@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,10 +26,11 @@ import java.util.Map;
  * This class is a wrapper for {@link PortletPreferences}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PortletPreferences
+ * @author Brian Wing Shun Chan
+ * @see PortletPreferences
  * @generated
  */
+@ProviderType
 public class PortletPreferencesWrapper implements PortletPreferences,
 	ModelWrapper<PortletPreferences> {
 	public PortletPreferencesWrapper(PortletPreferences portletPreferences) {
@@ -46,6 +51,7 @@ public class PortletPreferencesWrapper implements PortletPreferences,
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("portletPreferencesId", getPortletPreferencesId());
 		attributes.put("ownerId", getOwnerId());
 		attributes.put("ownerType", getOwnerType());
@@ -58,6 +64,12 @@ public class PortletPreferencesWrapper implements PortletPreferences,
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long portletPreferencesId = (Long)attributes.get("portletPreferencesId");
 
 		if (portletPreferencesId != null) {
@@ -113,6 +125,26 @@ public class PortletPreferencesWrapper implements PortletPreferences,
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_portletPreferences.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this portlet preferences.
+	*
+	* @return the mvcc version of this portlet preferences
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _portletPreferences.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this portlet preferences.
+	*
+	* @param mvccVersion the mvcc version of this portlet preferences
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_portletPreferences.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -340,9 +372,30 @@ public class PortletPreferencesWrapper implements PortletPreferences,
 		_portletPreferences.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof PortletPreferencesWrapper)) {
+			return false;
+		}
+
+		PortletPreferencesWrapper portletPreferencesWrapper = (PortletPreferencesWrapper)obj;
+
+		if (Validator.equals(_portletPreferences,
+					portletPreferencesWrapper._portletPreferences)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public PortletPreferences getWrappedPortletPreferences() {
 		return _portletPreferences;
 	}
@@ -350,6 +403,16 @@ public class PortletPreferencesWrapper implements PortletPreferences,
 	@Override
 	public PortletPreferences getWrappedModel() {
 		return _portletPreferences;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _portletPreferences.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _portletPreferences.isFinderCacheEnabled();
 	}
 
 	@Override

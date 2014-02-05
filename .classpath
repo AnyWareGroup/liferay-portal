@@ -26,24 +26,21 @@
 	<classpathentry kind="lib" path="lib/development/ant-ext.jar"/>
 	<classpathentry kind="lib" path="lib/development/ant-installer.jar"/>
 	<classpathentry kind="lib" path="lib/development/catalina.jar"/>
-	<classpathentry kind="lib" path="lib/development/ckbuilder.jar"/>
 	<classpathentry kind="lib" path="lib/development/cobertura.jar"/>
 	<classpathentry kind="lib" path="lib/development/deployment.jar"/>
 	<classpathentry kind="lib" path="lib/development/derby.jar"/>
 	<classpathentry kind="lib" path="lib/development/derbytools.jar"/>
 	<classpathentry kind="lib" path="lib/development/dtddoc.jar"/>
 	<classpathentry kind="lib" path="lib/development/dtdparser.jar"/>
+	<classpathentry kind="lib" path="lib/development/dumbster.jar"/>
 	<classpathentry kind="lib" path="lib/development/ecj.jar"/>
+	<classpathentry kind="lib" path="lib/development/error-prone-ant.jar"/>
 	<classpathentry kind="lib" path="lib/development/firebird.jar"/>
 	<classpathentry kind="lib" path="lib/development/hamcrest-core.jar"/>
 	<classpathentry kind="lib" path="lib/development/hamcrest-library.jar"/>
 	<classpathentry kind="lib" path="lib/development/hsql.jar"/>
-	<classpathentry kind="lib" path="lib/development/icefaces.jar"/>
-	<classpathentry kind="lib" path="lib/development/icefaces-comps.jar"/>
-	<classpathentry kind="lib" path="lib/development/icefaces-facelets.jar"/>
 	<classpathentry kind="lib" path="lib/development/interbase.jar"/>
 	<classpathentry kind="lib" path="lib/development/j2h.jar"/>
-	<classpathentry kind="lib" path="lib/development/jaas.jar"/>
 	<classpathentry kind="lib" path="lib/development/jalopy.jar"/>
 	<classpathentry kind="lib" path="lib/development/jargs.jar"/>
 	<classpathentry kind="lib" path="lib/development/jarjar.jar"/>
@@ -55,21 +52,15 @@
 	<classpathentry kind="lib" path="lib/development/jhighlight.jar"/>
 	<classpathentry kind="lib" path="lib/development/jms.jar"/>
 	<classpathentry kind="lib" path="lib/development/jndi.jar"/>
-	<classpathentry kind="lib" path="lib/development/jnet.jar"/>
-	<classpathentry kind="lib" path="lib/development/jsf-api.jar"/>
-	<classpathentry kind="lib" path="lib/development/jsf-facelets.jar"/>
-	<classpathentry kind="lib" path="lib/development/jsf-impl.jar"/>
-	<classpathentry kind="lib" path="lib/development/jsf-portlet.jar"/>
+	<classpathentry kind="lib" path="lib/development/jserrorcollector.jar"/>
 	<classpathentry kind="lib" path="lib/development/jsp-api.jar"/>
 	<classpathentry kind="lib" path="lib/development/jta.jar"/>
 	<classpathentry kind="lib" path="lib/development/junit.jar"/>
-	<classpathentry kind="lib" path="lib/development/just-ice.jar"/>
 	<classpathentry kind="lib" path="lib/development/jutf7.jar"/>
 	<classpathentry kind="lib" path="lib/development/jymsg.jar"/>
 	<classpathentry kind="lib" path="lib/development/mail.jar"/>
+	<classpathentry kind="lib" path="lib/development/maven-ant-tasks.jar"/>
 	<classpathentry kind="lib" path="lib/development/mockito.jar"/>
-	<classpathentry kind="lib" path="lib/development/myfaces-api.jar"/>
-	<classpathentry kind="lib" path="lib/development/myfaces-impl.jar"/>
 	<classpathentry kind="lib" path="lib/development/mysql.jar"/>
 	<classpathentry kind="lib" path="lib/development/objenesis.jar"/>
 	<classpathentry kind="lib" path="lib/development/orangevolt-ant-tasks.jar"/>
@@ -86,6 +77,7 @@
 	<classpathentry kind="lib" path="lib/development/selenium-java.jar"/>
 	<classpathentry kind="lib" path="lib/development/selenium-server.jar"/>
 	<classpathentry kind="lib" path="lib/development/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/development/sikuli-script.jar"/>
 	<classpathentry kind="lib" path="lib/development/smtp.jar"/>
 	<classpathentry kind="lib" path="lib/development/sonar-ant-task.jar"/>
 	<classpathentry kind="lib" path="lib/development/spring-instrument.jar"/>
@@ -157,9 +149,8 @@
 	<classpathentry kind="lib" path="lib/portal/dom4j.jar"/>
 	<classpathentry kind="lib" path="lib/portal/easyconf.jar"/>
 	<classpathentry kind="lib" path="lib/portal/eclipse-core-runtime.jar"/>
-	<classpathentry kind="lib" path="lib/portal/eclipselink.jar"/>
 	<classpathentry kind="lib" path="lib/portal/ecs.jar"/>
-	<classpathentry kind="lib" path="lib/portal/ehcache-core.jar"/>
+	<classpathentry kind="lib" path="lib/portal/ehcache.jar"/>
 	<classpathentry kind="lib" path="lib/portal/ehcache-jgroupsreplication.jar"/>
 	<classpathentry kind="lib" path="lib/portal/fastutil.jar"/>
 	<classpathentry kind="lib" path="lib/portal/felix-fileinstall.jar"/>
@@ -169,13 +160,12 @@
 	<classpathentry kind="lib" path="lib/portal/freshcookies-security.jar"/>
 	<classpathentry kind="lib" path="lib/portal/gif89.jar"/>
 	<classpathentry kind="lib" path="lib/portal/groovy.jar"/>
-	<classpathentry kind="lib" path="lib/portal/gt-coverage.jar"/>
-	<classpathentry kind="lib" path="lib/portal/gt-metadata.jar"/>
 	<classpathentry kind="lib" path="lib/portal/hessian.jar"/>
 	<classpathentry kind="lib" path="lib/portal/hibernate3.jar"/>
 	<classpathentry kind="lib" path="lib/portal/htmlparser.jar"/>
 	<classpathentry kind="lib" path="lib/portal/httpclient.jar"/>
 	<classpathentry kind="lib" path="lib/portal/httpcore.jar"/>
+	<classpathentry kind="lib" path="lib/portal/httpmime.jar"/>
 	<classpathentry kind="lib" path="lib/portal/ical4j.jar"/>
 	<classpathentry kind="lib" path="lib/portal/icq.jar"/>
 	<classpathentry kind="lib" path="lib/portal/im4java.jar"/>
@@ -239,7 +229,7 @@
 	<classpathentry kind="lib" path="lib/portal/lucene-queries.jar"/>
 	<classpathentry kind="lib" path="lib/portal/lucene-queryparser.jar"/>
 	<classpathentry kind="lib" path="lib/portal/lucene-spellchecker.jar"/>
-	<classpathentry kind="lib" path="lib/portal/memcached.jar"/>
+	<classpathentry kind="lib" path="lib/portal/mchange-commons-java.jar"/>
 	<classpathentry kind="lib" path="lib/portal/metadata-extractor.jar"/>
 	<classpathentry kind="lib" path="lib/portal/mime4j-core.jar"/>
 	<classpathentry kind="lib" path="lib/portal/mime4j-dom.jar"/>
@@ -269,6 +259,7 @@
 	<classpathentry kind="lib" path="lib/portal/saaj-api.jar"/>
 	<classpathentry kind="lib" path="lib/portal/saaj-impl.jar"/>
 	<classpathentry kind="lib" path="lib/portal/scala-library.jar"/>
+	<classpathentry kind="lib" path="lib/portal/scala-reflect.jar"/>
 	<classpathentry kind="lib" path="lib/portal/scribe.jar"/>
 	<classpathentry kind="lib" path="lib/portal/serializer.jar"/>
 	<classpathentry kind="lib" path="lib/portal/simplecaptcha.jar"/>

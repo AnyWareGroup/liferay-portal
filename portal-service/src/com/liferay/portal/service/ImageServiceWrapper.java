@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link ImageService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       ImageService
+ * @author Brian Wing Shun Chan
+ * @see ImageService
  * @generated
  */
+@ProviderType
 public class ImageServiceWrapper implements ImageService,
 	ServiceWrapper<ImageService> {
 	public ImageServiceWrapper(ImageService imageService) {
@@ -57,6 +60,7 @@ public class ImageServiceWrapper implements ImageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public ImageService getWrappedImageService() {
 		return _imageService;
 	}
@@ -64,6 +68,7 @@ public class ImageServiceWrapper implements ImageService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedImageService(ImageService imageService) {
 		_imageService = imageService;
 	}

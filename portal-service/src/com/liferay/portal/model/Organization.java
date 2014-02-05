@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.util.Accessor;
 
 /**
@@ -25,7 +27,9 @@ import com.liferay.portal.kernel.util.Accessor;
  * @see com.liferay.portal.model.impl.OrganizationModelImpl
  * @generated
  */
-public interface Organization extends OrganizationModel, PersistedModel {
+@ProviderType
+public interface Organization extends OrganizationModel, PersistedModel,
+	TreeModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -37,10 +41,6 @@ public interface Organization extends OrganizationModel, PersistedModel {
 				return organization.getName();
 			}
 		};
-
-	public java.lang.String buildTreePath()
-		throws com.liferay.portal.kernel.exception.PortalException,
-			com.liferay.portal.kernel.exception.SystemException;
 
 	public com.liferay.portal.model.Address getAddress();
 
@@ -59,8 +59,6 @@ public interface Organization extends OrganizationModel, PersistedModel {
 	public com.liferay.portal.model.Group getGroup();
 
 	public long getGroupId();
-
-	public long getLogoId();
 
 	public com.liferay.portal.model.Organization getParentOrganization()
 		throws com.liferay.portal.kernel.exception.PortalException,

@@ -17,6 +17,7 @@ package com.liferay.portal.resiliency.spi;
 import com.liferay.portal.kernel.resiliency.spi.MockSPI;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
 import com.liferay.portal.kernel.resiliency.spi.SPIConfiguration;
+import com.liferay.portal.kernel.resiliency.spi.SPIRegistryUtil;
 import com.liferay.portal.kernel.test.CodeCoverageAssertor;
 import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
 import com.liferay.portal.kernel.util.ProxyUtil;
@@ -62,6 +63,12 @@ public class SPIRegistryImplTest {
 	public void setUp() throws Exception {
 		_spiRegistryImpl = new SPIRegistryImpl();
 
+		_spiRegistryImpl.setErrorSPI(new ErrorSPI());
+
+		SPIRegistryUtil spiRegistryUtil = new SPIRegistryUtil();
+
+		spiRegistryUtil.setSPIRegistry(_spiRegistryImpl);
+
 		_excludedPortletIds = _getExcludedPortletIds(_spiRegistryImpl);
 		_portletIds = _getPortletIds(_spiRegistryImpl);
 		_portletSPIs = _getPortletSPIs(_spiRegistryImpl);
@@ -88,6 +95,16 @@ public class SPIRegistryImplTest {
 		Assert.assertNull(_spiRegistryImpl.getPortletSPI(portlet1));
 		Assert.assertSame(spi, _spiRegistryImpl.getPortletSPI(portlet2));
 
+		_spiRegistryImpl.setSPIRegistryValidator(
+			new MockSPIRegistryValidator());
+
+		Assert.assertNull(_spiRegistryImpl.getPortletSPI(portlet1));
+		Assert.assertSame(
+			_spiRegistryImpl.getErrorSPI(),
+			_spiRegistryImpl.getPortletSPI(portlet2));
+
+		_spiRegistryImpl.setSPIRegistryValidator(null);
+
 		_spiRegistryImpl.removeExcludedPortletId(portlet1);
 
 		Assert.assertTrue(_excludedPortletIds.isEmpty());
@@ -104,7 +121,7 @@ public class SPIRegistryImplTest {
 
 		SPIConfiguration spiConfiguration = new SPIConfiguration(
 			"", "", 8081, "", new String[] {"portlet1", "portlet2"},
-			new String[] {"portletApp1", "portletApp2"});
+			new String[] {"portletApp1", "portletApp2"}, null);
 
 		final AtomicBoolean throwException = new AtomicBoolean();
 
@@ -137,6 +154,19 @@ public class SPIRegistryImplTest {
 		Assert.assertSame(
 			mockSPI, _spiRegistryImpl.getServletContextSPI("portletApp2"));
 		Assert.assertNull(_spiRegistryImpl.getServletContextSPI("portletApp3"));
+
+		_spiRegistryImpl.setSPIRegistryValidator(
+			new MockSPIRegistryValidator());
+
+		Assert.assertSame(
+			_spiRegistryImpl.getErrorSPI(),
+			_spiRegistryImpl.getServletContextSPI("portletApp1"));
+		Assert.assertSame(
+			_spiRegistryImpl.getErrorSPI(),
+			_spiRegistryImpl.getServletContextSPI("portletApp2"));
+		Assert.assertNull(_spiRegistryImpl.getServletContextSPI("portletApp3"));
+
+		_spiRegistryImpl.setSPIRegistryValidator(null);
 
 		List<String> portletIds = Arrays.asList(_portletIds.remove(mockSPI));
 

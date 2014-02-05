@@ -33,27 +33,29 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 	<portlet:param name="eventName" value="<%= eventName %>" />
 </liferay-portlet:renderURL>
 
-<aui:form action="<%= portletURL.toString() %>" method="get" name="selectTeamFm">
+<aui:form action="<%= portletURL.toString() %>" cssClass="form-search" method="get" name="selectTeamFm">
 	<liferay-portlet:renderURLParams varImpl="portletURL" />
 
 	<liferay-ui:search-container
 		searchContainer="<%= new TeamSearch(renderRequest, portletURL) %>"
 	>
-		<liferay-ui:search-form
-			page="/html/portlet/sites_admin/team_search.jsp"
-		/>
+
+		<%
+		TeamDisplayTerms searchTerms = (TeamDisplayTerms)searchContainer.getSearchTerms();
+
+		portletURL.setParameter(searchContainer.getCurParam(), String.valueOf(searchContainer.getCur()));
+
+		total = TeamLocalServiceUtil.searchCount(groupId, searchTerms.getName(), searchTerms.getDescription(), new LinkedHashMap<String, Object>());
+
+		searchContainer.setTotal(total);
+		%>
+
+		<liferay-ui:input-search name="<%= searchTerms.NAME %>" />
 
 		<div class="separator"><!-- --></div>
 
-		<%
-		TeamSearchTerms searchTerms = (TeamSearchTerms)searchContainer.getSearchTerms();
-
-		portletURL.setParameter(searchContainer.getCurParam(), String.valueOf(searchContainer.getCur()));
-		%>
-
 		<liferay-ui:search-container-results
 			results="<%= TeamLocalServiceUtil.search(groupId, searchTerms.getName(), searchTerms.getDescription(), new LinkedHashMap<String, Object>(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-			total="<%= TeamLocalServiceUtil.searchCount(groupId, searchTerms.getName(), searchTerms.getDescription(), new LinkedHashMap<String, Object>()) %>"
 		/>
 
 		<liferay-ui:search-container-row
@@ -77,9 +79,9 @@ String eventName = ParamUtil.getString(request, "eventName", liferayPortletRespo
 				<%
 				Map<String, Object> data = new HashMap<String, Object>();
 
-				data.put("teamdescription", HtmlUtil.escape(curTeam.getDescription()));
+				data.put("teamdescription", curTeam.getDescription());
 				data.put("teamid", curTeam.getTeamId());
-				data.put("teamname", HtmlUtil.escape(curTeam.getName()));
+				data.put("teamname", curTeam.getName());
 				data.put("teamsearchcontainername", "teams");
 				%>
 

@@ -38,7 +38,7 @@ if (group.isOrganization()) {
 	backURL="<%= redirect %>"
 	escapeXml="<%= false %>"
 	localizeTitle="<%= false %>"
-	title='<%= HtmlUtil.escape(group.getDescriptiveName(locale)) + ": " + ((team == null) ? LanguageUtil.get(pageContext, "new-team") : HtmlUtil.escape(team.getName())) %>'
+	title='<%= ((team == null) ? LanguageUtil.get(pageContext, "new-team") : HtmlUtil.escape(team.getName())) %>'
 />
 
 <portlet:actionURL var="editTeamURL">
@@ -59,11 +59,11 @@ if (group.isOrganization()) {
 	<aui:fieldset>
 		<c:if test="<%= team != null %>">
 			<aui:field-wrapper label="team-id">
-				<%= team.getTeamId() %>
+				<liferay-ui:input-resource url="<%= String.valueOf(team.getTeamId()) %>" />
 			</aui:field-wrapper>
 		</c:if>
 
-		<aui:input name="name" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name" />
 
 		<aui:input name="description" />
 	</aui:fieldset>
@@ -78,12 +78,9 @@ if (group.isOrganization()) {
 <aui:script>
 	function <portlet:namespace />saveTeam() {
 		document.<portlet:namespace />fm.<portlet:namespace /><%= Constants.CMD %>.value = "<%= (team == null) ? Constants.ADD : Constants.UPDATE %>";
+
 		submitForm(document.<portlet:namespace />fm);
 	}
-
-	<c:if test="<%= windowState.equals(WindowState.MAXIMIZED) %>">
-		Liferay.Util.focusFormField(document.<portlet:namespace />fm.<portlet:namespace />name);
-	</c:if>
 </aui:script>
 
 <%

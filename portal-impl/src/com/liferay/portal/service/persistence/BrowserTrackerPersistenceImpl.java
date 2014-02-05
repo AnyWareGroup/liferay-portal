@@ -292,6 +292,10 @@ public class BrowserTrackerPersistenceImpl extends BasePersistenceImpl<BrowserTr
 
 	private static final String _FINDER_COLUMN_USERID_USERID_2 = "browserTracker.userId = ?";
 
+	public BrowserTrackerPersistenceImpl() {
+		setModelClass(BrowserTracker.class);
+	}
+
 	/**
 	 * Caches the browser tracker in the entity cache if it is enabled.
 	 *
@@ -561,10 +565,12 @@ public class BrowserTrackerPersistenceImpl extends BasePersistenceImpl<BrowserTr
 
 		EntityCacheUtil.putResult(BrowserTrackerModelImpl.ENTITY_CACHE_ENABLED,
 			BrowserTrackerImpl.class, browserTracker.getPrimaryKey(),
-			browserTracker);
+			browserTracker, false);
 
 		clearUniqueFindersCache(browserTracker);
 		cacheUniqueFindersCache(browserTracker);
+
+		browserTracker.resetOriginalValues();
 
 		return browserTracker;
 	}
@@ -579,6 +585,7 @@ public class BrowserTrackerPersistenceImpl extends BasePersistenceImpl<BrowserTr
 		browserTrackerImpl.setNew(browserTracker.isNew());
 		browserTrackerImpl.setPrimaryKey(browserTracker.getPrimaryKey());
 
+		browserTrackerImpl.setMvccVersion(browserTracker.getMvccVersion());
 		browserTrackerImpl.setBrowserTrackerId(browserTracker.getBrowserTrackerId());
 		browserTrackerImpl.setUserId(browserTracker.getUserId());
 		browserTrackerImpl.setBrowserKey(browserTracker.getBrowserKey());

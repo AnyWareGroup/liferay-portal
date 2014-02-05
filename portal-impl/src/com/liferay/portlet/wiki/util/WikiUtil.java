@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DiffHtmlUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -137,6 +138,8 @@ public class WikiUtil {
 			for (Map<String, Boolean> pageTitle : pageTitles) {
 				String pageTitleLowerCase = page.getTitle();
 
+				pageTitleLowerCase = StringUtil.toLowerCase(pageTitleLowerCase);
+
 				if (pageTitle.get(pageTitleLowerCase) != null) {
 					notOrphans.add(page);
 
@@ -238,18 +241,18 @@ public class WikiUtil {
 		}
 	}
 
-	public static String getEmailPageAddedSubjectPrefix(
+	public static String getEmailPageAddedSubject(
 		PortletPreferences preferences) {
 
-		String emailPageAddedSubjectPrefix = preferences.getValue(
-			"emailPageAddedSubjectPrefix", StringPool.BLANK);
+		String emailPageAddedSubject = preferences.getValue(
+			"emailPageAddedSubject", StringPool.BLANK);
 
-		if (Validator.isNotNull(emailPageAddedSubjectPrefix)) {
-			return emailPageAddedSubjectPrefix;
+		if (Validator.isNotNull(emailPageAddedSubject)) {
+			return emailPageAddedSubject;
 		}
 		else {
 			return ContentUtil.get(
-				PropsUtil.get(PropsKeys.WIKI_EMAIL_PAGE_ADDED_SUBJECT_PREFIX));
+				PropsUtil.get(PropsKeys.WIKI_EMAIL_PAGE_ADDED_SUBJECT));
 		}
 	}
 
@@ -298,19 +301,18 @@ public class WikiUtil {
 		}
 	}
 
-	public static String getEmailPageUpdatedSubjectPrefix(
+	public static String getEmailPageUpdatedSubject(
 		PortletPreferences preferences) {
 
 		String emailPageUpdatedSubject = preferences.getValue(
-			"emailPageUpdatedSubjectPrefix", StringPool.BLANK);
+			"emailPageUpdatedSubject", StringPool.BLANK);
 
 		if (Validator.isNotNull(emailPageUpdatedSubject)) {
 			return emailPageUpdatedSubject;
 		}
 		else {
 			return ContentUtil.get(
-				PropsUtil.get(
-					PropsKeys.WIKI_EMAIL_PAGE_UPDATED_SUBJECT_PREFIX));
+				PropsUtil.get(PropsKeys.WIKI_EMAIL_PAGE_UPDATED_SUBJECT));
 		}
 	}
 
@@ -410,7 +412,7 @@ public class WikiUtil {
 		PortletURL curEditPageURL = PortletURLUtil.clone(
 			editPageURL, renderResponse);
 
-		StringBundler sb = new StringBundler();
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(themeDisplay.getPathMain());
 		sb.append("/wiki/get_page_attachment?p_l_id=");
@@ -512,7 +514,7 @@ public class WikiUtil {
 	public static List<WikiNode> orderNodes(
 		List<WikiNode> nodes, String[] visibleNodeNames) {
 
-		if ((visibleNodeNames == null) || (visibleNodeNames.length == 0)) {
+		if (ArrayUtil.isEmpty(visibleNodeNames)) {
 			return nodes;
 		}
 

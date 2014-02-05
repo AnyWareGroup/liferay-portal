@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.messageboards.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       MBMessageServiceHttp
- * @see       com.liferay.portlet.messageboards.model.MBMessageSoap
- * @see       com.liferay.portlet.messageboards.service.MBMessageServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see MBMessageServiceHttp
+ * @see com.liferay.portlet.messageboards.model.MBMessageSoap
+ * @see com.liferay.portlet.messageboards.service.MBMessageServiceUtil
  * @generated
  */
+@ProviderType
 public class MBMessageServiceSoap {
 	public static com.liferay.portlet.messageboards.model.MBMessageSoap addDiscussionMessage(
 		long groupId, java.lang.String className, long classPK,
@@ -89,6 +92,7 @@ public class MBMessageServiceSoap {
 	String, String, java.util.List, boolean, double, boolean,
 	com.liferay.portal.service.ServiceContext)}
 	*/
+	@Deprecated
 	public static com.liferay.portlet.messageboards.model.MBMessageSoap addMessage(
 		long groupId, long categoryId, long threadId, long parentMessageId,
 		java.lang.String subject, java.lang.String body,

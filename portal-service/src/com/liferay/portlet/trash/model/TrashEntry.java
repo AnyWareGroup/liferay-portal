@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.model.PersistedModel;
 
 /**
@@ -25,6 +27,7 @@ import com.liferay.portal.model.PersistedModel;
  * @see com.liferay.portlet.trash.model.impl.TrashEntryModelImpl
  * @generated
  */
+@ProviderType
 public interface TrashEntry extends TrashEntryModel, PersistedModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -39,6 +42,10 @@ public interface TrashEntry extends TrashEntryModel, PersistedModel {
 
 	public java.lang.String getTypeSettingsProperty(java.lang.String key,
 		java.lang.String defaultValue);
+
+	public boolean isTrashEntry(java.lang.Class<?> clazz, long classPK);
+
+	public boolean isTrashEntry(java.lang.String className, long classPK);
 
 	public void setRootEntry(
 		com.liferay.portlet.trash.model.TrashEntry rootEntry);

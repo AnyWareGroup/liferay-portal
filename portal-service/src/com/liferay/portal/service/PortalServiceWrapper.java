@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link PortalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       PortalService
+ * @author Brian Wing Shun Chan
+ * @see PortalService
  * @generated
  */
+@ProviderType
 public class PortalServiceWrapper implements PortalService,
 	ServiceWrapper<PortalService> {
 	public PortalServiceWrapper(PortalService portalService) {
@@ -98,12 +101,6 @@ public class PortalServiceWrapper implements PortalService,
 	}
 
 	@Override
-	public void testCounterIncrement_Rollback()
-		throws com.liferay.portal.kernel.exception.SystemException {
-		_portalService.testCounterIncrement_Rollback();
-	}
-
-	@Override
 	public void testDeleteClassName()
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
@@ -129,6 +126,7 @@ public class PortalServiceWrapper implements PortalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public PortalService getWrappedPortalService() {
 		return _portalService;
 	}
@@ -136,6 +134,7 @@ public class PortalServiceWrapper implements PortalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedPortalService(PortalService portalService) {
 		_portalService = portalService;
 	}

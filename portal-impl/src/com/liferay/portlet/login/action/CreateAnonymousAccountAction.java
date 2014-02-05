@@ -36,7 +36,6 @@ import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.model.Company;
 import com.liferay.portal.model.User;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
@@ -72,16 +71,17 @@ public class CreateAnonymousAccountAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		Company company = themeDisplay.getCompany();
+		String portletName = portletConfig.getPortletName();
 
-		if (!company.isStrangers()) {
+		if (!portletName.equals(PortletKeys.FAST_LOGIN)) {
 			throw new PrincipalException();
 		}
 
@@ -97,7 +97,7 @@ public class CreateAnonymousAccountAction extends PortletAction {
 			actionRequest, "emailAddress");
 
 		PortletURL portletURL = PortletURLFactoryUtil.create(
-			actionRequest, PortletKeys.LOGIN, themeDisplay.getPlid(),
+			actionRequest, PortletKeys.FAST_LOGIN, themeDisplay.getPlid(),
 			PortletRequest.RENDER_PHASE);
 
 		portletURL.setParameter("struts_action", "/login/login_redirect");
@@ -161,22 +161,24 @@ public class CreateAnonymousAccountAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)renderRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		Company company = themeDisplay.getCompany();
+		String portletName = portletConfig.getPortletName();
 
-		if (!company.isStrangers()) {
-			return mapping.findForward("portlet.login.login");
+		if (!portletName.equals(PortletKeys.FAST_LOGIN)) {
+			return actionMapping.findForward("portlet.login.login");
 		}
 
 		renderResponse.setTitle(themeDisplay.translate("anonymous-account"));
 
-		return mapping.findForward("portlet.login.create_anonymous_account");
+		return actionMapping.findForward(
+			"portlet.login.create_anonymous_account");
 	}
 
 	protected void addAnonymousUser(
@@ -221,6 +223,8 @@ public class CreateAnonymousAccountAction extends PortletAction {
 		if (PropsValues.CAPTCHA_CHECK_PORTAL_CREATE_ACCOUNT) {
 			CaptchaUtil.check(actionRequest);
 		}
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
 
 		User user = UserServiceUtil.addUser(
 			themeDisplay.getCompanyId(), autoPassword, password1, password2,

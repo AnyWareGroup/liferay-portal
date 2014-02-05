@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.messageboards.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link MBThreadFlagLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       MBThreadFlagLocalService
+ * @author Brian Wing Shun Chan
+ * @see MBThreadFlagLocalService
  * @generated
  */
+@ProviderType
 public class MBThreadFlagLocalServiceWrapper implements MBThreadFlagLocalService,
 	ServiceWrapper<MBThreadFlagLocalService> {
 	public MBThreadFlagLocalServiceWrapper(
@@ -166,11 +169,60 @@ public class MBThreadFlagLocalServiceWrapper implements MBThreadFlagLocalService
 		return _mbThreadFlagLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbThreadFlagLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.messageboards.model.MBThreadFlag fetchMBThreadFlag(
 		long threadFlagId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _mbThreadFlagLocalService.fetchMBThreadFlag(threadFlagId);
+	}
+
+	/**
+	* Returns the message boards thread flag with the matching UUID and company.
+	*
+	* @param uuid the message boards thread flag's UUID
+	* @param companyId the primary key of the company
+	* @return the matching message boards thread flag, or <code>null</code> if a matching message boards thread flag could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBThreadFlag fetchMBThreadFlagByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbThreadFlagLocalService.fetchMBThreadFlagByUuidAndCompanyId(uuid,
+			companyId);
+	}
+
+	/**
+	* Returns the message boards thread flag matching the UUID and group.
+	*
+	* @param uuid the message boards thread flag's UUID
+	* @param groupId the primary key of the group
+	* @return the matching message boards thread flag, or <code>null</code> if a matching message boards thread flag could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBThreadFlag fetchMBThreadFlagByUuidAndGroupId(
+		java.lang.String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _mbThreadFlagLocalService.fetchMBThreadFlagByUuidAndGroupId(uuid,
+			groupId);
 	}
 
 	/**
@@ -195,6 +247,24 @@ public class MBThreadFlagLocalServiceWrapper implements MBThreadFlagLocalService
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _mbThreadFlagLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the message boards thread flag with the matching UUID and company.
+	*
+	* @param uuid the message boards thread flag's UUID
+	* @param companyId the primary key of the company
+	* @return the matching message boards thread flag
+	* @throws PortalException if a matching message boards thread flag could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.messageboards.model.MBThreadFlag getMBThreadFlagByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _mbThreadFlagLocalService.getMBThreadFlagByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -334,6 +404,7 @@ public class MBThreadFlagLocalServiceWrapper implements MBThreadFlagLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MBThreadFlagLocalService getWrappedMBThreadFlagLocalService() {
 		return _mbThreadFlagLocalService;
 	}
@@ -341,6 +412,7 @@ public class MBThreadFlagLocalServiceWrapper implements MBThreadFlagLocalService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMBThreadFlagLocalService(
 		MBThreadFlagLocalService mbThreadFlagLocalService) {
 		_mbThreadFlagLocalService = mbThreadFlagLocalService;

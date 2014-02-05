@@ -39,7 +39,9 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 	public String toString() {
 		StringBundler sb = new StringBundler(35);
 
-		sb.append("{layoutSetId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", layoutSetId=");
 		sb.append(layoutSetId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -51,8 +53,6 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 		sb.append(modifiedDate);
 		sb.append(", privateLayout=");
 		sb.append(privateLayout);
-		sb.append(", logo=");
-		sb.append(logo);
 		sb.append(", logoId=");
 		sb.append(logoId);
 		sb.append(", themeId=");
@@ -82,6 +82,7 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 	public LayoutSet toEntityModel() {
 		LayoutSetImpl layoutSetImpl = new LayoutSetImpl();
 
+		layoutSetImpl.setMvccVersion(mvccVersion);
 		layoutSetImpl.setLayoutSetId(layoutSetId);
 		layoutSetImpl.setGroupId(groupId);
 		layoutSetImpl.setCompanyId(companyId);
@@ -101,7 +102,6 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 		}
 
 		layoutSetImpl.setPrivateLayout(privateLayout);
-		layoutSetImpl.setLogo(logo);
 		layoutSetImpl.setLogoId(logoId);
 
 		if (themeId == null) {
@@ -167,13 +167,13 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 	@Override
 	public void readExternal(ObjectInput objectInput)
 		throws ClassNotFoundException, IOException {
+		mvccVersion = objectInput.readLong();
 		layoutSetId = objectInput.readLong();
 		groupId = objectInput.readLong();
 		companyId = objectInput.readLong();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
 		privateLayout = objectInput.readBoolean();
-		logo = objectInput.readBoolean();
 		logoId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
@@ -191,13 +191,13 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
 		objectOutput.writeLong(layoutSetId);
 		objectOutput.writeLong(groupId);
 		objectOutput.writeLong(companyId);
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
 		objectOutput.writeBoolean(privateLayout);
-		objectOutput.writeBoolean(logo);
 		objectOutput.writeLong(logoId);
 
 		if (themeId == null) {
@@ -256,13 +256,13 @@ public class LayoutSetCacheModel implements CacheModel<LayoutSet>,
 		objectOutput.writeObject(_virtualHostname);
 	}
 
+	public long mvccVersion;
 	public long layoutSetId;
 	public long groupId;
 	public long companyId;
 	public long createDate;
 	public long modifiedDate;
 	public boolean privateLayout;
-	public boolean logo;
 	public long logoId;
 	public String themeId;
 	public String colorSchemeId;

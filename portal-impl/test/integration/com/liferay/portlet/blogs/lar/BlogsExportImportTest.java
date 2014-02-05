@@ -26,6 +26,7 @@ import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.TransactionalCallbackAwareExecutionTestListener;
 import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.TestPropsValues;
+import com.liferay.portlet.blogs.model.BlogsEntry;
 import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portlet.blogs.util.BlogsTestUtil;
 
@@ -63,11 +64,16 @@ public class BlogsExportImportTest extends BasePortletExportImportTestCase {
 	}
 
 	@Override
+	protected void deleteStagedModel(StagedModel stagedModel) throws Exception {
+		BlogsEntryLocalServiceUtil.deleteEntry((BlogsEntry)stagedModel);
+	}
+
+	@Override
 	protected Map<String, String[]> getExportParameterMap() throws Exception {
 		Map<String, String[]> parameterMap = super.getExportParameterMap();
 
-		addParameter(parameterMap, "embedded-assets", true);
 		addParameter(parameterMap, "entries", true);
+		addParameter(parameterMap, "referenced-content", true);
 
 		return parameterMap;
 	}
@@ -76,8 +82,8 @@ public class BlogsExportImportTest extends BasePortletExportImportTestCase {
 	protected Map<String, String[]> getImportParameterMap() throws Exception {
 		Map<String, String[]> parameterMap = super.getImportParameterMap();
 
-		addParameter(parameterMap, "embedded-assets", true);
 		addParameter(parameterMap, "entries", true);
+		addParameter(parameterMap, "referenced-content", true);
 
 		return parameterMap;
 	}

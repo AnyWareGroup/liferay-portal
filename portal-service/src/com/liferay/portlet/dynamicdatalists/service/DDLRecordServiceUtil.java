@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.dynamicdatalists.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.dynamicdatalists.service.impl.DDLRecordServiceImpl
  * @generated
  */
+@ProviderType
 public class DDLRecordServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -131,6 +134,7 @@ public class DDLRecordServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(DDLRecordService service) {
 	}
 

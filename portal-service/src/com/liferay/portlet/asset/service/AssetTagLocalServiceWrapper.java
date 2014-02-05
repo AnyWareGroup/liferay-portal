@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.asset.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link AssetTagLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       AssetTagLocalService
+ * @author Brian Wing Shun Chan
+ * @see AssetTagLocalService
  * @generated
  */
+@ProviderType
 public class AssetTagLocalServiceWrapper implements AssetTagLocalService,
 	ServiceWrapper<AssetTagLocalService> {
 	public AssetTagLocalServiceWrapper(
@@ -162,6 +165,22 @@ public class AssetTagLocalServiceWrapper implements AssetTagLocalService,
 		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _assetTagLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _assetTagLocalService.dynamicQueryCount(dynamicQuery, projection);
 	}
 
 	@Override
@@ -439,6 +458,36 @@ public class AssetTagLocalServiceWrapper implements AssetTagLocalService,
 			guestPermissions);
 	}
 
+	/**
+	* Returns the tags matching the group and names, creating new tags with the
+	* names if the group doesn't already have them.
+	*
+	* <p>
+	* For each name, if a tag with that name doesn't already exist for the
+	* group, this method creates a new tag with that name for the group. If a
+	* tag with that name already exists in the company group, this method
+	* copies that company group's tag's properties to the group's new tag.
+	* </p>
+	*
+	* @param userId the primary key of the user
+	* @param group ID the primary key of the tag's group
+	* @param names the tag names
+	* @return the tags matching the group and names and new tags matching the
+	names that don't already exist for the group
+	* @throws PortalException if a matching group could not be found, if the
+	tag's key or value were invalid, or if a portal exception
+	occurred
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public java.util.List<com.liferay.portlet.asset.model.AssetTag> checkTags(
+		long userId, com.liferay.portal.model.Group group,
+		java.lang.String[] names)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _assetTagLocalService.checkTags(userId, group, names);
+	}
+
 	@Override
 	public void checkTags(long userId, long groupId, java.lang.String[] names)
 		throws com.liferay.portal.kernel.exception.PortalException,
@@ -452,6 +501,13 @@ public class AssetTagLocalServiceWrapper implements AssetTagLocalService,
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _assetTagLocalService.decrementAssetCount(tagId, classNameId);
+	}
+
+	@Override
+	public void deleteGroupTags(long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_assetTagLocalService.deleteGroupTags(groupId);
 	}
 
 	@Override
@@ -670,6 +726,7 @@ public class AssetTagLocalServiceWrapper implements AssetTagLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public AssetTagLocalService getWrappedAssetTagLocalService() {
 		return _assetTagLocalService;
 	}
@@ -677,6 +734,7 @@ public class AssetTagLocalServiceWrapper implements AssetTagLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedAssetTagLocalService(
 		AssetTagLocalService assetTagLocalService) {
 		_assetTagLocalService = assetTagLocalService;

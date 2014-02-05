@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialRelationLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialRelationLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialRelationLocalService
  * @generated
  */
+@ProviderType
 public class SocialRelationLocalServiceWrapper
 	implements SocialRelationLocalService,
 		ServiceWrapper<SocialRelationLocalService> {
@@ -167,11 +170,44 @@ public class SocialRelationLocalServiceWrapper
 		return _socialRelationLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialRelationLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.social.model.SocialRelation fetchSocialRelation(
 		long relationId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _socialRelationLocalService.fetchSocialRelation(relationId);
+	}
+
+	/**
+	* Returns the social relation with the matching UUID and company.
+	*
+	* @param uuid the social relation's UUID
+	* @param companyId the primary key of the company
+	* @return the matching social relation, or <code>null</code> if a matching social relation could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRelation fetchSocialRelationByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialRelationLocalService.fetchSocialRelationByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -196,6 +232,24 @@ public class SocialRelationLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _socialRelationLocalService.getPersistedModel(primaryKeyObj);
+	}
+
+	/**
+	* Returns the social relation with the matching UUID and company.
+	*
+	* @param uuid the social relation's UUID
+	* @param companyId the primary key of the company
+	* @return the matching social relation
+	* @throws PortalException if a matching social relation could not be found
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public com.liferay.portlet.social.model.SocialRelation getSocialRelationByUuidAndCompanyId(
+		java.lang.String uuid, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _socialRelationLocalService.getSocialRelationByUuidAndCompanyId(uuid,
+			companyId);
 	}
 
 	/**
@@ -570,6 +624,7 @@ public class SocialRelationLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialRelationLocalService getWrappedSocialRelationLocalService() {
 		return _socialRelationLocalService;
 	}
@@ -577,6 +632,7 @@ public class SocialRelationLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialRelationLocalService(
 		SocialRelationLocalService socialRelationLocalService) {
 		_socialRelationLocalService = socialRelationLocalService;

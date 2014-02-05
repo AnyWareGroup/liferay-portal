@@ -56,6 +56,8 @@ public interface Indexer {
 
 	public String getSortField(String orderByCol);
 
+	public String getSortField(String orderByCol, int sortType);
+
 	public Summary getSummary(
 			Document document, Locale locale, String snippet,
 			PortletURL portletURL)
@@ -93,6 +95,10 @@ public interface Indexer {
 		throws SearchException;
 
 	public Hits search(SearchContext searchContext) throws SearchException;
+
+	public Hits search(
+			SearchContext searchContext, String... selectedFieldNames)
+		throws SearchException;
 
 	public void unregisterIndexerPostProcessor(
 		IndexerPostProcessor indexerPostProcessor);

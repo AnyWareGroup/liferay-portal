@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.bookmarks.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.bookmarks.service.impl.BookmarksEntryServiceImpl
  * @generated
  */
+@ProviderType
 public class BookmarksEntryServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -90,6 +93,11 @@ public class BookmarksEntryServiceUtil {
 	public static int getEntriesCount(long groupId, long folderId)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService().getEntriesCount(groupId, folderId);
+	}
+
+	public static int getEntriesCount(long groupId, long folderId, int status)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService().getEntriesCount(groupId, folderId, status);
 	}
 
 	public static com.liferay.portlet.bookmarks.model.BookmarksEntry getEntry(
@@ -160,10 +168,11 @@ public class BookmarksEntryServiceUtil {
 		return getService().moveEntryFromTrash(entryId, parentFolderId);
 	}
 
-	public static void moveEntryToTrash(long entryId)
+	public static com.liferay.portlet.bookmarks.model.BookmarksEntry moveEntryToTrash(
+		long entryId)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
-		getService().moveEntryToTrash(entryId);
+		return getService().moveEntryToTrash(entryId);
 	}
 
 	public static com.liferay.portlet.bookmarks.model.BookmarksEntry openEntry(
@@ -184,6 +193,13 @@ public class BookmarksEntryServiceUtil {
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		getService().restoreEntryFromTrash(entryId);
+	}
+
+	public static com.liferay.portal.kernel.search.Hits search(long groupId,
+		long creatorUserId, int status, int start, int end)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return getService().search(groupId, creatorUserId, status, start, end);
 	}
 
 	public static void subscribeEntry(long entryId)
@@ -223,6 +239,7 @@ public class BookmarksEntryServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(BookmarksEntryService service) {
 	}
 

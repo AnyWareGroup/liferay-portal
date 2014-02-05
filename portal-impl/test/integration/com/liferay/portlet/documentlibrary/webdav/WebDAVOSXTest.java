@@ -18,8 +18,8 @@ import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.Tuple;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.webdav.methods.Method;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +37,7 @@ import org.junit.runner.RunWith;
  *
  * @author Alexander Chow
  */
-@ExecutionTestListeners(listeners = {WebDAVEnviornmentConfigTestListener.class})
+@ExecutionTestListeners(listeners = {WebDAVEnvironmentConfigTestListener.class})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class WebDAVOSXTest extends BaseWebDAVTestCase {
 
@@ -45,12 +45,9 @@ public class WebDAVOSXTest extends BaseWebDAVTestCase {
 	public void testMSOffice0Setup() throws Exception {
 		Class<?> clazz = getClass();
 
-		_testFileBytes = FileUtil.getBytes(
-			clazz.getResourceAsStream(_OFFICE_TEST_DOCX));
-		_testMetaBytes = FileUtil.getBytes(
-			clazz.getResourceAsStream(_OFFICE_TEST_META_DOCX));
-		_testDeltaBytes = FileUtil.getBytes(
-			clazz.getResourceAsStream(_OFFICE_TEST_DELTA_DOCX));
+		_testFileBytes = FileUtil.getBytes(clazz, _OFFICE_TEST_DOCX);
+		_testMetaBytes = FileUtil.getBytes(clazz, _OFFICE_TEST_META_DOCX);
+		_testDeltaBytes = FileUtil.getBytes(clazz, _OFFICE_TEST_DELTA_DOCX);
 	}
 
 	@Test

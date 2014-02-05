@@ -41,6 +41,14 @@ if (classPK > 0) {
 		String zipCode = address.getZip();
 		String city = address.getCity();
 
+		Region region = address.getRegion();
+
+		String regionName = region.getName();
+
+		Country country = address.getCountry();
+
+		String countryName = country.getName(locale);
+
 		String mailingName = LanguageUtil.get(pageContext, address.getType().getName());
 	%>
 
@@ -48,23 +56,31 @@ if (classPK > 0) {
 			<em class="mailing-name"><%= mailingName %></em>
 
 			<c:if test="<%= Validator.isNotNull(street1) %>">
-				<%= street1 %><br />
+				<%= HtmlUtil.escape(street1) %><br />
 			</c:if>
 
 			<c:if test="<%= Validator.isNotNull(street2) %>">
-				<%= street2 %><br />
+				<%= HtmlUtil.escape(street2) %><br />
 			</c:if>
 
 			<c:if test="<%= Validator.isNotNull(street3) %>">
-				<%= street3 %><br />
+				<%= HtmlUtil.escape(street3) %><br />
 			</c:if>
 
 			<c:if test="<%= Validator.isNotNull(zipCode) %>">
-				<%= zipCode %>,
+				<%= HtmlUtil.escape(zipCode) %>,
 			</c:if>
 
 			<c:if test="<%= Validator.isNotNull(city) %>">
-				<%= city %>
+				<%= HtmlUtil.escape(city) %><br />
+			</c:if>
+
+			<c:if test="<%= Validator.isNotNull(regionName) %>">
+				<%= HtmlUtil.escape(regionName) %><br />
+			</c:if>
+
+			<c:if test="<%= Validator.isNotNull(countryName) %>">
+				<%= HtmlUtil.escape(countryName) %>
 			</c:if>
 
 			<c:if test="<%= address.isMailing() %>">(<liferay-ui:message key="mailing" />)</c:if>

@@ -26,8 +26,8 @@ import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.test.MainServletExecutionTestListener;
 import com.liferay.portal.test.TransactionalExecutionTestListener;
 import com.liferay.portal.util.GroupTestUtil;
 import com.liferay.portal.util.TestPropsValues;
@@ -40,8 +40,6 @@ import com.liferay.portlet.messageboards.model.MBMessage;
 import com.liferay.portlet.messageboards.model.MBMessageConstants;
 import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
 import com.liferay.portlet.messageboards.util.MBTestUtil;
-import com.liferay.portlet.trash.model.TrashEntry;
-import com.liferay.portlet.trash.service.TrashEntryLocalServiceUtil;
 import com.liferay.portlet.trash.service.TrashEntryServiceUtil;
 
 import java.io.InputStream;
@@ -62,7 +60,7 @@ import org.junit.runner.RunWith;
  */
 @ExecutionTestListeners(
 	listeners = {
-		EnvironmentExecutionTestListener.class,
+		MainServletExecutionTestListener.class,
 		TransactionalExecutionTestListener.class
 	})
 @RunWith(LiferayIntegrationJUnitTestRunner.class)
@@ -451,10 +449,8 @@ public class MBAttachmentsTest {
 			_message.getDeletedAttachmentsFileEntriesCount());
 
 		if (restore) {
-			TrashEntry trashEntry = TrashEntryLocalServiceUtil.getEntry(
+			TrashEntryServiceUtil.restoreEntry(
 				DLFileEntryConstants.getClassName(), fileEntryId);
-
-			TrashEntryServiceUtil.restoreEntry(trashEntry.getEntryId());
 
 			Assert.assertEquals(
 				initialNotInTrashCount + 1,

@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -50,6 +51,7 @@ import java.util.Set;
  * @author Jon Steer
  * @author Raymond Augé
  * @author Connor McKay
+ * @author Shuyang Zhou
  */
 public class UserFinderImpl
 	extends BasePersistenceImpl<User> implements UserFinder {
@@ -130,7 +132,7 @@ public class UserFinderImpl
 
 			sql = replaceJoinAndWhere(sql, params);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -231,6 +233,8 @@ public class UserFinderImpl
 
 		LinkedHashMap<String, Object> params3 = null;
 
+		LinkedHashMap<String, Object> params4 = null;
+
 		Long[] groupIds = null;
 
 		if (params.get("usersGroups") instanceof Long) {
@@ -259,70 +263,123 @@ public class UserFinderImpl
 
 		boolean inherit = GetterUtil.getBoolean(params.get("inherit"));
 
-		boolean doUnionOnGroup = Validator.isNotNull(groupIds) && inherit;
-
-		if (doUnionOnGroup) {
-			params2 = new LinkedHashMap<String, Object>(params1);
-
-			params2.remove("usersGroups");
-
-			params3 = new LinkedHashMap<String, Object>(params1);
-
-			params3.remove("usersGroups");
-
+		if (ArrayUtil.isNotEmpty(groupIds) && inherit) {
 			List<Long> organizationIds = new ArrayList<Long>();
 			List<Long> userGroupIds = new ArrayList<Long>();
 
 			for (long groupId : groupIds) {
 				Group group = GroupLocalServiceUtil.fetchGroup(groupId);
 
-				if ((group != null) && group.isOrganization()) {
+				if (group == null) {
+					continue;
+				}
+
+				if (group.isOrganization()) {
 					organizationIds.add(group.getOrganizationId());
 				}
-
-				List<Organization> organizations = GroupUtil.getOrganizations(
-					groupId);
-
-				for (Organization organization : organizations) {
-					organizationIds.add(organization.getOrganizationId());
+				else if (group.isUserGroup()) {
+					userGroupIds.add(group.getClassPK());
 				}
+				else {
+					for (Organization organization :
+							GroupUtil.getOrganizations(groupId)) {
 
-				List<UserGroup> userGroups = GroupUtil.getUserGroups(groupId);
+						organizationIds.add(organization.getOrganizationId());
+					}
 
-				for (UserGroup userGroup : userGroups) {
-					userGroupIds.add(userGroup.getUserGroupId());
+					for (UserGroup userGroup :
+							GroupUtil.getUserGroups(groupId)) {
+
+						userGroupIds.add(userGroup.getUserGroupId());
+					}
 				}
 			}
 
-			params2.put(
-				"usersOrgs",
-				organizationIds.toArray(new Long[organizationIds.size()]));
+			if (!organizationIds.isEmpty()) {
+				params2 = new LinkedHashMap<String, Object>(params1);
 
-			params3.put(
-				"usersUserGroups",
-				userGroupIds.toArray(new Long[userGroupIds.size()]));
+				params2.remove("usersGroups");
+
+				params2.put(
+					"usersOrgs",
+					organizationIds.toArray(new Long[organizationIds.size()]));
+			}
+
+			if (!userGroupIds.isEmpty()) {
+				params3 = new LinkedHashMap<String, Object>(params1);
+
+				params3.remove("usersGroups");
+
+				params3.put(
+					"usersUserGroups",
+					userGroupIds.toArray(new Long[userGroupIds.size()]));
+			}
 		}
 
-		boolean doUnionOnRole = Validator.isNotNull(roleIds) && inherit;
-
-		if (doUnionOnRole) {
-			params2 = new LinkedHashMap<String, Object>(params1);
-
-			params2.remove("usersRoles");
-
+		if (ArrayUtil.isNotEmpty(roleIds) && inherit) {
+			List<Long> organizationIds = new ArrayList<Long>();
 			List<Long> roleGroupIds = new ArrayList<Long>();
+			List<Long> userGroupIds = new ArrayList<Long>();
 
 			for (long roleId : roleIds) {
 				List<Group> groups = RoleUtil.getGroups(roleId);
 
 				for (Group group : groups) {
-					roleGroupIds.add(group.getGroupId());
+					if (group.isOrganization()) {
+						organizationIds.add(group.getOrganizationId());
+					}
+					else if (group.isUserGroup()) {
+						userGroupIds.add(group.getClassPK());
+					}
+					else {
+						roleGroupIds.add(group.getGroupId());
+
+						for (Organization organization :
+								GroupUtil.getOrganizations(
+									group.getGroupId())) {
+
+							organizationIds.add(
+								organization.getOrganizationId());
+						}
+
+						for (UserGroup userGroup :
+								GroupUtil.getUserGroups(group.getGroupId())) {
+
+							userGroupIds.add(userGroup.getUserGroupId());
+						}
+					}
 				}
 			}
 
-			params2.put(
-				"usersGroups",
-				roleGroupIds.toArray(new Long[roleGroupIds.size()]));
+			if (!roleGroupIds.isEmpty()) {
+				params2 = new LinkedHashMap<String, Object>(params1);
+
+				params2.remove("usersRoles");
+
+				params2.put(
+					"usersGroups",
+					roleGroupIds.toArray(new Long[roleGroupIds.size()]));
+			}
+
+			if (!userGroupIds.isEmpty()) {
+				params3 = new LinkedHashMap<String, Object>(params1);
+
+				params3.remove("usersRoles");
+
+				params3.put(
+					"usersUserGroups",
+					userGroupIds.toArray(new Long[userGroupIds.size()]));
+			}
+
+			if (!organizationIds.isEmpty()) {
+				params4 = new LinkedHashMap<String, Object>(params1);
+
+				params4.remove("usersRoles");
+
+				params4.put(
+					"usersOrgs",
+					organizationIds.toArray(new Long[organizationIds.size()]));
+			}
 		}
 
 		Session session = null;
@@ -337,7 +394,7 @@ public class UserFinderImpl
 					session, companyId, firstNames, middleNames, lastNames,
 					screenNames, emailAddresses, status, params1, andOperator));
 
-			if (doUnionOnGroup || doUnionOnRole) {
+			if (params2 != null) {
 				userIds.addAll(
 					countByC_FN_MN_LN_SN_EA_S(
 						session, companyId, firstNames, middleNames, lastNames,
@@ -345,11 +402,19 @@ public class UserFinderImpl
 						andOperator));
 			}
 
-			if (doUnionOnGroup) {
+			if (params3 != null) {
 				userIds.addAll(
 					countByC_FN_MN_LN_SN_EA_S(
 						session, companyId, firstNames, middleNames, lastNames,
 						screenNames, emailAddresses, status, params3,
+						andOperator));
+			}
+
+			if (params4 != null) {
+				userIds.addAll(
+					countByC_FN_MN_LN_SN_EA_S(
+						session, companyId, firstNames, middleNames, lastNames,
+						screenNames, emailAddresses, status, params4,
 						andOperator));
 			}
 
@@ -404,7 +469,7 @@ public class UserFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_NO_ANNOUNCEMENTS_DELIVERIES);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("User_", UserImpl.class);
 
@@ -431,7 +496,7 @@ public class UserFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_NO_CONTACTS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("User_", UserImpl.class);
 
@@ -454,7 +519,7 @@ public class UserFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_NO_GROUPS);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity("User_", UserImpl.class);
 
@@ -511,6 +576,8 @@ public class UserFinderImpl
 
 		LinkedHashMap<String, Object> params3 = null;
 
+		LinkedHashMap<String, Object> params4 = null;
+
 		Long[] groupIds = null;
 
 		if (params.get("usersGroups") instanceof Long) {
@@ -539,70 +606,123 @@ public class UserFinderImpl
 
 		boolean inherit = GetterUtil.getBoolean(params.get("inherit"));
 
-		boolean doUnionOnGroup = Validator.isNotNull(groupIds) && inherit;
-
-		if (doUnionOnGroup) {
-			params2 = new LinkedHashMap<String, Object>(params1);
-
-			params2.remove("usersGroups");
-
-			params3 = new LinkedHashMap<String, Object>(params1);
-
-			params3.remove("usersGroups");
-
+		if (ArrayUtil.isNotEmpty(groupIds) && inherit) {
 			List<Long> organizationIds = new ArrayList<Long>();
 			List<Long> userGroupIds = new ArrayList<Long>();
 
 			for (long groupId : groupIds) {
 				Group group = GroupLocalServiceUtil.fetchGroup(groupId);
 
-				if ((group != null) && group.isOrganization()) {
+				if (group == null) {
+					continue;
+				}
+
+				if (group.isOrganization()) {
 					organizationIds.add(group.getOrganizationId());
 				}
-
-				List<Organization> organizations = GroupUtil.getOrganizations(
-					groupId);
-
-				for (Organization organization : organizations) {
-					organizationIds.add(organization.getOrganizationId());
+				else if (group.isUserGroup()) {
+					userGroupIds.add(group.getClassPK());
 				}
+				else {
+					for (Organization organization :
+							GroupUtil.getOrganizations(groupId)) {
 
-				List<UserGroup> userGroups = GroupUtil.getUserGroups(groupId);
+						organizationIds.add(organization.getOrganizationId());
+					}
 
-				for (UserGroup userGroup : userGroups) {
-					userGroupIds.add(userGroup.getUserGroupId());
+					for (UserGroup userGroup :
+							GroupUtil.getUserGroups(groupId)) {
+
+						userGroupIds.add(userGroup.getUserGroupId());
+					}
 				}
 			}
 
-			params2.put(
-				"usersOrgs",
-				organizationIds.toArray(new Long[organizationIds.size()]));
+			if (!organizationIds.isEmpty()) {
+				params2 = new LinkedHashMap<String, Object>(params1);
 
-			params3.put(
-				"usersUserGroups",
-				userGroupIds.toArray(new Long[userGroupIds.size()]));
+				params2.remove("usersGroups");
+
+				params2.put(
+					"usersOrgs",
+					organizationIds.toArray(new Long[organizationIds.size()]));
+			}
+
+			if (!userGroupIds.isEmpty()) {
+				params3 = new LinkedHashMap<String, Object>(params1);
+
+				params3.remove("usersGroups");
+
+				params3.put(
+					"usersUserGroups",
+					userGroupIds.toArray(new Long[userGroupIds.size()]));
+			}
 		}
 
-		boolean doUnionOnRole = Validator.isNotNull(roleIds) && inherit;
-
-		if (doUnionOnRole) {
-			params2 = new LinkedHashMap<String, Object>(params1);
-
-			params2.remove("usersRoles");
-
+		if (ArrayUtil.isNotEmpty(roleIds) && inherit) {
+			List<Long> organizationIds = new ArrayList<Long>();
 			List<Long> roleGroupIds = new ArrayList<Long>();
+			List<Long> userGroupIds = new ArrayList<Long>();
 
 			for (long roleId : roleIds) {
 				List<Group> groups = RoleUtil.getGroups(roleId);
 
 				for (Group group : groups) {
-					roleGroupIds.add(group.getGroupId());
+					if (group.isOrganization()) {
+						organizationIds.add(group.getOrganizationId());
+					}
+					else if (group.isUserGroup()) {
+						userGroupIds.add(group.getClassPK());
+					}
+					else {
+						roleGroupIds.add(group.getGroupId());
+
+						for (Organization organization :
+								GroupUtil.getOrganizations(
+									group.getGroupId())) {
+
+							organizationIds.add(
+								organization.getOrganizationId());
+						}
+
+						for (UserGroup userGroup :
+								GroupUtil.getUserGroups(group.getGroupId())) {
+
+							userGroupIds.add(userGroup.getUserGroupId());
+						}
+					}
 				}
 			}
 
-			params2.put(
-				"usersGroups",
-				roleGroupIds.toArray(new Long[roleGroupIds.size()]));
+			if (!roleGroupIds.isEmpty()) {
+				params2 = new LinkedHashMap<String, Object>(params1);
+
+				params2.remove("usersRoles");
+
+				params2.put(
+					"usersGroups",
+					roleGroupIds.toArray(new Long[roleGroupIds.size()]));
+			}
+
+			if (!userGroupIds.isEmpty()) {
+				params3 = new LinkedHashMap<String, Object>(params1);
+
+				params3.remove("usersRoles");
+
+				params3.put(
+					"usersUserGroups",
+					userGroupIds.toArray(new Long[userGroupIds.size()]));
+			}
+
+			if (!organizationIds.isEmpty()) {
+				params4 = new LinkedHashMap<String, Object>(params1);
+
+				params4.remove("usersRoles");
+
+				params4.put(
+					"usersOrgs",
+					organizationIds.toArray(new Long[organizationIds.size()]));
+			}
 		}
 
 		Session session = null;
@@ -632,21 +752,27 @@ public class UserFinderImpl
 				sql = StringUtil.replace(sql, _STATUS_SQL, StringPool.BLANK);
 			}
 
-			StringBundler sb = new StringBundler();
+			StringBundler sb = new StringBundler(14);
 
 			sb.append(StringPool.OPEN_PARENTHESIS);
 			sb.append(replaceJoinAndWhere(sql, params1));
 			sb.append(StringPool.CLOSE_PARENTHESIS);
 
-			if (doUnionOnGroup || doUnionOnRole) {
+			if (params2 != null) {
 				sb.append(" UNION (");
 				sb.append(replaceJoinAndWhere(sql, params2));
 				sb.append(StringPool.CLOSE_PARENTHESIS);
 			}
 
-			if (doUnionOnGroup) {
+			if (params3 != null) {
 				sb.append(" UNION (");
 				sb.append(replaceJoinAndWhere(sql, params3));
+				sb.append(StringPool.CLOSE_PARENTHESIS);
+			}
+
+			if (params4 != null) {
+				sb.append(" UNION (");
+				sb.append(replaceJoinAndWhere(sql, params4));
 				sb.append(StringPool.CLOSE_PARENTHESIS);
 			}
 
@@ -659,7 +785,7 @@ public class UserFinderImpl
 
 			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar("userId", Type.LONG);
 
@@ -679,7 +805,7 @@ public class UserFinderImpl
 				qPos.add(status);
 			}
 
-			if (doUnionOnGroup || doUnionOnRole) {
+			if (params2 != null) {
 				setJoin(qPos, params2);
 
 				qPos.add(companyId);
@@ -695,8 +821,24 @@ public class UserFinderImpl
 				}
 			}
 
-			if (doUnionOnGroup) {
+			if (params3 != null) {
 				setJoin(qPos, params3);
+
+				qPos.add(companyId);
+				qPos.add(false);
+				qPos.add(firstNames, 2);
+				qPos.add(middleNames, 2);
+				qPos.add(lastNames, 2);
+				qPos.add(screenNames, 2);
+				qPos.add(emailAddresses, 2);
+
+				if (status != WorkflowConstants.STATUS_ANY) {
+					qPos.add(status);
+				}
+			}
+
+			if (params4 != null) {
+				setJoin(qPos, params4);
 
 				qPos.add(companyId);
 				qPos.add(false);
@@ -761,7 +903,7 @@ public class UserFinderImpl
 		sql = replaceJoinAndWhere(sql, params);
 		sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
 
-		SQLQuery q = session.createSQLQuery(sql);
+		SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 		q.addScalar("userId", Type.LONG);
 
@@ -926,27 +1068,20 @@ public class UserFinderImpl
 			else if (value instanceof Long[]) {
 				Long[] groupIds = (Long[])value;
 
-				if (groupIds.length == 0) {
-					join = "WHERE (Users_Groups.groupId = -1)";
+				StringBundler sb = new StringBundler(groupIds.length * 2 + 1);
+
+				sb.append("WHERE (Users_Groups.groupId IN (");
+
+				for (long groupId : groupIds) {
+					sb.append(groupId);
+					sb.append(StringPool.COMMA);
 				}
-				else {
-					StringBundler sb = new StringBundler(
-						groupIds.length * 2 + 1);
 
-					sb.append("WHERE (");
+				sb.setIndex(sb.index() - 1);
 
-					for (int i = 0; i < groupIds.length; i++) {
-						sb.append("(Users_Groups.groupId = ?) ");
+				sb.append("))");
 
-						if ((i + 1) < groupIds.length) {
-							sb.append("OR ");
-						}
-					}
-
-					sb.append(StringPool.CLOSE_PARENTHESIS);
-
-					join = sb.toString();
-				}
+				join = sb.toString();
 			}
 		}
 		else if (key.equals("usersOrgs")) {
@@ -956,27 +1091,21 @@ public class UserFinderImpl
 			else if (value instanceof Long[]) {
 				Long[] organizationIds = (Long[])value;
 
-				if (organizationIds.length == 0) {
-					join = "WHERE (Users_Orgs.organizationId = -1)";
+				StringBundler sb = new StringBundler(
+					organizationIds.length * 2 + 1);
+
+				sb.append("WHERE (Users_Orgs.organizationId IN (");
+
+				for (long organizationId : organizationIds) {
+					sb.append(organizationId);
+					sb.append(StringPool.COMMA);
 				}
-				else {
-					StringBundler sb = new StringBundler(
-						organizationIds.length * 2 + 1);
 
-					sb.append("WHERE (");
+				sb.setIndex(sb.index() - 1);
 
-					for (int i = 0; i < organizationIds.length; i++) {
-						sb.append("(Users_Orgs.organizationId = ?) ");
+				sb.append("))");
 
-						if ((i + 1) < organizationIds.length) {
-							sb.append("OR ");
-						}
-					}
-
-					sb.append(StringPool.CLOSE_PARENTHESIS);
-
-					join = sb.toString();
-				}
+				join = sb.toString();
 			}
 		}
 		else if (key.equals("usersOrgsTree")) {
@@ -985,24 +1114,25 @@ public class UserFinderImpl
 			int size = organizationsTree.size();
 
 			if (size > 0) {
-				StringBundler sb = new StringBundler(size * 2 + 1);
+				StringBundler sb = new StringBundler(size * 4 + 1);
 
 				sb.append("WHERE (");
 
-				for (int i = 0; i < size; i++) {
-					sb.append("(Organization_.treePath LIKE ?) ");
-
-					if ((i + 1) < size) {
-						sb.append("OR ");
-					}
+				for (Organization organization : organizationsTree) {
+					sb.append("(Organization_.treePath LIKE %/");
+					sb.append(organization.getOrganizationId());
+					sb.append("/%)");
+					sb.append(" OR ");
 				}
+
+				sb.setIndex(sb.index() - 1);
 
 				sb.append(StringPool.CLOSE_PARENTHESIS);
 
 				join = sb.toString();
 			}
 			else {
-				join = "WHERE (Organization_.treePath LIKE ?)";
+				join = "WHERE (Organization_.treePath LIKE %/ /%)";
 			}
 		}
 		else if (key.equals("usersPasswordPolicies")) {
@@ -1021,27 +1151,21 @@ public class UserFinderImpl
 			else if (value instanceof Long[]) {
 				Long[] userGroupIds = (Long[])value;
 
-				if (userGroupIds.length == 0) {
-					join = "WHERE (Users_UserGroups.userGroupId = -1)";
+				StringBundler sb = new StringBundler(
+					userGroupIds.length * 2 + 1);
+
+				sb.append("WHERE (Users_UserGroups.userGroupId IN (");
+
+				for (long userGroupId : userGroupIds) {
+					sb.append(userGroupId);
+					sb.append(StringPool.COMMA);
 				}
-				else {
-					StringBundler sb = new StringBundler(
-						userGroupIds.length * 2 + 1);
 
-					sb.append("WHERE (");
+				sb.setIndex(sb.index() - 1);
 
-					for (int i = 0; i < userGroupIds.length; i++) {
-						sb.append("(Users_UserGroups.userGroupId = ?) ");
+				sb.append("))");
 
-						if ((i + 1) < userGroupIds.length) {
-							sb.append("OR ");
-						}
-					}
-
-					sb.append(StringPool.CLOSE_PARENTHESIS);
-
-					join = sb.toString();
-				}
+				join = sb.toString();
 			}
 		}
 		else if (key.equals("announcementsDeliveryEmailOrSms")) {
@@ -1105,28 +1229,7 @@ public class UserFinderImpl
 
 			Object value = entry.getValue();
 
-			if (key.equals("usersOrgsTree")) {
-				List<Organization> organizationsTree =
-					(List<Organization>)value;
-
-				if (!organizationsTree.isEmpty()) {
-					for (Organization organization : organizationsTree) {
-						StringBundler treePath = new StringBundler(5);
-
-						treePath.append(StringPool.PERCENT);
-						treePath.append(StringPool.SLASH);
-						treePath.append(organization.getOrganizationId());
-						treePath.append(StringPool.SLASH);
-						treePath.append(StringPool.PERCENT);
-
-						qPos.add(treePath.toString());
-					}
-				}
-				else {
-					qPos.add("%/ /%");
-				}
-			}
-			else if (value instanceof Long) {
+			if (value instanceof Long) {
 				Long valueLong = (Long)value;
 
 				if (Validator.isNotNull(valueLong)) {
@@ -1134,6 +1237,12 @@ public class UserFinderImpl
 				}
 			}
 			else if (value instanceof Long[]) {
+				if (key.equals("usersGroups") || key.equals("usersOrgs") ||
+					key.equals("usersUserGroups")) {
+
+					continue;
+				}
+
 				Long[] valueArray = (Long[])value;
 
 				for (Long element : valueArray) {

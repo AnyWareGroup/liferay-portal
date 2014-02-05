@@ -343,6 +343,10 @@ public class PortletPersistenceImpl extends BasePersistenceImpl<Portlet>
 		OrderByComparator orderByComparator) throws SystemException {
 		int count = countByCompanyId(companyId);
 
+		if (count == 0) {
+			return null;
+		}
+
 		List<Portlet> list = findByCompanyId(companyId, count - 1, count,
 				orderByComparator);
 
@@ -831,6 +835,10 @@ public class PortletPersistenceImpl extends BasePersistenceImpl<Portlet>
 	private static final String _FINDER_COLUMN_C_P_PORTLETID_2 = "portlet.portletId = ?";
 	private static final String _FINDER_COLUMN_C_P_PORTLETID_3 = "(portlet.portletId IS NULL OR portlet.portletId = '')";
 
+	public PortletPersistenceImpl() {
+		setModelClass(Portlet.class);
+	}
+
 	/**
 	 * Caches the portlet in the entity cache if it is enabled.
 	 *
@@ -1127,10 +1135,12 @@ public class PortletPersistenceImpl extends BasePersistenceImpl<Portlet>
 		}
 
 		EntityCacheUtil.putResult(PortletModelImpl.ENTITY_CACHE_ENABLED,
-			PortletImpl.class, portlet.getPrimaryKey(), portlet);
+			PortletImpl.class, portlet.getPrimaryKey(), portlet, false);
 
 		clearUniqueFindersCache(portlet);
 		cacheUniqueFindersCache(portlet);
+
+		portlet.resetOriginalValues();
 
 		return portlet;
 	}
@@ -1145,6 +1155,7 @@ public class PortletPersistenceImpl extends BasePersistenceImpl<Portlet>
 		portletImpl.setNew(portlet.isNew());
 		portletImpl.setPrimaryKey(portlet.getPrimaryKey());
 
+		portletImpl.setMvccVersion(portlet.getMvccVersion());
 		portletImpl.setId(portlet.getId());
 		portletImpl.setCompanyId(portlet.getCompanyId());
 		portletImpl.setPortletId(portlet.getPortletId());

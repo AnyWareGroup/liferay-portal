@@ -21,15 +21,7 @@ Long liveGroupId = (Long)request.getAttribute("site.liveGroupId");
 
 LayoutSet publicLayoutSet = LayoutSetLocalServiceUtil.getLayoutSet(liveGroupId, false);
 
-String publicVirtualHostName = publicLayoutSet.getVirtualHostname();
-
-if (Validator.isNull(publicVirtualHostName) && Validator.isNotNull(PropsValues.VIRTUAL_HOSTS_DEFAULT_SITE_NAME) ) {
-	Group defaultGroup = GroupLocalServiceUtil.getGroup(company.getCompanyId(), PropsValues.VIRTUAL_HOSTS_DEFAULT_SITE_NAME);
-
-	if (publicLayoutSet.getGroupId() == defaultGroup.getGroupId()) {
-		publicVirtualHostName = company.getVirtualHostname();
-	}
-}
+String publicVirtualHostName = PortalUtil.getVirtualHostname(publicLayoutSet);
 
 String defaultPublicRobots = RobotsUtil.getRobots(publicLayoutSet);
 
@@ -44,10 +36,12 @@ String privateRobots = ParamUtil.getString(request, "robots", defaultPrivateRobo
 
 <liferay-ui:error-marker key="errorSection" value="robots" />
 
+<h3><liferay-ui:message key="robots" /></h3>
+
 <aui:fieldset label="public-pages">
 	<c:choose>
 		<c:when test="<%= Validator.isNotNull(publicVirtualHostName) %>">
-			<aui:input cols="60" name="publicRobots" rows="15" type="textarea" value="<%= publicRobots %>" />
+			<aui:input cols="60" label="set-the-robots-txt-for-public-pages" name="publicRobots" rows="15" type="textarea" value="<%= publicRobots %>" />
 		</c:when>
 		<c:otherwise>
 			<div class="alert alert-info">
@@ -60,7 +54,7 @@ String privateRobots = ParamUtil.getString(request, "robots", defaultPrivateRobo
 <aui:fieldset label="private-pages">
 	<c:choose>
 		<c:when test="<%= Validator.isNotNull(privateLayoutSet.getVirtualHostname()) %>">
-			<aui:input cols="60" name="privateRobots" rows="15" type="textarea" value="<%= privateRobots %>" />
+			<aui:input cols="60" label="set-the-robots-txt-for-private-pages" name="privateRobots" rows="15" type="textarea" value="<%= privateRobots %>" />
 		</c:when>
 		<c:otherwise>
 			<div class="alert alert-info">

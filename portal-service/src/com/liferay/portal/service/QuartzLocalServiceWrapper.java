@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link QuartzLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       QuartzLocalService
+ * @author Brian Wing Shun Chan
+ * @see QuartzLocalService
  * @generated
  */
+@ProviderType
 public class QuartzLocalServiceWrapper implements QuartzLocalService,
 	ServiceWrapper<QuartzLocalService> {
 	public QuartzLocalServiceWrapper(QuartzLocalService quartzLocalService) {
@@ -56,6 +59,7 @@ public class QuartzLocalServiceWrapper implements QuartzLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public QuartzLocalService getWrappedQuartzLocalService() {
 		return _quartzLocalService;
 	}
@@ -63,6 +67,7 @@ public class QuartzLocalServiceWrapper implements QuartzLocalService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedQuartzLocalService(
 		QuartzLocalService quartzLocalService) {
 		_quartzLocalService = quartzLocalService;

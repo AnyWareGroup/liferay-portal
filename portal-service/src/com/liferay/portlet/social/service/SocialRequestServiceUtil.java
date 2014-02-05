@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portlet.social.service.impl.SocialRequestServiceImpl
  * @generated
  */
+@ProviderType
 public class SocialRequestServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -78,6 +81,7 @@ public class SocialRequestServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(SocialRequestService service) {
 	}
 

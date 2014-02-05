@@ -12,6 +12,8 @@ AUI.add(
 
 		var FOLDER_ROWS_PER_PAGE = 'folderRowsPerPage';
 
+		var ITEMS_PER_PAGE = 'itemsPerPage';
+
 		var PAIR_SEPARATOR = History.PAIR_SEPARATOR;
 
 		var SEARCH_TYPE = 'searchType';
@@ -149,11 +151,14 @@ AUI.add(
 
 						var totalEntryPages = instance._getTotalPages(entriesTotal, entryRowsPerPage);
 
-						var entryPagination = new A.Pagination(
+						var entryPagination = new Liferay.Pagination(
 							{
 								boundingBox: instance.get('entryPaginationContainer'),
 								circular: false,
+								itemsPerPage: entryRowsPerPage,
+								namespace: instance.NS,
 								page: entryPage,
+								results: entriesTotal,
 								total: totalEntryPages,
 								visible: totalEntryPages > 1
 							}
@@ -175,11 +180,14 @@ AUI.add(
 
 						var totalFolderPages = instance._getTotalPages(foldersTotal, folderRowsPerPage);
 
-						var folderPagination = new A.Pagination(
+						var folderPagination = new Liferay.Pagination(
 							{
 								boundingBox: instance.get('folderPaginationContainer'),
 								circular: false,
+								itemsPerPage: folderRowsPerPage,
+								namespace: instance.NS,
 								page: folderPage,
+								results: foldersTotal,
 								total: totalFolderPages,
 								visible: totalFolderPages > 1
 							}
@@ -214,7 +222,7 @@ AUI.add(
 					_afterEntryPaginationChangeRequest: function(event) {
 						var instance = this;
 
-						var entryRowsPerPage = instance.get(ENTRY_ROWS_PER_PAGE);
+						var entryRowsPerPage = event.state.itemsPerPage;
 
 						var startEndParams = instance._getResultsStartEnd(instance._entryPagination, entryRowsPerPage);
 
@@ -246,11 +254,11 @@ AUI.add(
 					_afterFolderPaginationChangeRequest: function(event) {
 						var instance = this;
 
-						var folderRowsPerPage = instance.get(FOLDER_ROWS_PER_PAGE);
+						var folderRowsPerPage = event.state.itemsPerPage;
 
 						var startEndParams = instance._getResultsStartEnd(instance._folderPagination, folderRowsPerPage);
 
-						var requestParams = instance._lastDataRequest || {};
+						var requestParams = instance._lastDataRequest || instance._getDefaultParams();
 
 						var customParams = {};
 
@@ -276,11 +284,16 @@ AUI.add(
 
 						var pagination = instance['_' + paginationData.name];
 
-						if (A.instanceOf(pagination, A.Pagination)) {
+						if (A.instanceOf(pagination, Liferay.Pagination)) {
 							var state = paginationData.state;
 
-							pagination.set('total', instance._getTotalPages(state.total, state.rowsPerPage));
-							pagination.set('visible', (state.total > state.rowsPerPage));
+							var rowsPerPage = state.rowsPerPage;
+							var total = state.total;
+
+							pagination.set('results', total);
+							pagination.set('total', instance._getTotalPages(total, rowsPerPage));
+
+							pagination.set('visible', !!(total && total > rowsPerPage));
 
 							pagination.setState(state);
 						}
@@ -370,9 +383,9 @@ AUI.add(
 
 						var customParams = {};
 
-						var entryRowsPerPage = instance.get(ENTRY_ROWS_PER_PAGE);
+						var entryRowsPerPage = instance._entryPagination.get(ITEMS_PER_PAGE);
 
-						var folderRowsPerPage = instance.get(FOLDER_ROWS_PER_PAGE);
+						var folderRowsPerPage = instance._folderPagination.get(ITEMS_PER_PAGE);
 
 						if (resetPagination) {
 							customParams[instance.ns(STR_ENTRY_START)] = 0;
@@ -411,6 +424,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-pagination', 'aui-parse-content', 'liferay-history-manager', 'liferay-portlet-base']
+		requires: ['aui-parse-content', 'liferay-history-manager', 'liferay-pagination', 'liferay-portlet-base']
 	}
 );

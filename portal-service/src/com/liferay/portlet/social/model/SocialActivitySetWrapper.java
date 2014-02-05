@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.social.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SocialActivitySet}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivitySet
+ * @author Brian Wing Shun Chan
+ * @see SocialActivitySet
  * @generated
  */
+@ProviderType
 public class SocialActivitySetWrapper implements SocialActivitySet,
 	ModelWrapper<SocialActivitySet> {
 	public SocialActivitySetWrapper(SocialActivitySet socialActivitySet) {
@@ -57,6 +61,7 @@ public class SocialActivitySetWrapper implements SocialActivitySet,
 		attributes.put("classNameId", getClassNameId());
 		attributes.put("classPK", getClassPK());
 		attributes.put("type", getType());
+		attributes.put("extraData", getExtraData());
 		attributes.put("activityCount", getActivityCount());
 
 		return attributes;
@@ -116,6 +121,12 @@ public class SocialActivitySetWrapper implements SocialActivitySet,
 
 		if (type != null) {
 			setType(type);
+		}
+
+		String extraData = (String)attributes.get("extraData");
+
+		if (extraData != null) {
+			setExtraData(extraData);
 		}
 
 		Integer activityCount = (Integer)attributes.get("activityCount");
@@ -363,6 +374,26 @@ public class SocialActivitySetWrapper implements SocialActivitySet,
 	}
 
 	/**
+	* Returns the extra data of this social activity set.
+	*
+	* @return the extra data of this social activity set
+	*/
+	@Override
+	public java.lang.String getExtraData() {
+		return _socialActivitySet.getExtraData();
+	}
+
+	/**
+	* Sets the extra data of this social activity set.
+	*
+	* @param extraData the extra data of this social activity set
+	*/
+	@Override
+	public void setExtraData(java.lang.String extraData) {
+		_socialActivitySet.setExtraData(extraData);
+	}
+
+	/**
 	* Returns the activity count of this social activity set.
 	*
 	* @return the activity count of this social activity set
@@ -487,9 +518,30 @@ public class SocialActivitySetWrapper implements SocialActivitySet,
 		_socialActivitySet.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivitySetWrapper)) {
+			return false;
+		}
+
+		SocialActivitySetWrapper socialActivitySetWrapper = (SocialActivitySetWrapper)obj;
+
+		if (Validator.equals(_socialActivitySet,
+					socialActivitySetWrapper._socialActivitySet)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SocialActivitySet getWrappedSocialActivitySet() {
 		return _socialActivitySet;
 	}
@@ -497,6 +549,16 @@ public class SocialActivitySetWrapper implements SocialActivitySet,
 	@Override
 	public SocialActivitySet getWrappedModel() {
 		return _socialActivitySet;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _socialActivitySet.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _socialActivitySet.isFinderCacheEnabled();
 	}
 
 	@Override

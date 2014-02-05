@@ -15,6 +15,7 @@
 package com.liferay.portalweb.portal.util.liferayselenium;
 
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portalweb.portal.util.RuntimeVariables;
@@ -36,9 +37,26 @@ public abstract class BaseSeleniumImpl
 
 		_projectDir = projectDir;
 
+		if (OSDetector.isWindows()) {
+			_dependenciesDir = StringUtil.replace(_dependenciesDir, "//", "\\");
+
+			_outputDir = StringUtil.replace(_outputDir, "//", "\\");
+
+			_projectDir = StringUtil.replace(_projectDir, "//", "\\");
+
+			_sikuliImagesDir = StringUtil.replace(_sikuliImagesDir, "//", "\\");
+			_sikuliImagesDir = StringUtil.replace(
+				_sikuliImagesDir, "linux", "windows");
+		}
+
 		initCommandProcessor();
 
 		selenium.start();
+	}
+
+	@Override
+	public void antCommand(String fileName, String target) throws Exception {
+		LiferaySeleniumHelper.antCommand(this, fileName, target);
 	}
 
 	@Override
@@ -64,6 +82,31 @@ public abstract class BaseSeleniumImpl
 	@Override
 	public void assertElementPresent(String locator) throws Exception {
 		LiferaySeleniumHelper.assertElementPresent(this, locator);
+	}
+
+	@Override
+	public void assertEmailBody(String index, String body) throws Exception {
+		LiferaySeleniumHelper.assertEmailBody(this, index, body);
+	}
+
+	@Override
+	public void assertEmailSubject(String index, String subject)
+		throws Exception {
+
+		LiferaySeleniumHelper.assertEmailSubject(this, index, subject);
+	}
+
+	@Override
+	public void assertJavaScriptErrors() throws Exception {
+	}
+
+	@Override
+	public void assertLiferayErrors() throws Exception {
+		if (!TestPropsValues.TEST_ASSERT_LIFERAY_ERRORS) {
+			return;
+		}
+
+		LiferaySeleniumHelper.assertLiferayErrors();
 	}
 
 	@Override
@@ -170,6 +213,19 @@ public abstract class BaseSeleniumImpl
 	}
 
 	@Override
+	public void clickImageElement(String image) throws Exception {
+		LiferaySeleniumHelper.clickImageElement(this, image);
+	}
+
+	@Override
+	public void connectToEmailAccount(String emailAddress, String emailPassword)
+		throws Exception {
+
+		LiferaySeleniumHelper.connectToEmailAccount(
+			emailAddress, emailPassword);
+	}
+
+	@Override
 	public void copyText(String locator) {
 		_clipBoard = super.getText(locator);
 	}
@@ -177,6 +233,11 @@ public abstract class BaseSeleniumImpl
 	@Override
 	public void copyValue(String locator) {
 		_clipBoard = super.getValue(locator);
+	}
+
+	@Override
+	public void deleteAllEmails() throws Exception {
+		LiferaySeleniumHelper.deleteAllEmails();
 	}
 
 	@Override
@@ -205,6 +266,16 @@ public abstract class BaseSeleniumImpl
 	}
 
 	@Override
+	public String getEmailBody(String index) throws Exception {
+		return LiferaySeleniumHelper.getEmailBody(index);
+	}
+
+	@Override
+	public String getEmailSubject(String index) throws Exception {
+		return LiferaySeleniumHelper.getEmailSubject(index);
+	}
+
+	@Override
 	public String getFirstNumber(String locator) {
 		return _commandProcessor.getString(
 			"getFirstNumber", new String[] {locator,});
@@ -227,6 +298,11 @@ public abstract class BaseSeleniumImpl
 	}
 
 	@Override
+	public String getOutputDir() {
+		return _outputDir;
+	}
+
+	@Override
 	public String getPrimaryTestSuiteName() {
 		return _primaryTestSuiteName;
 	}
@@ -234,6 +310,11 @@ public abstract class BaseSeleniumImpl
 	@Override
 	public String getProjectDir() {
 		return _projectDir;
+	}
+
+	@Override
+	public String getSikuliImagesDir() {
+		return _sikuliImagesDir;
 	}
 
 	@Override
@@ -361,30 +442,44 @@ public abstract class BaseSeleniumImpl
 	}
 
 	@Override
+	public void pauseLoggerCheck() throws Exception {
+	}
+
+	@Override
 	public void refreshAndWait() {
 		super.refresh();
 		super.waitForPageToLoad("30000");
 	}
 
 	@Override
-	public void saveScreenShotAndSource() throws Exception {
-		String screenShotName = null;
+	public void replyToEmail(String to, String body) throws Exception {
+		LiferaySeleniumHelper.replyToEmail(this, to, body);
+	}
 
-		if (TestPropsValues.SAVE_SCREENSHOT) {
-			screenShotName = getScreenshotFileName();
-
-			captureEntirePageScreenshot(
-				_OUTPUT_SCREENSHOTS_DIR + screenShotName + ".jpg", "");
+	@Override
+	public void saveScreenshot(String fileName) throws Exception {
+		if (!TestPropsValues.SAVE_SCREENSHOT) {
+			return;
 		}
 
-		if (TestPropsValues.SAVE_SOURCE) {
-			String content = getHtmlSource();
+		LiferaySeleniumHelper.saveScreenshot(this, fileName);
+	}
 
-			screenShotName = getScreenshotFileName();
+	@Override
+	public void saveScreenshotAndSource() throws Exception {
+		String screenshotName = null;
 
-			FileUtil.write(
-				_OUTPUT_SCREENSHOTS_DIR + screenShotName + ".html", content);
-		}
+		screenshotName = getScreenshotFileName();
+
+		captureEntirePageScreenshot(
+			_OUTPUT_SCREENSHOTS_DIR + screenshotName + ".jpg", "");
+
+		String content = getHtmlSource();
+
+		screenshotName = getScreenshotFileName();
+
+		FileUtil.write(
+			_OUTPUT_SCREENSHOTS_DIR + screenshotName + ".html", content);
 	}
 
 	@Override
@@ -394,12 +489,32 @@ public abstract class BaseSeleniumImpl
 	}
 
 	@Override
+	public boolean sendActionLogger(String command, String[] params) {
+		return true;
+	}
+
+	@Override
+	public void sendEmail(String to, String subject, String body)
+		throws Exception {
+
+		LiferaySeleniumHelper.sendEmail(this, to, subject, body);
+	}
+
+	@Override
 	public void sendKeys(String locator, String value) {
 		_commandProcessor.doCommand("sendKeys", new String[] {locator, value});
 	}
 
 	@Override
 	public void sendLogger(String id, String status) {
+	}
+
+	@Override
+	public void sendTestCaseCommandLogger(String command) {
+	}
+
+	@Override
+	public void sendTestCaseHeaderLogger(String command) {
 	}
 
 	@Override
@@ -443,16 +558,18 @@ public abstract class BaseSeleniumImpl
 	}
 
 	@Override
+	public void typeImageElement(String image, String value) throws Exception {
+		LiferaySeleniumHelper.typeImageElement(this, image, value);
+	}
+
+	@Override
 	public void typeKeys(String locator, String value) {
 		sendKeys(locator, value);
 	}
 
 	@Override
 	public void uploadCommonFile(String location, String value) {
-		super.type(
-			location,
-			_projectDir + "portal-web\\test\\functional\\com\\liferay\\" +
-				"portalweb\\dependencies\\" + value);
+		super.type(location, _projectDir + _dependenciesDir + value);
 	}
 
 	@Override
@@ -631,8 +748,12 @@ public abstract class BaseSeleniumImpl
 
 	private String _clipBoard = "";
 	private CommandProcessor _commandProcessor;
+	private String _dependenciesDir =
+		"portal-web//test//functional//com//liferay//portalweb//dependencies//";
+	private String _outputDir = TestPropsValues.OUTPUT_DIR;
 	private String _primaryTestSuiteName;
 	private String _projectDir;
+	private String _sikuliImagesDir = _dependenciesDir + "sikuli//linux//";
 	private String _timeout = "90000";
 
 }

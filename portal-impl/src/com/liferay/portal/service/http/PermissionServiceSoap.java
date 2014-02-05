@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.PermissionServiceUtil;
@@ -44,11 +46,12 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       PermissionServiceHttp
- * @see       com.liferay.portal.service.PermissionServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see PermissionServiceHttp
+ * @see com.liferay.portal.service.PermissionServiceUtil
  * @generated
  */
+@ProviderType
 public class PermissionServiceSoap {
 	/**
 	* Checks to see if the group has permission to the service.

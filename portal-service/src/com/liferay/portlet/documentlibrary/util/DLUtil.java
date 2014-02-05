@@ -137,11 +137,19 @@ public class DLUtil {
 		return _dl;
 	}
 
-	public static String getDLControlPanelLink(
+	public static String getDLFileEntryControlPanelLink(
+			PortletRequest portletRequest, long fileEntryId)
+		throws PortalException, SystemException {
+
+		return getDL().getDLFileEntryControlPanelLink(
+			portletRequest, fileEntryId);
+	}
+
+	public static String getDLFolderControlPanelLink(
 			PortletRequest portletRequest, long folderId)
 		throws PortalException, SystemException {
 
-		return getDL().getDLControlPanelLink(portletRequest, folderId);
+		return getDL().getDLFolderControlPanelLink(portletRequest, folderId);
 	}
 
 	public static Map<Locale, String> getEmailFileEntryAddedBodyMap(
@@ -252,6 +260,7 @@ public class DLUtil {
 	 * @deprecated As of 6.2.0, replaced by {@link #getPreviewURL(FileEntry,
 	 *             FileVersion, ThemeDisplay, String, boolean, boolean)}
 	 */
+	@Deprecated
 	public static String getPreviewURL(
 		FileEntry fileEntry, FileVersion fileVersion, ThemeDisplay themeDisplay,
 		String queryString, boolean appendToken) {
@@ -389,6 +398,10 @@ public class DLUtil {
 
 		return getDL().isSubscribedToFolder(
 			companyId, groupId, userId, folderId, recursive);
+	}
+
+	public static boolean isValidVersion(String version) {
+		return getDL().isValidVersion(version);
 	}
 
 	public void setDL(DL dl) {

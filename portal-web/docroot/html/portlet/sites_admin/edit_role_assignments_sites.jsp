@@ -50,30 +50,20 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	if (tabs3.equals("current")) {
 		groupParams.put("groupsRoles", new Long(role.getRoleId()));
 	}
+
+	total = GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator());
+
+	searchContainer.setTotal(total);
 	%>
 
 	<liferay-ui:search-container-results
 		results="<%= GroupLocalServiceUtil.search(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator(), searchContainer.getStart(), searchContainer.getEnd(), searchContainer.getOrderByComparator()) %>"
-		total="<%= GroupLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getName(), searchTerms.getDescription(), groupParams, searchTerms.isAndOperator()) %>"
 	/>
 
 	<liferay-ui:search-form
 		page="/html/portlet/users_admin/group_search.jsp"
 		searchContainer="<%= searchContainer %>"
 	/>
-
-	<div>
-		<c:if test="<%= PortalPermissionUtil.contains(permissionChecker, ActionKeys.ADD_COMMUNITY) %>">
-			<aui:button onClick='<%= renderResponse.getNamespace() + "addGroup();" %>' value="add-site" />
-		</c:if>
-	</div>
-
-	<aui:script>
-		function <portlet:namespace />addGroup() {
-			document.<portlet:namespace />fm.method = 'post';
-			submitForm(document.<portlet:namespace />fm, '<portlet:renderURL><portlet:param name="struts_action" value="/sites_admin/edit_site" /><portlet:param name="redirect" value="<%= currentURL %>" /></portlet:renderURL>');
-		}
-	</aui:script>
 
 	<div class="separator"><!-- --></div>
 
@@ -82,8 +72,6 @@ PortletURL portletURL = (PortletURL)request.getAttribute("edit_role_assignments.
 	%>
 
 	<aui:button onClick="<%= taglibOnClick %>" value="update-associations" />
-
-	<br /><br />
 
 	<liferay-ui:search-container-row
 		className="com.liferay.portal.model.Group"

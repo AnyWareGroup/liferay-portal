@@ -30,10 +30,14 @@ if (selLayout != null) {
 
 <aui:model-context bean="<%= selLayout %>" model="<%= Layout.class %>" />
 
-<h3><liferay-ui:message key="meta-tags" /></h3>
+<h3><liferay-ui:message key="seo" /></h3>
+
+<aui:input label="html-title" name="title" />
+
+<h4><liferay-ui:message key="meta-tags" /></h4>
 
 <aui:fieldset>
-	<aui:input name="description" />
+	<aui:input id="descriptionSEO" name="description" />
 
 	<aui:input name="keywords" />
 
@@ -41,7 +45,7 @@ if (selLayout != null) {
 </aui:fieldset>
 
 <c:if test="<%= PortalUtil.isLayoutSitemapable(selLayout) %>">
-	<h3><liferay-ui:message key="robots" /></h3>
+	<h4><liferay-ui:message key="sitemap" /></h4>
 
 	<aui:fieldset>
 		<liferay-ui:error exception="<%= SitemapChangeFrequencyException.class %>" message="please-select-a-valid-change-frequency" />
@@ -61,7 +65,10 @@ if (selLayout != null) {
 		String sitemapPriority = layoutTypeSettings.getProperty("sitemap-priority", PropsValues.SITES_SITEMAP_DEFAULT_PRIORITY);
 		%>
 
-		<aui:input helpMessage="(0.0 - 1.0)" label="page-priority" name="TypeSettingsProperties--sitemap-priority--" size="3" type="text" value="<%= sitemapPriority %>" />
+		<aui:input helpMessage="(0.0 - 1.0)" label="page-priority" name="TypeSettingsProperties--sitemap-priority--" size="3" type="text" value="<%= sitemapPriority %>">
+			<aui:validator name="number" />
+			<aui:validator errorMessage="please-enter-a-valid-page-priority" name="range">[0,1]</aui:validator>
+		</aui:input>
 
 		<%
 		String siteMapChangeFrequency = layoutTypeSettings.getProperty("sitemap-changefreq", PropsValues.SITES_SITEMAP_DEFAULT_CHANGE_FREQUENCY);
@@ -78,14 +85,3 @@ if (selLayout != null) {
 		</aui:select>
 	</aui:fieldset>
 </c:if>
-
-<aui:fieldset>
-
-	<%
-	boolean showAlternateLinks = GetterUtil.getBoolean(layoutTypeSettings.getProperty("show-alternate-links"), true);
-	%>
-
-	<h3><liferay-ui:message key="alternate-links" /></h3>
-
-	<aui:input helpMessage="show-alternate-links-help" label="show-alternate-links" name="TypeSettingsProperties--show-alternate-links--" type="checkbox" value="<%= showAlternateLinks %>" />
-</aui:fieldset>

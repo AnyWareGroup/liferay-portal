@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link DLFileEntryTypeService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       DLFileEntryTypeService
+ * @author Brian Wing Shun Chan
+ * @see DLFileEntryTypeService
  * @generated
  */
+@ProviderType
 public class DLFileEntryTypeServiceWrapper implements DLFileEntryTypeService,
 	ServiceWrapper<DLFileEntryTypeService> {
 	public DLFileEntryTypeServiceWrapper(
@@ -48,6 +51,20 @@ public class DLFileEntryTypeServiceWrapper implements DLFileEntryTypeService,
 	@Override
 	public void setBeanIdentifier(java.lang.String beanIdentifier) {
 		_dlFileEntryTypeService.setBeanIdentifier(beanIdentifier);
+	}
+
+	@Override
+	public com.liferay.portlet.documentlibrary.model.DLFileEntryType addFileEntryType(
+		long groupId, java.lang.String fileEntryTypeKey,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		long[] ddmStructureIds,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntryTypeService.addFileEntryType(groupId,
+			fileEntryTypeKey, nameMap, descriptionMap, ddmStructureIds,
+			serviceContext);
 	}
 
 	@Override
@@ -81,6 +98,13 @@ public class DLFileEntryTypeServiceWrapper implements DLFileEntryTypeService,
 		long[] groupIds)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return _dlFileEntryTypeService.getFileEntryTypes(groupIds);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portlet.documentlibrary.model.DLFileEntryType> getFileEntryTypes(
+		long[] groupIds, int start, int end)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _dlFileEntryTypeService.getFileEntryTypes(groupIds, start, end);
 	}
 
 	@Override
@@ -118,6 +142,18 @@ public class DLFileEntryTypeServiceWrapper implements DLFileEntryTypeService,
 
 	@Override
 	public void updateFileEntryType(long fileEntryTypeId,
+		java.util.Map<java.util.Locale, java.lang.String> nameMap,
+		java.util.Map<java.util.Locale, java.lang.String> descriptionMap,
+		long[] ddmStructureIds,
+		com.liferay.portal.service.ServiceContext serviceContext)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		_dlFileEntryTypeService.updateFileEntryType(fileEntryTypeId, nameMap,
+			descriptionMap, ddmStructureIds, serviceContext);
+	}
+
+	@Override
+	public void updateFileEntryType(long fileEntryTypeId,
 		java.lang.String name, java.lang.String description,
 		long[] ddmStructureIds,
 		com.liferay.portal.service.ServiceContext serviceContext)
@@ -130,6 +166,7 @@ public class DLFileEntryTypeServiceWrapper implements DLFileEntryTypeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public DLFileEntryTypeService getWrappedDLFileEntryTypeService() {
 		return _dlFileEntryTypeService;
 	}
@@ -137,6 +174,7 @@ public class DLFileEntryTypeServiceWrapper implements DLFileEntryTypeService,
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedDLFileEntryTypeService(
 		DLFileEntryTypeService dlFileEntryTypeService) {
 		_dlFileEntryTypeService = dlFileEntryTypeService;

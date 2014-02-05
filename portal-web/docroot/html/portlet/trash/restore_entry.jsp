@@ -21,7 +21,24 @@ String redirect = ParamUtil.getString(request, "redirect");
 
 String restoreEntryAction = ParamUtil.getString(request, "restoreEntryAction", "/trash/edit_entry");
 
-String trashEntryId = ParamUtil.getString(request, "trashEntryId");
+long trashEntryId = ParamUtil.getLong(request, "trashEntryId");
+
+String className = ParamUtil.getString(request, "className");
+long classPK = ParamUtil.getLong(request, "classPK");
+
+TrashEntry entry = null;
+
+if (trashEntryId > 0) {
+	entry = TrashEntryLocalServiceUtil.getEntry(trashEntryId);
+}
+else if (Validator.isNotNull(className) && (classPK > 0)) {
+	entry = TrashEntryLocalServiceUtil.fetchEntry(className, classPK);
+}
+
+if (entry != null) {
+	className = entry.getClassName();
+	classPK = entry.getClassPK();
+}
 
 String duplicateEntryId = ParamUtil.getString(request, "duplicateEntryId");
 String oldName = ParamUtil.getString(request, "oldName");
@@ -31,7 +48,7 @@ String renameMessage = ParamUtil.getString(request, "renameMessage");
 %>
 
 <div class="alert alert-block" id="<portlet:namespace />messageContainer">
-	<liferay-ui:message arguments="<%= new String[] {oldName} %>" key="an-entry-with-name-x-already-exists" />
+	<liferay-ui:message arguments="<%= new String[] {oldName} %>" key="an-entry-with-name-x-already-exists" translateArguments="<%= false %>" />
 </div>
 
 <portlet:actionURL var="restoreActionURL">
@@ -49,11 +66,11 @@ String renameMessage = ParamUtil.getString(request, "renameMessage");
 
 		<aui:input id="rename" label="<%= renameMessage %>" name="<%= Constants.CMD %>" type="radio" value="<%= Constants.RENAME %>" />
 
-		<aui:input cssClass="new-file-name" label="" name="newName" title="<%= renameMessage %>" value="<%= TrashUtil.getNewName(themeDisplay, oldName) %>" />
+		<aui:input cssClass="new-file-name" label="" name="newName" title="<%= renameMessage %>" value="<%= TrashUtil.getNewName(themeDisplay, className, classPK, oldName) %>" />
 	</aui:fieldset>
 
 	<aui:button-row>
-		<aui:button type="cancel" />
+		<aui:button cssClass="btn-cancel" type="cancel" />
 
 		<aui:button type="submit" />
 	</aui:button-row>

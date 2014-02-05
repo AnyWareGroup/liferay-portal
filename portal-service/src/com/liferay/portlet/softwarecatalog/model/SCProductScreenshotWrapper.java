@@ -14,6 +14,9 @@
 
 package com.liferay.portlet.softwarecatalog.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.model.ModelWrapper;
 
 import java.util.HashMap;
@@ -24,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link SCProductScreenshot}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       SCProductScreenshot
+ * @author Brian Wing Shun Chan
+ * @see SCProductScreenshot
  * @generated
  */
+@ProviderType
 public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	ModelWrapper<SCProductScreenshot> {
 	public SCProductScreenshotWrapper(SCProductScreenshot scProductScreenshot) {
@@ -369,9 +373,30 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 		_scProductScreenshot.persist();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SCProductScreenshotWrapper)) {
+			return false;
+		}
+
+		SCProductScreenshotWrapper scProductScreenshotWrapper = (SCProductScreenshotWrapper)obj;
+
+		if (Validator.equals(_scProductScreenshot,
+					scProductScreenshotWrapper._scProductScreenshot)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public SCProductScreenshot getWrappedSCProductScreenshot() {
 		return _scProductScreenshot;
 	}
@@ -379,6 +404,16 @@ public class SCProductScreenshotWrapper implements SCProductScreenshot,
 	@Override
 	public SCProductScreenshot getWrappedModel() {
 		return _scProductScreenshot;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _scProductScreenshot.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _scProductScreenshot.isFinderCacheEnabled();
 	}
 
 	@Override

@@ -1,3 +1,5 @@
+@import "compass";
+
 .navigation-pane {
 	.body-row {
 		height: 100%;
@@ -11,35 +13,37 @@
 		}
 	}
 
-	.lfr-list-view-content {
-		.lfr-component {
-			margin-left: 0;
+	.lfr-component {
+		margin-left: 0;
+	}
+
+	.app-view-navigation-entry {
+		position: relative;
+
+		&.folder.error {
+			color: #34404F;
+			display: block;
+			padding: 6px 8px;
+			text-decoration: none;
 		}
 
-		.app-view-navigation-entry {
-			position: relative;
-			
-			&.folder.error {
-				color: #34404F;
-				display: block;
-				padding: 6px 8px;
-				text-decoration: none;
-			}
+		.browse-folder, .nav-item-label {
+			@include ellipsis;
+		}
 
-			.overlay.entry-action {
-				display: block;
-				height: 16px;
-				overflow: hidden;
-				position: absolute;
-				right: 15px;
-				top: 5px;
-				width: 24px;
+		.overlay.entry-action {
+			bottom: 0;
+			display: block;
+			overflow: hidden;
+			position: absolute;
+			right: -15px;
+			top: 0;
 
-				a {
-					display: block;
-					float: right;
-					min-height: 15px;
-				}
+			.btn {
+				background: transparent;
+				border-width: 0;
+				margin: 0;
+				padding: 9px 9px 4px;
 			}
 		}
 	}

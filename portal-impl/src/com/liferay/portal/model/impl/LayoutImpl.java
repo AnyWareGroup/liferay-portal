@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.CookieKeys;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -274,6 +275,50 @@ public class LayoutImpl extends LayoutBaseImpl {
 	}
 
 	@Override
+	public String getDefaultThemeSetting(
+		String key, String device, boolean inheritLookAndFeel) {
+
+		if (!inheritLookAndFeel) {
+			try {
+				Theme theme = getTheme(device);
+
+				return theme.getSetting(key);
+			}
+			catch (Exception e) {
+			}
+		}
+
+		try {
+			LayoutSet layoutSet = getLayoutSet();
+
+			return layoutSet.getThemeSetting(key, device);
+		}
+		catch (Exception e) {
+		}
+
+		return StringPool.BLANK;
+	}
+
+	@Override
+	public String getFriendlyURL(Locale locale) {
+		Layout layout = this;
+
+		String friendlyURL = layout.getFriendlyURL();
+
+		try {
+			LayoutFriendlyURL layoutFriendlyURL =
+				LayoutFriendlyURLLocalServiceUtil.getLayoutFriendlyURL(
+					layout.getPlid(), LocaleUtil.toLanguageId(locale));
+
+			friendlyURL = layoutFriendlyURL.getFriendlyURL();
+		}
+		catch (Exception e) {
+		}
+
+		return friendlyURL;
+	}
+
+	@Override
 	public Map<Locale, String> getFriendlyURLMap() throws SystemException {
 		Map<Locale, String> friendlyURLMap = new HashMap<Locale, String>();
 
@@ -322,6 +367,15 @@ public class LayoutImpl extends LayoutBaseImpl {
 	}
 
 	@Override
+	public boolean getIconImage() {
+		if (getIconImageId() > 0) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
 	public LayoutSet getLayoutSet() throws PortalException, SystemException {
 		if (_layoutSet == null) {
 			_layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
@@ -338,6 +392,19 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		return _layoutType;
+	}
+
+	@Override
+	public Layout getLinkedToLayout() throws SystemException {
+		long linkToLayoutId = GetterUtil.getLong(
+			getTypeSettingsProperty("linkToLayoutId"));
+
+		if (linkToLayoutId <= 0) {
+			return null;
+		}
+
+		return LayoutLocalServiceUtil.fetchLayout(
+			getGroupId(), isPrivateLayout(), linkToLayoutId);
 	}
 
 	@Override
@@ -405,6 +472,13 @@ public class LayoutImpl extends LayoutBaseImpl {
 
 	@Override
 	public String getThemeSetting(String key, String device) {
+		return getThemeSetting(key, device, isInheritLookAndFeel());
+	}
+
+	@Override
+	public String getThemeSetting(
+		String key, String device, boolean inheritLookAndFeel) {
+
 		UnicodeProperties typeSettingsProperties = getTypeSettingsProperties();
 
 		String value = typeSettingsProperties.getProperty(
@@ -414,25 +488,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 			return value;
 		}
 
-		if (!isInheritLookAndFeel()) {
-			try {
-				Theme theme = _getTheme(device);
-
-				return theme.getSetting(key);
-			}
-			catch (Exception e) {
-			}
-		}
-
-		try {
-			LayoutSet layoutSet = getLayoutSet();
-
-			value = layoutSet.getThemeSetting(key, device);
-		}
-		catch (Exception e) {
-		}
-
-		return value;
+		return getDefaultThemeSetting(key, device, inheritLookAndFeel);
 	}
 
 	@Override
@@ -505,12 +561,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 			if (parentLayoutId == layoutId) {
 				return true;
 			}
-			else {
-				Layout parentLayout = LayoutLocalServiceUtil.getLayout(
-					getGroupId(), isPrivateLayout(), parentLayoutId);
 
-				parentLayoutId = parentLayout.getParentLayoutId();
-			}
+			Layout parentLayout = LayoutLocalServiceUtil.getLayout(
+				getGroupId(), isPrivateLayout(), parentLayoutId);
+
+			parentLayoutId = parentLayout.getParentLayoutId();
 		}
 
 		return false;
@@ -584,6 +639,11 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		return false;
+	}
+
+	@Override
+	public boolean isIconImage() {
+		return getIconImage();
 	}
 
 	@Override
@@ -757,8 +817,19 @@ public class LayoutImpl extends LayoutBaseImpl {
 		super.setTypeSettings(_typeSettingsProperties.toString());
 	}
 
+	protected Theme getTheme(String device)
+		throws PortalException, SystemException {
+
+		if (device.equals("regular")) {
+			return getTheme();
+		}
+		else {
+			return getWapTheme();
+		}
+	}
+
 	private static String _getFriendlyURLKeyword(String friendlyURL) {
-		friendlyURL = friendlyURL.toLowerCase();
+		friendlyURL = StringUtil.toLowerCase(friendlyURL);
 
 		for (String keyword : _friendlyURLKeywords) {
 			if (friendlyURL.startsWith(keyword)) {
@@ -793,7 +864,7 @@ public class LayoutImpl extends LayoutBaseImpl {
 				}
 			}
 
-			_friendlyURLKeywords[i] = keyword.toLowerCase();
+			_friendlyURLKeywords[i] = StringUtil.toLowerCase(keyword);
 		}
 	}
 
@@ -833,17 +904,6 @@ public class LayoutImpl extends LayoutBaseImpl {
 		}
 
 		return layoutTypePortlet;
-	}
-
-	private Theme _getTheme(String device)
-		throws PortalException, SystemException {
-
-		if (device.equals("regular")) {
-			return getTheme();
-		}
-		else {
-			return getWapTheme();
-		}
 	}
 
 	private String _getURL(

@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.User;
 import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portlet.social.RequestUserIdException;
 import com.liferay.portlet.social.model.SocialRequest;
 import com.liferay.portlet.social.model.SocialRequestConstants;
@@ -66,7 +65,7 @@ public class SocialRequestLocalServiceImpl
 		throws PortalException, SystemException {
 
 		User user = userPersistence.findByPrimaryKey(userId);
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		User receiverUser = userPersistence.findByPrimaryKey(receiverUserId);
 		long now = System.currentTimeMillis();
 
@@ -149,6 +148,18 @@ public class SocialRequestLocalServiceImpl
 	@Override
 	public void deleteRequest(SocialRequest request) throws SystemException {
 		socialRequestPersistence.remove(request);
+	}
+
+	@Override
+	public void deleteRequests(long className, long classPK)
+		throws SystemException {
+
+		List<SocialRequest> requests = socialRequestPersistence.findByC_C(
+			className, classPK);
+
+		for (SocialRequest request : requests) {
+			deleteRequest(request);
+		}
 	}
 
 	/**
@@ -358,7 +369,7 @@ public class SocialRequestLocalServiceImpl
 			long userId, String className, long classPK, int type, int status)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		if (socialRequestPersistence.countByU_C_C_T_S(
 				userId, classNameId, classPK, type, status) <= 0) {
@@ -392,7 +403,7 @@ public class SocialRequestLocalServiceImpl
 			long receiverUserId, int status)
 		throws SystemException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		SocialRequest socialRequest = socialRequestPersistence.fetchByU_C_C_T_R(
 			userId, classNameId, classPK, type, receiverUserId);

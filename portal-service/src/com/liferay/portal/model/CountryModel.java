@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.service.ServiceContext;
 
@@ -34,7 +36,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.CountryModelImpl
  * @generated
  */
-public interface CountryModel extends BaseModel<Country> {
+@ProviderType
+public interface CountryModel extends BaseModel<Country>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -54,6 +57,22 @@ public interface CountryModel extends BaseModel<Country> {
 	 * @param primaryKey the primary key of this country
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this country.
+	 *
+	 * @return the mvcc version of this country
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this country.
+	 *
+	 * @param mvccVersion the mvcc version of this country
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the country ID of this country.

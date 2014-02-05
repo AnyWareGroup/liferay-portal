@@ -14,13 +14,16 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 /**
  * Provides a wrapper for {@link MembershipRequestService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       MembershipRequestService
+ * @author Brian Wing Shun Chan
+ * @see MembershipRequestService
  * @generated
  */
+@ProviderType
 public class MembershipRequestServiceWrapper implements MembershipRequestService,
 	ServiceWrapper<MembershipRequestService> {
 	public MembershipRequestServiceWrapper(
@@ -86,6 +89,7 @@ public class MembershipRequestServiceWrapper implements MembershipRequestService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public MembershipRequestService getWrappedMembershipRequestService() {
 		return _membershipRequestService;
 	}
@@ -93,6 +97,7 @@ public class MembershipRequestServiceWrapper implements MembershipRequestService
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedMembershipRequestService(
 		MembershipRequestService membershipRequestService) {
 		_membershipRequestService = membershipRequestService;

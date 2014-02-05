@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
+import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -36,7 +37,6 @@ import com.liferay.portal.security.permission.DoAsUserThread;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceTestUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.test.AssertUtils;
 import com.liferay.portal.test.EnvironmentExecutionTestListener;
 import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
 import com.liferay.portal.test.Sync;
@@ -513,7 +513,9 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 
 				_fileEntryIds[_index] = fileEntry.getFileEntryId();
 
-				_log.debug("Added file " + _index);
+				if (_log.isDebugEnabled()) {
+					_log.debug("Added file " + _index);
+				}
 
 				_success = true;
 			}
@@ -551,7 +553,9 @@ public class DLAppServiceTest extends BaseDLAppTestCase {
 				String content = StringUtil.read(is);
 
 				if (CONTENT.equals(content)) {
-					_log.debug("Retrieved file " + _index);
+					if (_log.isDebugEnabled()) {
+						_log.debug("Retrieved file " + _index);
+					}
 
 					_success = true;
 				}

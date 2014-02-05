@@ -114,6 +114,8 @@ public class LayoutPersistenceTest {
 
 		Layout newLayout = _persistence.create(pk);
 
+		newLayout.setMvccVersion(ServiceTestUtil.nextLong());
+
 		newLayout.setUuid(ServiceTestUtil.randomString());
 
 		newLayout.setGroupId(ServiceTestUtil.nextLong());
@@ -152,8 +154,6 @@ public class LayoutPersistenceTest {
 
 		newLayout.setFriendlyURL(ServiceTestUtil.randomString());
 
-		newLayout.setIconImage(ServiceTestUtil.randomBoolean());
-
 		newLayout.setIconImageId(ServiceTestUtil.nextLong());
 
 		newLayout.setThemeId(ServiceTestUtil.randomString());
@@ -178,6 +178,8 @@ public class LayoutPersistenceTest {
 
 		Layout existingLayout = _persistence.findByPrimaryKey(newLayout.getPrimaryKey());
 
+		Assert.assertEquals(existingLayout.getMvccVersion(),
+			newLayout.getMvccVersion());
 		Assert.assertEquals(existingLayout.getUuid(), newLayout.getUuid());
 		Assert.assertEquals(existingLayout.getPlid(), newLayout.getPlid());
 		Assert.assertEquals(existingLayout.getGroupId(), newLayout.getGroupId());
@@ -211,8 +213,6 @@ public class LayoutPersistenceTest {
 		Assert.assertEquals(existingLayout.getHidden(), newLayout.getHidden());
 		Assert.assertEquals(existingLayout.getFriendlyURL(),
 			newLayout.getFriendlyURL());
-		Assert.assertEquals(existingLayout.getIconImage(),
-			newLayout.getIconImage());
 		Assert.assertEquals(existingLayout.getIconImageId(),
 			newLayout.getIconImageId());
 		Assert.assertEquals(existingLayout.getThemeId(), newLayout.getThemeId());
@@ -278,17 +278,18 @@ public class LayoutPersistenceTest {
 	}
 
 	protected OrderByComparator getOrderByComparator() {
-		return OrderByComparatorFactoryUtil.create("Layout", "uuid", true,
-			"plid", true, "groupId", true, "companyId", true, "userId", true,
-			"userName", true, "createDate", true, "modifiedDate", true,
-			"privateLayout", true, "layoutId", true, "parentLayoutId", true,
-			"name", true, "title", true, "description", true, "keywords", true,
-			"robots", true, "type", true, "typeSettings", true, "hidden", true,
-			"friendlyURL", true, "iconImage", true, "iconImageId", true,
-			"themeId", true, "colorSchemeId", true, "wapThemeId", true,
-			"wapColorSchemeId", true, "css", true, "priority", true,
-			"layoutPrototypeUuid", true, "layoutPrototypeLinkEnabled", true,
-			"sourcePrototypeLayoutUuid", true);
+		return OrderByComparatorFactoryUtil.create("Layout", "mvccVersion",
+			true, "uuid", true, "plid", true, "groupId", true, "companyId",
+			true, "userId", true, "userName", true, "createDate", true,
+			"modifiedDate", true, "privateLayout", true, "layoutId", true,
+			"parentLayoutId", true, "name", true, "title", true, "description",
+			true, "keywords", true, "robots", true, "type", true,
+			"typeSettings", true, "hidden", true, "friendlyURL", true,
+			"iconImageId", true, "themeId", true, "colorSchemeId", true,
+			"wapThemeId", true, "wapColorSchemeId", true, "css", true,
+			"priority", true, "layoutPrototypeUuid", true,
+			"layoutPrototypeLinkEnabled", true, "sourcePrototypeLayoutUuid",
+			true);
 	}
 
 	@Test
@@ -451,6 +452,8 @@ public class LayoutPersistenceTest {
 
 		Layout layout = _persistence.create(pk);
 
+		layout.setMvccVersion(ServiceTestUtil.nextLong());
+
 		layout.setUuid(ServiceTestUtil.randomString());
 
 		layout.setGroupId(ServiceTestUtil.nextLong());
@@ -488,8 +491,6 @@ public class LayoutPersistenceTest {
 		layout.setHidden(ServiceTestUtil.randomBoolean());
 
 		layout.setFriendlyURL(ServiceTestUtil.randomString());
-
-		layout.setIconImage(ServiceTestUtil.randomBoolean());
 
 		layout.setIconImageId(ServiceTestUtil.nextLong());
 

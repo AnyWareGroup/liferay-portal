@@ -29,11 +29,19 @@
 </c:if>
 
 <c:if test="<%= Validator.isNotNull(zipCode) %>">
-	<%= zipCode %>,
+	<%= HtmlUtil.escape(zipCode) %>,
 </c:if>
 
 <c:if test="<%= Validator.isNotNull(city) %>">
-	<%= HtmlUtil.escape(city) %>
+	<%= HtmlUtil.escape(city) %><br />
+</c:if>
+
+<c:if test="<%= Validator.isNotNull(regionName) %>">
+	<%= HtmlUtil.escape(regionName) %><br />
+</c:if>
+
+<c:if test="<%= Validator.isNotNull(countryName) %>">
+	<%= HtmlUtil.escape(countryName) %>
 </c:if>
 
 <c:if test="<%= address.isMailing() %>">(<liferay-ui:message key="mailing" />)</c:if>

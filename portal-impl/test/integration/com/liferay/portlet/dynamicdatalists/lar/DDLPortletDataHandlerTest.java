@@ -14,7 +14,6 @@
 
 package com.liferay.portlet.dynamicdatalists.lar;
 
-import com.liferay.portal.kernel.lar.ExportImportPathUtil;
 import com.liferay.portal.kernel.lar.PortletDataHandler;
 import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.lar.BasePortletDataHandlerTestCase;
@@ -45,11 +44,11 @@ public class DDLPortletDataHandlerTest extends BasePortletDataHandlerTestCase {
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
 			stagingGroup.getGroupId(), DDLRecordSet.class.getName());
 
-		portletDataContext.isPathProcessed(
-			ExportImportPathUtil.getModelPath(ddmStructure));
-
-		DDLTestUtil.addRecordSet(
+		DDLRecordSet recordSet = DDLTestUtil.addRecordSet(
 			stagingGroup.getGroupId(), ddmStructure.getStructureId());
+
+		DDLTestUtil.addRecord(
+			stagingGroup.getGroupId(), recordSet.getRecordSetId());
 	}
 
 	@Override

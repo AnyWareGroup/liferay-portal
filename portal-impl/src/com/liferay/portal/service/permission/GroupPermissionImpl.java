@@ -64,6 +64,14 @@ public class GroupPermissionImpl implements GroupPermission {
 			PermissionChecker permissionChecker, Group group, String actionId)
 		throws PortalException, SystemException {
 
+		if ((actionId.equals(ActionKeys.ADD_LAYOUT) ||
+			 actionId.equals(ActionKeys.MANAGE_LAYOUTS)) &&
+			(group.hasLocalOrRemoteStagingGroup() ||
+			 group.isLayoutPrototype())) {
+
+			return false;
+		}
+
 		long groupId = group.getGroupId();
 
 		if (group.isStagingGroup()) {
@@ -88,10 +96,19 @@ public class GroupPermissionImpl implements GroupPermission {
 			}
 		}
 
-		if (actionId.equals(ActionKeys.ADD_LAYOUT) &&
-			permissionChecker.hasPermission(
+		if (actionId.equals(ActionKeys.ADD_COMMUNITY) &&
+			(permissionChecker.hasPermission(
 				groupId, Group.class.getName(), groupId,
-				ActionKeys.MANAGE_LAYOUTS)) {
+				ActionKeys.MANAGE_SUBGROUPS) ||
+			 PortalPermissionUtil.contains(
+				permissionChecker, ActionKeys.ADD_COMMUNITY))) {
+
+			return true;
+		}
+		else if (actionId.equals(ActionKeys.ADD_LAYOUT) &&
+				 permissionChecker.hasPermission(
+					groupId, Group.class.getName(), groupId,
+					ActionKeys.MANAGE_LAYOUTS)) {
 
 			return true;
 		}

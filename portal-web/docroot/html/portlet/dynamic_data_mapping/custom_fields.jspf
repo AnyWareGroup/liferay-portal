@@ -14,6 +14,12 @@
  */
 --%>
 
+<%
+Calendar localeCal = CalendarFactoryUtil.getCalendar(timeZone, locale);
+
+int firstDayOfWeek = localeCal.getFirstDayOfWeek() - 1;
+%>
+
 <aui:script>
 	AUI.add(
 		'liferay-portlet-dynamic-data-mapping-custom-fields',
@@ -42,6 +48,26 @@
 			var TPL_TEXT_HTML = '<textarea class="form-builder-field-node lfr-ddm-text-html"></textarea>';
 
 			var TPL_WCM_IMAGE = '<div class="lfr-wcm-image"></div>';
+
+			var applyStyles = function(node, styleContent) {
+				var styles = styleContent.replace(/\n/g, STR_BLANK).split(';');
+
+				node.setStyle(STR_BLANK);
+
+				A.Array.each(
+					styles,
+					function(item, index, collection) {
+						var rule = item.split(':');
+
+						if (rule.length == 2) {
+							var key = camelize(rule[0]);
+							var value = trim(rule[1]);
+
+							node.setStyle(key, value);
+						}
+					}
+				);
+			};
 
 			var LiferayFormBuilderField = function() {
 			};
@@ -89,7 +115,7 @@
 					'keyword': '<liferay-ui:message key="yes" />'
 				};
 
-				if ((type == 'text') || (type == 'textarea')) {
+				if ((type == 'ddm-text-html') || (type == 'text') || (type == 'textarea')) {
 					indexTypeOptions = {
 						'': '<liferay-ui:message key="not-indexable" />',
 						'keyword': '<liferay-ui:message key="indexable-keyword" />',
@@ -162,7 +188,11 @@
 									if (attributeName === 'predefinedValue') {
 										collection[index] = {
 											attributeName: attributeName,
-											editor: new A.DateCellEditor(),
+											editor: new A.DateCellEditor(
+												{
+													dateFormat: '%m/%d/%Y'
+												}
+											),
 											name: '<%= UnicodeLanguageUtil.get(pageContext, "predefined-value") %>'
 										};
 									}
@@ -181,6 +211,8 @@
 								{
 									trigger: instance.get('templateNode'),
 									calendar: {
+										firstDayOfWeek: <%= firstDayOfWeek %>,
+										locale: '<%= locale %>',
 										strings: {
 											next: '<liferay-ui:message key="next" />',
 											none: '<liferay-ui:message key="none" />',
@@ -222,12 +254,6 @@
 
 						fieldNamespace: {
 							value: 'ddm'
-						},
-
-						name: {
-							valueFn: function() {
-								return A.FormBuilderField.buildFieldName('documents-and-media');
-							}
 						}
 					},
 
@@ -289,73 +315,6 @@
 
 					}
 
-				}
-			);
-
-			var DDMFileUploadField = A.Component.create(
-				{
-					ATTRS: {
-						acceptFiles: {
-							value: '<%= UnicodeFormatter.toString(StringUtil.merge(PrefsPropsUtil.getStringArray(PropsKeys.DL_FILE_EXTENSIONS, StringPool.COMMA))) %>'
-						},
-
-						dataType: {
-							value: 'file-upload'
-						},
-
-						fieldNamespace: {
-							value: 'ddm'
-						},
-
-						folder: {
-							setter: function(val) {
-								if (!A.Lang.isObject(val)) {
-									val = A.JSON.parse(val);
-								}
-
-								return val;
-							},
-
-							value: {
-								folderId: <%= DLFolderConstants.DEFAULT_PARENT_FOLDER_ID %>,
-								folderName: '<%= UnicodeLanguageUtil.get(pageContext, "home") %>'
-							}
-						},
-
-						tip: {
-							value: '<%= UnicodeLanguageUtil.format(locale, "upload-documents-no-larger-than-x-k", PrefsPropsUtil.getLong(PropsKeys.DL_FILE_MAX_SIZE) / 1024, false) %>'
-						}
-					},
-
-					EXTENDS: A.FormBuilderFileUploadField,
-
-					NAME: 'ddm-fileupload',
-
-					prototype: {
-						getPropertyModel: function() {
-							var instance = this;
-
-							var model = DDMFileUploadField.superclass.getPropertyModel.apply(instance, arguments);
-
-							A.Array.each(
-								model,
-								function(item, index, collection) {
-									if (item.attributeName === 'predefinedValue') {
-										item.editor = false;
-									}
-								}
-							);
-
-							model.push(
-								{
-									attributeName: 'acceptFiles',
-									name: '<%= UnicodeLanguageUtil.get(pageContext, "allowed-file-extensions") %>'
-								}
-							);
-
-							return model;
-						}
-					}
 				}
 			);
 
@@ -458,25 +417,9 @@
 						_uiSetStyle: function(val) {
 							var instance = this;
 
-							var styles = val.replace(/\n/g, STR_BLANK).split(';');
-
 							var templateNode = instance.get('templateNode');
 
-							templateNode.setStyle(STR_BLANK);
-
-							A.Array.each(
-								styles,
-								function(item, index, collection) {
-									var rule = item.split(':');
-
-									if (rule.length == 2) {
-										var key = camelize(rule[0]);
-										var value = trim(rule[1]);
-
-										templateNode.setStyle(key, value);
-									}
-								}
-							);
+							applyStyles(templateNode, val);
 						}
 					}
 				}
@@ -496,12 +439,18 @@
 						showLabel: {
 							readOnly: true,
 							value: false
+						},
+
+						style: {
+							value: STR_BLANK
 						}
 					},
 
 					EXTENDS: A.FormBuilderField,
 
 					NAME: 'ddm-separator',
+
+					UI_ATTRS: ['style'],
 
 					prototype: {
 						getHTML: function() {
@@ -514,8 +463,21 @@
 									attributeName: 'type',
 									editor: false,
 									name: '<%= UnicodeLanguageUtil.get(pageContext, "type") %>'
+								},
+								{
+									attributeName: 'style',
+									editor: new A.TextAreaCellEditor(),
+									name: '<%= UnicodeLanguageUtil.get(pageContext, "style") %>'
 								}
 							];
+						},
+
+						_uiSetStyle: function(val) {
+							var instance = this;
+
+							var templateNode = instance.get('templateNode');
+
+							applyStyles(templateNode, val);
 						}
 					}
 				}
@@ -596,7 +558,6 @@
 			FormBuilderTypes['ddm-date'] = DDMDateField;
 			FormBuilderTypes['ddm-decimal'] = DDMDecimalField;
 			FormBuilderTypes['ddm-documentlibrary'] = DDMDocumentLibraryField;
-			FormBuilderTypes['ddm-fileupload'] = DDMFileUploadField;
 			FormBuilderTypes['ddm-integer'] = DDMIntegerField;
 			FormBuilderTypes['ddm-link-to-page'] = DDMLinkToPageField;
 			FormBuilderTypes['ddm-number'] = DDMNumberField;

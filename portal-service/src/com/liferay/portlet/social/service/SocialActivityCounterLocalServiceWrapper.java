@@ -14,15 +14,18 @@
 
 package com.liferay.portlet.social.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.service.ServiceWrapper;
 
 /**
  * Provides a wrapper for {@link SocialActivityCounterLocalService}.
  *
- * @author    Brian Wing Shun Chan
- * @see       SocialActivityCounterLocalService
+ * @author Brian Wing Shun Chan
+ * @see SocialActivityCounterLocalService
  * @generated
  */
+@ProviderType
 public class SocialActivityCounterLocalServiceWrapper
 	implements SocialActivityCounterLocalService,
 		ServiceWrapper<SocialActivityCounterLocalService> {
@@ -168,6 +171,23 @@ public class SocialActivityCounterLocalServiceWrapper
 		return _socialActivityCounterLocalService.dynamicQueryCount(dynamicQuery);
 	}
 
+	/**
+	* Returns the number of rows that match the dynamic query.
+	*
+	* @param dynamicQuery the dynamic query
+	* @param projection the projection to apply to the query
+	* @return the number of rows that match the dynamic query
+	* @throws SystemException if a system exception occurred
+	*/
+	@Override
+	public long dynamicQueryCount(
+		com.liferay.portal.kernel.dao.orm.DynamicQuery dynamicQuery,
+		com.liferay.portal.kernel.dao.orm.Projection projection)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return _socialActivityCounterLocalService.dynamicQueryCount(dynamicQuery,
+			projection);
+	}
+
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityCounter fetchSocialActivityCounter(
 		long activityCounterId)
@@ -275,8 +295,8 @@ public class SocialActivityCounterLocalServiceWrapper
 	* </p>
 	*
 	* @param groupId the primary key of the group
-	* @param classNameId the primary key of the entity's class this counter
-	belongs to
+	* @param classNameId the primary key of the entity's class this
+	counter belongs to
 	* @param classPK the primary key of the entity this counter belongs to
 	* @param name the counter's name
 	* @param ownerType the counter's owner type. Acceptable values are
@@ -285,14 +305,18 @@ public class SocialActivityCounterLocalServiceWrapper
 	com.liferay.portlet.social.model.SocialActivityCounterConstants}.
 	* @param currentValue the counter's current value (optionally
 	<code>0</code>)
-	* @param totalValue the counter's total value (optionally <code>0</code>)
+	* @param totalValue the counter's total value (optionally
+	<code>0</code>)
 	* @param startPeriod the counter's start period
 	* @param endPeriod the counter's end period
 	* @return the added activity counter
 	* @throws PortalException if the group or the previous activity counter
 	could not be found
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
+	long, long, String, int, int, long, int)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityCounter addActivityCounter(
 		long groupId, long classNameId, long classPK, java.lang.String name,
@@ -316,8 +340,8 @@ public class SocialActivityCounterLocalServiceWrapper
 	* </p>
 	*
 	* @param groupId the primary key of the group
-	* @param classNameId the primary key of the entity's class this counter
-	belongs to
+	* @param classNameId the primary key of the entity's class this
+	counter belongs to
 	* @param classPK the primary key of the entity this counter belongs to
 	* @param name the counter name
 	* @param ownerType the counter's owner type. Acceptable values are
@@ -326,9 +350,59 @@ public class SocialActivityCounterLocalServiceWrapper
 	com.liferay.portlet.social.model.SocialActivityCounterConstants}.
 	* @param currentValue the current value of the counter (optionally
 	<code>0</code>)
-	* @param totalValue the counter's total value (optionally <code>0</code>)
+	* @param totalValue the counter's total value (optionally
+	<code>0</code>)
 	* @param startPeriod the counter's start period
 	* @param endPeriod the counter's end period
+	* @param previousActivityCounterId the primary key of the activity
+	counter for the previous time period (optionally
+	<code>0</code>, if this is the first)
+	* @param periodLength the period length in days,
+	<code>PERIOD_LENGTH_INFINITE</code> for never ending counters
+	or <code>PERIOD_LENGTH_SYSTEM</code> for the period length
+	defined in <code>portal-ext.properties</code>. For more
+	information see {@link
+	com.liferay.portlet.social.model.SocialActivityCounterConstants}.
+	* @return the added activity counter
+	* @throws PortalException if the group or the previous activity counter
+	could not be found
+	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
+	long, long, String, int, int, long, int)}
+	*/
+	@Deprecated
+	@Override
+	public com.liferay.portlet.social.model.SocialActivityCounter addActivityCounter(
+		long groupId, long classNameId, long classPK, java.lang.String name,
+		int ownerType, int currentValue, int totalValue, int startPeriod,
+		int endPeriod, long previousActivityCounterId, int periodLength)
+		throws com.liferay.portal.kernel.exception.PortalException,
+			com.liferay.portal.kernel.exception.SystemException {
+		return _socialActivityCounterLocalService.addActivityCounter(groupId,
+			classNameId, classPK, name, ownerType, currentValue, totalValue,
+			startPeriod, endPeriod, previousActivityCounterId, periodLength);
+	}
+
+	/**
+	* Adds an activity counter specifying a previous activity and period
+	* length.
+	*
+	* <p>
+	* This method uses the lock service to guard against multiple threads
+	* trying to insert the same counter because this service is called
+	* asynchronously from the social activity service.
+	* </p>
+	*
+	* @param groupId the primary key of the group
+	* @param classNameId the primary key of the entity's class this counter
+	belongs to
+	* @param classPK the primary key of the entity this counter belongs to
+	* @param name the counter name
+	* @param ownerType the counter's owner type. Acceptable values are
+	<code>TYPE_ACTOR</code>, <code>TYPE_ASSET</code> and
+	<code>TYPE_CREATOR</code> defined in {@link
+	com.liferay.portlet.social.model.SocialActivityCounterConstants}.
+	* @param totalValue the counter's total value (optionally <code>0</code>)
 	* @param previousActivityCounterId the primary key of the activity counter
 	for the previous time period (optionally <code>0</code>, if this
 	is the first)
@@ -346,13 +420,13 @@ public class SocialActivityCounterLocalServiceWrapper
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityCounter addActivityCounter(
 		long groupId, long classNameId, long classPK, java.lang.String name,
-		int ownerType, int currentValue, int totalValue, int startPeriod,
-		int endPeriod, long previousActivityCounterId, int periodLength)
+		int ownerType, int totalValue, long previousActivityCounterId,
+		int periodLength)
 		throws com.liferay.portal.kernel.exception.PortalException,
 			com.liferay.portal.kernel.exception.SystemException {
 		return _socialActivityCounterLocalService.addActivityCounter(groupId,
-			classNameId, classPK, name, ownerType, currentValue, totalValue,
-			startPeriod, endPeriod, previousActivityCounterId, periodLength);
+			classNameId, classPK, name, ownerType, totalValue,
+			previousActivityCounterId, periodLength);
 	}
 
 	/**
@@ -409,9 +483,10 @@ public class SocialActivityCounterLocalServiceWrapper
 	* @throws PortalException if the group or a previous activity counter
 	could not be found
 	* @throws SystemException if a system exception occurred
-	* @deprecated As of 6.2.0, replaced by {@link #createActivityCounter(long,
-	long, long, String, int, int, int, int, int, long, int)}
+	* @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
+	long, long, String, int, int, long, int)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityCounter createActivityCounter(
 		long groupId, long classNameId, long classPK, java.lang.String name,
@@ -434,8 +509,8 @@ public class SocialActivityCounterLocalServiceWrapper
 	* </p>
 	*
 	* @param groupId the primary key of the group
-	* @param classNameId the primary key of the entity's class this counter
-	belongs to
+	* @param classNameId the primary key of the entity's class this
+	counter belongs to
 	* @param classPK the primary key of the entity this counter belongs to
 	* @param name the counter's name
 	* @param ownerType the counter's owner type. Acceptable values are
@@ -444,23 +519,27 @@ public class SocialActivityCounterLocalServiceWrapper
 	com.liferay.portlet.social.model.SocialActivityCounterConstants}.
 	* @param currentValue the counter's current value (optionally
 	<code>0</code>)
-	* @param totalValue the counter's total value of the counter (optionally
-	<code>0</code>)
+	* @param totalValue the counter's total value of the counter
+	(optionally <code>0</code>)
 	* @param startPeriod the counter's start period
 	* @param endPeriod the counter's end period
-	* @param previousActivityCounterId the primary key of the activity counter
-	for the previous time period (optionally <code>0</code>, if this
-	is the first)
+	* @param previousActivityCounterId the primary key of the activity
+	counter for the previous time period (optionally
+	<code>0</code>, if this is the first)
 	* @param periodLength the period length in days,
-	<code>PERIOD_LENGTH_INFINITE</code> for never ending counters or
-	<code>PERIOD_LENGTH_SYSTEM</code> for the period length defined
-	in <code>portal-ext.properties</code>. For more information see
-	{@link com.liferay.portlet.social.model.SocialActivityConstants}.
+	<code>PERIOD_LENGTH_INFINITE</code> for never ending counters
+	or <code>PERIOD_LENGTH_SYSTEM</code> for the period length
+	defined in <code>portal-ext.properties</code>. For more
+	information see {@link
+	com.liferay.portlet.social.model.SocialActivityConstants}.
 	* @return the created activity counter
 	* @throws PortalException if the group or the previous activity counter
 	could not be found
 	* @throws SystemException if a system exception occurred
+	* @deprecated As of 6.2.0, replaced by {@link #addActivityCounter(long,
+	long, long, String, int, int, long, int)}
 	*/
+	@Deprecated
 	@Override
 	public com.liferay.portlet.social.model.SocialActivityCounter createActivityCounter(
 		long groupId, long classNameId, long classPK, java.lang.String name,
@@ -866,6 +945,7 @@ public class SocialActivityCounterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedService}
 	 */
+	@Deprecated
 	public SocialActivityCounterLocalService getWrappedSocialActivityCounterLocalService() {
 		return _socialActivityCounterLocalService;
 	}
@@ -873,6 +953,7 @@ public class SocialActivityCounterLocalServiceWrapper
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #setWrappedService}
 	 */
+	@Deprecated
 	public void setWrappedSocialActivityCounterLocalService(
 		SocialActivityCounterLocalService socialActivityCounterLocalService) {
 		_socialActivityCounterLocalService = socialActivityCounterLocalService;

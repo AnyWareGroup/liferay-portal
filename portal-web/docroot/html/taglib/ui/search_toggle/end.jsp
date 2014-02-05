@@ -43,7 +43,7 @@
 					},
 					align: {
 						node: toggleAdvancedNode,
-						points:[A.WidgetPositionAlign.TR, A.WidgetPositionAlign.BR]
+						points:[A.WidgetPositionAlign.TL, A.WidgetPositionAlign.BL]
 					},
 					bodyContent: A.one('#<%= id %>advancedBodyNode'),
 					boundingBox: advancedNode,
@@ -87,3 +87,9 @@
 	toggleAdvancedNode.on('click', togglePopover);
 	keywordsNode.on('key', togglePopover, 'down:38,40');
 </aui:script>
+
+<c:if test="<%= autoFocus %>">
+	<aui:script>
+		Liferay.Util.focusFormField('#<%= id + displayTerms.KEYWORDS %>');
+	</aui:script>
+</c:if>

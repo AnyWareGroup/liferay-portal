@@ -16,66 +16,39 @@
 
 <%@ include file="/html/portlet/init.jsp" %>
 
-<%@ page import="com.liferay.portal.layoutconfiguration.util.RuntimePageUtil" %><%@
-page import="com.liferay.portlet.asset.service.AssetEntryServiceUtil" %><%@
-page import="com.liferay.portlet.documentlibrary.util.DocumentConversionUtil" %><%@
-page import="com.liferay.portlet.dynamicdatamapping.model.DDMStructure" %><%@
-page import="com.liferay.portlet.dynamicdatamapping.model.DDMTemplate" %><%@
-page import="com.liferay.portlet.dynamicdatamapping.service.DDMStructureLocalServiceUtil" %><%@
-page import="com.liferay.portlet.dynamicdatamapping.service.DDMTemplateLocalServiceUtil" %><%@
-page import="com.liferay.portlet.dynamicdatamapping.service.permission.DDMTemplatePermission" %><%@
-page import="com.liferay.portlet.journal.NoSuchArticleException" %><%@
-page import="com.liferay.portlet.journal.action.EditArticleAction" %><%@
-page import="com.liferay.portlet.journal.model.JournalArticle" %><%@
-page import="com.liferay.portlet.journal.model.JournalArticleConstants" %><%@
-page import="com.liferay.portlet.journal.model.JournalArticleDisplay" %><%@
-page import="com.liferay.portlet.journal.search.ArticleSearch" %><%@
-page import="com.liferay.portlet.journal.search.ArticleSearchTerms" %><%@
-page import="com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil" %><%@
-page import="com.liferay.portlet.journal.service.JournalArticleServiceUtil" %><%@
-page import="com.liferay.portlet.journal.service.permission.JournalArticlePermission" %><%@
-page import="com.liferay.portlet.journal.service.permission.JournalPermission" %><%@
-page import="com.liferay.portlet.journal.util.JournalUtil" %><%@
-page import="com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil" %>
+<%@ page import="com.liferay.portlet.journal.service.permission.JournalArticlePermission" %><%@
+page import="com.liferay.portlet.journal.service.permission.JournalPermission" %>
 
 <%
-PortletPreferences preferences = renderRequest.getPreferences();
-
 String portletResource = ParamUtil.getString(request, "portletResource");
 
-if (Validator.isNotNull(portletResource)) {
-	preferences = PortletPreferencesFactoryUtil.getPortletSetup(request, portletResource);
-}
+long articleGroupId = ParamUtil.getLong(renderRequest, "articleGroupId");
 
-long groupId = ParamUtil.getLong(renderRequest, "groupId");
-
-if (groupId <= 0) {
-	groupId = GetterUtil.getLong(preferences.getValue("groupId", scopeGroupId.toString()));
+if (articleGroupId <= 0) {
+	articleGroupId = GetterUtil.getLong(portletPreferences.getValue("groupId", String.valueOf(scopeGroupId)));
 }
 
 String articleId = ParamUtil.getString(renderRequest, "articleId");
 String ddmTemplateKey = ParamUtil.getString(renderRequest, "ddmTemplateKey");
 
 if (Validator.isNull(articleId)) {
-	articleId = GetterUtil.getString(preferences.getValue("articleId", StringPool.BLANK));
-	ddmTemplateKey = GetterUtil.getString(preferences.getValue("ddmTemplateKey", StringPool.BLANK));
+	articleId = GetterUtil.getString(portletPreferences.getValue("articleId", StringPool.BLANK));
+	ddmTemplateKey = GetterUtil.getString(portletPreferences.getValue("ddmTemplateKey", StringPool.BLANK));
 }
 
-boolean showAvailableLocales = GetterUtil.getBoolean(preferences.getValue("showAvailableLocales", StringPool.BLANK));
-String[] extensions = preferences.getValues("extensions", null);
-boolean enablePrint = GetterUtil.getBoolean(preferences.getValue("enablePrint", null));
-boolean enableRelatedAssets = GetterUtil.getBoolean(preferences.getValue("enableRelatedAssets", null), true);
-boolean enableRatings = GetterUtil.getBoolean(preferences.getValue("enableRatings", null));
-boolean enableComments = PropsValues.JOURNAL_ARTICLE_COMMENTS_ENABLED && GetterUtil.getBoolean(preferences.getValue("enableComments", null));
-boolean enableCommentRatings = GetterUtil.getBoolean(preferences.getValue("enableCommentRatings", null));
-boolean enableViewCountIncrement = GetterUtil.getBoolean(preferences.getValue("enableViewCountIncrement", null), PropsValues.ASSET_ENTRY_BUFFERED_INCREMENT_ENABLED);
+boolean showAvailableLocales = GetterUtil.getBoolean(portletPreferences.getValue("showAvailableLocales", StringPool.BLANK));
+String[] extensions = portletPreferences.getValues("extensions", null);
+boolean enablePrint = GetterUtil.getBoolean(portletPreferences.getValue("enablePrint", null));
+boolean enableRelatedAssets = GetterUtil.getBoolean(portletPreferences.getValue("enableRelatedAssets", null), true);
+boolean enableRatings = GetterUtil.getBoolean(portletPreferences.getValue("enableRatings", null));
+boolean enableComments = PropsValues.JOURNAL_ARTICLE_COMMENTS_ENABLED && GetterUtil.getBoolean(portletPreferences.getValue("enableComments", null));
+boolean enableCommentRatings = GetterUtil.getBoolean(portletPreferences.getValue("enableCommentRatings", null));
+boolean enableViewCountIncrement = GetterUtil.getBoolean(portletPreferences.getValue("enableViewCountIncrement", null), PropsValues.ASSET_ENTRY_BUFFERED_INCREMENT_ENABLED);
 
 String[] conversions = DocumentConversionUtil.getConversions("html");
 
 boolean openOfficeServerEnabled = PrefsPropsUtil.getBoolean(PropsKeys.OPENOFFICE_SERVER_ENABLED, PropsValues.OPENOFFICE_SERVER_ENABLED);
 boolean enableConversions = openOfficeServerEnabled && (extensions != null) && (extensions.length > 0);
-
-Format dateFormatDate = FastDateFormatFactoryUtil.getDate(locale, timeZone);
 %>
 
 <%@ include file="/html/portlet/journal_content/init-ext.jsp" %>

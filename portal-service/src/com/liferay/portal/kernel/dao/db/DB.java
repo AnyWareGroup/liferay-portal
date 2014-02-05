@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.dao.db;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.exception.SystemException;
 
 import java.io.IOException;
@@ -29,11 +31,12 @@ import javax.naming.NamingException;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface DB {
 
-	public static final int MINIMAL = 1;
+	public static final int BARE = 0;
 
-	public static final int POPULATED = 0;
+	public static final int DEFAULT = 1;
 
 	public static final int SHARDED = 2;
 
@@ -141,7 +144,7 @@ public interface DB {
 
 	public void updateIndexes(
 			Connection con, String tablesSQL, String indexesSQL,
-			String indexesProperties, boolean dropStaleIndexes)
+			boolean dropStaleIndexes)
 		throws IOException, SQLException;
 
 }

@@ -14,17 +14,14 @@
 
 package com.liferay.portlet.bookmarks.action;
 
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.TrashedModel;
 import com.liferay.portal.security.auth.PrincipalException;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.ServiceContextFactory;
@@ -40,10 +37,10 @@ import com.liferay.portlet.bookmarks.NoSuchEntryException;
 import com.liferay.portlet.bookmarks.NoSuchFolderException;
 import com.liferay.portlet.bookmarks.model.BookmarksEntry;
 import com.liferay.portlet.bookmarks.service.BookmarksEntryServiceUtil;
-import com.liferay.portlet.bookmarks.service.BookmarksFolderServiceUtil;
+import com.liferay.portlet.trash.util.TrashUtil;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.portlet.ActionRequest;
 import javax.portlet.ActionResponse;
@@ -64,26 +61,24 @@ public class EditEntryAction extends PortletAction {
 
 	@Override
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 
 		String cmd = ParamUtil.getString(actionRequest, Constants.CMD);
 
 		try {
+			BookmarksEntry entry = null;
+
 			if (cmd.equals(Constants.ADD) || cmd.equals(Constants.UPDATE)) {
-				updateEntry(actionRequest);
+				entry = updateEntry(actionRequest);
 			}
 			else if (cmd.equals(Constants.DELETE)) {
-				deleteEntry(
-					(LiferayPortletConfig)portletConfig, actionRequest, false);
+				deleteEntry(actionRequest, false);
 			}
 			else if (cmd.equals(Constants.MOVE_TO_TRASH)) {
-				deleteEntry(
-					(LiferayPortletConfig)portletConfig, actionRequest, true);
-			}
-			else if (cmd.equals(Constants.RESTORE)) {
-				restoreEntryFromTrash(actionRequest);
+				deleteEntry(actionRequest, true);
 			}
 			else if (cmd.equals(Constants.SUBSCRIBE)) {
 				subscribeEntry(actionRequest);
@@ -102,6 +97,21 @@ public class EditEntryAction extends PortletAction {
 					ParamUtil.getString(actionRequest, "redirect"));
 
 				if (Validator.isNotNull(redirect)) {
+					if (cmd.equals(Constants.ADD) && (entry != null)) {
+						String portletId = HttpUtil.getParameter(
+							redirect, "p_p_id", false);
+
+						String namespace = PortalUtil.getPortletNamespace(
+							portletId);
+
+						redirect = HttpUtil.addParameter(
+							redirect, namespace + "className",
+							BookmarksEntry.class.getName());
+						redirect = HttpUtil.addParameter(
+							redirect, namespace + "classPK",
+							entry.getEntryId());
+					}
+
 					actionResponse.sendRedirect(redirect);
 				}
 			}
@@ -132,8 +142,9 @@ public class EditEntryAction extends PortletAction {
 
 	@Override
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		try {
@@ -145,20 +156,18 @@ public class EditEntryAction extends PortletAction {
 
 				SessionErrors.add(renderRequest, e.getClass());
 
-				return mapping.findForward("portlet.bookmarks.error");
+				return actionMapping.findForward("portlet.bookmarks.error");
 			}
 			else {
 				throw e;
 			}
 		}
 
-		return mapping.findForward(
+		return actionMapping.findForward(
 			getForward(renderRequest, "portlet.bookmarks.edit_entry"));
 	}
 
-	protected void deleteEntry(
-			LiferayPortletConfig liferayPortletConfig,
-			ActionRequest actionRequest, boolean moveToTrash)
+	protected void deleteEntry(ActionRequest actionRequest, boolean moveToTrash)
 		throws Exception {
 
 		long[] deleteEntryIds = null;
@@ -173,48 +182,24 @@ public class EditEntryAction extends PortletAction {
 				ParamUtil.getString(actionRequest, "deleteEntryIds"), 0L);
 		}
 
+		List<TrashedModel> trashedModels = new ArrayList<TrashedModel>();
+
 		for (long deleteEntryId : deleteEntryIds) {
 			if (moveToTrash) {
-				BookmarksEntryServiceUtil.moveEntryToTrash(deleteEntryId);
+				BookmarksEntry entry =
+					BookmarksEntryServiceUtil.moveEntryToTrash(deleteEntryId);
+
+				trashedModels.add(entry);
 			}
 			else {
 				BookmarksEntryServiceUtil.deleteEntry(deleteEntryId);
 			}
 		}
 
-		if (moveToTrash && (deleteEntryIds.length > 0)) {
-			Map<String, String[]> data = new HashMap<String, String[]>();
+		if (moveToTrash && !trashedModels.isEmpty()) {
+			TrashUtil.addTrashSessionMessages(actionRequest, trashedModels);
 
-			data.put(
-				"restoreEntryIds", ArrayUtil.toStringArray(deleteEntryIds));
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_DELETE_SUCCESS_DATA, data);
-
-			SessionMessages.add(
-				actionRequest,
-				liferayPortletConfig.getPortletId() +
-					SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
-		}
-	}
-
-	protected void restoreEntryFromTrash(ActionRequest actionRequest)
-		throws PortalException, SystemException {
-
-		long[] restoreFolderIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreFolderIds"), 0L);
-
-		for (long restoreFolderId : restoreFolderIds) {
-			BookmarksFolderServiceUtil.restoreFolderFromTrash(restoreFolderId);
-		}
-
-		long[] restoreEntryIds = StringUtil.split(
-			ParamUtil.getString(actionRequest, "restoreEntryIds"), 0L);
-
-		for (long restoreEntryId : restoreEntryIds) {
-			BookmarksEntryServiceUtil.restoreEntryFromTrash(restoreEntryId);
+			hideDefaultSuccessMessage(actionRequest);
 		}
 	}
 
@@ -234,7 +219,9 @@ public class EditEntryAction extends PortletAction {
 		BookmarksEntryServiceUtil.unsubscribeEntry(entryId);
 	}
 
-	protected void updateEntry(ActionRequest actionRequest) throws Exception {
+	protected BookmarksEntry updateEntry(ActionRequest actionRequest)
+		throws Exception {
+
 		ThemeDisplay themeDisplay = (ThemeDisplay)actionRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
@@ -249,11 +236,13 @@ public class EditEntryAction extends PortletAction {
 		ServiceContext serviceContext = ServiceContextFactory.getInstance(
 			BookmarksEntry.class.getName(), actionRequest);
 
+		BookmarksEntry entry = null;
+
 		if (entryId <= 0) {
 
 			// Add entry
 
-			BookmarksEntry entry = BookmarksEntryServiceUtil.addEntry(
+			entry = BookmarksEntryServiceUtil.addEntry(
 				groupId, folderId, name, url, description, serviceContext);
 
 			AssetPublisherUtil.addAndStoreSelection(
@@ -264,13 +253,15 @@ public class EditEntryAction extends PortletAction {
 
 			// Update entry
 
-			BookmarksEntryServiceUtil.updateEntry(
+			entry = BookmarksEntryServiceUtil.updateEntry(
 				entryId, groupId, folderId, name, url, description,
 				serviceContext);
 		}
 
 		AssetPublisherUtil.addRecentFolderId(
 			actionRequest, BookmarksEntry.class.getName(), folderId);
+
+		return entry;
 	}
 
 }

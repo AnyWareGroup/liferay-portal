@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -37,8 +39,9 @@ import java.util.Date;
  * @see com.liferay.portal.model.impl.ContactModelImpl
  * @generated
  */
+@ProviderType
 public interface ContactModel extends AttachedModel, AuditedModel,
-	BaseModel<Contact> {
+	BaseModel<Contact>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -58,6 +61,22 @@ public interface ContactModel extends AttachedModel, AuditedModel,
 	 * @param primaryKey the primary key of this contact
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this contact.
+	 *
+	 * @return the mvcc version of this contact
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this contact.
+	 *
+	 * @param mvccVersion the mvcc version of this contact
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the contact ID of this contact.

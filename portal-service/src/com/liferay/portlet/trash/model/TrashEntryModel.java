@@ -14,6 +14,8 @@
 
 package com.liferay.portlet.trash.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.model.AttachedModel;
@@ -40,6 +42,7 @@ import java.util.Date;
  * @see com.liferay.portlet.trash.model.impl.TrashEntryModelImpl
  * @generated
  */
+@ProviderType
 public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -202,6 +205,20 @@ public interface TrashEntryModel extends AttachedModel, BaseModel<TrashEntry> {
 	 */
 	@Override
 	public void setClassPK(long classPK);
+
+	/**
+	 * Returns the system event set key of this trash entry.
+	 *
+	 * @return the system event set key of this trash entry
+	 */
+	public long getSystemEventSetKey();
+
+	/**
+	 * Sets the system event set key of this trash entry.
+	 *
+	 * @param systemEventSetKey the system event set key of this trash entry
+	 */
+	public void setSystemEventSetKey(long systemEventSetKey);
 
 	/**
 	 * Returns the type settings of this trash entry.

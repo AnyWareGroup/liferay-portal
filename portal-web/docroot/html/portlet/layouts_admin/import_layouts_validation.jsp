@@ -32,7 +32,7 @@ boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
 			</div>
 
 			<%
-			FileEntry fileEntry = ExportImportUtil.getTempFileEntry(groupId, themeDisplay.getUserId());
+			FileEntry fileEntry = ExportImportHelperUtil.getTempFileEntry(groupId, themeDisplay.getUserId(), ExportImportHelper.TEMP_FOLDER_NAME);
 			%>
 
 			<aui:button-row>
@@ -56,17 +56,15 @@ boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
 						metadataExplanationContainer: '#<portlet:namespace />metadataExplanationContainer',
 						multipleFiles: false,
 						namespace: '<portlet:namespace />',
-						strings: {
-							dropFileText: '<liferay-ui:message key="drop-a-lar-file-here-to-import" />',
-							fileCannotBeSavedText: '<liferay-ui:message key="the-file-x-cannot-be-imported" />',
-							pendingFileText: '<liferay-ui:message key="this-file-was-previously-uploaded-but-not-actually-imported" />',
-							uploadsCompleteText: '<liferay-ui:message key="the-file-is-ready-to-be-imported" />'
-						},
+						'strings.dropFileText': '<liferay-ui:message key="drop-a-lar-file-here-to-import" />',
+						'strings.fileCannotBeSavedText': '<liferay-ui:message key="the-file-x-cannot-be-imported" />',
+						'strings.pendingFileText': '<liferay-ui:message key="this-file-was-previously-uploaded-but-not-actually-imported" />',
+						'strings.uploadsCompleteText': '<liferay-ui:message key="the-file-is-ready-to-be-imported" />',
 						tempFileURL: {
 							method: Liferay.Service.bind('/layout/get-temp-file-entry-names'),
 							params: {
-								groupId: <%= scopeGroupId %>,
-								tempFolderName: '<%= ExportImportUtil.TEMP_FOLDER_NAME %>'
+								groupId: <%= groupId %>,
+								tempFolderName: '<%= ExportImportHelper.TEMP_FOLDER_NAME %>'
 							}
 						},
 						uploadFile: '<liferay-portlet:actionURL doAsUserId="<%= user.getUserId() %>"><portlet:param name="struts_action" value="/layouts_admin/import_layouts" /><portlet:param name="<%= Constants.CMD %>" value="<%= Constants.ADD_TEMP %>" /><portlet:param name="groupId" value="<%= String.valueOf(groupId) %>" /><portlet:param name="privateLayout" value="<%= String.valueOf(privateLayout) %>" /></liferay-portlet:actionURL>&ticketKey=<%= ticket.getKey() %><liferay-ui:input-permissions-params modelName="<%= Group.class.getName() %>" />'

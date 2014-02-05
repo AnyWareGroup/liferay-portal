@@ -27,12 +27,16 @@ import com.liferay.portal.kernel.repository.InvalidRepositoryIdException;
 import com.liferay.portal.kernel.repository.LocalRepository;
 import com.liferay.portal.kernel.repository.RepositoryException;
 import com.liferay.portal.kernel.repository.cmis.CMISRepositoryHandler;
+import com.liferay.portal.kernel.systemevent.SystemEventHierarchyEntryThreadLocal;
 import com.liferay.portal.kernel.util.ProxyUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.model.ClassName;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Repository;
 import com.liferay.portal.model.RepositoryEntry;
+import com.liferay.portal.model.SystemEventConstants;
 import com.liferay.portal.model.User;
 import com.liferay.portal.repository.cmis.CMISRepository;
 import com.liferay.portal.repository.liferayrepository.LiferayLocalRepository;
@@ -41,8 +45,6 @@ import com.liferay.portal.repository.proxy.BaseRepositoryProxyBean;
 import com.liferay.portal.repository.util.RepositoryFactoryUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.base.RepositoryLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.RepositoryNameException;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
 
@@ -111,6 +113,7 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 	 *             long, long, String, String, String, UnicodeProperties,
 	 *             boolean, ServiceContext)}
 	 */
+	@Deprecated
 	@Override
 	public Repository addRepository(
 			long userId, long groupId, long classNameId, long parentFolderId,
@@ -162,18 +165,31 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 			repositoryId);
 
 		if (repository != null) {
-			expandoValueLocalService.deleteValues(
-				Repository.class.getName(), repositoryId);
+			SystemEventHierarchyEntryThreadLocal.push(Repository.class);
 
 			try {
-				dlFolderLocalService.deleteFolder(repository.getDlFolderId());
+				expandoValueLocalService.deleteValues(
+					Repository.class.getName(), repositoryId);
+
+				DLFolder dlFolder = dlFolderLocalService.fetchDLFolder(
+					repository.getDlFolderId());
+
+				if (dlFolder != null) {
+					dlFolderLocalService.deleteDLFolder(dlFolder);
+				}
+
+				repositoryPersistence.remove(repository);
+
+				repositoryEntryPersistence.removeByRepositoryId(repositoryId);
 			}
-			catch (NoSuchFolderException nsfe) {
+			finally {
+				SystemEventHierarchyEntryThreadLocal.pop(Repository.class);
 			}
 
-			repositoryPersistence.remove(repository);
-
-			repositoryEntryPersistence.removeByRepositoryId(repositoryId);
+			systemEventLocalService.addSystemEvent(
+				0, repository.getGroupId(), Repository.class.getName(),
+				repositoryId, repository.getUuid(), null,
+				SystemEventConstants.TYPE_DELETE, StringPool.BLANK);
 		}
 
 		return repository;
@@ -300,8 +316,8 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 
 		long classNameId = getRepositoryClassNameId(repositoryId);
 
-		if (classNameId ==
-				PortalUtil.getClassNameId(LiferayRepository.class.getName())) {
+		if (classNameId == classNameLocalService.getClassNameId(
+				LiferayRepository.class.getName())) {
 
 			repositoryImpl = new LiferayRepository(
 				repositoryLocalService, repositoryService,
@@ -418,8 +434,10 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 		try {
 			repository = getRepository(repositoryId);
 
-			String repositoryImplClassName = PortalUtil.getClassName(
+			ClassName className = classNameLocalService.getClassName(
 				classNameId);
+
+			String repositoryImplClassName = className.getValue();
 
 			baseRepository = RepositoryFactoryUtil.getInstance(
 				repositoryImplClassName);
@@ -471,7 +489,7 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 
 	protected long getDefaultClassNameId() {
 		if (_defaultClassNameId == 0) {
-			_defaultClassNameId = PortalUtil.getClassNameId(
+			_defaultClassNameId = classNameLocalService.getClassNameId(
 				LiferayRepository.class.getName());
 		}
 
@@ -505,7 +523,8 @@ public class RepositoryLocalServiceImpl extends RepositoryLocalServiceBaseImpl {
 			return repository.getClassNameId();
 		}
 
-		return PortalUtil.getClassNameId(LiferayRepository.class.getName());
+		return classNameLocalService.getClassNameId(
+			LiferayRepository.class.getName());
 	}
 
 	protected long getRepositoryEntryId(

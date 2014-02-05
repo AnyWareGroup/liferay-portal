@@ -14,6 +14,8 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.AutoEscape;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.service.ServiceContext;
@@ -35,7 +37,8 @@ import java.io.Serializable;
  * @see com.liferay.portal.model.impl.GroupModelImpl
  * @generated
  */
-public interface GroupModel extends AttachedModel, BaseModel<Group> {
+@ProviderType
+public interface GroupModel extends AttachedModel, BaseModel<Group>, MVCCModel {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
@@ -55,6 +58,22 @@ public interface GroupModel extends AttachedModel, BaseModel<Group> {
 	 * @param primaryKey the primary key of this group
 	 */
 	public void setPrimaryKey(long primaryKey);
+
+	/**
+	 * Returns the mvcc version of this group.
+	 *
+	 * @return the mvcc version of this group
+	 */
+	@Override
+	public long getMvccVersion();
+
+	/**
+	 * Sets the mvcc version of this group.
+	 *
+	 * @param mvccVersion the mvcc version of this group
+	 */
+	@Override
+	public void setMvccVersion(long mvccVersion);
 
 	/**
 	 * Returns the uuid of this group.
@@ -273,6 +292,41 @@ public interface GroupModel extends AttachedModel, BaseModel<Group> {
 	public void setTypeSettings(String typeSettings);
 
 	/**
+	 * Returns the manual membership of this group.
+	 *
+	 * @return the manual membership of this group
+	 */
+	public boolean getManualMembership();
+
+	/**
+	 * Returns <code>true</code> if this group is manual membership.
+	 *
+	 * @return <code>true</code> if this group is manual membership; <code>false</code> otherwise
+	 */
+	public boolean isManualMembership();
+
+	/**
+	 * Sets whether this group is manual membership.
+	 *
+	 * @param manualMembership the manual membership of this group
+	 */
+	public void setManualMembership(boolean manualMembership);
+
+	/**
+	 * Returns the membership restriction of this group.
+	 *
+	 * @return the membership restriction of this group
+	 */
+	public int getMembershipRestriction();
+
+	/**
+	 * Sets the membership restriction of this group.
+	 *
+	 * @param membershipRestriction the membership restriction of this group
+	 */
+	public void setMembershipRestriction(int membershipRestriction);
+
+	/**
 	 * Returns the friendly u r l of this group.
 	 *
 	 * @return the friendly u r l of this group
@@ -307,6 +361,20 @@ public interface GroupModel extends AttachedModel, BaseModel<Group> {
 	 * @param site the site of this group
 	 */
 	public void setSite(boolean site);
+
+	/**
+	 * Returns the remote staging group count of this group.
+	 *
+	 * @return the remote staging group count of this group
+	 */
+	public int getRemoteStagingGroupCount();
+
+	/**
+	 * Sets the remote staging group count of this group.
+	 *
+	 * @param remoteStagingGroupCount the remote staging group count of this group
+	 */
+	public void setRemoteStagingGroupCount(int remoteStagingGroupCount);
 
 	/**
 	 * Returns the active of this group.

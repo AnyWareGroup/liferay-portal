@@ -14,6 +14,8 @@
 
 package com.liferay.portal.service;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.util.ReferenceRegistry;
  * @see com.liferay.portal.service.impl.ResourceLocalServiceImpl
  * @generated
  */
+@ProviderType
 public class ResourceLocalServiceUtil {
 	/*
 	 * NOTE FOR DEVELOPERS:
@@ -85,7 +88,7 @@ public class ResourceLocalServiceUtil {
 	* context are applied. See {@link
 	* com.liferay.portal.service.ServiceContext#setGroupPermissions(String[])}
 	* and {@link
-	* com.liferay.portal.service.ServiceContext#setGuesPermissions(String[])}.
+	* com.liferay.portal.service.ServiceContext#setGuestPermissions(String[])}.
 	* </li>
 	* </ol>
 	*
@@ -450,6 +453,7 @@ public class ResourceLocalServiceUtil {
 	/**
 	 * @deprecated As of 6.2.0
 	 */
+	@Deprecated
 	public void setService(ResourceLocalService service) {
 	}
 

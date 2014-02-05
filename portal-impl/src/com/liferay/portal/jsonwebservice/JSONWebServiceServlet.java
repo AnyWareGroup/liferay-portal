@@ -16,19 +16,19 @@ package com.liferay.portal.jsonwebservice;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.servlet.PluginContextListener;
 import com.liferay.portal.kernel.upload.UploadServletRequest;
 import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.ac.AccessControlThreadLocal;
 import com.liferay.portal.servlet.JSONServlet;
+import com.liferay.portal.spring.context.PortalContextLoaderListener;
 import com.liferay.portal.struts.JSONAction;
 import com.liferay.portal.upload.UploadServletRequestImpl;
 import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.PropsValues;
 
 import java.io.IOException;
 
@@ -45,13 +45,6 @@ import javax.servlet.http.HttpSession;
  * @author Igor Spasic
  */
 public class JSONWebServiceServlet extends JSONServlet {
-
-	@Override
-	public void destroy() {
-		_jsonWebServiceServiceAction.destroy();
-
-		super.destroy();
-	}
 
 	@Override
 	public void service(
@@ -95,9 +88,22 @@ public class JSONWebServiceServlet extends JSONServlet {
 		try {
 			AccessControlThreadLocal.setRemoteAccess(true);
 
-			String contextPath = PropsValues.PORTAL_CTX;
+			String contextPath =
+				PortalContextLoaderListener.getPortalServletContextPath();
+
+			if (contextPath.isEmpty()) {
+				contextPath = StringPool.SLASH;
+			}
+
+			String proxyPath = PortalUtil.getPathProxy();
 
 			if (servletContext.getContext(contextPath) != null) {
+				if (Validator.isNotNull(proxyPath) &&
+					apiPath.startsWith(proxyPath)) {
+
+					apiPath = apiPath.substring(proxyPath.length());
+				}
+
 				if (!contextPath.equals(StringPool.SLASH) &&
 					apiPath.startsWith(contextPath)) {
 
@@ -114,7 +120,7 @@ public class JSONWebServiceServlet extends JSONServlet {
 					servletContext);
 
 				String redirectPath =
-					"/api/jsonws?contextPath=" +
+					PortalUtil.getPathContext() + "/api/jsonws?contextPath=" +
 						HttpUtil.encodeURL(servletContextPath);
 
 				response.sendRedirect(redirectPath);
@@ -127,20 +133,15 @@ public class JSONWebServiceServlet extends JSONServlet {
 
 	@Override
 	protected JSONAction getJSONAction(ServletContext servletContext) {
-		ClassLoader classLoader = (ClassLoader)servletContext.getAttribute(
-			PluginContextListener.PLUGIN_CLASS_LOADER);
+		JSONWebServiceServiceAction jsonWebServiceServiceAction =
+			new JSONWebServiceServiceAction();
 
-		_jsonWebServiceServiceAction = new JSONWebServiceServiceAction(
-			servletContext, classLoader);
+		jsonWebServiceServiceAction.setServletContext(servletContext);
 
-		_jsonWebServiceServiceAction.setServletContext(servletContext);
-
-		return _jsonWebServiceServiceAction;
+		return jsonWebServiceServiceAction;
 	}
 
 	private static Log _log = LogFactoryUtil.getLog(
 		JSONWebServiceServlet.class);
-
-	private JSONWebServiceServiceAction _jsonWebServiceServiceAction;
 
 }

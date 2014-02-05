@@ -14,6 +14,8 @@
 
 package com.liferay.portal.kernel.deploy;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.plugin.PluginPackage;
 
 import java.io.File;
@@ -24,6 +26,7 @@ import java.util.Map;
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public interface Deployer {
 
 	public void addExtJar(List<String> jars, String resource)
@@ -101,5 +104,7 @@ public interface Deployer {
 			File webXml, File srcFile, String displayName,
 			PluginPackage pluginPackage)
 		throws Exception;
+
+	public String wrapCDATA(String string);
 
 }

@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Image}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Image
+ * @author Brian Wing Shun Chan
+ * @see Image
  * @generated
  */
+@ProviderType
 public class ImageWrapper implements Image, ModelWrapper<Image> {
 	public ImageWrapper(Image image) {
 		_image = image;
@@ -46,6 +51,7 @@ public class ImageWrapper implements Image, ModelWrapper<Image> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("imageId", getImageId());
 		attributes.put("modifiedDate", getModifiedDate());
 		attributes.put("type", getType());
@@ -58,6 +64,12 @@ public class ImageWrapper implements Image, ModelWrapper<Image> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long imageId = (Long)attributes.get("imageId");
 
 		if (imageId != null) {
@@ -113,6 +125,26 @@ public class ImageWrapper implements Image, ModelWrapper<Image> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_image.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this image.
+	*
+	* @return the mvcc version of this image
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _image.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this image.
+	*
+	* @param mvccVersion the mvcc version of this image
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_image.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -349,9 +381,29 @@ public class ImageWrapper implements Image, ModelWrapper<Image> {
 		_image.setTextObj(textObj);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ImageWrapper)) {
+			return false;
+		}
+
+		ImageWrapper imageWrapper = (ImageWrapper)obj;
+
+		if (Validator.equals(_image, imageWrapper._image)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Image getWrappedImage() {
 		return _image;
 	}
@@ -359,6 +411,16 @@ public class ImageWrapper implements Image, ModelWrapper<Image> {
 	@Override
 	public Image getWrappedModel() {
 		return _image;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _image.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _image.isFinderCacheEnabled();
 	}
 
 	@Override

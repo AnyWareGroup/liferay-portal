@@ -14,6 +14,10 @@
 
 package com.liferay.portal.model;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,10 +27,11 @@ import java.util.Map;
  * This class is a wrapper for {@link Contact}.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       Contact
+ * @author Brian Wing Shun Chan
+ * @see Contact
  * @generated
  */
+@ProviderType
 public class ContactWrapper implements Contact, ModelWrapper<Contact> {
 	public ContactWrapper(Contact contact) {
 		_contact = contact;
@@ -46,6 +51,7 @@ public class ContactWrapper implements Contact, ModelWrapper<Contact> {
 	public Map<String, Object> getModelAttributes() {
 		Map<String, Object> attributes = new HashMap<String, Object>();
 
+		attributes.put("mvccVersion", getMvccVersion());
 		attributes.put("contactId", getContactId());
 		attributes.put("companyId", getCompanyId());
 		attributes.put("userId", getUserId());
@@ -85,6 +91,12 @@ public class ContactWrapper implements Contact, ModelWrapper<Contact> {
 
 	@Override
 	public void setModelAttributes(Map<String, Object> attributes) {
+		Long mvccVersion = (Long)attributes.get("mvccVersion");
+
+		if (mvccVersion != null) {
+			setMvccVersion(mvccVersion);
+		}
+
 		Long contactId = (Long)attributes.get("contactId");
 
 		if (contactId != null) {
@@ -302,6 +314,26 @@ public class ContactWrapper implements Contact, ModelWrapper<Contact> {
 	@Override
 	public void setPrimaryKey(long primaryKey) {
 		_contact.setPrimaryKey(primaryKey);
+	}
+
+	/**
+	* Returns the mvcc version of this contact.
+	*
+	* @return the mvcc version of this contact
+	*/
+	@Override
+	public long getMvccVersion() {
+		return _contact.getMvccVersion();
+	}
+
+	/**
+	* Sets the mvcc version of this contact.
+	*
+	* @param mvccVersion the mvcc version of this contact
+	*/
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		_contact.setMvccVersion(mvccVersion);
 	}
 
 	/**
@@ -1125,9 +1157,29 @@ public class ContactWrapper implements Contact, ModelWrapper<Contact> {
 		return _contact.isUser();
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ContactWrapper)) {
+			return false;
+		}
+
+		ContactWrapper contactWrapper = (ContactWrapper)obj;
+
+		if (Validator.equals(_contact, contactWrapper._contact)) {
+			return true;
+		}
+
+		return false;
+	}
+
 	/**
 	 * @deprecated As of 6.1.0, replaced by {@link #getWrappedModel}
 	 */
+	@Deprecated
 	public Contact getWrappedContact() {
 		return _contact;
 	}
@@ -1135,6 +1187,16 @@ public class ContactWrapper implements Contact, ModelWrapper<Contact> {
 	@Override
 	public Contact getWrappedModel() {
 		return _contact;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return _contact.isEntityCacheEnabled();
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return _contact.isFinderCacheEnabled();
 	}
 
 	@Override

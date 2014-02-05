@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.Type;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CalendarUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.StringBundler;
@@ -483,7 +484,7 @@ public class JournalArticleFinderImpl
 			String sql = CustomSQLUtil.get(
 				FIND_BY_EXPIRATION_DATE, queryDefinition);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
@@ -557,7 +558,7 @@ public class JournalArticleFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_REVIEW_DATE);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
@@ -591,7 +592,7 @@ public class JournalArticleFinderImpl
 
 			String sql = CustomSQLUtil.get(FIND_BY_R_D);
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
@@ -729,7 +730,10 @@ public class JournalArticleFinderImpl
 		try {
 			session = openSession();
 
-			String sql = CustomSQLUtil.get(COUNT_BY_G_F, queryDefinition);
+			String sql = CustomSQLUtil.get(
+				COUNT_BY_G_F, queryDefinition, "JournalArticle");
+
+			sql = replaceStatusJoin(sql, queryDefinition);
 
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
@@ -741,7 +745,7 @@ public class JournalArticleFinderImpl
 				sql, "[$FOLDER_ID$]",
 				getFolderIds(folderIds, JournalArticleImpl.TABLE_NAME));
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
@@ -789,6 +793,11 @@ public class JournalArticleFinderImpl
 			String sql = CustomSQLUtil.get(
 				COUNT_BY_G_C_S, queryDefinition, "JournalArticle");
 
+			if (groupId <= 0) {
+				sql = StringUtil.replace(
+					sql, "(groupId = ?) AND", StringPool.BLANK);
+			}
+
 			if (ddmStructureKey.equals(
 					String.valueOf(
 						JournalArticleConstants.CLASSNAME_ID_DEFAULT))) {
@@ -805,13 +814,16 @@ public class JournalArticleFinderImpl
 					"JournalArticle.resourcePrimKey", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(groupId);
+			if (groupId > 0) {
+				qPos.add(groupId);
+			}
+
 			qPos.add(classNameId);
 			qPos.add(ddmStructureKey);
 			qPos.add(queryDefinition.getStatus());
@@ -849,6 +861,8 @@ public class JournalArticleFinderImpl
 			String sql = CustomSQLUtil.get(
 				COUNT_BY_G_U_F_C, queryDefinition, "JournalArticle");
 
+			sql = replaceStatusJoin(sql, queryDefinition);
+
 			if (folderIds.isEmpty()) {
 				sql = StringUtil.replace(
 					sql, "([$FOLDER_ID$]) AND", StringPool.BLANK);
@@ -859,26 +873,34 @@ public class JournalArticleFinderImpl
 					getFolderIds(folderIds, JournalArticleImpl.TABLE_NAME));
 			}
 
+			if (userId <= 0) {
+				sql = StringUtil.replace(
+					sql, "(JournalArticle.userId = ?) AND", StringPool.BLANK);
+			}
+
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
 					sql, JournalArticle.class.getName(),
 					"JournalArticle.resourcePrimKey", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
 			qPos.add(groupId);
-			qPos.add(userId);
+			qPos.add(classNameId);
+
+			if (userId > 0) {
+				qPos.add(userId);
+			}
 
 			for (long folderId : folderIds) {
 				qPos.add(folderId);
 			}
 
-			qPos.add(classNameId);
 			qPos.add(queryDefinition.getStatus());
 
 			Iterator<Long> itr = q.iterate();
@@ -927,11 +949,14 @@ public class JournalArticleFinderImpl
 			session = openSession();
 
 			String sql = CustomSQLUtil.get(
-				COUNT_BY_C_G_F_C_A_V_T_D_C_T_S_T_D_R, queryDefinition);
+				COUNT_BY_C_G_F_C_A_V_T_D_C_T_S_T_D_R, queryDefinition,
+				"JournalArticle");
+
+			sql = replaceStatusJoin(sql, queryDefinition);
 
 			if (groupId <= 0) {
 				sql = StringUtil.replace(
-					sql, "(groupId = ?) AND", StringPool.BLANK);
+					sql, "(JournalArticle.groupId = ?) AND", StringPool.BLANK);
 			}
 
 			if (folderIds.isEmpty()) {
@@ -945,43 +970,38 @@ public class JournalArticleFinderImpl
 			}
 
 			sql = CustomSQLUtil.replaceKeywords(
-				sql, "articleId", StringPool.LIKE, false, articleIds);
+				sql, "JournalArticle.articleId", StringPool.LIKE, false,
+				articleIds);
 
 			if ((version == null) || (version <= 0)) {
 				sql = StringUtil.replace(
-					sql, "(version = ?) [$AND_OR_CONNECTOR$]",
+					sql, "(JournalArticle.version = ?) [$AND_OR_CONNECTOR$]",
 					StringPool.BLANK);
 			}
 
 			sql = CustomSQLUtil.replaceKeywords(
-				sql, "lower(title)", StringPool.LIKE, false, titles);
+				sql, "lower(JournalArticle.title)", StringPool.LIKE, false,
+				titles);
 			sql = CustomSQLUtil.replaceKeywords(
-				sql, "description", StringPool.LIKE, false, descriptions);
+				sql, "JournalArticle.description", StringPool.LIKE, false,
+				descriptions);
 			sql = CustomSQLUtil.replaceKeywords(
-				sql, "content", StringPool.LIKE, false, contents);
+				sql, "JournalArticle.content", StringPool.LIKE, false,
+				contents);
 
-			if (Validator.isNull(type)) {
-				sql = StringUtil.replace(
-					sql, _TYPE_UNNAMESPACED_SQL, StringPool.BLANK);
-			}
+			sql = replaceTypeStructureTemplate(
+				sql, type, ddmStructureKeys, ddmTemplateKeys);
 
-			if (isNullArray(ddmStructureKeys)) {
-				sql = StringUtil.replace(
-					sql, _STRUCTURE_ID_UNNAMESPACED_SQL, StringPool.BLANK);
-			}
-			else {
+			if (!isNullArray(ddmStructureKeys)) {
 				sql = CustomSQLUtil.replaceKeywords(
-					sql, "structureId", StringPool.LIKE, false,
+					sql, "JournalArticle.structureId", StringPool.LIKE, false,
 					ddmStructureKeys);
 			}
 
-			if (isNullArray(ddmTemplateKeys)) {
-				sql = StringUtil.replace(
-					sql, _TEMPLATE_ID_UNNAMESPACED_SQL, StringPool.BLANK);
-			}
-			else {
+			if (!isNullArray(ddmTemplateKeys)) {
 				sql = CustomSQLUtil.replaceKeywords(
-					sql, "templateId", StringPool.LIKE, false, ddmTemplateKeys);
+					sql, "JournalArticle.templateId", StringPool.LIKE, false,
+					ddmTemplateKeys);
 			}
 
 			sql = CustomSQLUtil.replaceAndOperator(sql, andOperator);
@@ -995,11 +1015,13 @@ public class JournalArticleFinderImpl
 					sql, "(companyId", "(JournalArticle.companyId");
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addScalar(COUNT_COLUMN_NAME, Type.LONG);
 
 			QueryPos qPos = QueryPos.getInstance(q);
+
+			qPos.add(companyId);
 
 			if (groupId > 0) {
 				qPos.add(groupId);
@@ -1011,6 +1033,20 @@ public class JournalArticleFinderImpl
 
 			qPos.add(classNameId);
 			qPos.add(queryDefinition.getStatus());
+
+			if (Validator.isNotNull(type)) {
+				qPos.add(type);
+				qPos.add(type);
+			}
+
+			if (!isNullArray(ddmStructureKeys)) {
+				qPos.add(ddmStructureKeys, 2);
+			}
+
+			if (!isNullArray(ddmTemplateKeys)) {
+				qPos.add(ddmTemplateKeys, 2);
+			}
+
 			qPos.add(articleIds, 2);
 
 			if ((version != null) && (version > 0)) {
@@ -1026,21 +1062,6 @@ public class JournalArticleFinderImpl
 			qPos.add(displayDateLT_TS);
 			qPos.add(reviewDate_TS);
 			qPos.add(reviewDate_TS);
-
-			if (Validator.isNotNull(type)) {
-				qPos.add(type);
-				qPos.add(type);
-			}
-
-			if (!isNullArray(ddmStructureKeys)) {
-				qPos.add(ddmStructureKeys, 2);
-			}
-
-			if (!isNullArray(ddmTemplateKeys)) {
-				qPos.add(ddmTemplateKeys, 2);
-			}
-
-			qPos.add(companyId);
 
 			Iterator<Long> itr = q.iterate();
 
@@ -1075,6 +1096,8 @@ public class JournalArticleFinderImpl
 			String sql = CustomSQLUtil.get(
 				FIND_BY_G_F, queryDefinition, "JournalArticle");
 
+			sql = replaceStatusJoin(sql, queryDefinition);
+
 			sql = CustomSQLUtil.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());
 
@@ -1088,7 +1111,7 @@ public class JournalArticleFinderImpl
 				sql, "[$FOLDER_ID$]",
 				getFolderIds(folderIds, JournalArticleImpl.TABLE_NAME));
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
@@ -1129,8 +1152,15 @@ public class JournalArticleFinderImpl
 			String sql = CustomSQLUtil.get(
 				FIND_BY_G_C_S, queryDefinition, "JournalArticle");
 
+			sql = replaceStatusJoin(sql, queryDefinition);
+
 			sql = CustomSQLUtil.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());
+
+			if (groupId <= 0) {
+				sql = StringUtil.replace(
+					sql, "(JournalArticle.groupId = ?) AND", StringPool.BLANK);
+			}
 
 			if (ddmStructureKey.equals(
 					String.valueOf(
@@ -1149,14 +1179,17 @@ public class JournalArticleFinderImpl
 					"JournalArticle.resourcePrimKey", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
 
 			QueryPos qPos = QueryPos.getInstance(q);
 
-			qPos.add(groupId);
+			if (groupId > 0) {
+				qPos.add(groupId);
+			}
+
 			qPos.add(classNameId);
 			qPos.add(ddmStructureKey);
 			qPos.add(queryDefinition.getStatus());
@@ -1186,6 +1219,8 @@ public class JournalArticleFinderImpl
 			String sql = CustomSQLUtil.get(
 				FIND_BY_G_U_F_C, queryDefinition, "JournalArticle");
 
+			sql = replaceStatusJoin(sql, queryDefinition);
+
 			sql = CustomSQLUtil.replaceOrderBy(
 				sql, queryDefinition.getOrderByComparator());
 
@@ -1199,13 +1234,18 @@ public class JournalArticleFinderImpl
 					getFolderIds(folderIds, JournalArticleImpl.TABLE_NAME));
 			}
 
+			if (userId <= 0) {
+				sql = StringUtil.replace(
+					sql, "(JournalArticle.userId = ?) AND", StringPool.BLANK);
+			}
+
 			if (inlineSQLHelper) {
 				sql = InlineSQLHelperUtil.replacePermissionCheck(
 					sql, JournalArticle.class.getName(),
 					"JournalArticle.resourcePrimKey", groupId);
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
@@ -1214,7 +1254,10 @@ public class JournalArticleFinderImpl
 
 			qPos.add(groupId);
 			qPos.add(classNameId);
-			qPos.add(userId);
+
+			if (userId > 0) {
+				qPos.add(userId);
+			}
 
 			for (long folderId : folderIds) {
 				qPos.add(folderId);
@@ -1263,6 +1306,8 @@ public class JournalArticleFinderImpl
 				FIND_BY_C_G_F_C_A_V_T_D_C_T_S_T_D_R, queryDefinition,
 				"JournalArticle");
 
+			sql = replaceStatusJoin(sql, queryDefinition);
+
 			if (groupId <= 0) {
 				sql = StringUtil.replace(
 					sql, "(JournalArticle.groupId = ?) AND", StringPool.BLANK);
@@ -1298,26 +1343,16 @@ public class JournalArticleFinderImpl
 				sql, "JournalArticle.content", StringPool.LIKE, false,
 				contents);
 
-			if (Validator.isNull(type)) {
-				sql = StringUtil.replace(
-					sql, _TYPE_NAMESPACED_SQL, StringPool.BLANK);
-			}
+			sql = replaceTypeStructureTemplate(
+				sql, type, ddmStructureKeys, ddmTemplateKeys);
 
-			if (isNullArray(ddmStructureKeys)) {
-				sql = StringUtil.replace(
-					sql, _STRUCTURE_ID_NAMESPACED_SQL, StringPool.BLANK);
-			}
-			else {
+			if (!isNullArray(ddmStructureKeys)) {
 				sql = CustomSQLUtil.replaceKeywords(
 					sql, "JournalArticle.structureId", StringPool.LIKE, false,
 					ddmStructureKeys);
 			}
 
-			if (isNullArray(ddmTemplateKeys)) {
-				sql = StringUtil.replace(
-					sql, _TEMPLATE_ID_NAMESPACED_SQL, StringPool.BLANK);
-			}
-			else {
+			if (!isNullArray(ddmTemplateKeys)) {
 				sql = CustomSQLUtil.replaceKeywords(
 					sql, "JournalArticle.templateId", StringPool.LIKE, false,
 					ddmTemplateKeys);
@@ -1336,7 +1371,7 @@ public class JournalArticleFinderImpl
 					sql, "(companyId", "(JournalArticle.companyId");
 			}
 
-			SQLQuery q = session.createSQLQuery(sql);
+			SQLQuery q = session.createSynchronizedSQLQuery(sql);
 
 			q.addEntity(
 				JournalArticleImpl.TABLE_NAME, JournalArticleImpl.class);
@@ -1355,6 +1390,20 @@ public class JournalArticleFinderImpl
 
 			qPos.add(classNameId);
 			qPos.add(queryDefinition.getStatus());
+
+			if (Validator.isNotNull(type)) {
+				qPos.add(type);
+				qPos.add(type);
+			}
+
+			if (!isNullArray(ddmStructureKeys)) {
+				qPos.add(ddmStructureKeys, 2);
+			}
+
+			if (!isNullArray(ddmTemplateKeys)) {
+				qPos.add(ddmTemplateKeys, 2);
+			}
+
 			qPos.add(articleIds, 2);
 
 			if ((version != null) && (version > 0)) {
@@ -1370,19 +1419,6 @@ public class JournalArticleFinderImpl
 			qPos.add(displayDateLT_TS);
 			qPos.add(reviewDate_TS);
 			qPos.add(reviewDate_TS);
-
-			if (Validator.isNotNull(type)) {
-				qPos.add(type);
-				qPos.add(type);
-			}
-
-			if (!isNullArray(ddmStructureKeys)) {
-				qPos.add(ddmStructureKeys, 2);
-			}
-
-			if (!isNullArray(ddmTemplateKeys)) {
-				qPos.add(ddmTemplateKeys, 2);
-			}
 
 			return (List<JournalArticle>)QueryUtil.list(
 				q, getDialect(), queryDefinition.getStart(),
@@ -1441,7 +1477,7 @@ public class JournalArticleFinderImpl
 	}
 
 	protected boolean isNullArray(Object[] array) {
-		if ((array == null) || (array.length == 0)) {
+		if (ArrayUtil.isEmpty(array)) {
 			return true;
 		}
 
@@ -1454,24 +1490,86 @@ public class JournalArticleFinderImpl
 		return true;
 	}
 
-	private static final String _STRUCTURE_ID_NAMESPACED_SQL =
-		"(JournalArticle.structureId LIKE ? [$AND_OR_NULL_CHECK$]) " +
-			"[$AND_OR_CONNECTOR$]";
+	protected String replaceStatusJoin(
+		String sql, QueryDefinition queryDefinition) {
 
-	private static final String _STRUCTURE_ID_UNNAMESPACED_SQL =
-		"(structureId LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]";
+		if (queryDefinition.getStatus() == WorkflowConstants.STATUS_ANY) {
+			return StringUtil.replace(
+				sql, "[$STATUS_JOIN$] AND", StringPool.BLANK);
+		}
 
-	private static final String _TEMPLATE_ID_NAMESPACED_SQL =
-		"(JournalArticle.templateId LIKE ? [$AND_OR_NULL_CHECK$]) " +
-			"[$AND_OR_CONNECTOR$]";
+		if (queryDefinition.isExcludeStatus()) {
+			StringBundler sb = new StringBundler(5);
 
-	private static final String _TEMPLATE_ID_UNNAMESPACED_SQL =
-		"(templateId LIKE ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]";
+			sb.append("(JournalArticle.status != ");
+			sb.append(queryDefinition.getStatus());
+			sb.append(") AND (tempJournalArticle.status != ");
+			sb.append(queryDefinition.getStatus());
+			sb.append(")");
 
-	private static final String _TYPE_NAMESPACED_SQL =
-		"(JournalArticle.type_ = ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]";
+			sql = StringUtil.replace(sql, "[$STATUS_JOIN$]", sb.toString());
+		}
+		else {
+			StringBundler sb = new StringBundler(5);
 
-	private static final String _TYPE_UNNAMESPACED_SQL =
-		"(type_ = ? [$AND_OR_NULL_CHECK$]) [$AND_OR_CONNECTOR$]";
+			sb.append("(JournalArticle.status = ");
+			sb.append(queryDefinition.getStatus());
+			sb.append(") AND (tempJournalArticle.status = ");
+			sb.append(queryDefinition.getStatus());
+			sb.append(")");
+
+			sql = StringUtil.replace(sql, "[$STATUS_JOIN$]", sb.toString());
+		}
+
+		return sql;
+	}
+
+	protected String replaceTypeStructureTemplate(
+		String sql, String type, String[] ddmStructureKeys,
+		String[] ddmTemplateKeys) {
+
+		StringBundler sb = new StringBundler(5);
+
+		if (Validator.isNull(type) && isNullArray(ddmStructureKeys) &&
+			isNullArray(ddmTemplateKeys)) {
+
+			return StringUtil.replace(
+				sql, "([$TYPE_STRUCTURE_TEMPLATE$]) AND", StringPool.BLANK);
+		}
+
+		if (Validator.isNotNull(type)) {
+			sb.append(_TYPE_SQL);
+		}
+
+		if (!isNullArray(ddmStructureKeys)) {
+			if (Validator.isNotNull(type)) {
+				sb.append(_AND_OR_CONNECTOR);
+			}
+
+			sb.append(_STRUCTURE_ID_SQL);
+		}
+
+		if (!isNullArray(ddmTemplateKeys)) {
+			if (Validator.isNotNull(type) || !isNullArray(ddmStructureKeys)) {
+				sb.append(_AND_OR_CONNECTOR);
+			}
+
+			sb.append(_TEMPLATE_ID_SQL);
+		}
+
+		return StringUtil.replace(
+			sql, "[$TYPE_STRUCTURE_TEMPLATE$]", sb.toString());
+	}
+
+	private static final String _AND_OR_CONNECTOR = "[$AND_OR_CONNECTOR$] ";
+
+	private static final String _STRUCTURE_ID_SQL =
+		"(JournalArticle.structureId LIKE ? [$AND_OR_NULL_CHECK$]) ";
+
+	private static final String _TEMPLATE_ID_SQL =
+		"(JournalArticle.templateId LIKE ? [$AND_OR_NULL_CHECK$]) ";
+
+	private static final String _TYPE_SQL =
+		"(JournalArticle.type_ = ? [$AND_OR_NULL_CHECK$]) ";
 
 }

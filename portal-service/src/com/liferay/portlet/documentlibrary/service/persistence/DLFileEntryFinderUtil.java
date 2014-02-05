@@ -14,12 +14,15 @@
 
 package com.liferay.portlet.documentlibrary.service.persistence;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.util.ReferenceRegistry;
 
 /**
  * @author Brian Wing Shun Chan
  */
+@ProviderType
 public class DLFileEntryFinderUtil {
 	public static int countByExtraSettings()
 		throws com.liferay.portal.kernel.exception.SystemException {
@@ -31,6 +34,15 @@ public class DLFileEntryFinderUtil {
 		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getFinder().countByG_F(groupId, folderIds, queryDefinition);
+	}
+
+	public static int countByG_M_R(long groupId,
+		com.liferay.portal.kernel.util.DateRange dateRange, long repositoryId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getFinder()
+				   .countByG_M_R(groupId, dateRange, repositoryId,
+			queryDefinition);
 	}
 
 	public static int countByG_U_F_M(long groupId, long userId,
@@ -67,6 +79,13 @@ public class DLFileEntryFinderUtil {
 		throws com.liferay.portal.kernel.exception.SystemException,
 			com.liferay.portlet.documentlibrary.NoSuchFileEntryException {
 		return getFinder().findByAnyImageId(imageId);
+	}
+
+	public static java.util.List<com.liferay.portlet.documentlibrary.model.DLFileEntry> findByCompanyId(
+		long companyId,
+		com.liferay.portal.kernel.dao.orm.QueryDefinition queryDefinition)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getFinder().findByCompanyId(companyId, queryDefinition);
 	}
 
 	public static java.util.List<com.liferay.portlet.documentlibrary.model.DLFileEntry> findByDDMStructureIds(
