@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,8 @@
 
 package com.liferay.portal.webdav.methods;
 
-import com.liferay.portal.NoSuchLockException;
+import com.liferay.portal.kernel.lock.Lock;
+import com.liferay.portal.kernel.lock.NoSuchLockException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
@@ -29,11 +30,11 @@ import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.model.Lock;
-import com.liferay.util.xml.XMLFormatter;
+import com.liferay.util.xml.Dom4jUtil;
 
 import java.util.List;
 
@@ -81,7 +82,7 @@ public class LockMethodImpl implements Method {
 
 			if (Validator.isNotNull(xml)) {
 				if (_log.isDebugEnabled()) {
-					_log.debug("Request XML\n" + XMLFormatter.toString(xml));
+					_log.debug("Request XML\n" + Dom4jUtil.toString(xml));
 				}
 
 				Document document = SAXReaderUtil.read(xml);
@@ -138,12 +139,12 @@ public class LockMethodImpl implements Method {
 
 				status = new Status(HttpServletResponse.SC_OK);
 			}
-			catch (WebDAVException wde) {
-				if (wde.getCause() instanceof NoSuchLockException) {
+			catch (WebDAVException wdave) {
+				if (wdave.getCause() instanceof NoSuchLockException) {
 					return HttpServletResponse.SC_PRECONDITION_FAILED;
 				}
 				else {
-					throw wde;
+					throw wdave;
 				}
 			}
 		}
@@ -185,7 +186,7 @@ public class LockMethodImpl implements Method {
 	}
 
 	protected String getResponseXML(Lock lock, long depth) throws Exception {
-		StringBundler sb = new StringBundler(20);
+		StringBundler sb = new StringBundler(21);
 
 		long timeoutSecs = lock.getExpirationTime() / Time.SECOND;
 
@@ -206,7 +207,8 @@ public class LockMethodImpl implements Method {
 		sb.append("<D:timeout>");
 
 		if (timeoutSecs > 0) {
-			sb.append("Second-" + timeoutSecs);
+			sb.append("Second-");
+			sb.append(timeoutSecs);
 		}
 		else {
 			sb.append("Infinite");
@@ -221,9 +223,9 @@ public class LockMethodImpl implements Method {
 		sb.append("</D:lockdiscovery>");
 		sb.append("</D:prop>");
 
-		return XMLFormatter.toString(sb.toString());
+		return Dom4jUtil.toString(sb.toString());
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(LockMethodImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(LockMethodImpl.class);
 
 }

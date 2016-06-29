@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,24 +14,17 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.kernel.concurrent.LockRegistry;
-import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.model.PortalPreferences;
+import com.liferay.portal.kernel.model.PortletConstants;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.PortalPreferences;
-import com.liferay.portal.model.PortletConstants;
 import com.liferay.portal.service.base.PortalPreferencesLocalServiceBaseImpl;
 import com.liferay.portlet.PortalPreferencesImpl;
 import com.liferay.portlet.PortalPreferencesWrapper;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.portlet.PortletPreferencesThreadLocal;
-
-import java.util.concurrent.locks.Lock;
+import com.liferay.portlet.PortalPreferencesWrapperCacheUtil;
 
 import javax.portlet.PortletPreferences;
 
@@ -43,9 +36,9 @@ public class PortalPreferencesLocalServiceImpl
 
 	@Override
 	public PortalPreferences addPortalPreferences(
-			long companyId, long ownerId, int ownerType,
-			String defaultPreferences)
-		throws SystemException {
+		long ownerId, int ownerType, String defaultPreferences) {
+
+		PortalPreferencesWrapperCacheUtil.remove(ownerId, ownerType);
 
 		long portalPreferencesId = counterLocalService.increment();
 
@@ -83,58 +76,46 @@ public class PortalPreferencesLocalServiceImpl
 	}
 
 	@Override
-	public PortletPreferences getPreferences(
-			long companyId, long ownerId, int ownerType)
-		throws SystemException {
-
-		return getPreferences(companyId, ownerId, ownerType, null);
+	public PortletPreferences getPreferences(long ownerId, int ownerType) {
+		return getPreferences(ownerId, ownerType, null);
 	}
 
 	@Override
 	public PortletPreferences getPreferences(
-			long companyId, long ownerId, int ownerType,
-			String defaultPreferences)
-		throws SystemException {
+		long ownerId, int ownerType, String defaultPreferences) {
 
-		DB db = DBFactoryUtil.getDB();
+		PortalPreferencesWrapper portalPreferencesWrapper =
+			PortalPreferencesWrapperCacheUtil.get(ownerId, ownerType);
 
-		String dbType = db.getType();
-
-		if (!dbType.equals(DB.TYPE_HYPERSONIC)) {
-			return doGetPreferences(
-				companyId, ownerId, ownerType, defaultPreferences);
+		if (portalPreferencesWrapper != null) {
+			return portalPreferencesWrapper.clone();
 		}
 
-		StringBundler sb = new StringBundler(4);
+		PortalPreferences portalPreferences =
+			portalPreferencesPersistence.fetchByO_O(ownerId, ownerType);
 
-		sb.append(ownerId);
-		sb.append(StringPool.POUND);
-		sb.append(ownerType);
-		sb.append(StringPool.POUND);
-
-		String groupName = getClass().getName();
-		String key = sb.toString();
-
-		Lock lock = LockRegistry.allocateLock(groupName, key);
-
-		lock.lock();
-
-		try {
-			return doGetPreferences(
-				companyId, ownerId, ownerType, defaultPreferences);
+		if (portalPreferences == null) {
+			portalPreferences =
+				portalPreferencesLocalService.addPortalPreferences(
+					ownerId, ownerType, defaultPreferences);
 		}
-		finally {
-			lock.unlock();
 
-			LockRegistry.freeLock(groupName, key);
-		}
+		PortalPreferencesImpl portalPreferencesImpl = new PortalPreferencesImpl(
+			portalPreferences, false);
+
+		portalPreferencesWrapper = new PortalPreferencesWrapper(
+			portalPreferencesImpl);
+
+		PortalPreferencesWrapperCacheUtil.put(
+			ownerId, ownerType, portalPreferencesWrapper);
+
+		return portalPreferencesWrapper.clone();
 	}
 
 	@Override
 	public PortalPreferences updatePreferences(
-			long ownerId, int ownerType,
-			com.liferay.portlet.PortalPreferences portalPreferences)
-		throws SystemException {
+		long ownerId, int ownerType,
+		com.liferay.portal.kernel.portlet.PortalPreferences portalPreferences) {
 
 		String xml = PortletPreferencesFactoryUtil.toXML(portalPreferences);
 
@@ -143,8 +124,9 @@ public class PortalPreferencesLocalServiceImpl
 
 	@Override
 	public PortalPreferences updatePreferences(
-			long ownerId, int ownerType, String xml)
-		throws SystemException {
+		long ownerId, int ownerType, String xml) {
+
+		PortalPreferencesWrapperCacheUtil.remove(ownerId, ownerType);
 
 		PortalPreferences portalPreferences =
 			portalPreferencesPersistence.fetchByO_O(ownerId, ownerType);
@@ -166,36 +148,7 @@ public class PortalPreferencesLocalServiceImpl
 		return portalPreferences;
 	}
 
-	protected PortletPreferences doGetPreferences(
-			long companyId, long ownerId, int ownerType,
-			String defaultPreferences)
-		throws SystemException {
-
-		PortalPreferences portalPreferences =
-			portalPreferencesPersistence.fetchByO_O(ownerId, ownerType);
-
-		if (portalPreferences == null) {
-			if (PortletPreferencesThreadLocal.isStrict() &&
-				Validator.isNull(defaultPreferences)) {
-
-				return new PortalPreferencesWrapper(
-					new PortalPreferencesImpl());
-			}
-
-			portalPreferences =
-				portalPreferencesLocalService.addPortalPreferences(
-					companyId, ownerId, ownerType, defaultPreferences);
-		}
-
-		PortalPreferencesImpl portalPreferencesImpl =
-			(PortalPreferencesImpl)PortletPreferencesFactoryUtil.fromXML(
-				companyId, ownerId, ownerType,
-				portalPreferences.getPreferences());
-
-		return new PortalPreferencesWrapper(portalPreferencesImpl);
-	}
-
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		PortalPreferencesLocalServiceImpl.class);
 
 }

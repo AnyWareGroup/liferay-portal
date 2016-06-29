@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,11 +18,11 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.HttpMethods;
 import com.liferay.portal.kernel.servlet.ServletInputStreamAdapter;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -268,14 +268,14 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 			return clientDataRequest.getMethod();
 		}
-		else if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
+
+		if (_lifecycle.equals(PortletRequest.RENDER_PHASE)) {
 			return HttpMethods.GET;
 		}
-		else {
-			EventRequest eventRequest = _getEventRequest();
 
-			return eventRequest.getMethod();
-		}
+		EventRequest eventRequest = _getEventRequest();
+
+		return eventRequest.getMethod();
 	}
 
 	@Override
@@ -332,6 +332,10 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 		}
 	}
 
+	/**
+	 * @deprecated As of 7.0.0
+	 */
+	@Deprecated
 	@Override
 	public String getRealPath(String path) {
 		return null;
@@ -399,25 +403,18 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 
 	@Override
 	public HttpSession getSession() {
-		HttpSession session = new PortletServletSession(
-			_request.getSession(), _portletRequestImpl);
-
-		if (ServerDetector.isJetty()) {
-			try {
-				session = wrapJettySession(session);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
-
-		return session;
+		return getSession(true);
 	}
 
 	@Override
 	public HttpSession getSession(boolean create) {
-		HttpSession session = new PortletServletSession(
-			_request.getSession(create), _portletRequestImpl);
+		HttpSession session = _request.getSession(create);
+
+		if (session == null) {
+			return null;
+		}
+
+		session = new PortletServletSession(session, _portletRequestImpl);
 
 		if (ServerDetector.isJetty()) {
 			try {
@@ -439,14 +436,6 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 	@Override
 	public boolean isRequestedSessionIdFromCookie() {
 		return _request.isRequestedSessionIdFromCookie();
-	}
-
-	/**
-	 * @deprecated As of 6.1.0
-	 */
-	@Override
-	public boolean isRequestedSessionIdFromUrl() {
-		return _request.isRequestedSessionIdFromUrl();
 	}
 
 	@Override
@@ -518,18 +507,18 @@ public class PortletServletRequest extends HttpServletRequestWrapper {
 		return (EventRequest)_portletRequest;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		PortletServletRequest.class);
 
-	private boolean _include;
-	private String _lifecycle;
-	private boolean _named;
-	private String _pathInfo;
-	private PortletRequest _portletRequest;
-	private PortletRequestImpl _portletRequestImpl;
-	private String _queryString;
-	private HttpServletRequest _request;
-	private String _requestURI;
-	private String _servletPath;
+	private final boolean _include;
+	private final String _lifecycle;
+	private final boolean _named;
+	private final String _pathInfo;
+	private final PortletRequest _portletRequest;
+	private final PortletRequestImpl _portletRequestImpl;
+	private final String _queryString;
+	private final HttpServletRequest _request;
+	private final String _requestURI;
+	private final String _servletPath;
 
 }

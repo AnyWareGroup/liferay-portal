@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,10 +15,12 @@
 package com.liferay.portal.deploy.auto;
 
 import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
+import com.liferay.portal.kernel.deploy.auto.AutoDeployer;
 import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.tools.deploy.BaseDeployer;
-import com.liferay.portal.util.PropsValues;
+import com.liferay.portal.util.PropsUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +29,7 @@ import org.apache.commons.io.FileUtils;
 
 /**
  * @author Miguel Pastor
+ * @author Gregory Amerson
  */
 public class ModuleAutoDeployer extends BaseDeployer {
 
@@ -34,11 +37,20 @@ public class ModuleAutoDeployer extends BaseDeployer {
 	public int deployFile(AutoDeploymentContext autoDeploymentContext)
 		throws Exception {
 
-		String destDir = PropsValues.MODULE_FRAMEWORK_AUTO_DEPLOY_DIRS[0];
+		String[] moduleFrameworkAutoDeployDirs = PropsUtil.getArray(
+			PropsKeys.MODULE_FRAMEWORK_AUTO_DEPLOY_DIRS);
 
-		if (!FileUtil.exists(destDir)) {
-			FileUtil.mkdirs(destDir);
+		String destDir = null;
+
+		for (String moduleFrameworkAutoDeployDir :
+				moduleFrameworkAutoDeployDirs) {
+
+			if (moduleFrameworkAutoDeployDir.endsWith("modules")) {
+				destDir = moduleFrameworkAutoDeployDir;
+			}
 		}
+
+		FileUtil.mkdirs(destDir);
 
 		try {
 			FileUtils.copyFileToDirectory(

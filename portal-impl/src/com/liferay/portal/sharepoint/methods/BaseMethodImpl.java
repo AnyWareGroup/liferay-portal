@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -65,7 +65,9 @@ public abstract class BaseMethodImpl implements Method {
 			SharepointRequest sharepointRequest, boolean appendNewline)
 		throws Exception {
 
-		StringBundler sb = new StringBundler();
+		List<ResponseElement> elements = getElements(sharepointRequest);
+
+		StringBundler sb = new StringBundler(elements.size() + 9);
 
 		sb.append("<html><head><title>vermeer RPC packet</title></head>");
 		sb.append(StringPool.NEW_LINE);
@@ -76,8 +78,6 @@ public abstract class BaseMethodImpl implements Method {
 			"method", getMethodName() + ":" + SharepointUtil.VERSION);
 
 		sb.append(property.parse());
-
-		List<ResponseElement> elements = getElements(sharepointRequest);
 
 		for (ResponseElement element : elements) {
 			sb.append(element.parse());
@@ -100,6 +100,6 @@ public abstract class BaseMethodImpl implements Method {
 		return html;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(BaseMethodImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(BaseMethodImpl.class);
 
 }

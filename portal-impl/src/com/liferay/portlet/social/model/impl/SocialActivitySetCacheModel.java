@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portlet.social.model.impl;
 
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.model.CacheModel;
+import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.portlet.social.model.SocialActivitySet;
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.util.HashUtil;
+import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+
+import com.liferay.social.kernel.model.SocialActivitySet;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -31,11 +35,36 @@ import java.io.ObjectOutput;
  * @see SocialActivitySet
  * @generated
  */
+@ProviderType
 public class SocialActivitySetCacheModel implements CacheModel<SocialActivitySet>,
 	Externalizable {
 	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SocialActivitySetCacheModel)) {
+			return false;
+		}
+
+		SocialActivitySetCacheModel socialActivitySetCacheModel = (SocialActivitySetCacheModel)obj;
+
+		if (activitySetId == socialActivitySetCacheModel.activitySetId) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashUtil.hash(0, activitySetId);
+	}
+
+	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(23);
 
 		sb.append("{activitySetId=");
 		sb.append(activitySetId);
@@ -55,6 +84,8 @@ public class SocialActivitySetCacheModel implements CacheModel<SocialActivitySet
 		sb.append(classPK);
 		sb.append(", type=");
 		sb.append(type);
+		sb.append(", extraData=");
+		sb.append(extraData);
 		sb.append(", activityCount=");
 		sb.append(activityCount);
 		sb.append("}");
@@ -75,6 +106,14 @@ public class SocialActivitySetCacheModel implements CacheModel<SocialActivitySet
 		socialActivitySetImpl.setClassNameId(classNameId);
 		socialActivitySetImpl.setClassPK(classPK);
 		socialActivitySetImpl.setType(type);
+
+		if (extraData == null) {
+			socialActivitySetImpl.setExtraData(StringPool.BLANK);
+		}
+		else {
+			socialActivitySetImpl.setExtraData(extraData);
+		}
+
 		socialActivitySetImpl.setActivityCount(activityCount);
 
 		socialActivitySetImpl.resetOriginalValues();
@@ -85,14 +124,24 @@ public class SocialActivitySetCacheModel implements CacheModel<SocialActivitySet
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
 		activitySetId = objectInput.readLong();
+
 		groupId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
+
 		createDate = objectInput.readLong();
+
 		modifiedDate = objectInput.readLong();
+
 		classNameId = objectInput.readLong();
+
 		classPK = objectInput.readLong();
+
 		type = objectInput.readInt();
+		extraData = objectInput.readUTF();
+
 		activityCount = objectInput.readInt();
 	}
 
@@ -100,14 +149,30 @@ public class SocialActivitySetCacheModel implements CacheModel<SocialActivitySet
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
 		objectOutput.writeLong(activitySetId);
+
 		objectOutput.writeLong(groupId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
+
 		objectOutput.writeLong(createDate);
+
 		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeLong(classNameId);
+
 		objectOutput.writeLong(classPK);
+
 		objectOutput.writeInt(type);
+
+		if (extraData == null) {
+			objectOutput.writeUTF(StringPool.BLANK);
+		}
+		else {
+			objectOutput.writeUTF(extraData);
+		}
+
 		objectOutput.writeInt(activityCount);
 	}
 
@@ -120,5 +185,6 @@ public class SocialActivitySetCacheModel implements CacheModel<SocialActivitySet
 	public long classNameId;
 	public long classPK;
 	public int type;
+	public String extraData;
 	public int activityCount;
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,21 @@
 
 package com.liferay.portal.verify;
 
+import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.kernel.service.BlogsEntryLocalServiceUtil;
+import com.liferay.message.boards.kernel.model.MBDiscussion;
+import com.liferay.message.boards.kernel.model.MBMessage;
+import com.liferay.message.boards.kernel.service.MBMessageLocalServiceUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
-import com.liferay.portlet.blogs.util.LinkbackConsumerUtil;
-import com.liferay.portlet.messageboards.model.MBDiscussion;
-import com.liferay.portlet.messageboards.model.MBMessage;
-import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+import com.liferay.portlet.blogs.linkback.LinkbackConsumer;
+import com.liferay.portlet.blogs.linkback.LinkbackConsumerUtil;
 
 import java.util.List;
 
@@ -39,33 +45,71 @@ public class VerifyBlogsTrackbacks extends VerifyProcess {
 
 	@Override
 	protected void doVerify() throws Exception {
-		List<MBDiscussion> discussions =
-			MBMessageLocalServiceUtil.getDiscussions(
-				BlogsEntry.class.getName());
+		verifyMBDiscussions();
+	}
 
-		for (MBDiscussion discussion : discussions) {
-			long entryId = discussion.getClassPK();
-			long threadId = discussion.getThreadId();
+	protected void verifyMBDiscussions() {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			List<MBDiscussion> mbDiscussions =
+				MBMessageLocalServiceUtil.getDiscussions(
+					BlogsEntry.class.getName());
 
-			try {
-				BlogsEntry entry = BlogsEntryLocalServiceUtil.getBlogsEntry(
-					entryId);
+			for (MBDiscussion mbDiscussion : mbDiscussions) {
+				try {
+					BlogsEntry entry = BlogsEntryLocalServiceUtil.getBlogsEntry(
+						mbDiscussion.getClassPK());
 
-				List<MBMessage> messages =
-					MBMessageLocalServiceUtil.getThreadMessages(
-						threadId, WorkflowConstants.STATUS_APPROVED);
+					List<MBMessage> mbMessages =
+						MBMessageLocalServiceUtil.getThreadMessages(
+							mbDiscussion.getThreadId(),
+							WorkflowConstants.STATUS_APPROVED);
 
-				for (MBMessage message : messages) {
-					LinkbackConsumerUtil.verifyPost(entry, message);
+					for (MBMessage mbMessage : mbMessages) {
+						_verifyPost(entry, mbMessage);
+					}
 				}
-			}
-			catch (Exception e) {
-				_log.error(e, e);
+				catch (Exception e) {
+					_log.error(e, e);
+				}
 			}
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private void _verifyPost(BlogsEntry entry, MBMessage mbMessage)
+		throws PortalException {
+
+		String entryURL =
+			Portal.FRIENDLY_URL_SEPARATOR + "blogs/" + entry.getUrlTitle();
+		String body = mbMessage.getBody();
+		String url = null;
+
+		int start = body.indexOf("[url=");
+
+		if (start > -1) {
+			start += "[url=".length();
+
+			int end = body.indexOf("]", start);
+
+			if (end > -1) {
+				url = body.substring(start, end);
+			}
+		}
+
+		if (Validator.isNotNull(url)) {
+			long defaultUserId = UserLocalServiceUtil.getDefaultUserId(
+				mbMessage.getCompanyId());
+
+			if (mbMessage.getUserId() == defaultUserId) {
+				_linkbackConsumer.verifyTrackback(
+					mbMessage.getMessageId(), url, entryURL);
+			}
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
 		VerifyBlogsTrackbacks.class);
+
+	private final LinkbackConsumer _linkbackConsumer =
+		LinkbackConsumerUtil.getLinkbackConsumer();
 
 }

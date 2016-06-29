@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,15 +17,15 @@ package com.liferay.portal.action;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.license.util.LicenseManagerUtil;
-import com.liferay.portal.license.util.LicenseUtil;
-import com.liferay.portal.model.User;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.util.LicenseUtil;
 import com.liferay.portlet.admin.util.OmniadminUtil;
 
 import java.util.List;
@@ -46,8 +46,8 @@ public class UpdateLicenseAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		// PLACEHOLDER 01
@@ -84,14 +84,12 @@ public class UpdateLicenseAction extends Action {
 				return null;
 			}
 
-			return mapping.findForward("portal.license");
+			return actionMapping.findForward("portal.license");
 		}
-		else {
-			response.sendRedirect(
-				PortalUtil.getPathContext() + "/c/portal/layout");
 
-			return null;
-		}
+		response.sendRedirect(PortalUtil.getPathContext() + "/c/portal/layout");
+
+		return null;
 	}
 
 	private String _getLicenseProperties(String clusterNodeId) {

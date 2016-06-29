@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,12 @@
 
 package com.liferay.portal.jsonwebservice;
 
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.service.ServiceContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -27,6 +29,9 @@ import java.util.Map;
  * @author Igor Spasic
  */
 public class FooService {
+
+	public static void addFile(String fileName) {
+	}
 
 	public static BarData bar() {
 		return new BarData();
@@ -40,6 +45,28 @@ public class FooService {
 		List<Long> longs, int[] ints, Map<String, Long> map) {
 
 		return longs.size() + ints.length + map.size();
+	}
+
+	public static String complexWithArrays(
+		List<Long[]> longArrays, Map<String, String[]> mapNames) {
+
+		StringBundler sb = new StringBundler();
+
+		for (Long[] longArray : longArrays) {
+			sb.append(Arrays.toString(longArray));
+			sb.append('|');
+		}
+
+		sb.append('*');
+
+		for (Map.Entry<String, String[]> entry : mapNames.entrySet()) {
+			sb.append(entry.getKey());
+			sb.append("=");
+			sb.append(Arrays.toString(entry.getValue()));
+			sb.append('|');
+		}
+
+		return sb.toString();
 	}
 
 	public static FooData getFooData(int id) {
@@ -77,7 +104,7 @@ public class FooService {
 	}
 
 	public static List<FooData> getFooDatas() {
-		List<FooData> fooDataList = new ArrayList<FooData>();
+		List<FooData> fooDataList = new ArrayList<>();
 
 		fooDataList.add(getFooData(1));
 		fooDataList.add(getFooData(2));
@@ -96,8 +123,30 @@ public class FooService {
 		return fooDataArray;
 	}
 
+	public static int[] getFooDatas3() {
+		int[] fooDataArray = new int[3];
+
+		fooDataArray[0] = 1;
+		fooDataArray[1] = 2;
+		fooDataArray[2] = 3;
+
+		return fooDataArray;
+	}
+
 	public static String hello() {
 		return "world";
+	}
+
+	public static String hello(int i1) {
+		return "hello:" + i1;
+	}
+
+	public static String hello(int i1, int i2, int i3) {
+		return "hello:" + i1 + ":" + i2 + ":" + i3;
+	}
+
+	public static String hello(int i1, int i2, String s) {
+		return "hello:" + i1 + ":" + i2 + ">" + s;
 	}
 
 	public static String helloWorld(Integer userId, String worldName) {

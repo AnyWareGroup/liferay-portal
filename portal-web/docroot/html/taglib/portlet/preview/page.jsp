@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,6 +41,7 @@ if (Validator.isNull(width)) {
 	<div class="preview" id="<%= randomNamespace %>">
 		<div style="margin: 3px; width: <%= Validator.isNotNull(previewWidth) ? ((GetterUtil.getInteger(previewWidth) + 20) + "px") : "100%" %>;">
 			<liferay-portlet:runtime
+				persistSettings="<%= false %>"
 				portletName="<%= portletResource %>"
 				queryString="<%= queryString %>"
 			/>
@@ -49,5 +50,5 @@ if (Validator.isNull(width)) {
 </div>
 
 <aui:script>
-	Liferay.Util.disableElements("#<%= randomNamespace %>");
+	Liferay.Util.disableElements('#<%= randomNamespace %>');
 </aui:script>

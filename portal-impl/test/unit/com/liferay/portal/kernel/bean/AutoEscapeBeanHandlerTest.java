@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,18 +53,7 @@ public class AutoEscapeBeanHandlerTest {
 
 	private Bean _bean;
 
-	private interface Bean extends Serializable {
-
-		@AutoEscape
-		public String getAttribute();
-
-		public String getUnescapedAttribute();
-
-		public Bean toEscapedBean();
-
-	}
-
-	private class BeanImpl implements Bean {
+	private static class BeanImpl implements Bean {
 
 		public BeanImpl(String attribute) {
 			_attribute = attribute;
@@ -90,8 +79,19 @@ public class AutoEscapeBeanHandlerTest {
 				new AutoEscapeBeanHandler(this));
 		}
 
-		private String _attribute;
-		private String _unescapedAttribute;
+		private final String _attribute;
+		private final String _unescapedAttribute;
+
+	}
+
+	private interface Bean extends Serializable {
+
+		@AutoEscape
+		public String getAttribute();
+
+		public String getUnescapedAttribute();
+
+		public Bean toEscapedBean();
 
 	}
 

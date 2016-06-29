@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,15 @@
 
 package com.liferay.portlet.messageboards.model.impl;
 
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.message.boards.kernel.model.MBCategory;
+import com.liferay.message.boards.kernel.model.MBCategoryConstants;
+import com.liferay.message.boards.kernel.model.MBCategoryDisplay;
+import com.liferay.message.boards.kernel.service.MBCategoryServiceUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ListTree;
 import com.liferay.portal.kernel.util.TreeNode;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portlet.messageboards.model.MBCategory;
-import com.liferay.portlet.messageboards.model.MBCategoryConstants;
-import com.liferay.portlet.messageboards.model.MBCategoryDisplay;
-import com.liferay.portlet.messageboards.service.MBCategoryServiceUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -130,23 +129,18 @@ public class MBCategoryDisplayImpl implements MBCategoryDisplay {
 	}
 
 	protected void init(long scopeGroupId, long categoryId) throws Exception {
-		long[] categoryIds = MBCategoryServiceUtil.getCategoryIds(
-			scopeGroupId, categoryId);
-
 		_allCategories = MBCategoryServiceUtil.getCategories(
-			scopeGroupId, categoryIds, WorkflowConstants.STATUS_APPROVED,
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+			scopeGroupId, WorkflowConstants.STATUS_APPROVED);
 
 		_rootCategory = new MBCategoryImpl();
 
 		_rootCategory.setCategoryId(categoryId);
 
-		_categoryTree = new ListTree<MBCategory>(_rootCategory);
+		_categoryTree = new ListTree<>(_rootCategory);
 
-		_categoryNodesMap = new HashMap<Long, TreeNode<MBCategory>>();
+		_categoryNodesMap = new HashMap<>();
 
-		Map<Long, List<MBCategory>> categoriesMap =
-			new HashMap<Long, List<MBCategory>>();
+		Map<Long, List<MBCategory>> categoriesMap = new HashMap<>();
 
 		for (MBCategory category : _allCategories) {
 			Long parentCategoryId = category.getParentCategoryId();
@@ -155,7 +149,7 @@ public class MBCategoryDisplayImpl implements MBCategoryDisplay {
 				parentCategoryId);
 
 			if (curCategories == null) {
-				curCategories = new ArrayList<MBCategory>();
+				curCategories = new ArrayList<>();
 
 				categoriesMap.put(parentCategoryId, curCategories);
 			}
@@ -193,7 +187,7 @@ public class MBCategoryDisplayImpl implements MBCategoryDisplay {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		MBCategoryDisplayImpl.class);
 
 	private List<MBCategory> _allCategories;

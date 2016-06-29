@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,11 +15,11 @@
 package com.liferay.portal.resiliency.spi.search;
 
 import com.liferay.portal.kernel.messaging.Destination;
-import com.liferay.portal.kernel.messaging.MessageBus;
+import com.liferay.portal.kernel.messaging.MessageBusUtil;
 import com.liferay.portal.kernel.nio.intraband.messaging.IntrabandBridgeMessageListener;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
 import com.liferay.portal.kernel.resiliency.spi.SPIUtil;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
+import com.liferay.portal.kernel.search.SearchEngineHelperUtil;
 
 import java.rmi.RemoteException;
 
@@ -35,13 +35,15 @@ public class SPISearchEngineConfigurator {
 			return;
 		}
 
-		Set<String> searchEngineIds = SearchEngineUtil.getSearchEngineIds();
+		Set<String> searchEngineIds =
+			SearchEngineHelperUtil.getSearchEngineIds();
 
 		for (String searchEngineId : searchEngineIds) {
 			String destinationName =
-				SearchEngineUtil.getSearchWriterDestinationName(searchEngineId);
+				SearchEngineHelperUtil.getSearchWriterDestinationName(
+					searchEngineId);
 
-			Destination destination = _messageBus.getDestination(
+			Destination destination = MessageBusUtil.getDestination(
 				destinationName);
 
 			destination.unregisterMessageListeners();
@@ -53,11 +55,5 @@ public class SPISearchEngineConfigurator {
 					spi.getRegistrationReference()));
 		}
 	}
-
-	public void setMessageBus(MessageBus messageBus) {
-		_messageBus = messageBus;
-	}
-
-	private MessageBus _messageBus;
 
 }

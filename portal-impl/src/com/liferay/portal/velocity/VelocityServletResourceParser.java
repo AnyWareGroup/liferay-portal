@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,11 +16,12 @@ package com.liferay.portal.velocity;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.servlet.PortalWebResourceConstants;
+import com.liferay.portal.kernel.servlet.PortalWebResourcesUtil;
 import com.liferay.portal.kernel.servlet.ServletContextPool;
 import com.liferay.portal.kernel.template.TemplateConstants;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.template.URLResourceParser;
-import com.liferay.portal.util.PortalUtil;
 
 import java.io.IOException;
 
@@ -44,8 +45,8 @@ public class VelocityServletResourceParser extends URLResourceParser {
 
 		String servletContextName = source.substring(0, pos);
 
-		if (Validator.isNull(servletContextName)) {
-			servletContextName = PortalUtil.getPathContext();
+		if (servletContextName.equals(PortalUtil.getPathContext())) {
+			servletContextName = PortalUtil.getServletContextName();
 		}
 
 		ServletContext servletContext = ServletContextPool.get(
@@ -75,19 +76,18 @@ public class VelocityServletResourceParser extends URLResourceParser {
 				_log.warn("The template " + name + " should be created");
 			}
 
-			String portalServletContextName = PortalUtil.getPathContext();
+			ServletContext themeClassicServletContext =
+				PortalWebResourcesUtil.getServletContext(
+					PortalWebResourceConstants.RESOURCE_TYPE_THEME_CLASSIC);
 
-			ServletContext portalServletContext = ServletContextPool.get(
-				portalServletContextName);
-
-			url = portalServletContext.getResource(
-				"/html/themes/_unstyled/template/init_custom.vm");
+			url = themeClassicServletContext.getResource(
+				"/classic/templates/init_custom.vm");
 		}
 
 		return url;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		VelocityServletResourceParser.class);
 
 }

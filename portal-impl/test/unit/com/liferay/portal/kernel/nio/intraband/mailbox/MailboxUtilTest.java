@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,27 +15,30 @@
 package com.liferay.portal.kernel.nio.intraband.mailbox;
 
 import com.liferay.portal.kernel.io.BigEndianCodec;
-import com.liferay.portal.kernel.nio.intraband.CompletionHandler;
 import com.liferay.portal.kernel.nio.intraband.Datagram;
-import com.liferay.portal.kernel.nio.intraband.DatagramHelper;
-import com.liferay.portal.kernel.nio.intraband.MockIntraband;
-import com.liferay.portal.kernel.nio.intraband.MockRegistrationReference;
-import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
-import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.nio.intraband.test.MockIntraband;
+import com.liferay.portal.kernel.nio.intraband.test.MockRegistrationReference;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.rule.NewEnv;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtilAdvice;
-import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.ThreadUtil;
-import com.liferay.portal.test.AdviseWith;
-import com.liferay.portal.test.AspectJMockingNewJVMJUnitTestRunner;
+import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.test.rule.AdviseWith;
+import com.liferay.portal.test.rule.AspectJNewEnvTestRule;
+
+import java.io.IOException;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 
 import java.nio.ByteBuffer;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -43,18 +46,26 @@ import org.aspectj.lang.annotation.Aspect;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  */
-@RunWith(AspectJMockingNewJVMJUnitTestRunner.class)
+@NewEnv(type = NewEnv.Type.JVM)
 public class MailboxUtilTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, AspectJNewEnvTestRule.INSTANCE);
+
+	@AdviseWith(adviceClasses = {PropsUtilAdvice.class})
+	@Test
+	public void testConstructor() {
+		new MailboxUtil();
+	}
 
 	@AdviseWith(
 		adviceClasses = {PropsUtilAdvice.class, ReceiptStubAdvice.class}
@@ -127,7 +138,9 @@ public class MailboxUtilTest {
 
 		Assert.assertTrue(reaperThread.isAlive());
 
-		BlockingQueue<Object> overdueMailQueue = getOverdueMailQueue();
+		BlockingQueue<Object> overdueMailQueue =
+			ReflectionTestUtil.getFieldValue(
+				MailboxUtil.class, "_overdueMailQueue");
 
 		while (!overdueMailQueue.isEmpty());
 
@@ -141,8 +154,14 @@ public class MailboxUtilTest {
 
 		overdueMailQueue.offer(createReceiptStub());
 
-		reaperThread.join(1000);
+		recorderUncaughtExceptionHandler.await(10 * Time.MINUTE);
 
+		reaperThread.join();
+
+		Assert.assertFalse(
+			"Reaper thread " + reaperThread +
+				" failed to join back after waiting for 10 mins",
+			reaperThread.isAlive());
 		Assert.assertSame(
 			reaperThread, RecorderUncaughtExceptionHandler._thread);
 
@@ -202,17 +221,11 @@ public class MailboxUtilTest {
 	@AdviseWith(adviceClasses = {PropsUtilAdvice.class})
 	@Test
 	public void testSendMailFail() {
-		MockIntraband mockIntraband = new MockIntraband() {
+		MockIntraband mockIntraband = new MockIntraband();
 
-			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
+		IOException iOException = new IOException();
 
-				throw new RuntimeException();
-			}
-
-		};
+		mockIntraband.setIOException(iOException);
 
 		try {
 			MailboxUtil.sendMail(
@@ -222,9 +235,7 @@ public class MailboxUtilTest {
 			Assert.fail();
 		}
 		catch (MailboxException me) {
-			Throwable throwable = me.getCause();
-
-			Assert.assertEquals(RuntimeException.class, throwable.getClass());
+			Assert.assertSame(iOException, me.getCause());
 		}
 	}
 
@@ -236,21 +247,13 @@ public class MailboxUtilTest {
 		MockIntraband mockIntraband = new MockIntraband() {
 
 			@Override
-			protected void doSendDatagram(
-				RegistrationReference registrationReference,
-				Datagram datagram) {
-
+			protected Datagram processDatagram(Datagram datagram) {
 				byte[] data = new byte[8];
 
 				BigEndianCodec.putLong(data, 0, receipt);
 
-				CompletionHandler<?> completionHandler =
-					DatagramHelper.getCompletionHandler(datagram);
-
-				completionHandler.replied(
-					null,
-					Datagram.createResponseDatagram(
-						datagram, ByteBuffer.wrap(data)));
+				return Datagram.createResponseDatagram(
+					datagram, ByteBuffer.wrap(data));
 			}
 
 		};
@@ -267,7 +270,8 @@ public class MailboxUtilTest {
 
 		@Around(
 			"execution(public long com.liferay.portal.kernel.nio.intraband." +
-				"mailbox.MailboxUtil$ReceiptStub.getReceipt())")
+				"mailbox.MailboxUtil$ReceiptStub.getReceipt())"
+		)
 		public Object getReceipt(ProceedingJoinPoint proceedingJoinPoint)
 			throws Throwable {
 
@@ -290,27 +294,32 @@ public class MailboxUtilTest {
 
 		Constructor<?> constructor = clazz.getConstructor(long.class);
 
-		return constructor.newInstance(0);
-	}
+		Object object = constructor.newInstance(0);
 
-	protected BlockingQueue<Object> getOverdueMailQueue() throws Exception {
-		Field overdueMailQueueField = ReflectionUtil.getDeclaredField(
-			MailboxUtil.class, "_overdueMailQueue");
+		Assert.assertEquals(0, object.hashCode());
 
-		return (BlockingQueue<Object>)overdueMailQueueField.get(null);
+		return object;
 	}
 
 	private static class RecorderUncaughtExceptionHandler
 		implements UncaughtExceptionHandler {
 
+		public void await(long waitTime) throws InterruptedException {
+			_countDownLatch.await(waitTime, TimeUnit.MILLISECONDS);
+		}
+
 		@Override
 		public void uncaughtException(Thread thread, Throwable throwable) {
 			_thread = thread;
 			_throwable = throwable;
+
+			_countDownLatch.countDown();
 		}
 
 		private static volatile Thread _thread;
 		private static volatile Throwable _throwable;
+
+		private final CountDownLatch _countDownLatch = new CountDownLatch(1);
 
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portal.security.pwd;
 
-import com.liferay.portal.PwdEncryptorException;
+import com.liferay.portal.kernel.exception.PwdEncryptorException;
+import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
+import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.DigesterUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.util.DigesterImpl;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jodd.util.StringPool;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,7 +39,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 /**
  * @author Michael C. Han
  */
-@PowerMockIgnore({"javax.crypto.*" })
+@PowerMockIgnore({"javax.crypto.*"})
 @PrepareForTest(PropsUtil.class)
 @RunWith(PowerMockRunner.class)
 public class LegacyAlgorithmAwarePasswordEncryptorTest {
@@ -62,8 +63,7 @@ public class LegacyAlgorithmAwarePasswordEncryptorTest {
 		compositePasswordEncryptor.setDefaultPasswordEncryptor(
 			new DefaultPasswordEncryptor());
 
-		List<PasswordEncryptor> passwordEncryptors =
-			new ArrayList<PasswordEncryptor>();
+		List<PasswordEncryptor> passwordEncryptors = new ArrayList<>();
 
 		passwordEncryptors.add(new BCryptPasswordEncryptor());
 		passwordEncryptors.add(new CryptPasswordEncryptor());
@@ -107,12 +107,11 @@ public class LegacyAlgorithmAwarePasswordEncryptorTest {
 		testEncryptDisabled(PasswordEncryptorUtil.TYPE_BCRYPT + "/12");
 	}
 
-	@SuppressWarnings("deprecation")
 	@Test
 	public void testEncryptCrypt() throws Exception {
-		testEncrypt(PasswordEncryptorUtil.TYPE_CRYPT, "SNbUMVY9kKQpY");
+		testEncrypt(PasswordEncryptorUtil.TYPE_UFC_CRYPT, "SNbUMVY9kKQpY");
 
-		testEncryptDisabled(PasswordEncryptorUtil.TYPE_CRYPT);
+		testEncryptDisabled(PasswordEncryptorUtil.TYPE_UFC_CRYPT);
 	}
 
 	@Test
@@ -221,7 +220,7 @@ public class LegacyAlgorithmAwarePasswordEncryptorTest {
 			return encryptedPassword.substring(1, index);
 		}
 
-		return StringPool.EMPTY;
+		return StringPool.BLANK;
 	}
 
 	protected void testEncrypt(String algorithm, String encryptedPassword)
@@ -282,7 +281,6 @@ public class LegacyAlgorithmAwarePasswordEncryptorTest {
 				encryptedPassword,
 				PasswordEncryptorUtil.encrypt(
 					algorithm, "password", encryptedPassword));
-
 		}
 		finally {
 			PropsValues.PASSWORDS_ENCRYPTION_ALGORITHM_LEGACY =

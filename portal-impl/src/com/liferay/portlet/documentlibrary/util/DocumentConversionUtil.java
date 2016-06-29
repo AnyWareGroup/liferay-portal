@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -58,7 +58,7 @@ public class DocumentConversionUtil {
 	public static File convert(
 			String id, InputStream inputStream, String sourceExtension,
 			String targetExtension)
-		throws IOException, SystemException {
+		throws IOException {
 
 		return _instance._convert(
 			id, inputStream, sourceExtension, targetExtension);
@@ -87,11 +87,11 @@ public class DocumentConversionUtil {
 	public static boolean isComparableVersion(String extension) {
 		boolean enabled = false;
 
-		String dotExtension = StringPool.PERIOD + extension;
+		String periodAndExtension = StringPool.PERIOD.concat(extension);
 
 		for (int i = 0; i < _COMPARABLE_FILE_EXTENSIONS.length; i++) {
 			if (StringPool.STAR.equals(_COMPARABLE_FILE_EXTENSIONS[i]) ||
-				dotExtension.equals(_COMPARABLE_FILE_EXTENSIONS[i])) {
+				periodAndExtension.equals(_COMPARABLE_FILE_EXTENSIONS[i])) {
 
 				enabled = true;
 
@@ -116,9 +116,7 @@ public class DocumentConversionUtil {
 			}
 		}
 		catch (Exception e) {
-			if (_log.isErrorEnabled()) {
-				_log.error(e, e);
-			}
+			_log.error(e, e);
 		}
 
 		return false;
@@ -162,7 +160,7 @@ public class DocumentConversionUtil {
 	private File _convert(
 			String id, InputStream inputStream, String sourceExtension,
 			String targetExtension)
-		throws IOException, SystemException {
+		throws IOException {
 
 		if (!isEnabled()) {
 			return null;
@@ -201,8 +199,7 @@ public class DocumentConversionUtil {
 		else if (outputDocumentFormat == null) {
 			throw new SystemException(
 				"Conversion is not supported from " +
-					inputDocumentFormat.getName() + " to ." +
-						targetExtension);
+					inputDocumentFormat.getName() + " to ." + targetExtension);
 		}
 		else if (!inputDocumentFormat.isExportableTo(outputDocumentFormat)) {
 			throw new SystemException(
@@ -251,7 +248,7 @@ public class DocumentConversionUtil {
 		}
 		else {
 			if (ArrayUtil.contains(conversions, extension)) {
-				List<String> conversionsList = new ArrayList<String>();
+				List<String> conversionsList = new ArrayList<>();
 
 				for (int i = 0; i < conversions.length; i++) {
 					String conversion = conversions[i];
@@ -269,7 +266,7 @@ public class DocumentConversionUtil {
 		return conversions;
 	}
 
-	private DocumentConverter _getDocumentConverter() throws SystemException {
+	private DocumentConverter _getDocumentConverter() {
 		if ((_openOfficeConnection != null) && (_documentConverter != null)) {
 			return _documentConverter;
 		}
@@ -317,7 +314,7 @@ public class DocumentConversionUtil {
 			PropsKeys.OPENOFFICE_CONVERSION_TARGET_EXTENSIONS, filter);
 
 		for (String sourceExtension : sourceExtensions) {
-			List<String> conversions = new SortedArrayList<String>();
+			List<String> conversions = new SortedArrayList<>();
 
 			DocumentFormat sourceDocumentFormat =
 				documentFormatRegistry.getFormatByFileExtension(
@@ -371,9 +368,7 @@ public class DocumentConversionUtil {
 		}
 	}
 
-	private void _validate(String targetExtension, String id)
-		throws SystemException {
-
+	private void _validate(String targetExtension, String id) {
 		if (!Validator.isFileExtension(targetExtension)) {
 			throw new SystemException("Invalid extension: " + targetExtension);
 		}
@@ -392,14 +387,13 @@ public class DocumentConversionUtil {
 
 	private static final String _LOCALHOST_IP = "127.0.0.1";
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		DocumentConversionUtil.class);
 
-	private static DocumentConversionUtil _instance =
+	private static final DocumentConversionUtil _instance =
 		new DocumentConversionUtil();
 
-	private Map<String, String[]> _conversionsMap =
-		new HashMap<String, String[]>();
+	private final Map<String, String[]> _conversionsMap = new HashMap<>();
 	private DocumentConverter _documentConverter;
 	private OpenOfficeConnection _openOfficeConnection;
 

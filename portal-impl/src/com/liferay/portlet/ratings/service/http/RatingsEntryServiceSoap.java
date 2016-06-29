@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,18 @@
 
 package com.liferay.portlet.ratings.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
-import com.liferay.portlet.ratings.service.RatingsEntryServiceUtil;
+import com.liferay.ratings.kernel.service.RatingsEntryServiceUtil;
 
 import java.rmi.RemoteException;
 
 /**
  * Provides the SOAP utility for the
- * {@link com.liferay.portlet.ratings.service.RatingsEntryServiceUtil} service utility. The
+ * {@link RatingsEntryServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
@@ -31,10 +33,10 @@ import java.rmi.RemoteException;
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
  * if the method in the service utility returns a {@link java.util.List}, that
- * is translated to an array of {@link com.liferay.portlet.ratings.model.RatingsEntrySoap}.
+ * is translated to an array of {@link com.liferay.ratings.kernel.model.RatingsEntrySoap}.
  * If the method in the service utility returns a
- * {@link com.liferay.portlet.ratings.model.RatingsEntry}, that is translated to a
- * {@link com.liferay.portlet.ratings.model.RatingsEntrySoap}. Methods that SOAP cannot
+ * {@link com.liferay.ratings.kernel.model.RatingsEntry}, that is translated to a
+ * {@link com.liferay.ratings.kernel.model.RatingsEntrySoap}. Methods that SOAP cannot
  * safely wire are skipped.
  * </p>
  *
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       RatingsEntryServiceHttp
- * @see       com.liferay.portlet.ratings.model.RatingsEntrySoap
- * @see       com.liferay.portlet.ratings.service.RatingsEntryServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see RatingsEntryServiceHttp
+ * @see com.liferay.ratings.kernel.model.RatingsEntrySoap
+ * @see RatingsEntryServiceUtil
  * @generated
  */
+@ProviderType
 public class RatingsEntryServiceSoap {
 	public static void deleteEntry(java.lang.String className, long classPK)
 		throws RemoteException {
@@ -74,14 +77,14 @@ public class RatingsEntryServiceSoap {
 		}
 	}
 
-	public static com.liferay.portlet.ratings.model.RatingsEntrySoap updateEntry(
+	public static com.liferay.ratings.kernel.model.RatingsEntrySoap updateEntry(
 		java.lang.String className, long classPK, double score)
 		throws RemoteException {
 		try {
-			com.liferay.portlet.ratings.model.RatingsEntry returnValue = RatingsEntryServiceUtil.updateEntry(className,
+			com.liferay.ratings.kernel.model.RatingsEntry returnValue = RatingsEntryServiceUtil.updateEntry(className,
 					classPK, score);
 
-			return com.liferay.portlet.ratings.model.RatingsEntrySoap.toSoapModel(returnValue);
+			return com.liferay.ratings.kernel.model.RatingsEntrySoap.toSoapModel(returnValue);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

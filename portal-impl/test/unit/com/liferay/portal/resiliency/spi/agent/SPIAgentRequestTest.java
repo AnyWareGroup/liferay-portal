@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,20 +14,40 @@
 
 package com.liferay.portal.resiliency.spi.agent;
 
-import com.liferay.portal.kernel.servlet.HttpHeaders;
-import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.process.local.LocalProcessLauncher;
+import com.liferay.portal.kernel.resiliency.spi.MockSPI;
+import com.liferay.portal.kernel.resiliency.spi.SPI;
+import com.liferay.portal.kernel.servlet.ServletInputStreamAdapter;
+import com.liferay.portal.kernel.test.CaptureHandler;
+import com.liferay.portal.kernel.test.JDKLoggerTestUtil;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.rule.NewEnv;
+import com.liferay.portal.kernel.test.rule.NewEnvTestRule;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.upload.FileItem;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.CookieUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.ThreadLocalDistributor;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.model.impl.PortletImpl;
 import com.liferay.portal.resiliency.spi.agent.SPIAgentRequest.AgentHttpServletRequestWrapper;
+import com.liferay.portal.tools.ToolDependencies;
 import com.liferay.portal.upload.UploadServletRequestImpl;
+import com.liferay.portal.util.FileImpl;
 import com.liferay.portal.util.PortalImpl;
-import com.liferay.portal.util.PortalUtil;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 
 import java.util.ArrayList;
@@ -38,15 +58,22 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
 
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpSession;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -58,11 +85,36 @@ import org.springframework.mock.web.MockHttpSession;
 public class SPIAgentRequestTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, NewEnvTestRule.INSTANCE);
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
+		ToolDependencies.wireCaches();
+	}
+
+	@Before
+	public void setUp() throws Exception {
+		FileUtil fileUtil = new FileUtil();
+
+		fileUtil.setFile(
+			new FileImpl() {
+
+				@Override
+				public File createTempFile() {
+					try {
+						return File.createTempFile(
+							SPIAgentRequestTest.class.getName(), null);
+					}
+					catch (IOException ioe) {
+						throw new RuntimeException(ioe);
+					}
+				}
+
+			});
+
 		PortalUtil portalUtil = new PortalUtil();
 
 		portalUtil.setPortal(new PortalImpl());
@@ -76,41 +128,38 @@ public class SPIAgentRequestTest {
 					SPIAgentRequestTest.class.getName(), "_threadLocal")));
 
 		threadLocalDistributor.afterPropertiesSet();
-	}
 
-	@Before
-	public void setUp() {
-		_mockHttpServletRequest = new MockHttpServletRequest() {
+		_mockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest() {
 
-			@Override
-			public Enumeration<String> getHeaderNames() {
-				Enumeration<String> headerNameEnumeration =
-					super.getHeaderNames();
+				@Override
+				public Enumeration<String> getHeaderNames() {
+					Enumeration<String> headerNameEnumeration =
+						super.getHeaderNames();
 
-				List<String> headerNames = ListUtil.fromEnumeration(
-					headerNameEnumeration);
+					List<String> headerNames = ListUtil.fromEnumeration(
+						headerNameEnumeration);
 
-				// Header with no value
+					// Header with no value
 
-				headerNames.add(_HEADER_NAME_3);
+					headerNames.add(_HEADER_NAME_3);
 
-				return Collections.enumeration(headerNames);
-			}
+					return Collections.enumeration(headerNames);
+				}
 
-			@Override
-			public Map<String, String[]> getParameterMap() {
-				Map<String, String[]> parameterMap =
-					new LinkedHashMap<String, String[]>(
+				@Override
+				public Map<String, String[]> getParameterMap() {
+					Map<String, String[]> parameterMap = new LinkedHashMap<>(
 						super.getParameterMap());
 
-				// Parameter with no value
+					// Parameter with no value
 
-				parameterMap.put(_PARAMETER_NAME_3, new String[0]);
+					parameterMap.put(_PARAMETER_NAME_3, new String[0]);
 
-				return parameterMap;
-			}
+					return parameterMap;
+				}
 
-		};
+			};
 
 		_mockHttpServletRequest.addHeader(_HEADER_NAME_1, _HEADER_VALUE_1);
 		_mockHttpServletRequest.addHeader(_HEADER_NAME_1, _HEADER_VALUE_2);
@@ -124,9 +173,24 @@ public class SPIAgentRequestTest {
 			_PARAMETER_NAME_2, _PARAMETER_VALUE_3);
 		_mockHttpServletRequest.addParameter(
 			_PARAMETER_NAME_2, _PARAMETER_VALUE_4);
-		_mockHttpServletRequest.setCookies(_cookie1, _cookie2);
+		_mockHttpServletRequest.setRemoteAddr(_REMOTE_ADDR);
+		_mockHttpServletRequest.setRemoteHost(_REMOTE_HOST);
+		_mockHttpServletRequest.setRemotePort(_REMOTE_PORT);
+		_mockHttpServletRequest.setRemoteUser(_REMOTE_USER);
 		_mockHttpServletRequest.setServerName(_SERVER_NAME);
 		_mockHttpServletRequest.setServerPort(_SERVER_PORT);
+
+		Portlet portlet = new PortletImpl() {
+
+			@Override
+			public String getContextName() {
+				return "SERVLET_CONTEXT_NAME";
+			}
+
+		};
+
+		_mockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_PORTLET, portlet);
 
 		RequestAttributes.setRequestAttributes(_mockHttpServletRequest);
 
@@ -138,25 +202,37 @@ public class SPIAgentRequestTest {
 			_SESSION_ATTRIBUTE_NAME_2, _SESSION_ATTRIBUTE_VALUE_2);
 		session.setAttribute(
 			_SESSION_ATTRIBUTE_NAME_3, _SESSION_ATTRIBUTE_VALUE_3);
+
+		_captureHandler = JDKLoggerTestUtil.configureJDKLogger(
+			SPIAgentSerializable.class.getName(), Level.OFF);
+	}
+
+	@After
+	public void tearDown() {
+		_captureHandler.close();
 	}
 
 	@Test
-	public void testContentTypeIsMultipart() {
+	public void testContentTypeIsMultipart() throws IOException {
 
 		// Upload servlet request with null data
 
-		_mockHttpServletRequest.addHeader(
-			HttpHeaders.CONTENT_TYPE, ContentTypes.MULTIPART_FORM_DATA);
+		_mockHttpServletRequest.setContentType(
+			ContentTypes.MULTIPART_FORM_DATA);
 
 		SPIAgentRequest spiAgentRequest = new SPIAgentRequest(
 			new UploadServletRequestImpl(_mockHttpServletRequest, null, null));
 
 		HttpServletRequest populateHttpServletRequest =
-			spiAgentRequest.populateRequest(new MockHttpServletRequest());
+			spiAgentRequest.populateRequest(
+				new BackwardCompatibleMockHttpServletRequest());
 
 		Assert.assertSame(
 			AgentHttpServletRequestWrapper.class,
 			populateHttpServletRequest.getClass());
+		Assert.assertEquals(-1, populateHttpServletRequest.getContentLength());
+		Assert.assertNull(populateHttpServletRequest.getContentType());
+		Assert.assertNull(populateHttpServletRequest.getInputStream());
 
 		// Upload servlet request with empty data
 
@@ -166,16 +242,18 @@ public class SPIAgentRequestTest {
 				new HashMap<String, List<String>>()));
 
 		populateHttpServletRequest = spiAgentRequest.populateRequest(
-			new MockHttpServletRequest());
+			new BackwardCompatibleMockHttpServletRequest());
 
 		Assert.assertSame(
 			AgentHttpServletRequestWrapper.class,
 			populateHttpServletRequest.getClass());
+		Assert.assertEquals(-1, populateHttpServletRequest.getContentLength());
+		Assert.assertNull(populateHttpServletRequest.getContentType());
+		Assert.assertNull(populateHttpServletRequest.getInputStream());
 
 		// Upload servlet request with multipart data
 
-		Map<String, FileItem[]> fileParameters =
-			new HashMap<String, FileItem[]>();
+		Map<String, FileItem[]> fileParameters = new HashMap<>();
 
 		String fileParameter = "fileParameter";
 
@@ -189,7 +267,7 @@ public class SPIAgentRequestTest {
 				new HashMap<String, List<String>>()));
 
 		populateHttpServletRequest = spiAgentRequest.populateRequest(
-			new MockHttpServletRequest());
+			new BackwardCompatibleMockHttpServletRequest());
 
 		Assert.assertSame(
 			UploadServletRequestImpl.class,
@@ -207,15 +285,17 @@ public class SPIAgentRequestTest {
 		Assert.assertSame(
 			fileItems, populatedFileParameters.get(fileParameter));
 		Assert.assertTrue(populatedRegularParameters.isEmpty());
+		Assert.assertEquals(-1, populateHttpServletRequest.getContentLength());
+		Assert.assertNull(populateHttpServletRequest.getContentType());
+		Assert.assertNull(populateHttpServletRequest.getInputStream());
 
 		// Upload servlet request with multipart and regular data
 
-		Map<String, List<String>> regularParameters =
-			new HashMap<String, List<String>>();
+		Map<String, List<String>> regularParameters = new HashMap<>();
 
 		String regularParameter = "regularParameter";
 
-		List<String> parameters = new ArrayList<String>();
+		List<String> parameters = new ArrayList<>();
 
 		regularParameters.put(regularParameter, parameters);
 
@@ -224,7 +304,7 @@ public class SPIAgentRequestTest {
 				_mockHttpServletRequest, fileParameters, regularParameters));
 
 		populateHttpServletRequest = spiAgentRequest.populateRequest(
-			new MockHttpServletRequest());
+			new BackwardCompatibleMockHttpServletRequest());
 
 		Assert.assertSame(
 			UploadServletRequestImpl.class,
@@ -244,6 +324,9 @@ public class SPIAgentRequestTest {
 		Assert.assertEquals(1, populatedRegularParameters.size());
 		Assert.assertSame(
 			parameters, populatedRegularParameters.get(regularParameter));
+		Assert.assertEquals(-1, populateHttpServletRequest.getContentLength());
+		Assert.assertNull(populateHttpServletRequest.getContentType());
+		Assert.assertNull(populateHttpServletRequest.getInputStream());
 
 		// Upload servlet request with regular data
 
@@ -253,7 +336,7 @@ public class SPIAgentRequestTest {
 				regularParameters));
 
 		populateHttpServletRequest = spiAgentRequest.populateRequest(
-			new MockHttpServletRequest());
+			new BackwardCompatibleMockHttpServletRequest());
 
 		Assert.assertSame(
 			UploadServletRequestImpl.class,
@@ -271,28 +354,75 @@ public class SPIAgentRequestTest {
 		Assert.assertEquals(1, populatedRegularParameters.size());
 		Assert.assertSame(
 			parameters, populatedRegularParameters.get(regularParameter));
+		Assert.assertEquals(-1, populateHttpServletRequest.getContentLength());
+		Assert.assertNull(populateHttpServletRequest.getContentType());
+		Assert.assertNull(populateHttpServletRequest.getInputStream());
+
+		// Not an upload servlet request
+
+		byte[] content = new byte[1024];
+
+		Random random = new Random();
+
+		random.nextBytes(content);
+
+		_mockHttpServletRequest.setContent(content);
+
+		spiAgentRequest = new SPIAgentRequest(
+			new HttpServletRequestWrapper(_mockHttpServletRequest));
+
+		Assert.assertEquals(
+			ContentTypes.MULTIPART_FORM_DATA, spiAgentRequest.contentType);
+		Assert.assertNotNull(spiAgentRequest.requestBodyFile);
+		Assert.assertArrayEquals(
+			content, FileUtil.getBytes(spiAgentRequest.requestBodyFile));
+
+		populateHttpServletRequest = spiAgentRequest.populateRequest(
+			new BackwardCompatibleMockHttpServletRequest());
+
+		Assert.assertEquals(
+			content.length, populateHttpServletRequest.getContentLength());
+		Assert.assertEquals(
+			ContentTypes.MULTIPART_FORM_DATA,
+			populateHttpServletRequest.getContentType());
+
+		ServletInputStream servletInputStream =
+			populateHttpServletRequest.getInputStream();
+
+		Assert.assertNotNull(servletInputStream);
+		Assert.assertArrayEquals(
+			content, FileUtil.getBytes(servletInputStream));
+
+		// Not an upload servlet request, unable to read
+
+		_mockHttpServletRequest.setContent(null);
+
+		try {
+			new SPIAgentRequest(
+				new HttpServletRequestWrapper(_mockHttpServletRequest));
+
+			Assert.fail();
+		}
+		catch (IllegalArgumentException iae) {
+			Assert.assertEquals("Input stream is null", iae.getMessage());
+		}
 	}
 
 	@Test
 	public void testContentTypeIsNotMultipart() throws Exception {
-		_mockHttpServletRequest.addHeader(
-			HttpHeaders.CONTENT_TYPE, ContentTypes.APPLICATION_GZIP);
+		_mockHttpServletRequest.setContentType(ContentTypes.APPLICATION_GZIP);
 
 		UploadServletRequestImpl uploadServletRequestImpl =
 			new UploadServletRequestImpl(_mockHttpServletRequest, null, null) {
 
 				@Override
 				public Map<String, FileItem[]> getMultipartParameterMap() {
-					Assert.fail();
-
-					return super.getMultipartParameterMap();
+					throw new Error();
 				}
 
 				@Override
 				public Map<String, List<String>> getRegularParameterMap() {
-					Assert.fail();
-
-					return super.getRegularParameterMap();
+					throw new Error();
 				}
 
 			};
@@ -328,13 +458,23 @@ public class SPIAgentRequestTest {
 		// Cookies
 
 		HttpServletRequest populatedHttpServletRequest =
-			spiAgentRequest.populateRequest(new MockHttpServletRequest());
+			spiAgentRequest.populateRequest(
+				new BackwardCompatibleMockHttpServletRequest());
+
+		Assert.assertNull(populatedHttpServletRequest.getCookies());
+
+		_mockHttpServletRequest.setCookies(_cookie1, _cookie2);
+
+		spiAgentRequest = new SPIAgentRequest(_mockHttpServletRequest);
+
+		populatedHttpServletRequest = spiAgentRequest.populateRequest(
+			new BackwardCompatibleMockHttpServletRequest());
 
 		Cookie[] cookies = populatedHttpServletRequest.getCookies();
 
 		Assert.assertEquals(2, cookies.length);
-		Assert.assertSame(_cookie1, cookies[0]);
-		Assert.assertSame(_cookie2, cookies[1]);
+		Assert.assertTrue(CookieUtil.equals(_cookie1, cookies[0]));
+		Assert.assertTrue(CookieUtil.equals(_cookie2, cookies[1]));
 
 		// Headers
 
@@ -353,9 +493,12 @@ public class SPIAgentRequestTest {
 			populatedHttpServletRequest.getHeaderNames());
 
 		Assert.assertEquals(3, headerNames.size());
-		Assert.assertTrue(headerNames.contains(_HEADER_NAME_1.toLowerCase()));
-		Assert.assertTrue(headerNames.contains(_HEADER_NAME_2.toLowerCase()));
-		Assert.assertTrue(headerNames.contains(_HEADER_NAME_3.toLowerCase()));
+		Assert.assertTrue(
+			headerNames.contains(StringUtil.toLowerCase(_HEADER_NAME_1)));
+		Assert.assertTrue(
+			headerNames.contains(StringUtil.toLowerCase(_HEADER_NAME_2)));
+		Assert.assertTrue(
+			headerNames.contains(StringUtil.toLowerCase(_HEADER_NAME_3)));
 
 		List<String> headers = ListUtil.fromEnumeration(
 			populatedHttpServletRequest.getHeaders(_HEADER_NAME_1));
@@ -418,9 +561,9 @@ public class SPIAgentRequestTest {
 			populatedHttpServletRequest.getParameterNames());
 
 		Assert.assertEquals(3, parameterNames.size());
-		Assert.assertEquals(_PARAMETER_NAME_1, parameterNames.get(0));
-		Assert.assertEquals(_PARAMETER_NAME_2, parameterNames.get(1));
-		Assert.assertEquals(_PARAMETER_NAME_3, parameterNames.get(2));
+		Assert.assertTrue(parameterNames.contains(_PARAMETER_NAME_1));
+		Assert.assertTrue(parameterNames.contains(_PARAMETER_NAME_2));
+		Assert.assertTrue(parameterNames.contains(_PARAMETER_NAME_3));
 
 		parameter1 = populatedHttpServletRequest.getParameterValues(
 			_PARAMETER_NAME_1);
@@ -440,6 +583,20 @@ public class SPIAgentRequestTest {
 			_PARAMETER_NAME_3);
 
 		Assert.assertEquals(0, parameter3.length);
+
+		// Remote address, host, port, and user
+
+		Assert.assertEquals(
+			_REMOTE_ADDR, populatedHttpServletRequest.getRemoteAddr());
+
+		Assert.assertEquals(
+			_REMOTE_HOST, populatedHttpServletRequest.getRemoteHost());
+
+		Assert.assertEquals(
+			_REMOTE_PORT, populatedHttpServletRequest.getRemotePort());
+
+		Assert.assertEquals(
+			_REMOTE_USER, populatedHttpServletRequest.getRemoteUser());
 
 		// Server name
 
@@ -478,7 +635,7 @@ public class SPIAgentRequestTest {
 		StringBundler sb = new StringBundler(
 			13 + cookies.length * 2 + parameterMap.size() * 4);
 
-		sb.append("{cookies=[");
+		sb.append("{contentType=null, cookies=[");
 
 		for (Cookie cookie : cookies) {
 			sb.append(CookieUtil.toString(cookie));
@@ -489,10 +646,9 @@ public class SPIAgentRequestTest {
 
 		sb.append("], distributedRequestAttributes=");
 		sb.append(spiAgentRequest.distributedRequestAttributes);
-		sb.append(", _headerMap=");
+		sb.append(", headerMap=");
 		sb.append(spiAgentRequest.headerMap);
-		sb.append(", _multipartParameterMap=null");
-		sb.append(", originalSessionAttributes=");
+		sb.append(", multipartParameterMap=null, originalSessionAttributes=");
 		sb.append(spiAgentRequest.getOriginalSessionAttributes());
 		sb.append(", parameterMap={");
 
@@ -505,10 +661,10 @@ public class SPIAgentRequestTest {
 
 		sb.setIndex(sb.index() - 1);
 
-		sb.append("}, _regularParameterMap=null");
-		sb.append(", _serverName=");
+		sb.append("}, regularParameterMap=null, requestBodyFile=null, ");
+		sb.append("serverName=");
 		sb.append(_SERVER_NAME);
-		sb.append(", _serverPort=");
+		sb.append(", serverPort=");
 		sb.append(_SERVER_PORT);
 		sb.append("}");
 
@@ -520,12 +676,12 @@ public class SPIAgentRequestTest {
 
 		sb = new StringBundler(13 + parameterMap.size() * 4);
 
-		sb.append("{cookies=[], distributedRequestAttributes=");
+		sb.append("{contentType=null, cookies=[], ");
+		sb.append("distributedRequestAttributes=");
 		sb.append(spiAgentRequest.distributedRequestAttributes);
-		sb.append(", _headerMap=");
+		sb.append(", headerMap=");
 		sb.append(spiAgentRequest.headerMap);
-		sb.append(", _multipartParameterMap=null");
-		sb.append(", originalSessionAttributes=");
+		sb.append(", multipartParameterMap=null, originalSessionAttributes=");
 		sb.append(spiAgentRequest.getOriginalSessionAttributes());
 		sb.append(", parameterMap={");
 
@@ -538,14 +694,305 @@ public class SPIAgentRequestTest {
 
 		sb.setIndex(sb.index() - 1);
 
-		sb.append("}, _regularParameterMap=null");
-		sb.append(", _serverName=");
+		sb.append("}, regularParameterMap=null, requestBodyFile=null, ");
+		sb.append("serverName=");
 		sb.append(_SERVER_NAME);
-		sb.append(", _serverPort=");
+		sb.append(", serverPort=");
 		sb.append(_SERVER_PORT);
 		sb.append("}");
 
 		Assert.assertEquals(sb.toString(), spiAgentRequest.toString());
+	}
+
+	@Test
+	public void testPopulatePortletSessionAttributes1() {
+
+		// Not an SPI
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest();
+
+		MockHttpSession mockHttpSession = new MockHttpSession();
+
+		SPIAgentRequest.populatePortletSessionAttributes(
+			mockHttpServletRequest, mockHttpSession);
+
+		Enumeration<String> enumeration =
+			mockHttpServletRequest.getAttributeNames();
+
+		Assert.assertFalse(enumeration.hasMoreElements());
+
+		enumeration = mockHttpSession.getAttributeNames();
+
+		Assert.assertFalse(enumeration.hasMoreElements());
+	}
+
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
+	@Test
+	public void testPopulatePortletSessionAttributes2() {
+
+		// SPI, already populated
+
+		ConcurrentMap<String, Object> attributes =
+			LocalProcessLauncher.ProcessContext.getAttributes();
+
+		attributes.put(SPI.SPI_INSTANCE_PUBLICATION_KEY, new MockSPI());
+
+		final List<String> names = new ArrayList<>();
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest() {
+
+				@Override
+				public Object getAttribute(String name) {
+					names.add(name);
+
+					return super.getAttribute(name);
+				}
+
+			};
+
+		MockHttpSession mockHttpSession = new MockHttpSession();
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.PORTLET_SESSION, mockHttpSession);
+
+		SPIAgentRequest.populatePortletSessionAttributes(
+			mockHttpServletRequest, mockHttpSession);
+
+		Assert.assertEquals(1, names.size());
+		Assert.assertEquals(WebKeys.PORTLET_SESSION, names.get(0));
+
+		Enumeration<String> enumeration =
+			mockHttpServletRequest.getAttributeNames();
+
+		Assert.assertTrue(enumeration.hasMoreElements());
+		Assert.assertEquals(WebKeys.PORTLET_SESSION, enumeration.nextElement());
+		Assert.assertFalse(enumeration.hasMoreElements());
+
+		enumeration = mockHttpSession.getAttributeNames();
+
+		Assert.assertFalse(enumeration.hasMoreElements());
+	}
+
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
+	@Test
+	public void testPopulatePortletSessionAttributes3() {
+
+		// SPI, not populated, no SPI agent request
+
+		ConcurrentMap<String, Object> attributes =
+			LocalProcessLauncher.ProcessContext.getAttributes();
+
+		attributes.put(SPI.SPI_INSTANCE_PUBLICATION_KEY, new MockSPI());
+
+		final List<String> names = new ArrayList<>();
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest() {
+
+				@Override
+				public Object getAttribute(String name) {
+					names.add(name);
+
+					return super.getAttribute(name);
+				}
+
+			};
+
+		MockHttpSession mockHttpSession = new MockHttpSession();
+
+		SPIAgentRequest.populatePortletSessionAttributes(
+			mockHttpServletRequest, mockHttpSession);
+
+		Assert.assertEquals(2, names.size());
+		Assert.assertEquals(WebKeys.PORTLET_SESSION, names.get(0));
+		Assert.assertEquals(WebKeys.SPI_AGENT_REQUEST, names.get(1));
+
+		Enumeration<String> enumeration =
+			mockHttpServletRequest.getAttributeNames();
+
+		Assert.assertFalse(enumeration.hasMoreElements());
+
+		enumeration = mockHttpSession.getAttributeNames();
+
+		Assert.assertFalse(enumeration.hasMoreElements());
+	}
+
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
+	@Test
+	public void testPopulatePortletSessionAttributes4() throws IOException {
+
+		// SPI, not populated, with an SPI agent request, no portlet session
+		// attributes
+
+		ConcurrentMap<String, Object> attributes =
+			LocalProcessLauncher.ProcessContext.getAttributes();
+
+		attributes.put(SPI.SPI_INSTANCE_PUBLICATION_KEY, new MockSPI());
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest();
+
+		MockHttpServletRequest originalMockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest();
+
+		final String servletContextName = "servletContextName";
+
+		Portlet portlet = new PortletImpl() {
+
+			@Override
+			public String getContextName() {
+				return servletContextName;
+			}
+
+		};
+
+		originalMockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_PORTLET, portlet);
+
+		SPIAgentRequest spiAgentRequest = new SPIAgentRequest(
+			originalMockHttpServletRequest);
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_REQUEST, spiAgentRequest);
+
+		MockHttpSession mockHttpSession = new MockHttpSession();
+
+		SPIAgentRequest.populatePortletSessionAttributes(
+			mockHttpServletRequest, mockHttpSession);
+
+		Assert.assertSame(
+			mockHttpSession,
+			mockHttpServletRequest.getAttribute(WebKeys.PORTLET_SESSION));
+
+		Enumeration<String> enumeration = mockHttpSession.getAttributeNames();
+
+		Assert.assertFalse(enumeration.hasMoreElements());
+	}
+
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
+	@Test
+	public void testPopulatePortletSessionAttributes5() throws IOException {
+
+		// SPI, not populated, with an SPI agent request, with portlet session
+		// attributes
+
+		ConcurrentMap<String, Object> attributes =
+			LocalProcessLauncher.ProcessContext.getAttributes();
+
+		attributes.put(SPI.SPI_INSTANCE_PUBLICATION_KEY, new MockSPI());
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest();
+
+		MockHttpServletRequest originalMockHttpServletRequest =
+			new BackwardCompatibleMockHttpServletRequest();
+
+		final String servletContextName = "servletContextName";
+
+		Portlet portlet = new PortletImpl() {
+
+			@Override
+			public String getContextName() {
+				return servletContextName;
+			}
+
+		};
+
+		originalMockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_PORTLET, portlet);
+
+		MockHttpSession originalHttpSession = new MockHttpSession();
+
+		Map<String, Serializable> portletSessionAttributes = new HashMap<>();
+
+		portletSessionAttributes.put("key1", "value1");
+		portletSessionAttributes.put("key2", "value2");
+		portletSessionAttributes.put("key3", "value3");
+
+		originalHttpSession.setAttribute(
+			WebKeys.PORTLET_SESSION_ATTRIBUTES.concat(servletContextName),
+			portletSessionAttributes);
+
+		originalMockHttpServletRequest.setSession(originalHttpSession);
+
+		SPIAgentRequest spiAgentRequest = new SPIAgentRequest(
+			originalMockHttpServletRequest);
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.SPI_AGENT_REQUEST, spiAgentRequest);
+
+		MockHttpSession mockHttpSession = new MockHttpSession();
+
+		mockHttpSession.setAttribute("key4", "value4");
+		mockHttpSession.setAttribute("key5", "value5");
+		mockHttpSession.setAttribute("key6", "value6");
+
+		SPIAgentRequest.populatePortletSessionAttributes(
+			mockHttpServletRequest, mockHttpSession);
+
+		Assert.assertSame(
+			mockHttpSession,
+			mockHttpServletRequest.getAttribute(WebKeys.PORTLET_SESSION));
+		Assert.assertEquals("value1", mockHttpSession.getAttribute("key1"));
+		Assert.assertEquals("value2", mockHttpSession.getAttribute("key2"));
+		Assert.assertEquals("value3", mockHttpSession.getAttribute("key3"));
+
+		Enumeration<String> enumeration = mockHttpSession.getAttributeNames();
+
+		Assert.assertTrue(enumeration.hasMoreElements());
+		Assert.assertNotNull(enumeration.nextElement());
+		Assert.assertTrue(enumeration.hasMoreElements());
+		Assert.assertNotNull(enumeration.nextElement());
+		Assert.assertTrue(enumeration.hasMoreElements());
+		Assert.assertNotNull(enumeration.nextElement());
+		Assert.assertFalse(enumeration.hasMoreElements());
+	}
+
+	@Test
+	public void testShowFooter() throws IOException {
+
+		// No theme display
+
+		_mockHttpServletRequest.setParameter(
+			"portalResiliencyPortletShowFooter", StringPool.TRUE);
+
+		SPIAgentRequest spiAgentRequest = new SPIAgentRequest(
+			_mockHttpServletRequest);
+
+		Map<String, String[]> parameterMap = spiAgentRequest.parameterMap;
+
+		Assert.assertArrayEquals(
+			new String[] {StringPool.TRUE},
+			parameterMap.get("portalResiliencyPortletShowFooter"));
+
+		// Has theme display, without ajax
+
+		ThemeDisplay themeDisplay = new ThemeDisplay();
+
+		_mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, themeDisplay);
+
+		spiAgentRequest = new SPIAgentRequest(_mockHttpServletRequest);
+
+		parameterMap = spiAgentRequest.parameterMap;
+
+		Assert.assertArrayEquals(
+			new String[] {StringPool.TRUE},
+			parameterMap.get("portalResiliencyPortletShowFooter"));
+
+		// Has theme display, with ajax
+
+		themeDisplay.setAjax(true);
+
+		spiAgentRequest = new SPIAgentRequest(_mockHttpServletRequest);
+
+		parameterMap = spiAgentRequest.parameterMap;
+
+		Assert.assertArrayEquals(
+			new String[] {StringPool.FALSE},
+			parameterMap.get("portalResiliencyPortletShowFooter"));
 	}
 
 	private static final String _HEADER_NAME_1 = "HEADER_NAME_1";
@@ -580,6 +1027,14 @@ public class SPIAgentRequestTest {
 
 	private static final String _PARAMETER_VALUE_4 = "PARAMETER_VALUE_4";
 
+	private static final String _REMOTE_ADDR = "192.168.1.10";
+
+	private static final String _REMOTE_HOST = "192.168.1.10";
+
+	private static final int _REMOTE_PORT = 12345;
+
+	private static final String _REMOTE_USER = "testUser";
+
 	private static final String _SERVER_NAME = "SERVER_NAME";
 
 	private static final int _SERVER_PORT = 1023;
@@ -601,10 +1056,35 @@ public class SPIAgentRequestTest {
 
 	private static final Object _SESSION_ATTRIBUTE_VALUE_3 = new Object();
 
-	private static Cookie _cookie1 = new Cookie("name1", "value1");
-	private static Cookie _cookie2 = new Cookie("name2", "value2");
-	private static ThreadLocal<String> _threadLocal = new ThreadLocal<String>();
+	private static final Cookie _cookie1 = new Cookie("name1", "value1");
+	private static final Cookie _cookie2 = new Cookie("name2", "value2");
+	private static final ThreadLocal<String> _threadLocal = new ThreadLocal<>();
 
+	private CaptureHandler _captureHandler;
 	private MockHttpServletRequest _mockHttpServletRequest;
+
+	private static class BackwardCompatibleMockHttpServletRequest
+		extends MockHttpServletRequest {
+
+		@Override
+		public ServletInputStream getInputStream() {
+			if (_content == null) {
+				return null;
+			}
+
+			return new ServletInputStreamAdapter(
+				new UnsyncByteArrayInputStream(_content));
+		}
+
+		@Override
+		public void setContent(byte[] content) {
+			super.setContent(content);
+
+			_content = content;
+		}
+
+		private byte[] _content;
+
+	}
 
 }

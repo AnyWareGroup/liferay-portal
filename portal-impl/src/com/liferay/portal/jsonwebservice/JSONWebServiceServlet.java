@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,18 +16,15 @@ package com.liferay.portal.jsonwebservice;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.servlet.PluginContextListener;
-import com.liferay.portal.kernel.upload.UploadServletRequest;
-import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.security.ac.AccessControlThreadLocal;
 import com.liferay.portal.servlet.JSONServlet;
+import com.liferay.portal.spring.context.PortalContextLoaderListener;
 import com.liferay.portal.struts.JSONAction;
-import com.liferay.portal.upload.UploadServletRequestImpl;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
 
 import java.io.IOException;
@@ -39,7 +36,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 /**
  * @author Igor Spasic
@@ -47,27 +43,14 @@ import javax.servlet.http.HttpSession;
 public class JSONWebServiceServlet extends JSONServlet {
 
 	@Override
-	public void destroy() {
-		_jsonWebServiceServiceAction.destroy();
-
-		super.destroy();
-	}
-
-	@Override
 	public void service(
 			HttpServletRequest request, HttpServletResponse response)
 		throws IOException, ServletException {
 
-		if (PortalUtil.isMultipartRequest(request)) {
-			UploadServletRequest uploadServletRequest =
-				new UploadServletRequestImpl(request);
-
-			request = uploadServletRequest;
-		}
-
 		String path = GetterUtil.getString(request.getPathInfo());
 
-		if ((!path.equals(StringPool.BLANK) &&
+		if (!PropsValues.JSONWS_WEB_SERVICE_API_DISCOVERABLE ||
+			(!path.equals(StringPool.BLANK) &&
 			 !path.equals(StringPool.SLASH)) ||
 			(request.getParameter("discover") != null)) {
 
@@ -84,63 +67,39 @@ public class JSONWebServiceServlet extends JSONServlet {
 			_log.debug("Servlet context " + request.getContextPath());
 		}
 
-		String apiPath = PortalUtil.getPathMain() + "/portal/api/jsonws";
+		String portalContextPath =
+			PortalContextLoaderListener.getPortalServletContextPath();
 
-		HttpSession session = request.getSession();
+		String requestContextPath = request.getContextPath();
 
-		ServletContext servletContext = session.getServletContext();
+		if (requestContextPath.equals(portalContextPath)) {
+			RequestDispatcher requestDispatcher = request.getRequestDispatcher(
+				Portal.PATH_MAIN + "/portal/api/jsonws");
 
-		boolean remoteAccess = AccessControlThreadLocal.isRemoteAccess();
-
-		try {
-			AccessControlThreadLocal.setRemoteAccess(true);
-
-			String contextPath = PropsValues.PORTAL_CTX;
-
-			if (servletContext.getContext(contextPath) != null) {
-				if (!contextPath.equals(StringPool.SLASH) &&
-					apiPath.startsWith(contextPath)) {
-
-					apiPath = apiPath.substring(contextPath.length());
-				}
-
-				RequestDispatcher requestDispatcher =
-					request.getRequestDispatcher(apiPath);
-
-				requestDispatcher.forward(request, response);
-			}
-			else {
-				String servletContextPath = ContextPathUtil.getContextPath(
-					servletContext);
-
-				String redirectPath =
-					"/api/jsonws?contextPath=" +
-						HttpUtil.encodeURL(servletContextPath);
-
-				response.sendRedirect(redirectPath);
-			}
+			requestDispatcher.forward(request, response);
 		}
-		finally {
-			AccessControlThreadLocal.setRemoteAccess(remoteAccess);
+		else {
+			ServletContext servletContext = getServletContext();
+
+			String redirectPath =
+				PortalUtil.getPathContext() + "/api/jsonws?contextName=" +
+					HttpUtil.encodeURL(servletContext.getServletContextName());
+
+			response.sendRedirect(redirectPath);
 		}
 	}
 
 	@Override
 	protected JSONAction getJSONAction(ServletContext servletContext) {
-		ClassLoader classLoader = (ClassLoader)servletContext.getAttribute(
-			PluginContextListener.PLUGIN_CLASS_LOADER);
+		JSONWebServiceServiceAction jsonWebServiceServiceAction =
+			new JSONWebServiceServiceAction();
 
-		_jsonWebServiceServiceAction = new JSONWebServiceServiceAction(
-			servletContext, classLoader);
+		jsonWebServiceServiceAction.setServletContext(servletContext);
 
-		_jsonWebServiceServiceAction.setServletContext(servletContext);
-
-		return _jsonWebServiceServiceAction;
+		return jsonWebServiceServiceAction;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		JSONWebServiceServlet.class);
-
-	private JSONWebServiceServiceAction _jsonWebServiceServiceAction;
 
 }

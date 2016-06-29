@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,21 +14,27 @@
 
 package com.liferay.portlet.messageboards.model.impl;
 
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.message.boards.kernel.constants.MBConstants;
+import com.liferay.message.boards.kernel.model.MBCategory;
+import com.liferay.message.boards.kernel.model.MBCategoryConstants;
+import com.liferay.message.boards.kernel.model.MBMessage;
+import com.liferay.message.boards.kernel.model.MBThread;
+import com.liferay.message.boards.kernel.service.MBCategoryLocalServiceUtil;
+import com.liferay.message.boards.kernel.service.MBMessageLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lock.Lock;
+import com.liferay.portal.kernel.lock.LockManagerUtil;
+import com.liferay.portal.kernel.model.Repository;
+import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.model.Lock;
-import com.liferay.portal.model.Repository;
-import com.liferay.portal.portletfilerepository.PortletFileRepositoryUtil;
-import com.liferay.portal.service.LockLocalServiceUtil;
-import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
-import com.liferay.portlet.messageboards.model.MBCategory;
-import com.liferay.portlet.messageboards.model.MBMessage;
-import com.liferay.portlet.messageboards.model.MBThread;
-import com.liferay.portlet.messageboards.service.MBCategoryLocalServiceUtil;
-import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Brian Wing Shun Chan
@@ -36,13 +42,8 @@ import com.liferay.portlet.messageboards.service.MBMessageLocalServiceUtil;
  */
 public class MBThreadImpl extends MBThreadBaseImpl {
 
-	public MBThreadImpl() {
-	}
-
 	@Override
-	public Folder addAttachmentsFolder()
-		throws PortalException, SystemException {
-
+	public Folder addAttachmentsFolder() throws PortalException {
 		if (_attachmentsFolderId !=
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
@@ -56,7 +57,7 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 		serviceContext.setAddGuestPermissions(true);
 
 		Repository repository = PortletFileRepositoryUtil.addPortletRepository(
-			getGroupId(), PortletKeys.MESSAGE_BOARDS, serviceContext);
+			getGroupId(), MBConstants.SERVICE_NAME, serviceContext);
 
 		MBMessage message = MBMessageLocalServiceUtil.getMessage(
 			getRootMessageId());
@@ -72,7 +73,7 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
-	public long getAttachmentsFolderId() throws SystemException {
+	public long getAttachmentsFolderId() {
 		if (_attachmentsFolderId !=
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
@@ -86,7 +87,7 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 
 		Repository repository =
 			PortletFileRepositoryUtil.fetchPortletRepository(
-				getGroupId(), PortletKeys.MESSAGE_BOARDS);
+				getGroupId(), MBConstants.SERVICE_NAME);
 
 		if (repository == null) {
 			return DLFolderConstants.DEFAULT_PARENT_FOLDER_ID;
@@ -94,9 +95,9 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 
 		try {
 			Folder folder = PortletFileRepositoryUtil.getPortletFolder(
-				getUserId(), repository.getRepositoryId(),
+				repository.getRepositoryId(),
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
-				String.valueOf(getThreadId()), serviceContext);
+				String.valueOf(getThreadId()));
 
 			_attachmentsFolderId = folder.getFolderId();
 		}
@@ -107,9 +108,23 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
+	public MBCategory getCategory() throws PortalException {
+		long parentCategoryId = getCategoryId();
+
+		if ((parentCategoryId ==
+				MBCategoryConstants.DEFAULT_PARENT_CATEGORY_ID) ||
+			(parentCategoryId == MBCategoryConstants.DISCUSSION_CATEGORY_ID)) {
+
+			return null;
+		}
+
+		return MBCategoryLocalServiceUtil.getCategory(getCategoryId());
+	}
+
+	@Override
 	public Lock getLock() {
 		try {
-			return LockLocalServiceUtil.getLock(
+			return LockManagerUtil.getLock(
 				MBThread.class.getName(), getThreadId());
 		}
 		catch (Exception e) {
@@ -119,26 +134,23 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
-	public MBCategory getTrashContainer() {
-		try {
-			MBCategory category = MBCategoryLocalServiceUtil.getCategory(
-				getCategoryId());
+	public long[] getParticipantUserIds() {
+		Set<Long> participantUserIds = new HashSet<>();
 
-			if (category.isInTrash()) {
-				return category;
-			}
+		List<MBMessage> messages = MBMessageLocalServiceUtil.getThreadMessages(
+			getThreadId(), WorkflowConstants.STATUS_ANY);
 
-			return category.getTrashContainer();
+		for (MBMessage message : messages) {
+			participantUserIds.add(message.getUserId());
 		}
-		catch (Exception e) {
-			return null;
-		}
+
+		return ArrayUtil.toLongArray(participantUserIds);
 	}
 
 	@Override
 	public boolean hasLock(long userId) {
 		try {
-			return LockLocalServiceUtil.hasLock(
+			return LockManagerUtil.hasLock(
 				userId, MBThread.class.getName(), getThreadId());
 		}
 		catch (Exception e) {
@@ -148,23 +160,13 @@ public class MBThreadImpl extends MBThreadBaseImpl {
 	}
 
 	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	@Override
 	public boolean isLocked() {
 		try {
-			if (isInTrash() || isInTrashContainer()) {
+			if (isInTrash()) {
 				return true;
 			}
 
-			return LockLocalServiceUtil.isLocked(
+			return LockManagerUtil.isLocked(
 				MBThread.class.getName(), getThreadId());
 		}
 		catch (Exception e) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,13 +16,13 @@ package com.liferay.portal.model.impl;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.PluginSetting;
+import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.model.PluginSetting;
-import com.liferay.portal.model.RoleConstants;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
@@ -70,25 +70,24 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 			if (_rolesArray.length == 0) {
 				return true;
 			}
-			else if (RoleLocalServiceUtil.hasUserRoles(
-						userId, getCompanyId(), _rolesArray, true)) {
+
+			if (RoleLocalServiceUtil.hasUserRoles(
+					userId, getCompanyId(), _rolesArray, true)) {
 
 				return true;
 			}
-			else if (RoleLocalServiceUtil.hasUserRole(
-						userId, getCompanyId(), RoleConstants.ADMINISTRATOR,
-						true)) {
+
+			if (RoleLocalServiceUtil.hasUserRole(
+					userId, getCompanyId(), RoleConstants.ADMINISTRATOR,
+					true)) {
 
 				return true;
 			}
-			else {
-				User user = UserLocalServiceUtil.getUserById(userId);
 
-				if (user.isDefaultUser() &&
-					hasRoleWithName(RoleConstants.GUEST)) {
+			User user = UserLocalServiceUtil.getUserById(userId);
 
-					return true;
-				}
+			if (user.isDefaultUser() && hasRoleWithName(RoleConstants.GUEST)) {
+				return true;
 			}
 		}
 		catch (Exception e) {
@@ -109,7 +108,7 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	@Override
 	public boolean hasRoleWithName(String roleName) {
 		for (int i = 0; i < _rolesArray.length; i++) {
-			if (_rolesArray[i].equalsIgnoreCase(roleName)) {
+			if (StringUtil.equalsIgnoreCase(_rolesArray[i], roleName)) {
 				return true;
 			}
 		}
@@ -140,7 +139,8 @@ public class PluginSettingImpl extends PluginSettingBaseImpl {
 	/**
 	 * Log instance for this class.
 	 */
-	private static Log _log = LogFactoryUtil.getLog(PluginSettingImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		PluginSettingImpl.class);
 
 	/**
 	 * An array of required roles of the plugin.

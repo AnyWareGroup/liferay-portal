@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,86 +14,95 @@
 
 package com.liferay.portal.search;
 
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.BaseIndexerPostProcessor;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
+import com.liferay.portal.kernel.search.IndexSearcherHelperUtil;
 import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerPostProcessor;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.Query;
+import com.liferay.portal.kernel.search.QueryConfig;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.SortFactoryUtil;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.IdempotentRetryAssert;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.rule.Sync;
+import com.liferay.portal.kernel.test.rule.SynchronousDestinationTestRule;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.SearchContextTestUtil;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.Sync;
-import com.liferay.portal.test.SynchronousDestinationExecutionTestListener;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.UserTestUtil;
-import com.liferay.portlet.usersadmin.util.UserIndexer;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Daniel Sanz
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		SynchronousDestinationExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 @Sync
 public class DocumentImplTest {
 
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			SynchronousDestinationTestRule.INSTANCE);
+
 	@Before
 	public void setUp() throws Exception {
-		_indexer = IndexerRegistryUtil.getIndexer(UserIndexer.class);
+		_group = GroupTestUtil.addGroup();
 
-		_indexer.registerIndexerPostProcessor(
-			new BaseIndexerPostProcessor() {
+		_indexer = IndexerRegistryUtil.getIndexer(User.class);
 
-				@Override
-				public void postProcessDocument(Document document, Object obj)
-					throws Exception {
+		_indexerPostProcessor = new BaseIndexerPostProcessor() {
 
-					String screenName = document.get("screenName");
+			@Override
+			public void postProcessDocument(Document document, Object obj)
+				throws Exception {
 
-					document.addNumber(
-						_FIELD_DOUBLE_ARRAY, _doubleArrays.get(screenName));
-					document.addNumber(
-						_FIELD_FLOAT_ARRAY, _floatArrays.get(screenName));
-					document.addNumber(
-						_FIELD_INTEGER_ARRAY, _integerArrays.get(screenName));
-					document.addNumber(
-						_FIELD_LONG_ARRAY, _longArrays.get(screenName));
-					document.addNumber(_FIELD_DOUBLE, _doubles.get(screenName));
-					document.addNumber(_FIELD_FLOAT, _floats.get(screenName));
-					document.addNumber(
-						_FIELD_INTEGER, _integers.get(screenName));
-					document.addNumber(_FIELD_LONG, _longs.get(screenName));
-				}
+				String screenName = document.get("screenName");
 
+				document.addNumber(
+					_FIELD_DOUBLE_ARRAY, _doubleArrays.get(screenName));
+				document.addNumber(
+					_FIELD_FLOAT_ARRAY, _floatArrays.get(screenName));
+				document.addNumber(
+					_FIELD_INTEGER_ARRAY, _integerArrays.get(screenName));
+				document.addNumber(
+					_FIELD_LONG_ARRAY, _longArrays.get(screenName));
+				document.addNumber(_FIELD_DOUBLE, _doubles.get(screenName));
+				document.addNumber(_FIELD_FLOAT, _floats.get(screenName));
+				document.addNumber(_FIELD_INTEGER, _integers.get(screenName));
+				document.addNumber(_FIELD_LONG, _longs.get(screenName));
 			}
-		);
+
+		};
+
+		_indexer.registerIndexerPostProcessor(_indexerPostProcessor);
 
 		populateNumbers();
 
@@ -102,10 +111,15 @@ public class DocumentImplTest {
 				"user", StringPool.BLANK);
 
 			User user = UserTestUtil.addUser(
-				screenName, false, firstName, "Smith", null);
+				screenName, LocaleUtil.getDefault(), firstName, "Smith", null);
 
 			_indexer.reindex(user);
 		}
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		_indexer.unregisterIndexerPostProcessor(_indexerPostProcessor);
 	}
 
 	@Test
@@ -224,14 +238,41 @@ public class DocumentImplTest {
 			"Smith", _SCREEN_NAMES_ASCENDING, _FIELD_LONG, Sort.LONG_TYPE);
 	}
 
+	protected void assertSort(
+			Sort sort, Query query, SearchContext searchContext,
+			String... screenNames)
+		throws Exception {
+
+		Hits results = IndexSearcherHelperUtil.search(searchContext, query);
+
+		List<String> searchResultValues = new ArrayList<>(screenNames.length);
+		List<String> screenNamesList = new ArrayList<>(screenNames.length);
+
+		for (int i = 0; i < screenNames.length; i++) {
+			Document document = results.doc(i);
+
+			searchResultValues.add(document.get(sort.getFieldName()));
+
+			screenNamesList.add(document.get("screenName"));
+		}
+
+		Assert.assertEquals(
+			StringUtil.merge(searchResultValues), StringUtil.merge(screenNames),
+			StringUtil.merge(screenNamesList));
+	}
+
 	protected SearchContext buildSearchContext(String keywords)
 		throws Exception {
 
-		SearchContext searchContext = ServiceTestUtil.getSearchContext();
+		SearchContext searchContext = SearchContextTestUtil.getSearchContext();
 
 		searchContext.setAttribute(Field.STATUS, WorkflowConstants.STATUS_ANY);
 		searchContext.setKeywords(keywords);
-		searchContext.setGroupIds(new long[] {});
+		searchContext.setGroupIds(new long[0]);
+
+		QueryConfig queryConfig = searchContext.getQueryConfig();
+
+		queryConfig.setSelectedFieldNames(getSelectedFieldNames());
 
 		return searchContext;
 	}
@@ -239,7 +280,7 @@ public class DocumentImplTest {
 	protected void checkSearchContext(SearchContext searchContext)
 		throws Exception {
 
-		Hits results = _indexer.search(searchContext);
+		Hits results = _indexer.search(searchContext, getSelectedFieldNames());
 
 		for (Document document : results.getDocs()) {
 			String screenName = document.get("screenName");
@@ -284,22 +325,30 @@ public class DocumentImplTest {
 	}
 
 	protected void checkSearchContext(
-			SearchContext searchContext, Sort sort, String[] screenNames)
+			final SearchContext searchContext, final Sort sort,
+			final String[] screenNames)
 		throws Exception {
 
-		Query query = _indexer.getFullQuery(searchContext);
+		QueryConfig queryConfig = searchContext.getQueryConfig();
 
-		Hits results = SearchEngineUtil.search(
-			searchContext.getSearchEngineId(), searchContext.getCompanyId(),
-			query, sort, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		queryConfig.setSelectedFieldNames(getSelectedFieldNames());
 
-		Assert.assertEquals(screenNames.length, results.getLength());
+		searchContext.setSorts(sort);
 
-		for (int i = 0; i < screenNames.length; i++) {
-			Document document = results.doc(i);
+		final Query query = _indexer.getFullQuery(searchContext);
 
-			Assert.assertEquals(screenNames[i], document.get("screenName"));
-		}
+		IdempotentRetryAssert.retryAssert(
+			10, TimeUnit.SECONDS,
+			new Callable<Void>() {
+
+				@Override
+				public Void call() throws Exception {
+					assertSort(sort, query, searchContext, screenNames);
+
+					return null;
+				}
+
+			});
 	}
 
 	protected void checkSearchContext(
@@ -324,7 +373,7 @@ public class DocumentImplTest {
 	}
 
 	protected Double[] getDoubleArray(Document document) {
-		List<Double> list = new ArrayList<Double>();
+		List<Double> list = new ArrayList<>();
 
 		for (String value : document.getValues(_FIELD_DOUBLE_ARRAY)) {
 			list.add(Double.valueOf(value));
@@ -334,7 +383,7 @@ public class DocumentImplTest {
 	}
 
 	protected Float[] getFloatArray(Document document) {
-		List<Float> list = new ArrayList<Float>();
+		List<Float> list = new ArrayList<>();
 
 		for (String value : document.getValues(_FIELD_FLOAT_ARRAY)) {
 			list.add(Float.valueOf(value));
@@ -344,7 +393,7 @@ public class DocumentImplTest {
 	}
 
 	protected Integer[] getIntegerArray(Document document) {
-		List<Integer> list = new ArrayList<Integer>();
+		List<Integer> list = new ArrayList<>();
 
 		for (String value : document.getValues(_FIELD_INTEGER_ARRAY)) {
 			list.add(Integer.valueOf(value));
@@ -354,13 +403,21 @@ public class DocumentImplTest {
 	}
 
 	protected Long[] getLongArray(Document document) {
-		List<Long> list = new ArrayList<Long>();
+		List<Long> list = new ArrayList<>();
 
 		for (String value : document.getValues(_FIELD_LONG_ARRAY)) {
 			list.add(Long.valueOf(value));
 		}
 
 		return list.toArray(new Long[list.size()]);
+	}
+
+	protected String[] getSelectedFieldNames() {
+		return new String[] {
+			_FIELD_DOUBLE, _FIELD_DOUBLE_ARRAY, _FIELD_FLOAT,
+			_FIELD_FLOAT_ARRAY, _FIELD_INTEGER, _FIELD_INTEGER_ARRAY,
+			_FIELD_LONG, _FIELD_LONG_ARRAY, "screenName"
+		};
 	}
 
 	protected void populateNumberArrays(
@@ -486,16 +543,19 @@ public class DocumentImplTest {
 	private static final String[] _SCREEN_NAMES_ODD_MIXED =
 		new String[] {"firstuser", "fifthuser", "thirduser"};
 
-	private Map<String, Double[]> _doubleArrays =
-		new HashMap<String, Double[]>();
-	private Map<String, Double> _doubles = new HashMap<String, Double>();
-	private Map<String, Float[]> _floatArrays = new HashMap<String, Float[]>();
-	private Map<String, Float> _floats = new HashMap<String, Float>();
-	private Indexer _indexer;
-	private Map<String, Integer[]> _integerArrays =
-		new HashMap<String, Integer[]>();
-	private Map<String, Integer> _integers = new HashMap<String, Integer>();
-	private Map<String, Long[]> _longArrays = new HashMap<String, Long[]>();
-	private Map<String, Long> _longs = new HashMap<String, Long>();
+	private final Map<String, Double[]> _doubleArrays = new HashMap<>();
+	private final Map<String, Double> _doubles = new HashMap<>();
+	private final Map<String, Float[]> _floatArrays = new HashMap<>();
+	private final Map<String, Float> _floats = new HashMap<>();
+
+	@DeleteAfterTestRun
+	private Group _group;
+
+	private Indexer<User> _indexer;
+	private IndexerPostProcessor _indexerPostProcessor;
+	private final Map<String, Integer[]> _integerArrays = new HashMap<>();
+	private final Map<String, Integer> _integers = new HashMap<>();
+	private final Map<String, Long[]> _longArrays = new HashMap<>();
+	private final Map<String, Long> _longs = new HashMap<>();
 
 }

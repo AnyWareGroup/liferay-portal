@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 /**
@@ -34,8 +35,10 @@ public class LayoutCloneFactory {
 					ClassLoaderUtil.getPortalClassLoader();
 
 				try {
-					_layoutClone = (LayoutClone)classLoader.loadClass(
-						PropsValues.LAYOUT_CLONE_IMPL).newInstance();
+					Class<?> clazz = classLoader.loadClass(
+						PropsValues.LAYOUT_CLONE_IMPL);
+
+					_layoutClone = (LayoutClone)clazz.newInstance();
 				}
 				catch (Exception e) {
 					_log.error(e, e);
@@ -44,14 +47,17 @@ public class LayoutCloneFactory {
 		}
 		else {
 			if (_log.isDebugEnabled()) {
-				_log.debug("Return " + _layoutClone.getClass().getName());
+				Class<?> clazz = _layoutClone.getClass();
+
+				_log.debug("Return " + clazz.getName());
 			}
 		}
 
 		return _layoutClone;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(LayoutCloneFactory.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		LayoutCloneFactory.class);
 
 	private static LayoutClone _layoutClone;
 

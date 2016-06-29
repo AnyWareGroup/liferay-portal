@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,7 @@ package com.liferay.portal.struts;
 
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.io.PrintWriter;
 
@@ -35,14 +35,14 @@ public abstract class AJAXAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		String text = null;
 
 		try {
-			text = getText(mapping, form, request, response);
+			text = getText(actionMapping, actionForm, request, response);
 		}
 		catch (Exception e) {
 			PortalUtil.sendError(
@@ -57,18 +57,16 @@ public abstract class AJAXAction extends Action {
 			HttpHeaders.CACHE_CONTROL,
 			HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE);
 
-		PrintWriter printWriter = response.getWriter();
-
-		printWriter.write(text);
-
-		printWriter.close();
+		try (PrintWriter printWriter = response.getWriter()) {
+			printWriter.write(text);
+		}
 
 		return null;
 	}
 
 	public abstract String getText(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception;
 
 }

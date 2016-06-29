@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,50 +14,59 @@
 
 package com.liferay.portlet.documentlibrary.model.impl;
 
+import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLFolderLocalServiceUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.model.Repository;
+import com.liferay.portal.kernel.service.RepositoryLocalServiceUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFolder;
-import com.liferay.portal.service.RepositoryLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
-import com.liferay.portlet.documentlibrary.model.DLFolder;
-import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
  */
 public class DLFileShortcutImpl extends DLFileShortcutBaseImpl {
 
-	public DLFileShortcutImpl() {
+	@Override
+	public String buildTreePath() throws PortalException {
+		if (getFolderId() == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return StringPool.SLASH;
+		}
+
+		DLFolder dlFolder = getDLFolder();
+
+		return dlFolder.buildTreePath();
 	}
 
 	@Override
-	public Folder getFolder() {
-		Folder folder = new LiferayFolder(new DLFolderImpl());
+	public DLFolder getDLFolder() throws PortalException {
+		Folder folder = getFolder();
 
-		if (getFolderId() > 0) {
-			try {
-				folder = DLAppLocalServiceUtil.getFolder(getFolderId());
-			}
-			catch (NoSuchFolderException nsfe) {
-				try {
-					if (!isInTrash()) {
-						_log.error(nsfe, nsfe);
-					}
-				}
-				catch (Exception e) {
-					_log.error(e, e);
-				}
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
+		return (DLFolder)folder.getModel();
+	}
+
+	@Override
+	public FileVersion getFileVersion() throws PortalException {
+		FileEntry fileEntry = DLAppLocalServiceUtil.getFileEntry(
+			getToFileEntryId());
+
+		return fileEntry.getFileVersion();
+	}
+
+	@Override
+	public Folder getFolder() throws PortalException {
+		if (getFolderId() <= 0) {
+			return new LiferayFolder(new DLFolderImpl());
 		}
 
-		return folder;
+		return DLAppLocalServiceUtil.getFolder(getFolderId());
 	}
 
 	@Override
@@ -75,19 +84,6 @@ public class DLFileShortcutImpl extends DLFileShortcutBaseImpl {
 		}
 
 		return toTitle;
-	}
-
-	@Override
-	public DLFolder getTrashContainer() {
-		Folder folder = getFolder();
-
-		DLFolder dlFolder = (DLFolder)folder.getModel();
-
-		if (dlFolder.isInTrash()) {
-			return dlFolder;
-		}
-
-		return dlFolder.getTrashContainer();
 	}
 
 	@Override
@@ -110,16 +106,7 @@ public class DLFileShortcutImpl extends DLFileShortcutBaseImpl {
 		return false;
 	}
 
-	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
-	private static Log _log = LogFactoryUtil.getLog(DLFileShortcutImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		DLFileShortcutImpl.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,10 @@
 
 package com.liferay.portal.struts;
 
-import javax.servlet.ServletRequest;
 import javax.servlet.jsp.PageContext;
 
-import org.apache.struts.taglib.tiles.ComponentConstants;
 import org.apache.struts.tiles.ComponentContext;
+import org.apache.struts.tiles.taglib.ComponentConstants;
 
 /**
  * @author Shuyang Zhou
@@ -27,14 +26,6 @@ public class TilesAttributeUtil {
 
 	public static Object getTilesAttribute(
 		PageContext pageContext, String tilesAttributeName) {
-
-		ServletRequest servletRequest = pageContext.getRequest();
-
-		String value = servletRequest.getParameter(tilesAttributeName);
-
-		if (value != null) {
-			return value;
-		}
 
 		ComponentContext componentContext =
 			(ComponentContext)pageContext.getAttribute(

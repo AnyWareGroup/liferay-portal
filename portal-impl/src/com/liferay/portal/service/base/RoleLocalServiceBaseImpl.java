@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,207 +14,66 @@
 
 package com.liferay.portal.service.base;
 
-import com.liferay.counter.service.CounterLocalService;
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.expando.kernel.service.persistence.ExpandoRowPersistence;
+
+import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
+import com.liferay.exportimport.kernel.lar.ManifestSummary;
+import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 
 import com.liferay.portal.kernel.bean.BeanReference;
-import com.liferay.portal.kernel.bean.IdentifiableBean;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.DefaultActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
+import com.liferay.portal.kernel.dao.orm.ExportActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Projection;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.module.framework.service.IdentifiableOSGiService;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
+import com.liferay.portal.kernel.service.BaseLocalServiceImpl;
+import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.persistence.ClassNamePersistence;
+import com.liferay.portal.kernel.service.persistence.CompanyPersistence;
+import com.liferay.portal.kernel.service.persistence.GroupFinder;
+import com.liferay.portal.kernel.service.persistence.GroupPersistence;
+import com.liferay.portal.kernel.service.persistence.LayoutFinder;
+import com.liferay.portal.kernel.service.persistence.LayoutPersistence;
+import com.liferay.portal.kernel.service.persistence.ResourceActionPersistence;
+import com.liferay.portal.kernel.service.persistence.ResourceBlockFinder;
+import com.liferay.portal.kernel.service.persistence.ResourceBlockPermissionPersistence;
+import com.liferay.portal.kernel.service.persistence.ResourceBlockPersistence;
+import com.liferay.portal.kernel.service.persistence.ResourcePermissionFinder;
+import com.liferay.portal.kernel.service.persistence.ResourcePermissionPersistence;
+import com.liferay.portal.kernel.service.persistence.ResourceTypePermissionFinder;
+import com.liferay.portal.kernel.service.persistence.ResourceTypePermissionPersistence;
+import com.liferay.portal.kernel.service.persistence.RoleFinder;
+import com.liferay.portal.kernel.service.persistence.RolePersistence;
+import com.liferay.portal.kernel.service.persistence.TeamFinder;
+import com.liferay.portal.kernel.service.persistence.TeamPersistence;
+import com.liferay.portal.kernel.service.persistence.UserFinder;
+import com.liferay.portal.kernel.service.persistence.UserGroupGroupRoleFinder;
+import com.liferay.portal.kernel.service.persistence.UserGroupGroupRolePersistence;
+import com.liferay.portal.kernel.service.persistence.UserGroupRoleFinder;
+import com.liferay.portal.kernel.service.persistence.UserGroupRolePersistence;
+import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.util.OrderByComparator;
-import com.liferay.portal.model.PersistedModel;
-import com.liferay.portal.model.Role;
-import com.liferay.portal.service.AccountLocalService;
-import com.liferay.portal.service.AccountService;
-import com.liferay.portal.service.AddressLocalService;
-import com.liferay.portal.service.AddressService;
-import com.liferay.portal.service.BaseLocalServiceImpl;
-import com.liferay.portal.service.BrowserTrackerLocalService;
-import com.liferay.portal.service.CMISRepositoryLocalService;
-import com.liferay.portal.service.ClassNameLocalService;
-import com.liferay.portal.service.ClassNameService;
-import com.liferay.portal.service.ClusterGroupLocalService;
-import com.liferay.portal.service.CompanyLocalService;
-import com.liferay.portal.service.CompanyService;
-import com.liferay.portal.service.ContactLocalService;
-import com.liferay.portal.service.ContactService;
-import com.liferay.portal.service.CountryService;
-import com.liferay.portal.service.EmailAddressLocalService;
-import com.liferay.portal.service.EmailAddressService;
-import com.liferay.portal.service.GroupLocalService;
-import com.liferay.portal.service.GroupService;
-import com.liferay.portal.service.ImageLocalService;
-import com.liferay.portal.service.ImageService;
-import com.liferay.portal.service.LayoutBranchLocalService;
-import com.liferay.portal.service.LayoutBranchService;
-import com.liferay.portal.service.LayoutFriendlyURLLocalService;
-import com.liferay.portal.service.LayoutLocalService;
-import com.liferay.portal.service.LayoutPrototypeLocalService;
-import com.liferay.portal.service.LayoutPrototypeService;
-import com.liferay.portal.service.LayoutRevisionLocalService;
-import com.liferay.portal.service.LayoutRevisionService;
-import com.liferay.portal.service.LayoutService;
-import com.liferay.portal.service.LayoutSetBranchLocalService;
-import com.liferay.portal.service.LayoutSetBranchService;
-import com.liferay.portal.service.LayoutSetLocalService;
-import com.liferay.portal.service.LayoutSetPrototypeLocalService;
-import com.liferay.portal.service.LayoutSetPrototypeService;
-import com.liferay.portal.service.LayoutSetService;
-import com.liferay.portal.service.LayoutTemplateLocalService;
-import com.liferay.portal.service.ListTypeService;
-import com.liferay.portal.service.LockLocalService;
-import com.liferay.portal.service.MembershipRequestLocalService;
-import com.liferay.portal.service.MembershipRequestService;
-import com.liferay.portal.service.OrgLaborLocalService;
-import com.liferay.portal.service.OrgLaborService;
-import com.liferay.portal.service.OrganizationLocalService;
-import com.liferay.portal.service.OrganizationService;
-import com.liferay.portal.service.PasswordPolicyLocalService;
-import com.liferay.portal.service.PasswordPolicyRelLocalService;
-import com.liferay.portal.service.PasswordPolicyService;
-import com.liferay.portal.service.PasswordTrackerLocalService;
-import com.liferay.portal.service.PermissionService;
-import com.liferay.portal.service.PersistedModelLocalServiceRegistry;
-import com.liferay.portal.service.PhoneLocalService;
-import com.liferay.portal.service.PhoneService;
-import com.liferay.portal.service.PluginSettingLocalService;
-import com.liferay.portal.service.PluginSettingService;
-import com.liferay.portal.service.PortalLocalService;
-import com.liferay.portal.service.PortalPreferencesLocalService;
-import com.liferay.portal.service.PortalService;
-import com.liferay.portal.service.PortletItemLocalService;
-import com.liferay.portal.service.PortletLocalService;
-import com.liferay.portal.service.PortletPreferencesLocalService;
-import com.liferay.portal.service.PortletPreferencesService;
-import com.liferay.portal.service.PortletService;
-import com.liferay.portal.service.QuartzLocalService;
-import com.liferay.portal.service.RegionService;
-import com.liferay.portal.service.ReleaseLocalService;
-import com.liferay.portal.service.RepositoryEntryLocalService;
-import com.liferay.portal.service.RepositoryLocalService;
-import com.liferay.portal.service.RepositoryService;
-import com.liferay.portal.service.ResourceActionLocalService;
-import com.liferay.portal.service.ResourceBlockLocalService;
-import com.liferay.portal.service.ResourceBlockPermissionLocalService;
-import com.liferay.portal.service.ResourceBlockService;
-import com.liferay.portal.service.ResourceLocalService;
-import com.liferay.portal.service.ResourcePermissionLocalService;
-import com.liferay.portal.service.ResourcePermissionService;
-import com.liferay.portal.service.ResourceTypePermissionLocalService;
-import com.liferay.portal.service.RoleLocalService;
-import com.liferay.portal.service.RoleService;
-import com.liferay.portal.service.ServiceComponentLocalService;
-import com.liferay.portal.service.ShardLocalService;
-import com.liferay.portal.service.SubscriptionLocalService;
-import com.liferay.portal.service.TeamLocalService;
-import com.liferay.portal.service.TeamService;
-import com.liferay.portal.service.ThemeLocalService;
-import com.liferay.portal.service.ThemeService;
-import com.liferay.portal.service.TicketLocalService;
-import com.liferay.portal.service.UserGroupGroupRoleLocalService;
-import com.liferay.portal.service.UserGroupGroupRoleService;
-import com.liferay.portal.service.UserGroupLocalService;
-import com.liferay.portal.service.UserGroupRoleLocalService;
-import com.liferay.portal.service.UserGroupRoleService;
-import com.liferay.portal.service.UserGroupService;
-import com.liferay.portal.service.UserIdMapperLocalService;
-import com.liferay.portal.service.UserLocalService;
-import com.liferay.portal.service.UserNotificationEventLocalService;
-import com.liferay.portal.service.UserService;
-import com.liferay.portal.service.UserTrackerLocalService;
-import com.liferay.portal.service.UserTrackerPathLocalService;
-import com.liferay.portal.service.VirtualHostLocalService;
-import com.liferay.portal.service.WebDAVPropsLocalService;
-import com.liferay.portal.service.WebsiteLocalService;
-import com.liferay.portal.service.WebsiteService;
-import com.liferay.portal.service.WorkflowDefinitionLinkLocalService;
-import com.liferay.portal.service.WorkflowInstanceLinkLocalService;
-import com.liferay.portal.service.persistence.AccountPersistence;
-import com.liferay.portal.service.persistence.AddressPersistence;
-import com.liferay.portal.service.persistence.BrowserTrackerPersistence;
-import com.liferay.portal.service.persistence.ClassNamePersistence;
-import com.liferay.portal.service.persistence.ClusterGroupPersistence;
-import com.liferay.portal.service.persistence.CompanyPersistence;
-import com.liferay.portal.service.persistence.ContactPersistence;
-import com.liferay.portal.service.persistence.CountryPersistence;
-import com.liferay.portal.service.persistence.EmailAddressPersistence;
-import com.liferay.portal.service.persistence.GroupFinder;
-import com.liferay.portal.service.persistence.GroupPersistence;
-import com.liferay.portal.service.persistence.ImagePersistence;
-import com.liferay.portal.service.persistence.LayoutBranchPersistence;
-import com.liferay.portal.service.persistence.LayoutFinder;
-import com.liferay.portal.service.persistence.LayoutFriendlyURLPersistence;
-import com.liferay.portal.service.persistence.LayoutPersistence;
-import com.liferay.portal.service.persistence.LayoutPrototypePersistence;
-import com.liferay.portal.service.persistence.LayoutRevisionPersistence;
-import com.liferay.portal.service.persistence.LayoutSetBranchFinder;
-import com.liferay.portal.service.persistence.LayoutSetBranchPersistence;
-import com.liferay.portal.service.persistence.LayoutSetPersistence;
-import com.liferay.portal.service.persistence.LayoutSetPrototypePersistence;
-import com.liferay.portal.service.persistence.ListTypePersistence;
-import com.liferay.portal.service.persistence.LockFinder;
-import com.liferay.portal.service.persistence.LockPersistence;
-import com.liferay.portal.service.persistence.MembershipRequestPersistence;
-import com.liferay.portal.service.persistence.OrgGroupRolePersistence;
-import com.liferay.portal.service.persistence.OrgLaborPersistence;
-import com.liferay.portal.service.persistence.OrganizationFinder;
-import com.liferay.portal.service.persistence.OrganizationPersistence;
-import com.liferay.portal.service.persistence.PasswordPolicyFinder;
-import com.liferay.portal.service.persistence.PasswordPolicyPersistence;
-import com.liferay.portal.service.persistence.PasswordPolicyRelPersistence;
-import com.liferay.portal.service.persistence.PasswordTrackerPersistence;
-import com.liferay.portal.service.persistence.PhonePersistence;
-import com.liferay.portal.service.persistence.PluginSettingPersistence;
-import com.liferay.portal.service.persistence.PortalPreferencesPersistence;
-import com.liferay.portal.service.persistence.PortletItemPersistence;
-import com.liferay.portal.service.persistence.PortletPersistence;
-import com.liferay.portal.service.persistence.PortletPreferencesFinder;
-import com.liferay.portal.service.persistence.PortletPreferencesPersistence;
-import com.liferay.portal.service.persistence.RegionPersistence;
-import com.liferay.portal.service.persistence.ReleasePersistence;
-import com.liferay.portal.service.persistence.RepositoryEntryPersistence;
-import com.liferay.portal.service.persistence.RepositoryPersistence;
-import com.liferay.portal.service.persistence.ResourceActionPersistence;
-import com.liferay.portal.service.persistence.ResourceBlockFinder;
-import com.liferay.portal.service.persistence.ResourceBlockPermissionPersistence;
-import com.liferay.portal.service.persistence.ResourceBlockPersistence;
-import com.liferay.portal.service.persistence.ResourcePermissionFinder;
-import com.liferay.portal.service.persistence.ResourcePermissionPersistence;
-import com.liferay.portal.service.persistence.ResourceTypePermissionFinder;
-import com.liferay.portal.service.persistence.ResourceTypePermissionPersistence;
-import com.liferay.portal.service.persistence.RoleFinder;
-import com.liferay.portal.service.persistence.RolePersistence;
-import com.liferay.portal.service.persistence.ServiceComponentPersistence;
-import com.liferay.portal.service.persistence.ShardPersistence;
-import com.liferay.portal.service.persistence.SubscriptionPersistence;
-import com.liferay.portal.service.persistence.TeamFinder;
-import com.liferay.portal.service.persistence.TeamPersistence;
-import com.liferay.portal.service.persistence.TicketPersistence;
-import com.liferay.portal.service.persistence.UserFinder;
-import com.liferay.portal.service.persistence.UserGroupFinder;
-import com.liferay.portal.service.persistence.UserGroupGroupRolePersistence;
-import com.liferay.portal.service.persistence.UserGroupPersistence;
-import com.liferay.portal.service.persistence.UserGroupRoleFinder;
-import com.liferay.portal.service.persistence.UserGroupRolePersistence;
-import com.liferay.portal.service.persistence.UserIdMapperPersistence;
-import com.liferay.portal.service.persistence.UserNotificationEventPersistence;
-import com.liferay.portal.service.persistence.UserPersistence;
-import com.liferay.portal.service.persistence.UserTrackerPathPersistence;
-import com.liferay.portal.service.persistence.UserTrackerPersistence;
-import com.liferay.portal.service.persistence.VirtualHostPersistence;
-import com.liferay.portal.service.persistence.WebDAVPropsPersistence;
-import com.liferay.portal.service.persistence.WebsitePersistence;
-import com.liferay.portal.service.persistence.WorkflowDefinitionLinkPersistence;
-import com.liferay.portal.service.persistence.WorkflowInstanceLinkPersistence;
-
-import com.liferay.portlet.expando.service.ExpandoValueLocalService;
-import com.liferay.portlet.expando.service.ExpandoValueService;
-import com.liferay.portlet.expando.service.persistence.ExpandoValuePersistence;
+import com.liferay.portal.kernel.util.PortalUtil;
 
 import java.io.Serializable;
 
@@ -231,15 +90,16 @@ import javax.sql.DataSource;
  *
  * @author Brian Wing Shun Chan
  * @see com.liferay.portal.service.impl.RoleLocalServiceImpl
- * @see com.liferay.portal.service.RoleLocalServiceUtil
+ * @see com.liferay.portal.kernel.service.RoleLocalServiceUtil
  * @generated
  */
+@ProviderType
 public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
-	implements RoleLocalService, IdentifiableBean {
+	implements RoleLocalService, IdentifiableOSGiService {
 	/*
 	 * NOTE FOR DEVELOPERS:
 	 *
-	 * Never modify or reference this class directly. Always use {@link com.liferay.portal.service.RoleLocalServiceUtil} to access the role local service.
+	 * Never modify or reference this class directly. Always use {@link com.liferay.portal.kernel.service.RoleLocalServiceUtil} to access the role local service.
 	 */
 
 	/**
@@ -247,11 +107,10 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param role the role
 	 * @return the role that was added
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Role addRole(Role role) throws SystemException {
+	public Role addRole(Role role) {
 		role.setNew(true);
 
 		return rolePersistence.update(role);
@@ -274,11 +133,10 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param roleId the primary key of the role
 	 * @return the role that was removed
 	 * @throws PortalException if a role with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public Role deleteRole(long roleId) throws PortalException, SystemException {
+	public Role deleteRole(long roleId) throws PortalException {
 		return rolePersistence.remove(roleId);
 	}
 
@@ -288,11 +146,10 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param role the role
 	 * @return the role that was removed
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	public Role deleteRole(Role role) throws PortalException, SystemException {
+	public Role deleteRole(Role role) throws PortalException {
 		return rolePersistence.remove(role);
 	}
 
@@ -309,12 +166,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param dynamicQuery the dynamic query
 	 * @return the matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery) {
 		return rolePersistence.findWithDynamicQuery(dynamicQuery);
 	}
 
@@ -329,12 +183,10 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of model instances
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @return the range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end)
-		throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end) {
 		return rolePersistence.findWithDynamicQuery(dynamicQuery, start, end);
 	}
 
@@ -350,32 +202,53 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param end the upper bound of the range of model instances (not inclusive)
 	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
 	 * @return the ordered range of matching rows
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	@SuppressWarnings("rawtypes")
-	public List dynamicQuery(DynamicQuery dynamicQuery, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+	public <T> List<T> dynamicQuery(DynamicQuery dynamicQuery, int start,
+		int end, OrderByComparator<T> orderByComparator) {
 		return rolePersistence.findWithDynamicQuery(dynamicQuery, start, end,
 			orderByComparator);
 	}
 
 	/**
-	 * Returns the number of rows that match the dynamic query.
+	 * Returns the number of rows matching the dynamic query.
 	 *
 	 * @param dynamicQuery the dynamic query
-	 * @return the number of rows that match the dynamic query
-	 * @throws SystemException if a system exception occurred
+	 * @return the number of rows matching the dynamic query
 	 */
 	@Override
-	public long dynamicQueryCount(DynamicQuery dynamicQuery)
-		throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery) {
 		return rolePersistence.countWithDynamicQuery(dynamicQuery);
 	}
 
+	/**
+	 * Returns the number of rows matching the dynamic query.
+	 *
+	 * @param dynamicQuery the dynamic query
+	 * @param projection the projection to apply to the query
+	 * @return the number of rows matching the dynamic query
+	 */
 	@Override
-	public Role fetchRole(long roleId) throws SystemException {
+	public long dynamicQueryCount(DynamicQuery dynamicQuery,
+		Projection projection) {
+		return rolePersistence.countWithDynamicQuery(dynamicQuery, projection);
+	}
+
+	@Override
+	public Role fetchRole(long roleId) {
 		return rolePersistence.fetchByPrimaryKey(roleId);
+	}
+
+	/**
+	 * Returns the role with the matching UUID and company.
+	 *
+	 * @param uuid the role's UUID
+	 * @param companyId the primary key of the company
+	 * @return the matching role, or <code>null</code> if a matching role could not be found
+	 */
+	@Override
+	public Role fetchRoleByUuidAndCompanyId(String uuid, long companyId) {
+		return rolePersistence.fetchByUuid_C_First(uuid, companyId, null);
 	}
 
 	/**
@@ -384,17 +257,141 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param roleId the primary key of the role
 	 * @return the role
 	 * @throws PortalException if a role with the primary key could not be found
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public Role getRole(long roleId) throws PortalException, SystemException {
+	public Role getRole(long roleId) throws PortalException {
 		return rolePersistence.findByPrimaryKey(roleId);
 	}
 
 	@Override
+	public ActionableDynamicQuery getActionableDynamicQuery() {
+		ActionableDynamicQuery actionableDynamicQuery = new DefaultActionableDynamicQuery();
+
+		actionableDynamicQuery.setBaseLocalService(roleLocalService);
+		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(Role.class);
+
+		actionableDynamicQuery.setPrimaryKeyPropertyName("roleId");
+
+		return actionableDynamicQuery;
+	}
+
+	@Override
+	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery() {
+		IndexableActionableDynamicQuery indexableActionableDynamicQuery = new IndexableActionableDynamicQuery();
+
+		indexableActionableDynamicQuery.setBaseLocalService(roleLocalService);
+		indexableActionableDynamicQuery.setClassLoader(getClassLoader());
+		indexableActionableDynamicQuery.setModelClass(Role.class);
+
+		indexableActionableDynamicQuery.setPrimaryKeyPropertyName("roleId");
+
+		return indexableActionableDynamicQuery;
+	}
+
+	protected void initActionableDynamicQuery(
+		ActionableDynamicQuery actionableDynamicQuery) {
+		actionableDynamicQuery.setBaseLocalService(roleLocalService);
+		actionableDynamicQuery.setClassLoader(getClassLoader());
+		actionableDynamicQuery.setModelClass(Role.class);
+
+		actionableDynamicQuery.setPrimaryKeyPropertyName("roleId");
+	}
+
+	@Override
+	public ExportActionableDynamicQuery getExportActionableDynamicQuery(
+		final PortletDataContext portletDataContext) {
+		final ExportActionableDynamicQuery exportActionableDynamicQuery = new ExportActionableDynamicQuery() {
+				@Override
+				public long performCount() throws PortalException {
+					ManifestSummary manifestSummary = portletDataContext.getManifestSummary();
+
+					StagedModelType stagedModelType = getStagedModelType();
+
+					long modelAdditionCount = super.performCount();
+
+					manifestSummary.addModelAdditionCount(stagedModelType,
+						modelAdditionCount);
+
+					long modelDeletionCount = ExportImportHelperUtil.getModelDeletionCount(portletDataContext,
+							stagedModelType);
+
+					manifestSummary.addModelDeletionCount(stagedModelType,
+						modelDeletionCount);
+
+					return modelAdditionCount;
+				}
+			};
+
+		initActionableDynamicQuery(exportActionableDynamicQuery);
+
+		exportActionableDynamicQuery.setAddCriteriaMethod(new ActionableDynamicQuery.AddCriteriaMethod() {
+				@Override
+				public void addCriteria(DynamicQuery dynamicQuery) {
+					portletDataContext.addDateRangeCriteria(dynamicQuery,
+						"modifiedDate");
+
+					StagedModelType stagedModelType = exportActionableDynamicQuery.getStagedModelType();
+
+					long referrerClassNameId = stagedModelType.getReferrerClassNameId();
+
+					Property classNameIdProperty = PropertyFactoryUtil.forName(
+							"classNameId");
+
+					if ((referrerClassNameId != StagedModelType.REFERRER_CLASS_NAME_ID_ALL) &&
+							(referrerClassNameId != StagedModelType.REFERRER_CLASS_NAME_ID_ANY)) {
+						dynamicQuery.add(classNameIdProperty.eq(
+								stagedModelType.getReferrerClassNameId()));
+					}
+					else if (referrerClassNameId == StagedModelType.REFERRER_CLASS_NAME_ID_ANY) {
+						dynamicQuery.add(classNameIdProperty.isNotNull());
+					}
+				}
+			});
+
+		exportActionableDynamicQuery.setCompanyId(portletDataContext.getCompanyId());
+
+		exportActionableDynamicQuery.setPerformActionMethod(new ActionableDynamicQuery.PerformActionMethod<Role>() {
+				@Override
+				public void performAction(Role role) throws PortalException {
+					StagedModelDataHandlerUtil.exportStagedModel(portletDataContext,
+						role);
+				}
+			});
+		exportActionableDynamicQuery.setStagedModelType(new StagedModelType(
+				PortalUtil.getClassNameId(Role.class.getName()),
+				StagedModelType.REFERRER_CLASS_NAME_ID_ALL));
+
+		return exportActionableDynamicQuery;
+	}
+
+	/**
+	 * @throws PortalException
+	 */
+	@Override
+	public PersistedModel deletePersistedModel(PersistedModel persistedModel)
+		throws PortalException {
+		return roleLocalService.deleteRole((Role)persistedModel);
+	}
+
+	@Override
 	public PersistedModel getPersistedModel(Serializable primaryKeyObj)
-		throws PortalException, SystemException {
+		throws PortalException {
 		return rolePersistence.findByPrimaryKey(primaryKeyObj);
+	}
+
+	/**
+	 * Returns the role with the matching UUID and company.
+	 *
+	 * @param uuid the role's UUID
+	 * @param companyId the primary key of the company
+	 * @return the matching role
+	 * @throws PortalException if a matching role could not be found
+	 */
+	@Override
+	public Role getRoleByUuidAndCompanyId(String uuid, long companyId)
+		throws PortalException {
+		return rolePersistence.findByUuid_C_First(uuid, companyId, null);
 	}
 
 	/**
@@ -407,10 +404,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param start the lower bound of the range of roles
 	 * @param end the upper bound of the range of roles (not inclusive)
 	 * @return the range of roles
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Role> getRoles(int start, int end) throws SystemException {
+	public List<Role> getRoles(int start, int end) {
 		return rolePersistence.findAll(start, end);
 	}
 
@@ -418,10 +414,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * Returns the number of roles.
 	 *
 	 * @return the number of roles
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getRolesCount() throws SystemException {
+	public int getRolesCount() {
 		return rolePersistence.countAll();
 	}
 
@@ -430,438 +425,349 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param role the role
 	 * @return the role that was updated
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public Role updateRole(Role role) throws SystemException {
+	public Role updateRole(Role role) {
 		return rolePersistence.update(role);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addGroupRole(long groupId, long roleId)
-		throws SystemException {
+	public void addGroupRole(long groupId, long roleId) {
 		groupPersistence.addRole(groupId, roleId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addGroupRole(long groupId, Role role) throws SystemException {
+	public void addGroupRole(long groupId, Role role) {
 		groupPersistence.addRole(groupId, role);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addGroupRoles(long groupId, long[] roleIds)
-		throws SystemException {
+	public void addGroupRoles(long groupId, long[] roleIds) {
 		groupPersistence.addRoles(groupId, roleIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addGroupRoles(long groupId, List<Role> Roles)
-		throws SystemException {
-		groupPersistence.addRoles(groupId, Roles);
+	public void addGroupRoles(long groupId, List<Role> roles) {
+		groupPersistence.addRoles(groupId, roles);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void clearGroupRoles(long groupId) throws SystemException {
+	public void clearGroupRoles(long groupId) {
 		groupPersistence.clearRoles(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupRole(long groupId, long roleId)
-		throws SystemException {
+	public void deleteGroupRole(long groupId, long roleId) {
 		groupPersistence.removeRole(groupId, roleId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupRole(long groupId, Role role)
-		throws SystemException {
+	public void deleteGroupRole(long groupId, Role role) {
 		groupPersistence.removeRole(groupId, role);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupRoles(long groupId, long[] roleIds)
-		throws SystemException {
+	public void deleteGroupRoles(long groupId, long[] roleIds) {
 		groupPersistence.removeRoles(groupId, roleIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void deleteGroupRoles(long groupId, List<Role> Roles)
-		throws SystemException {
-		groupPersistence.removeRoles(groupId, Roles);
+	public void deleteGroupRoles(long groupId, List<Role> roles) {
+		groupPersistence.removeRoles(groupId, roles);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * Returns the groupIds of the groups associated with the role.
+	 *
+	 * @param roleId the roleId of the role
+	 * @return long[] the groupIds of groups associated with the role
 	 */
 	@Override
-	public List<Role> getGroupRoles(long groupId) throws SystemException {
+	public long[] getGroupPrimaryKeys(long roleId) {
+		return rolePersistence.getGroupPrimaryKeys(roleId);
+	}
+
+	/**
+	 */
+	@Override
+	public List<Role> getGroupRoles(long groupId) {
 		return groupPersistence.getRoles(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Role> getGroupRoles(long groupId, int start, int end)
-		throws SystemException {
+	public List<Role> getGroupRoles(long groupId, int start, int end) {
 		return groupPersistence.getRoles(groupId, start, end);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Role> getGroupRoles(long groupId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Role> orderByComparator) {
 		return groupPersistence.getRoles(groupId, start, end, orderByComparator);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getGroupRolesCount(long groupId) throws SystemException {
+	public int getGroupRolesCount(long groupId) {
 		return groupPersistence.getRolesSize(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasGroupRole(long groupId, long roleId)
-		throws SystemException {
+	public boolean hasGroupRole(long groupId, long roleId) {
 		return groupPersistence.containsRole(groupId, roleId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasGroupRoles(long groupId) throws SystemException {
+	public boolean hasGroupRoles(long groupId) {
 		return groupPersistence.containsRoles(groupId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void setGroupRoles(long groupId, long[] roleIds)
-		throws SystemException {
+	public void setGroupRoles(long groupId, long[] roleIds) {
 		groupPersistence.setRoles(groupId, roleIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
-	public void addUserRole(long userId, long roleId) throws SystemException {
+	public void addUserRole(long userId, long roleId) throws PortalException {
 		userPersistence.addRole(userId, roleId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
-	public void addUserRole(long userId, Role role) throws SystemException {
+	public void addUserRole(long userId, Role role) throws PortalException {
 		userPersistence.addRole(userId, role);
 	}
 
 	/**
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void addUserRoles(long userId, long[] roleIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 		userPersistence.addRoles(userId, roleIds);
 	}
 
 	/**
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public void addUserRoles(long userId, List<Role> Roles)
-		throws PortalException, SystemException {
-		userPersistence.addRoles(userId, Roles);
+	public void addUserRoles(long userId, List<Role> roles)
+		throws PortalException {
+		userPersistence.addRoles(userId, roles);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
-	public void clearUserRoles(long userId) throws SystemException {
+	public void clearUserRoles(long userId) throws PortalException {
 		userPersistence.clearRoles(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
 	public void deleteUserRole(long userId, long roleId)
-		throws SystemException {
+		throws PortalException {
 		userPersistence.removeRole(userId, roleId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
 	public void deleteUserRole(long userId, Role role)
-		throws SystemException {
+		throws PortalException {
 		userPersistence.removeRole(userId, role);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
 	public void deleteUserRoles(long userId, long[] roleIds)
-		throws SystemException {
+		throws PortalException {
 		userPersistence.removeRoles(userId, roleIds);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * @throws PortalException
 	 */
 	@Override
-	public void deleteUserRoles(long userId, List<Role> Roles)
-		throws SystemException {
-		userPersistence.removeRoles(userId, Roles);
+	public void deleteUserRoles(long userId, List<Role> roles)
+		throws PortalException {
+		userPersistence.removeRoles(userId, roles);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
+	 * Returns the userIds of the users associated with the role.
+	 *
+	 * @param roleId the roleId of the role
+	 * @return long[] the userIds of users associated with the role
 	 */
 	@Override
-	public List<Role> getUserRoles(long userId) throws SystemException {
+	public long[] getUserPrimaryKeys(long roleId) {
+		return rolePersistence.getUserPrimaryKeys(roleId);
+	}
+
+	/**
+	 */
+	@Override
+	public List<Role> getUserRoles(long userId) {
 		return userPersistence.getRoles(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public List<Role> getUserRoles(long userId, int start, int end)
-		throws SystemException {
+	public List<Role> getUserRoles(long userId, int start, int end) {
 		return userPersistence.getRoles(userId, start, end);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public List<Role> getUserRoles(long userId, int start, int end,
-		OrderByComparator orderByComparator) throws SystemException {
+		OrderByComparator<Role> orderByComparator) {
 		return userPersistence.getRoles(userId, start, end, orderByComparator);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public int getUserRolesCount(long userId) throws SystemException {
+	public int getUserRolesCount(long userId) {
 		return userPersistence.getRolesSize(userId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasUserRole(long userId, long roleId)
-		throws SystemException {
+	public boolean hasUserRole(long userId, long roleId) {
 		return userPersistence.containsRole(userId, roleId);
 	}
 
 	/**
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
-	public boolean hasUserRoles(long userId) throws SystemException {
+	public boolean hasUserRoles(long userId) {
 		return userPersistence.containsRoles(userId);
 	}
 
 	/**
 	 * @throws PortalException
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public void setUserRoles(long userId, long[] roleIds)
-		throws PortalException, SystemException {
+		throws PortalException {
 		userPersistence.setRoles(userId, roleIds);
 	}
 
 	/**
-	 * Returns the account local service.
+	 * Returns the role local service.
 	 *
-	 * @return the account local service
+	 * @return the role local service
 	 */
-	public AccountLocalService getAccountLocalService() {
-		return accountLocalService;
+	public RoleLocalService getRoleLocalService() {
+		return roleLocalService;
 	}
 
 	/**
-	 * Sets the account local service.
+	 * Sets the role local service.
 	 *
-	 * @param accountLocalService the account local service
+	 * @param roleLocalService the role local service
 	 */
-	public void setAccountLocalService(AccountLocalService accountLocalService) {
-		this.accountLocalService = accountLocalService;
+	public void setRoleLocalService(RoleLocalService roleLocalService) {
+		this.roleLocalService = roleLocalService;
 	}
 
 	/**
-	 * Returns the account remote service.
+	 * Returns the role persistence.
 	 *
-	 * @return the account remote service
+	 * @return the role persistence
 	 */
-	public AccountService getAccountService() {
-		return accountService;
+	public RolePersistence getRolePersistence() {
+		return rolePersistence;
 	}
 
 	/**
-	 * Sets the account remote service.
+	 * Sets the role persistence.
 	 *
-	 * @param accountService the account remote service
+	 * @param rolePersistence the role persistence
 	 */
-	public void setAccountService(AccountService accountService) {
-		this.accountService = accountService;
+	public void setRolePersistence(RolePersistence rolePersistence) {
+		this.rolePersistence = rolePersistence;
 	}
 
 	/**
-	 * Returns the account persistence.
+	 * Returns the role finder.
 	 *
-	 * @return the account persistence
+	 * @return the role finder
 	 */
-	public AccountPersistence getAccountPersistence() {
-		return accountPersistence;
+	public RoleFinder getRoleFinder() {
+		return roleFinder;
 	}
 
 	/**
-	 * Sets the account persistence.
+	 * Sets the role finder.
 	 *
-	 * @param accountPersistence the account persistence
+	 * @param roleFinder the role finder
 	 */
-	public void setAccountPersistence(AccountPersistence accountPersistence) {
-		this.accountPersistence = accountPersistence;
+	public void setRoleFinder(RoleFinder roleFinder) {
+		this.roleFinder = roleFinder;
 	}
 
 	/**
-	 * Returns the address local service.
+	 * Returns the counter local service.
 	 *
-	 * @return the address local service
+	 * @return the counter local service
 	 */
-	public AddressLocalService getAddressLocalService() {
-		return addressLocalService;
+	public com.liferay.counter.kernel.service.CounterLocalService getCounterLocalService() {
+		return counterLocalService;
 	}
 
 	/**
-	 * Sets the address local service.
+	 * Sets the counter local service.
 	 *
-	 * @param addressLocalService the address local service
+	 * @param counterLocalService the counter local service
 	 */
-	public void setAddressLocalService(AddressLocalService addressLocalService) {
-		this.addressLocalService = addressLocalService;
-	}
-
-	/**
-	 * Returns the address remote service.
-	 *
-	 * @return the address remote service
-	 */
-	public AddressService getAddressService() {
-		return addressService;
-	}
-
-	/**
-	 * Sets the address remote service.
-	 *
-	 * @param addressService the address remote service
-	 */
-	public void setAddressService(AddressService addressService) {
-		this.addressService = addressService;
-	}
-
-	/**
-	 * Returns the address persistence.
-	 *
-	 * @return the address persistence
-	 */
-	public AddressPersistence getAddressPersistence() {
-		return addressPersistence;
-	}
-
-	/**
-	 * Sets the address persistence.
-	 *
-	 * @param addressPersistence the address persistence
-	 */
-	public void setAddressPersistence(AddressPersistence addressPersistence) {
-		this.addressPersistence = addressPersistence;
-	}
-
-	/**
-	 * Returns the browser tracker local service.
-	 *
-	 * @return the browser tracker local service
-	 */
-	public BrowserTrackerLocalService getBrowserTrackerLocalService() {
-		return browserTrackerLocalService;
-	}
-
-	/**
-	 * Sets the browser tracker local service.
-	 *
-	 * @param browserTrackerLocalService the browser tracker local service
-	 */
-	public void setBrowserTrackerLocalService(
-		BrowserTrackerLocalService browserTrackerLocalService) {
-		this.browserTrackerLocalService = browserTrackerLocalService;
-	}
-
-	/**
-	 * Returns the browser tracker persistence.
-	 *
-	 * @return the browser tracker persistence
-	 */
-	public BrowserTrackerPersistence getBrowserTrackerPersistence() {
-		return browserTrackerPersistence;
-	}
-
-	/**
-	 * Sets the browser tracker persistence.
-	 *
-	 * @param browserTrackerPersistence the browser tracker persistence
-	 */
-	public void setBrowserTrackerPersistence(
-		BrowserTrackerPersistence browserTrackerPersistence) {
-		this.browserTrackerPersistence = browserTrackerPersistence;
+	public void setCounterLocalService(
+		com.liferay.counter.kernel.service.CounterLocalService counterLocalService) {
+		this.counterLocalService = counterLocalService;
 	}
 
 	/**
@@ -869,7 +775,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the class name local service
 	 */
-	public ClassNameLocalService getClassNameLocalService() {
+	public com.liferay.portal.kernel.service.ClassNameLocalService getClassNameLocalService() {
 		return classNameLocalService;
 	}
 
@@ -879,26 +785,8 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param classNameLocalService the class name local service
 	 */
 	public void setClassNameLocalService(
-		ClassNameLocalService classNameLocalService) {
+		com.liferay.portal.kernel.service.ClassNameLocalService classNameLocalService) {
 		this.classNameLocalService = classNameLocalService;
-	}
-
-	/**
-	 * Returns the class name remote service.
-	 *
-	 * @return the class name remote service
-	 */
-	public ClassNameService getClassNameService() {
-		return classNameService;
-	}
-
-	/**
-	 * Sets the class name remote service.
-	 *
-	 * @param classNameService the class name remote service
-	 */
-	public void setClassNameService(ClassNameService classNameService) {
-		this.classNameService = classNameService;
 	}
 
 	/**
@@ -921,68 +809,11 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the cluster group local service.
-	 *
-	 * @return the cluster group local service
-	 */
-	public ClusterGroupLocalService getClusterGroupLocalService() {
-		return clusterGroupLocalService;
-	}
-
-	/**
-	 * Sets the cluster group local service.
-	 *
-	 * @param clusterGroupLocalService the cluster group local service
-	 */
-	public void setClusterGroupLocalService(
-		ClusterGroupLocalService clusterGroupLocalService) {
-		this.clusterGroupLocalService = clusterGroupLocalService;
-	}
-
-	/**
-	 * Returns the cluster group persistence.
-	 *
-	 * @return the cluster group persistence
-	 */
-	public ClusterGroupPersistence getClusterGroupPersistence() {
-		return clusterGroupPersistence;
-	}
-
-	/**
-	 * Sets the cluster group persistence.
-	 *
-	 * @param clusterGroupPersistence the cluster group persistence
-	 */
-	public void setClusterGroupPersistence(
-		ClusterGroupPersistence clusterGroupPersistence) {
-		this.clusterGroupPersistence = clusterGroupPersistence;
-	}
-
-	/**
-	 * Returns the c m i s repository local service.
-	 *
-	 * @return the c m i s repository local service
-	 */
-	public CMISRepositoryLocalService getCMISRepositoryLocalService() {
-		return cmisRepositoryLocalService;
-	}
-
-	/**
-	 * Sets the c m i s repository local service.
-	 *
-	 * @param cmisRepositoryLocalService the c m i s repository local service
-	 */
-	public void setCMISRepositoryLocalService(
-		CMISRepositoryLocalService cmisRepositoryLocalService) {
-		this.cmisRepositoryLocalService = cmisRepositoryLocalService;
-	}
-
-	/**
 	 * Returns the company local service.
 	 *
 	 * @return the company local service
 	 */
-	public CompanyLocalService getCompanyLocalService() {
+	public com.liferay.portal.kernel.service.CompanyLocalService getCompanyLocalService() {
 		return companyLocalService;
 	}
 
@@ -991,26 +822,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param companyLocalService the company local service
 	 */
-	public void setCompanyLocalService(CompanyLocalService companyLocalService) {
+	public void setCompanyLocalService(
+		com.liferay.portal.kernel.service.CompanyLocalService companyLocalService) {
 		this.companyLocalService = companyLocalService;
-	}
-
-	/**
-	 * Returns the company remote service.
-	 *
-	 * @return the company remote service
-	 */
-	public CompanyService getCompanyService() {
-		return companyService;
-	}
-
-	/**
-	 * Sets the company remote service.
-	 *
-	 * @param companyService the company remote service
-	 */
-	public void setCompanyService(CompanyService companyService) {
-		this.companyService = companyService;
 	}
 
 	/**
@@ -1032,157 +846,11 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the contact local service.
-	 *
-	 * @return the contact local service
-	 */
-	public ContactLocalService getContactLocalService() {
-		return contactLocalService;
-	}
-
-	/**
-	 * Sets the contact local service.
-	 *
-	 * @param contactLocalService the contact local service
-	 */
-	public void setContactLocalService(ContactLocalService contactLocalService) {
-		this.contactLocalService = contactLocalService;
-	}
-
-	/**
-	 * Returns the contact remote service.
-	 *
-	 * @return the contact remote service
-	 */
-	public ContactService getContactService() {
-		return contactService;
-	}
-
-	/**
-	 * Sets the contact remote service.
-	 *
-	 * @param contactService the contact remote service
-	 */
-	public void setContactService(ContactService contactService) {
-		this.contactService = contactService;
-	}
-
-	/**
-	 * Returns the contact persistence.
-	 *
-	 * @return the contact persistence
-	 */
-	public ContactPersistence getContactPersistence() {
-		return contactPersistence;
-	}
-
-	/**
-	 * Sets the contact persistence.
-	 *
-	 * @param contactPersistence the contact persistence
-	 */
-	public void setContactPersistence(ContactPersistence contactPersistence) {
-		this.contactPersistence = contactPersistence;
-	}
-
-	/**
-	 * Returns the country remote service.
-	 *
-	 * @return the country remote service
-	 */
-	public CountryService getCountryService() {
-		return countryService;
-	}
-
-	/**
-	 * Sets the country remote service.
-	 *
-	 * @param countryService the country remote service
-	 */
-	public void setCountryService(CountryService countryService) {
-		this.countryService = countryService;
-	}
-
-	/**
-	 * Returns the country persistence.
-	 *
-	 * @return the country persistence
-	 */
-	public CountryPersistence getCountryPersistence() {
-		return countryPersistence;
-	}
-
-	/**
-	 * Sets the country persistence.
-	 *
-	 * @param countryPersistence the country persistence
-	 */
-	public void setCountryPersistence(CountryPersistence countryPersistence) {
-		this.countryPersistence = countryPersistence;
-	}
-
-	/**
-	 * Returns the email address local service.
-	 *
-	 * @return the email address local service
-	 */
-	public EmailAddressLocalService getEmailAddressLocalService() {
-		return emailAddressLocalService;
-	}
-
-	/**
-	 * Sets the email address local service.
-	 *
-	 * @param emailAddressLocalService the email address local service
-	 */
-	public void setEmailAddressLocalService(
-		EmailAddressLocalService emailAddressLocalService) {
-		this.emailAddressLocalService = emailAddressLocalService;
-	}
-
-	/**
-	 * Returns the email address remote service.
-	 *
-	 * @return the email address remote service
-	 */
-	public EmailAddressService getEmailAddressService() {
-		return emailAddressService;
-	}
-
-	/**
-	 * Sets the email address remote service.
-	 *
-	 * @param emailAddressService the email address remote service
-	 */
-	public void setEmailAddressService(EmailAddressService emailAddressService) {
-		this.emailAddressService = emailAddressService;
-	}
-
-	/**
-	 * Returns the email address persistence.
-	 *
-	 * @return the email address persistence
-	 */
-	public EmailAddressPersistence getEmailAddressPersistence() {
-		return emailAddressPersistence;
-	}
-
-	/**
-	 * Sets the email address persistence.
-	 *
-	 * @param emailAddressPersistence the email address persistence
-	 */
-	public void setEmailAddressPersistence(
-		EmailAddressPersistence emailAddressPersistence) {
-		this.emailAddressPersistence = emailAddressPersistence;
-	}
-
-	/**
 	 * Returns the group local service.
 	 *
 	 * @return the group local service
 	 */
-	public GroupLocalService getGroupLocalService() {
+	public com.liferay.portal.kernel.service.GroupLocalService getGroupLocalService() {
 		return groupLocalService;
 	}
 
@@ -1191,26 +859,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param groupLocalService the group local service
 	 */
-	public void setGroupLocalService(GroupLocalService groupLocalService) {
+	public void setGroupLocalService(
+		com.liferay.portal.kernel.service.GroupLocalService groupLocalService) {
 		this.groupLocalService = groupLocalService;
-	}
-
-	/**
-	 * Returns the group remote service.
-	 *
-	 * @return the group remote service
-	 */
-	public GroupService getGroupService() {
-		return groupService;
-	}
-
-	/**
-	 * Sets the group remote service.
-	 *
-	 * @param groupService the group remote service
-	 */
-	public void setGroupService(GroupService groupService) {
-		this.groupService = groupService;
 	}
 
 	/**
@@ -1250,65 +901,11 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the image local service.
-	 *
-	 * @return the image local service
-	 */
-	public ImageLocalService getImageLocalService() {
-		return imageLocalService;
-	}
-
-	/**
-	 * Sets the image local service.
-	 *
-	 * @param imageLocalService the image local service
-	 */
-	public void setImageLocalService(ImageLocalService imageLocalService) {
-		this.imageLocalService = imageLocalService;
-	}
-
-	/**
-	 * Returns the image remote service.
-	 *
-	 * @return the image remote service
-	 */
-	public ImageService getImageService() {
-		return imageService;
-	}
-
-	/**
-	 * Sets the image remote service.
-	 *
-	 * @param imageService the image remote service
-	 */
-	public void setImageService(ImageService imageService) {
-		this.imageService = imageService;
-	}
-
-	/**
-	 * Returns the image persistence.
-	 *
-	 * @return the image persistence
-	 */
-	public ImagePersistence getImagePersistence() {
-		return imagePersistence;
-	}
-
-	/**
-	 * Sets the image persistence.
-	 *
-	 * @param imagePersistence the image persistence
-	 */
-	public void setImagePersistence(ImagePersistence imagePersistence) {
-		this.imagePersistence = imagePersistence;
-	}
-
-	/**
 	 * Returns the layout local service.
 	 *
 	 * @return the layout local service
 	 */
-	public LayoutLocalService getLayoutLocalService() {
+	public com.liferay.portal.kernel.service.LayoutLocalService getLayoutLocalService() {
 		return layoutLocalService;
 	}
 
@@ -1317,26 +914,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param layoutLocalService the layout local service
 	 */
-	public void setLayoutLocalService(LayoutLocalService layoutLocalService) {
+	public void setLayoutLocalService(
+		com.liferay.portal.kernel.service.LayoutLocalService layoutLocalService) {
 		this.layoutLocalService = layoutLocalService;
-	}
-
-	/**
-	 * Returns the layout remote service.
-	 *
-	 * @return the layout remote service
-	 */
-	public LayoutService getLayoutService() {
-		return layoutService;
-	}
-
-	/**
-	 * Sets the layout remote service.
-	 *
-	 * @param layoutService the layout remote service
-	 */
-	public void setLayoutService(LayoutService layoutService) {
-		this.layoutService = layoutService;
 	}
 
 	/**
@@ -1376,1429 +956,11 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the layout branch local service.
-	 *
-	 * @return the layout branch local service
-	 */
-	public LayoutBranchLocalService getLayoutBranchLocalService() {
-		return layoutBranchLocalService;
-	}
-
-	/**
-	 * Sets the layout branch local service.
-	 *
-	 * @param layoutBranchLocalService the layout branch local service
-	 */
-	public void setLayoutBranchLocalService(
-		LayoutBranchLocalService layoutBranchLocalService) {
-		this.layoutBranchLocalService = layoutBranchLocalService;
-	}
-
-	/**
-	 * Returns the layout branch remote service.
-	 *
-	 * @return the layout branch remote service
-	 */
-	public LayoutBranchService getLayoutBranchService() {
-		return layoutBranchService;
-	}
-
-	/**
-	 * Sets the layout branch remote service.
-	 *
-	 * @param layoutBranchService the layout branch remote service
-	 */
-	public void setLayoutBranchService(LayoutBranchService layoutBranchService) {
-		this.layoutBranchService = layoutBranchService;
-	}
-
-	/**
-	 * Returns the layout branch persistence.
-	 *
-	 * @return the layout branch persistence
-	 */
-	public LayoutBranchPersistence getLayoutBranchPersistence() {
-		return layoutBranchPersistence;
-	}
-
-	/**
-	 * Sets the layout branch persistence.
-	 *
-	 * @param layoutBranchPersistence the layout branch persistence
-	 */
-	public void setLayoutBranchPersistence(
-		LayoutBranchPersistence layoutBranchPersistence) {
-		this.layoutBranchPersistence = layoutBranchPersistence;
-	}
-
-	/**
-	 * Returns the layout friendly u r l local service.
-	 *
-	 * @return the layout friendly u r l local service
-	 */
-	public LayoutFriendlyURLLocalService getLayoutFriendlyURLLocalService() {
-		return layoutFriendlyURLLocalService;
-	}
-
-	/**
-	 * Sets the layout friendly u r l local service.
-	 *
-	 * @param layoutFriendlyURLLocalService the layout friendly u r l local service
-	 */
-	public void setLayoutFriendlyURLLocalService(
-		LayoutFriendlyURLLocalService layoutFriendlyURLLocalService) {
-		this.layoutFriendlyURLLocalService = layoutFriendlyURLLocalService;
-	}
-
-	/**
-	 * Returns the layout friendly u r l persistence.
-	 *
-	 * @return the layout friendly u r l persistence
-	 */
-	public LayoutFriendlyURLPersistence getLayoutFriendlyURLPersistence() {
-		return layoutFriendlyURLPersistence;
-	}
-
-	/**
-	 * Sets the layout friendly u r l persistence.
-	 *
-	 * @param layoutFriendlyURLPersistence the layout friendly u r l persistence
-	 */
-	public void setLayoutFriendlyURLPersistence(
-		LayoutFriendlyURLPersistence layoutFriendlyURLPersistence) {
-		this.layoutFriendlyURLPersistence = layoutFriendlyURLPersistence;
-	}
-
-	/**
-	 * Returns the layout prototype local service.
-	 *
-	 * @return the layout prototype local service
-	 */
-	public LayoutPrototypeLocalService getLayoutPrototypeLocalService() {
-		return layoutPrototypeLocalService;
-	}
-
-	/**
-	 * Sets the layout prototype local service.
-	 *
-	 * @param layoutPrototypeLocalService the layout prototype local service
-	 */
-	public void setLayoutPrototypeLocalService(
-		LayoutPrototypeLocalService layoutPrototypeLocalService) {
-		this.layoutPrototypeLocalService = layoutPrototypeLocalService;
-	}
-
-	/**
-	 * Returns the layout prototype remote service.
-	 *
-	 * @return the layout prototype remote service
-	 */
-	public LayoutPrototypeService getLayoutPrototypeService() {
-		return layoutPrototypeService;
-	}
-
-	/**
-	 * Sets the layout prototype remote service.
-	 *
-	 * @param layoutPrototypeService the layout prototype remote service
-	 */
-	public void setLayoutPrototypeService(
-		LayoutPrototypeService layoutPrototypeService) {
-		this.layoutPrototypeService = layoutPrototypeService;
-	}
-
-	/**
-	 * Returns the layout prototype persistence.
-	 *
-	 * @return the layout prototype persistence
-	 */
-	public LayoutPrototypePersistence getLayoutPrototypePersistence() {
-		return layoutPrototypePersistence;
-	}
-
-	/**
-	 * Sets the layout prototype persistence.
-	 *
-	 * @param layoutPrototypePersistence the layout prototype persistence
-	 */
-	public void setLayoutPrototypePersistence(
-		LayoutPrototypePersistence layoutPrototypePersistence) {
-		this.layoutPrototypePersistence = layoutPrototypePersistence;
-	}
-
-	/**
-	 * Returns the layout revision local service.
-	 *
-	 * @return the layout revision local service
-	 */
-	public LayoutRevisionLocalService getLayoutRevisionLocalService() {
-		return layoutRevisionLocalService;
-	}
-
-	/**
-	 * Sets the layout revision local service.
-	 *
-	 * @param layoutRevisionLocalService the layout revision local service
-	 */
-	public void setLayoutRevisionLocalService(
-		LayoutRevisionLocalService layoutRevisionLocalService) {
-		this.layoutRevisionLocalService = layoutRevisionLocalService;
-	}
-
-	/**
-	 * Returns the layout revision remote service.
-	 *
-	 * @return the layout revision remote service
-	 */
-	public LayoutRevisionService getLayoutRevisionService() {
-		return layoutRevisionService;
-	}
-
-	/**
-	 * Sets the layout revision remote service.
-	 *
-	 * @param layoutRevisionService the layout revision remote service
-	 */
-	public void setLayoutRevisionService(
-		LayoutRevisionService layoutRevisionService) {
-		this.layoutRevisionService = layoutRevisionService;
-	}
-
-	/**
-	 * Returns the layout revision persistence.
-	 *
-	 * @return the layout revision persistence
-	 */
-	public LayoutRevisionPersistence getLayoutRevisionPersistence() {
-		return layoutRevisionPersistence;
-	}
-
-	/**
-	 * Sets the layout revision persistence.
-	 *
-	 * @param layoutRevisionPersistence the layout revision persistence
-	 */
-	public void setLayoutRevisionPersistence(
-		LayoutRevisionPersistence layoutRevisionPersistence) {
-		this.layoutRevisionPersistence = layoutRevisionPersistence;
-	}
-
-	/**
-	 * Returns the layout set local service.
-	 *
-	 * @return the layout set local service
-	 */
-	public LayoutSetLocalService getLayoutSetLocalService() {
-		return layoutSetLocalService;
-	}
-
-	/**
-	 * Sets the layout set local service.
-	 *
-	 * @param layoutSetLocalService the layout set local service
-	 */
-	public void setLayoutSetLocalService(
-		LayoutSetLocalService layoutSetLocalService) {
-		this.layoutSetLocalService = layoutSetLocalService;
-	}
-
-	/**
-	 * Returns the layout set remote service.
-	 *
-	 * @return the layout set remote service
-	 */
-	public LayoutSetService getLayoutSetService() {
-		return layoutSetService;
-	}
-
-	/**
-	 * Sets the layout set remote service.
-	 *
-	 * @param layoutSetService the layout set remote service
-	 */
-	public void setLayoutSetService(LayoutSetService layoutSetService) {
-		this.layoutSetService = layoutSetService;
-	}
-
-	/**
-	 * Returns the layout set persistence.
-	 *
-	 * @return the layout set persistence
-	 */
-	public LayoutSetPersistence getLayoutSetPersistence() {
-		return layoutSetPersistence;
-	}
-
-	/**
-	 * Sets the layout set persistence.
-	 *
-	 * @param layoutSetPersistence the layout set persistence
-	 */
-	public void setLayoutSetPersistence(
-		LayoutSetPersistence layoutSetPersistence) {
-		this.layoutSetPersistence = layoutSetPersistence;
-	}
-
-	/**
-	 * Returns the layout set branch local service.
-	 *
-	 * @return the layout set branch local service
-	 */
-	public LayoutSetBranchLocalService getLayoutSetBranchLocalService() {
-		return layoutSetBranchLocalService;
-	}
-
-	/**
-	 * Sets the layout set branch local service.
-	 *
-	 * @param layoutSetBranchLocalService the layout set branch local service
-	 */
-	public void setLayoutSetBranchLocalService(
-		LayoutSetBranchLocalService layoutSetBranchLocalService) {
-		this.layoutSetBranchLocalService = layoutSetBranchLocalService;
-	}
-
-	/**
-	 * Returns the layout set branch remote service.
-	 *
-	 * @return the layout set branch remote service
-	 */
-	public LayoutSetBranchService getLayoutSetBranchService() {
-		return layoutSetBranchService;
-	}
-
-	/**
-	 * Sets the layout set branch remote service.
-	 *
-	 * @param layoutSetBranchService the layout set branch remote service
-	 */
-	public void setLayoutSetBranchService(
-		LayoutSetBranchService layoutSetBranchService) {
-		this.layoutSetBranchService = layoutSetBranchService;
-	}
-
-	/**
-	 * Returns the layout set branch persistence.
-	 *
-	 * @return the layout set branch persistence
-	 */
-	public LayoutSetBranchPersistence getLayoutSetBranchPersistence() {
-		return layoutSetBranchPersistence;
-	}
-
-	/**
-	 * Sets the layout set branch persistence.
-	 *
-	 * @param layoutSetBranchPersistence the layout set branch persistence
-	 */
-	public void setLayoutSetBranchPersistence(
-		LayoutSetBranchPersistence layoutSetBranchPersistence) {
-		this.layoutSetBranchPersistence = layoutSetBranchPersistence;
-	}
-
-	/**
-	 * Returns the layout set branch finder.
-	 *
-	 * @return the layout set branch finder
-	 */
-	public LayoutSetBranchFinder getLayoutSetBranchFinder() {
-		return layoutSetBranchFinder;
-	}
-
-	/**
-	 * Sets the layout set branch finder.
-	 *
-	 * @param layoutSetBranchFinder the layout set branch finder
-	 */
-	public void setLayoutSetBranchFinder(
-		LayoutSetBranchFinder layoutSetBranchFinder) {
-		this.layoutSetBranchFinder = layoutSetBranchFinder;
-	}
-
-	/**
-	 * Returns the layout set prototype local service.
-	 *
-	 * @return the layout set prototype local service
-	 */
-	public LayoutSetPrototypeLocalService getLayoutSetPrototypeLocalService() {
-		return layoutSetPrototypeLocalService;
-	}
-
-	/**
-	 * Sets the layout set prototype local service.
-	 *
-	 * @param layoutSetPrototypeLocalService the layout set prototype local service
-	 */
-	public void setLayoutSetPrototypeLocalService(
-		LayoutSetPrototypeLocalService layoutSetPrototypeLocalService) {
-		this.layoutSetPrototypeLocalService = layoutSetPrototypeLocalService;
-	}
-
-	/**
-	 * Returns the layout set prototype remote service.
-	 *
-	 * @return the layout set prototype remote service
-	 */
-	public LayoutSetPrototypeService getLayoutSetPrototypeService() {
-		return layoutSetPrototypeService;
-	}
-
-	/**
-	 * Sets the layout set prototype remote service.
-	 *
-	 * @param layoutSetPrototypeService the layout set prototype remote service
-	 */
-	public void setLayoutSetPrototypeService(
-		LayoutSetPrototypeService layoutSetPrototypeService) {
-		this.layoutSetPrototypeService = layoutSetPrototypeService;
-	}
-
-	/**
-	 * Returns the layout set prototype persistence.
-	 *
-	 * @return the layout set prototype persistence
-	 */
-	public LayoutSetPrototypePersistence getLayoutSetPrototypePersistence() {
-		return layoutSetPrototypePersistence;
-	}
-
-	/**
-	 * Sets the layout set prototype persistence.
-	 *
-	 * @param layoutSetPrototypePersistence the layout set prototype persistence
-	 */
-	public void setLayoutSetPrototypePersistence(
-		LayoutSetPrototypePersistence layoutSetPrototypePersistence) {
-		this.layoutSetPrototypePersistence = layoutSetPrototypePersistence;
-	}
-
-	/**
-	 * Returns the layout template local service.
-	 *
-	 * @return the layout template local service
-	 */
-	public LayoutTemplateLocalService getLayoutTemplateLocalService() {
-		return layoutTemplateLocalService;
-	}
-
-	/**
-	 * Sets the layout template local service.
-	 *
-	 * @param layoutTemplateLocalService the layout template local service
-	 */
-	public void setLayoutTemplateLocalService(
-		LayoutTemplateLocalService layoutTemplateLocalService) {
-		this.layoutTemplateLocalService = layoutTemplateLocalService;
-	}
-
-	/**
-	 * Returns the list type remote service.
-	 *
-	 * @return the list type remote service
-	 */
-	public ListTypeService getListTypeService() {
-		return listTypeService;
-	}
-
-	/**
-	 * Sets the list type remote service.
-	 *
-	 * @param listTypeService the list type remote service
-	 */
-	public void setListTypeService(ListTypeService listTypeService) {
-		this.listTypeService = listTypeService;
-	}
-
-	/**
-	 * Returns the list type persistence.
-	 *
-	 * @return the list type persistence
-	 */
-	public ListTypePersistence getListTypePersistence() {
-		return listTypePersistence;
-	}
-
-	/**
-	 * Sets the list type persistence.
-	 *
-	 * @param listTypePersistence the list type persistence
-	 */
-	public void setListTypePersistence(ListTypePersistence listTypePersistence) {
-		this.listTypePersistence = listTypePersistence;
-	}
-
-	/**
-	 * Returns the lock local service.
-	 *
-	 * @return the lock local service
-	 */
-	public LockLocalService getLockLocalService() {
-		return lockLocalService;
-	}
-
-	/**
-	 * Sets the lock local service.
-	 *
-	 * @param lockLocalService the lock local service
-	 */
-	public void setLockLocalService(LockLocalService lockLocalService) {
-		this.lockLocalService = lockLocalService;
-	}
-
-	/**
-	 * Returns the lock persistence.
-	 *
-	 * @return the lock persistence
-	 */
-	public LockPersistence getLockPersistence() {
-		return lockPersistence;
-	}
-
-	/**
-	 * Sets the lock persistence.
-	 *
-	 * @param lockPersistence the lock persistence
-	 */
-	public void setLockPersistence(LockPersistence lockPersistence) {
-		this.lockPersistence = lockPersistence;
-	}
-
-	/**
-	 * Returns the lock finder.
-	 *
-	 * @return the lock finder
-	 */
-	public LockFinder getLockFinder() {
-		return lockFinder;
-	}
-
-	/**
-	 * Sets the lock finder.
-	 *
-	 * @param lockFinder the lock finder
-	 */
-	public void setLockFinder(LockFinder lockFinder) {
-		this.lockFinder = lockFinder;
-	}
-
-	/**
-	 * Returns the membership request local service.
-	 *
-	 * @return the membership request local service
-	 */
-	public MembershipRequestLocalService getMembershipRequestLocalService() {
-		return membershipRequestLocalService;
-	}
-
-	/**
-	 * Sets the membership request local service.
-	 *
-	 * @param membershipRequestLocalService the membership request local service
-	 */
-	public void setMembershipRequestLocalService(
-		MembershipRequestLocalService membershipRequestLocalService) {
-		this.membershipRequestLocalService = membershipRequestLocalService;
-	}
-
-	/**
-	 * Returns the membership request remote service.
-	 *
-	 * @return the membership request remote service
-	 */
-	public MembershipRequestService getMembershipRequestService() {
-		return membershipRequestService;
-	}
-
-	/**
-	 * Sets the membership request remote service.
-	 *
-	 * @param membershipRequestService the membership request remote service
-	 */
-	public void setMembershipRequestService(
-		MembershipRequestService membershipRequestService) {
-		this.membershipRequestService = membershipRequestService;
-	}
-
-	/**
-	 * Returns the membership request persistence.
-	 *
-	 * @return the membership request persistence
-	 */
-	public MembershipRequestPersistence getMembershipRequestPersistence() {
-		return membershipRequestPersistence;
-	}
-
-	/**
-	 * Sets the membership request persistence.
-	 *
-	 * @param membershipRequestPersistence the membership request persistence
-	 */
-	public void setMembershipRequestPersistence(
-		MembershipRequestPersistence membershipRequestPersistence) {
-		this.membershipRequestPersistence = membershipRequestPersistence;
-	}
-
-	/**
-	 * Returns the organization local service.
-	 *
-	 * @return the organization local service
-	 */
-	public OrganizationLocalService getOrganizationLocalService() {
-		return organizationLocalService;
-	}
-
-	/**
-	 * Sets the organization local service.
-	 *
-	 * @param organizationLocalService the organization local service
-	 */
-	public void setOrganizationLocalService(
-		OrganizationLocalService organizationLocalService) {
-		this.organizationLocalService = organizationLocalService;
-	}
-
-	/**
-	 * Returns the organization remote service.
-	 *
-	 * @return the organization remote service
-	 */
-	public OrganizationService getOrganizationService() {
-		return organizationService;
-	}
-
-	/**
-	 * Sets the organization remote service.
-	 *
-	 * @param organizationService the organization remote service
-	 */
-	public void setOrganizationService(OrganizationService organizationService) {
-		this.organizationService = organizationService;
-	}
-
-	/**
-	 * Returns the organization persistence.
-	 *
-	 * @return the organization persistence
-	 */
-	public OrganizationPersistence getOrganizationPersistence() {
-		return organizationPersistence;
-	}
-
-	/**
-	 * Sets the organization persistence.
-	 *
-	 * @param organizationPersistence the organization persistence
-	 */
-	public void setOrganizationPersistence(
-		OrganizationPersistence organizationPersistence) {
-		this.organizationPersistence = organizationPersistence;
-	}
-
-	/**
-	 * Returns the organization finder.
-	 *
-	 * @return the organization finder
-	 */
-	public OrganizationFinder getOrganizationFinder() {
-		return organizationFinder;
-	}
-
-	/**
-	 * Sets the organization finder.
-	 *
-	 * @param organizationFinder the organization finder
-	 */
-	public void setOrganizationFinder(OrganizationFinder organizationFinder) {
-		this.organizationFinder = organizationFinder;
-	}
-
-	/**
-	 * Returns the org group role persistence.
-	 *
-	 * @return the org group role persistence
-	 */
-	public OrgGroupRolePersistence getOrgGroupRolePersistence() {
-		return orgGroupRolePersistence;
-	}
-
-	/**
-	 * Sets the org group role persistence.
-	 *
-	 * @param orgGroupRolePersistence the org group role persistence
-	 */
-	public void setOrgGroupRolePersistence(
-		OrgGroupRolePersistence orgGroupRolePersistence) {
-		this.orgGroupRolePersistence = orgGroupRolePersistence;
-	}
-
-	/**
-	 * Returns the org labor local service.
-	 *
-	 * @return the org labor local service
-	 */
-	public OrgLaborLocalService getOrgLaborLocalService() {
-		return orgLaborLocalService;
-	}
-
-	/**
-	 * Sets the org labor local service.
-	 *
-	 * @param orgLaborLocalService the org labor local service
-	 */
-	public void setOrgLaborLocalService(
-		OrgLaborLocalService orgLaborLocalService) {
-		this.orgLaborLocalService = orgLaborLocalService;
-	}
-
-	/**
-	 * Returns the org labor remote service.
-	 *
-	 * @return the org labor remote service
-	 */
-	public OrgLaborService getOrgLaborService() {
-		return orgLaborService;
-	}
-
-	/**
-	 * Sets the org labor remote service.
-	 *
-	 * @param orgLaborService the org labor remote service
-	 */
-	public void setOrgLaborService(OrgLaborService orgLaborService) {
-		this.orgLaborService = orgLaborService;
-	}
-
-	/**
-	 * Returns the org labor persistence.
-	 *
-	 * @return the org labor persistence
-	 */
-	public OrgLaborPersistence getOrgLaborPersistence() {
-		return orgLaborPersistence;
-	}
-
-	/**
-	 * Sets the org labor persistence.
-	 *
-	 * @param orgLaborPersistence the org labor persistence
-	 */
-	public void setOrgLaborPersistence(OrgLaborPersistence orgLaborPersistence) {
-		this.orgLaborPersistence = orgLaborPersistence;
-	}
-
-	/**
-	 * Returns the password policy local service.
-	 *
-	 * @return the password policy local service
-	 */
-	public PasswordPolicyLocalService getPasswordPolicyLocalService() {
-		return passwordPolicyLocalService;
-	}
-
-	/**
-	 * Sets the password policy local service.
-	 *
-	 * @param passwordPolicyLocalService the password policy local service
-	 */
-	public void setPasswordPolicyLocalService(
-		PasswordPolicyLocalService passwordPolicyLocalService) {
-		this.passwordPolicyLocalService = passwordPolicyLocalService;
-	}
-
-	/**
-	 * Returns the password policy remote service.
-	 *
-	 * @return the password policy remote service
-	 */
-	public PasswordPolicyService getPasswordPolicyService() {
-		return passwordPolicyService;
-	}
-
-	/**
-	 * Sets the password policy remote service.
-	 *
-	 * @param passwordPolicyService the password policy remote service
-	 */
-	public void setPasswordPolicyService(
-		PasswordPolicyService passwordPolicyService) {
-		this.passwordPolicyService = passwordPolicyService;
-	}
-
-	/**
-	 * Returns the password policy persistence.
-	 *
-	 * @return the password policy persistence
-	 */
-	public PasswordPolicyPersistence getPasswordPolicyPersistence() {
-		return passwordPolicyPersistence;
-	}
-
-	/**
-	 * Sets the password policy persistence.
-	 *
-	 * @param passwordPolicyPersistence the password policy persistence
-	 */
-	public void setPasswordPolicyPersistence(
-		PasswordPolicyPersistence passwordPolicyPersistence) {
-		this.passwordPolicyPersistence = passwordPolicyPersistence;
-	}
-
-	/**
-	 * Returns the password policy finder.
-	 *
-	 * @return the password policy finder
-	 */
-	public PasswordPolicyFinder getPasswordPolicyFinder() {
-		return passwordPolicyFinder;
-	}
-
-	/**
-	 * Sets the password policy finder.
-	 *
-	 * @param passwordPolicyFinder the password policy finder
-	 */
-	public void setPasswordPolicyFinder(
-		PasswordPolicyFinder passwordPolicyFinder) {
-		this.passwordPolicyFinder = passwordPolicyFinder;
-	}
-
-	/**
-	 * Returns the password policy rel local service.
-	 *
-	 * @return the password policy rel local service
-	 */
-	public PasswordPolicyRelLocalService getPasswordPolicyRelLocalService() {
-		return passwordPolicyRelLocalService;
-	}
-
-	/**
-	 * Sets the password policy rel local service.
-	 *
-	 * @param passwordPolicyRelLocalService the password policy rel local service
-	 */
-	public void setPasswordPolicyRelLocalService(
-		PasswordPolicyRelLocalService passwordPolicyRelLocalService) {
-		this.passwordPolicyRelLocalService = passwordPolicyRelLocalService;
-	}
-
-	/**
-	 * Returns the password policy rel persistence.
-	 *
-	 * @return the password policy rel persistence
-	 */
-	public PasswordPolicyRelPersistence getPasswordPolicyRelPersistence() {
-		return passwordPolicyRelPersistence;
-	}
-
-	/**
-	 * Sets the password policy rel persistence.
-	 *
-	 * @param passwordPolicyRelPersistence the password policy rel persistence
-	 */
-	public void setPasswordPolicyRelPersistence(
-		PasswordPolicyRelPersistence passwordPolicyRelPersistence) {
-		this.passwordPolicyRelPersistence = passwordPolicyRelPersistence;
-	}
-
-	/**
-	 * Returns the password tracker local service.
-	 *
-	 * @return the password tracker local service
-	 */
-	public PasswordTrackerLocalService getPasswordTrackerLocalService() {
-		return passwordTrackerLocalService;
-	}
-
-	/**
-	 * Sets the password tracker local service.
-	 *
-	 * @param passwordTrackerLocalService the password tracker local service
-	 */
-	public void setPasswordTrackerLocalService(
-		PasswordTrackerLocalService passwordTrackerLocalService) {
-		this.passwordTrackerLocalService = passwordTrackerLocalService;
-	}
-
-	/**
-	 * Returns the password tracker persistence.
-	 *
-	 * @return the password tracker persistence
-	 */
-	public PasswordTrackerPersistence getPasswordTrackerPersistence() {
-		return passwordTrackerPersistence;
-	}
-
-	/**
-	 * Sets the password tracker persistence.
-	 *
-	 * @param passwordTrackerPersistence the password tracker persistence
-	 */
-	public void setPasswordTrackerPersistence(
-		PasswordTrackerPersistence passwordTrackerPersistence) {
-		this.passwordTrackerPersistence = passwordTrackerPersistence;
-	}
-
-	/**
-	 * Returns the permission remote service.
-	 *
-	 * @return the permission remote service
-	 */
-	public PermissionService getPermissionService() {
-		return permissionService;
-	}
-
-	/**
-	 * Sets the permission remote service.
-	 *
-	 * @param permissionService the permission remote service
-	 */
-	public void setPermissionService(PermissionService permissionService) {
-		this.permissionService = permissionService;
-	}
-
-	/**
-	 * Returns the phone local service.
-	 *
-	 * @return the phone local service
-	 */
-	public PhoneLocalService getPhoneLocalService() {
-		return phoneLocalService;
-	}
-
-	/**
-	 * Sets the phone local service.
-	 *
-	 * @param phoneLocalService the phone local service
-	 */
-	public void setPhoneLocalService(PhoneLocalService phoneLocalService) {
-		this.phoneLocalService = phoneLocalService;
-	}
-
-	/**
-	 * Returns the phone remote service.
-	 *
-	 * @return the phone remote service
-	 */
-	public PhoneService getPhoneService() {
-		return phoneService;
-	}
-
-	/**
-	 * Sets the phone remote service.
-	 *
-	 * @param phoneService the phone remote service
-	 */
-	public void setPhoneService(PhoneService phoneService) {
-		this.phoneService = phoneService;
-	}
-
-	/**
-	 * Returns the phone persistence.
-	 *
-	 * @return the phone persistence
-	 */
-	public PhonePersistence getPhonePersistence() {
-		return phonePersistence;
-	}
-
-	/**
-	 * Sets the phone persistence.
-	 *
-	 * @param phonePersistence the phone persistence
-	 */
-	public void setPhonePersistence(PhonePersistence phonePersistence) {
-		this.phonePersistence = phonePersistence;
-	}
-
-	/**
-	 * Returns the plugin setting local service.
-	 *
-	 * @return the plugin setting local service
-	 */
-	public PluginSettingLocalService getPluginSettingLocalService() {
-		return pluginSettingLocalService;
-	}
-
-	/**
-	 * Sets the plugin setting local service.
-	 *
-	 * @param pluginSettingLocalService the plugin setting local service
-	 */
-	public void setPluginSettingLocalService(
-		PluginSettingLocalService pluginSettingLocalService) {
-		this.pluginSettingLocalService = pluginSettingLocalService;
-	}
-
-	/**
-	 * Returns the plugin setting remote service.
-	 *
-	 * @return the plugin setting remote service
-	 */
-	public PluginSettingService getPluginSettingService() {
-		return pluginSettingService;
-	}
-
-	/**
-	 * Sets the plugin setting remote service.
-	 *
-	 * @param pluginSettingService the plugin setting remote service
-	 */
-	public void setPluginSettingService(
-		PluginSettingService pluginSettingService) {
-		this.pluginSettingService = pluginSettingService;
-	}
-
-	/**
-	 * Returns the plugin setting persistence.
-	 *
-	 * @return the plugin setting persistence
-	 */
-	public PluginSettingPersistence getPluginSettingPersistence() {
-		return pluginSettingPersistence;
-	}
-
-	/**
-	 * Sets the plugin setting persistence.
-	 *
-	 * @param pluginSettingPersistence the plugin setting persistence
-	 */
-	public void setPluginSettingPersistence(
-		PluginSettingPersistence pluginSettingPersistence) {
-		this.pluginSettingPersistence = pluginSettingPersistence;
-	}
-
-	/**
-	 * Returns the portal local service.
-	 *
-	 * @return the portal local service
-	 */
-	public PortalLocalService getPortalLocalService() {
-		return portalLocalService;
-	}
-
-	/**
-	 * Sets the portal local service.
-	 *
-	 * @param portalLocalService the portal local service
-	 */
-	public void setPortalLocalService(PortalLocalService portalLocalService) {
-		this.portalLocalService = portalLocalService;
-	}
-
-	/**
-	 * Returns the portal remote service.
-	 *
-	 * @return the portal remote service
-	 */
-	public PortalService getPortalService() {
-		return portalService;
-	}
-
-	/**
-	 * Sets the portal remote service.
-	 *
-	 * @param portalService the portal remote service
-	 */
-	public void setPortalService(PortalService portalService) {
-		this.portalService = portalService;
-	}
-
-	/**
-	 * Returns the portal preferences local service.
-	 *
-	 * @return the portal preferences local service
-	 */
-	public PortalPreferencesLocalService getPortalPreferencesLocalService() {
-		return portalPreferencesLocalService;
-	}
-
-	/**
-	 * Sets the portal preferences local service.
-	 *
-	 * @param portalPreferencesLocalService the portal preferences local service
-	 */
-	public void setPortalPreferencesLocalService(
-		PortalPreferencesLocalService portalPreferencesLocalService) {
-		this.portalPreferencesLocalService = portalPreferencesLocalService;
-	}
-
-	/**
-	 * Returns the portal preferences persistence.
-	 *
-	 * @return the portal preferences persistence
-	 */
-	public PortalPreferencesPersistence getPortalPreferencesPersistence() {
-		return portalPreferencesPersistence;
-	}
-
-	/**
-	 * Sets the portal preferences persistence.
-	 *
-	 * @param portalPreferencesPersistence the portal preferences persistence
-	 */
-	public void setPortalPreferencesPersistence(
-		PortalPreferencesPersistence portalPreferencesPersistence) {
-		this.portalPreferencesPersistence = portalPreferencesPersistence;
-	}
-
-	/**
-	 * Returns the portlet local service.
-	 *
-	 * @return the portlet local service
-	 */
-	public PortletLocalService getPortletLocalService() {
-		return portletLocalService;
-	}
-
-	/**
-	 * Sets the portlet local service.
-	 *
-	 * @param portletLocalService the portlet local service
-	 */
-	public void setPortletLocalService(PortletLocalService portletLocalService) {
-		this.portletLocalService = portletLocalService;
-	}
-
-	/**
-	 * Returns the portlet remote service.
-	 *
-	 * @return the portlet remote service
-	 */
-	public PortletService getPortletService() {
-		return portletService;
-	}
-
-	/**
-	 * Sets the portlet remote service.
-	 *
-	 * @param portletService the portlet remote service
-	 */
-	public void setPortletService(PortletService portletService) {
-		this.portletService = portletService;
-	}
-
-	/**
-	 * Returns the portlet persistence.
-	 *
-	 * @return the portlet persistence
-	 */
-	public PortletPersistence getPortletPersistence() {
-		return portletPersistence;
-	}
-
-	/**
-	 * Sets the portlet persistence.
-	 *
-	 * @param portletPersistence the portlet persistence
-	 */
-	public void setPortletPersistence(PortletPersistence portletPersistence) {
-		this.portletPersistence = portletPersistence;
-	}
-
-	/**
-	 * Returns the portlet item local service.
-	 *
-	 * @return the portlet item local service
-	 */
-	public PortletItemLocalService getPortletItemLocalService() {
-		return portletItemLocalService;
-	}
-
-	/**
-	 * Sets the portlet item local service.
-	 *
-	 * @param portletItemLocalService the portlet item local service
-	 */
-	public void setPortletItemLocalService(
-		PortletItemLocalService portletItemLocalService) {
-		this.portletItemLocalService = portletItemLocalService;
-	}
-
-	/**
-	 * Returns the portlet item persistence.
-	 *
-	 * @return the portlet item persistence
-	 */
-	public PortletItemPersistence getPortletItemPersistence() {
-		return portletItemPersistence;
-	}
-
-	/**
-	 * Sets the portlet item persistence.
-	 *
-	 * @param portletItemPersistence the portlet item persistence
-	 */
-	public void setPortletItemPersistence(
-		PortletItemPersistence portletItemPersistence) {
-		this.portletItemPersistence = portletItemPersistence;
-	}
-
-	/**
-	 * Returns the portlet preferences local service.
-	 *
-	 * @return the portlet preferences local service
-	 */
-	public PortletPreferencesLocalService getPortletPreferencesLocalService() {
-		return portletPreferencesLocalService;
-	}
-
-	/**
-	 * Sets the portlet preferences local service.
-	 *
-	 * @param portletPreferencesLocalService the portlet preferences local service
-	 */
-	public void setPortletPreferencesLocalService(
-		PortletPreferencesLocalService portletPreferencesLocalService) {
-		this.portletPreferencesLocalService = portletPreferencesLocalService;
-	}
-
-	/**
-	 * Returns the portlet preferences remote service.
-	 *
-	 * @return the portlet preferences remote service
-	 */
-	public PortletPreferencesService getPortletPreferencesService() {
-		return portletPreferencesService;
-	}
-
-	/**
-	 * Sets the portlet preferences remote service.
-	 *
-	 * @param portletPreferencesService the portlet preferences remote service
-	 */
-	public void setPortletPreferencesService(
-		PortletPreferencesService portletPreferencesService) {
-		this.portletPreferencesService = portletPreferencesService;
-	}
-
-	/**
-	 * Returns the portlet preferences persistence.
-	 *
-	 * @return the portlet preferences persistence
-	 */
-	public PortletPreferencesPersistence getPortletPreferencesPersistence() {
-		return portletPreferencesPersistence;
-	}
-
-	/**
-	 * Sets the portlet preferences persistence.
-	 *
-	 * @param portletPreferencesPersistence the portlet preferences persistence
-	 */
-	public void setPortletPreferencesPersistence(
-		PortletPreferencesPersistence portletPreferencesPersistence) {
-		this.portletPreferencesPersistence = portletPreferencesPersistence;
-	}
-
-	/**
-	 * Returns the portlet preferences finder.
-	 *
-	 * @return the portlet preferences finder
-	 */
-	public PortletPreferencesFinder getPortletPreferencesFinder() {
-		return portletPreferencesFinder;
-	}
-
-	/**
-	 * Sets the portlet preferences finder.
-	 *
-	 * @param portletPreferencesFinder the portlet preferences finder
-	 */
-	public void setPortletPreferencesFinder(
-		PortletPreferencesFinder portletPreferencesFinder) {
-		this.portletPreferencesFinder = portletPreferencesFinder;
-	}
-
-	/**
-	 * Returns the quartz local service.
-	 *
-	 * @return the quartz local service
-	 */
-	public QuartzLocalService getQuartzLocalService() {
-		return quartzLocalService;
-	}
-
-	/**
-	 * Sets the quartz local service.
-	 *
-	 * @param quartzLocalService the quartz local service
-	 */
-	public void setQuartzLocalService(QuartzLocalService quartzLocalService) {
-		this.quartzLocalService = quartzLocalService;
-	}
-
-	/**
-	 * Returns the region remote service.
-	 *
-	 * @return the region remote service
-	 */
-	public RegionService getRegionService() {
-		return regionService;
-	}
-
-	/**
-	 * Sets the region remote service.
-	 *
-	 * @param regionService the region remote service
-	 */
-	public void setRegionService(RegionService regionService) {
-		this.regionService = regionService;
-	}
-
-	/**
-	 * Returns the region persistence.
-	 *
-	 * @return the region persistence
-	 */
-	public RegionPersistence getRegionPersistence() {
-		return regionPersistence;
-	}
-
-	/**
-	 * Sets the region persistence.
-	 *
-	 * @param regionPersistence the region persistence
-	 */
-	public void setRegionPersistence(RegionPersistence regionPersistence) {
-		this.regionPersistence = regionPersistence;
-	}
-
-	/**
-	 * Returns the release local service.
-	 *
-	 * @return the release local service
-	 */
-	public ReleaseLocalService getReleaseLocalService() {
-		return releaseLocalService;
-	}
-
-	/**
-	 * Sets the release local service.
-	 *
-	 * @param releaseLocalService the release local service
-	 */
-	public void setReleaseLocalService(ReleaseLocalService releaseLocalService) {
-		this.releaseLocalService = releaseLocalService;
-	}
-
-	/**
-	 * Returns the release persistence.
-	 *
-	 * @return the release persistence
-	 */
-	public ReleasePersistence getReleasePersistence() {
-		return releasePersistence;
-	}
-
-	/**
-	 * Sets the release persistence.
-	 *
-	 * @param releasePersistence the release persistence
-	 */
-	public void setReleasePersistence(ReleasePersistence releasePersistence) {
-		this.releasePersistence = releasePersistence;
-	}
-
-	/**
-	 * Returns the repository local service.
-	 *
-	 * @return the repository local service
-	 */
-	public RepositoryLocalService getRepositoryLocalService() {
-		return repositoryLocalService;
-	}
-
-	/**
-	 * Sets the repository local service.
-	 *
-	 * @param repositoryLocalService the repository local service
-	 */
-	public void setRepositoryLocalService(
-		RepositoryLocalService repositoryLocalService) {
-		this.repositoryLocalService = repositoryLocalService;
-	}
-
-	/**
-	 * Returns the repository remote service.
-	 *
-	 * @return the repository remote service
-	 */
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
-	}
-
-	/**
-	 * Sets the repository remote service.
-	 *
-	 * @param repositoryService the repository remote service
-	 */
-	public void setRepositoryService(RepositoryService repositoryService) {
-		this.repositoryService = repositoryService;
-	}
-
-	/**
-	 * Returns the repository persistence.
-	 *
-	 * @return the repository persistence
-	 */
-	public RepositoryPersistence getRepositoryPersistence() {
-		return repositoryPersistence;
-	}
-
-	/**
-	 * Sets the repository persistence.
-	 *
-	 * @param repositoryPersistence the repository persistence
-	 */
-	public void setRepositoryPersistence(
-		RepositoryPersistence repositoryPersistence) {
-		this.repositoryPersistence = repositoryPersistence;
-	}
-
-	/**
-	 * Returns the repository entry local service.
-	 *
-	 * @return the repository entry local service
-	 */
-	public RepositoryEntryLocalService getRepositoryEntryLocalService() {
-		return repositoryEntryLocalService;
-	}
-
-	/**
-	 * Sets the repository entry local service.
-	 *
-	 * @param repositoryEntryLocalService the repository entry local service
-	 */
-	public void setRepositoryEntryLocalService(
-		RepositoryEntryLocalService repositoryEntryLocalService) {
-		this.repositoryEntryLocalService = repositoryEntryLocalService;
-	}
-
-	/**
-	 * Returns the repository entry persistence.
-	 *
-	 * @return the repository entry persistence
-	 */
-	public RepositoryEntryPersistence getRepositoryEntryPersistence() {
-		return repositoryEntryPersistence;
-	}
-
-	/**
-	 * Sets the repository entry persistence.
-	 *
-	 * @param repositoryEntryPersistence the repository entry persistence
-	 */
-	public void setRepositoryEntryPersistence(
-		RepositoryEntryPersistence repositoryEntryPersistence) {
-		this.repositoryEntryPersistence = repositoryEntryPersistence;
-	}
-
-	/**
 	 * Returns the resource local service.
 	 *
 	 * @return the resource local service
 	 */
-	public ResourceLocalService getResourceLocalService() {
+	public com.liferay.portal.kernel.service.ResourceLocalService getResourceLocalService() {
 		return resourceLocalService;
 	}
 
@@ -2808,7 +970,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param resourceLocalService the resource local service
 	 */
 	public void setResourceLocalService(
-		ResourceLocalService resourceLocalService) {
+		com.liferay.portal.kernel.service.ResourceLocalService resourceLocalService) {
 		this.resourceLocalService = resourceLocalService;
 	}
 
@@ -2817,7 +979,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the resource action local service
 	 */
-	public ResourceActionLocalService getResourceActionLocalService() {
+	public com.liferay.portal.kernel.service.ResourceActionLocalService getResourceActionLocalService() {
 		return resourceActionLocalService;
 	}
 
@@ -2827,7 +989,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param resourceActionLocalService the resource action local service
 	 */
 	public void setResourceActionLocalService(
-		ResourceActionLocalService resourceActionLocalService) {
+		com.liferay.portal.kernel.service.ResourceActionLocalService resourceActionLocalService) {
 		this.resourceActionLocalService = resourceActionLocalService;
 	}
 
@@ -2855,7 +1017,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the resource block local service
 	 */
-	public ResourceBlockLocalService getResourceBlockLocalService() {
+	public com.liferay.portal.kernel.service.ResourceBlockLocalService getResourceBlockLocalService() {
 		return resourceBlockLocalService;
 	}
 
@@ -2865,27 +1027,8 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param resourceBlockLocalService the resource block local service
 	 */
 	public void setResourceBlockLocalService(
-		ResourceBlockLocalService resourceBlockLocalService) {
+		com.liferay.portal.kernel.service.ResourceBlockLocalService resourceBlockLocalService) {
 		this.resourceBlockLocalService = resourceBlockLocalService;
-	}
-
-	/**
-	 * Returns the resource block remote service.
-	 *
-	 * @return the resource block remote service
-	 */
-	public ResourceBlockService getResourceBlockService() {
-		return resourceBlockService;
-	}
-
-	/**
-	 * Sets the resource block remote service.
-	 *
-	 * @param resourceBlockService the resource block remote service
-	 */
-	public void setResourceBlockService(
-		ResourceBlockService resourceBlockService) {
-		this.resourceBlockService = resourceBlockService;
 	}
 
 	/**
@@ -2930,7 +1073,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the resource block permission local service
 	 */
-	public ResourceBlockPermissionLocalService getResourceBlockPermissionLocalService() {
+	public com.liferay.portal.kernel.service.ResourceBlockPermissionLocalService getResourceBlockPermissionLocalService() {
 		return resourceBlockPermissionLocalService;
 	}
 
@@ -2940,7 +1083,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param resourceBlockPermissionLocalService the resource block permission local service
 	 */
 	public void setResourceBlockPermissionLocalService(
-		ResourceBlockPermissionLocalService resourceBlockPermissionLocalService) {
+		com.liferay.portal.kernel.service.ResourceBlockPermissionLocalService resourceBlockPermissionLocalService) {
 		this.resourceBlockPermissionLocalService = resourceBlockPermissionLocalService;
 	}
 
@@ -2968,7 +1111,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the resource permission local service
 	 */
-	public ResourcePermissionLocalService getResourcePermissionLocalService() {
+	public com.liferay.portal.kernel.service.ResourcePermissionLocalService getResourcePermissionLocalService() {
 		return resourcePermissionLocalService;
 	}
 
@@ -2978,27 +1121,8 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param resourcePermissionLocalService the resource permission local service
 	 */
 	public void setResourcePermissionLocalService(
-		ResourcePermissionLocalService resourcePermissionLocalService) {
+		com.liferay.portal.kernel.service.ResourcePermissionLocalService resourcePermissionLocalService) {
 		this.resourcePermissionLocalService = resourcePermissionLocalService;
-	}
-
-	/**
-	 * Returns the resource permission remote service.
-	 *
-	 * @return the resource permission remote service
-	 */
-	public ResourcePermissionService getResourcePermissionService() {
-		return resourcePermissionService;
-	}
-
-	/**
-	 * Sets the resource permission remote service.
-	 *
-	 * @param resourcePermissionService the resource permission remote service
-	 */
-	public void setResourcePermissionService(
-		ResourcePermissionService resourcePermissionService) {
-		this.resourcePermissionService = resourcePermissionService;
 	}
 
 	/**
@@ -3044,7 +1168,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the resource type permission local service
 	 */
-	public ResourceTypePermissionLocalService getResourceTypePermissionLocalService() {
+	public com.liferay.portal.kernel.service.ResourceTypePermissionLocalService getResourceTypePermissionLocalService() {
 		return resourceTypePermissionLocalService;
 	}
 
@@ -3054,7 +1178,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param resourceTypePermissionLocalService the resource type permission local service
 	 */
 	public void setResourceTypePermissionLocalService(
-		ResourceTypePermissionLocalService resourceTypePermissionLocalService) {
+		com.liferay.portal.kernel.service.ResourceTypePermissionLocalService resourceTypePermissionLocalService) {
 		this.resourceTypePermissionLocalService = resourceTypePermissionLocalService;
 	}
 
@@ -3097,187 +1221,41 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the role local service.
+	 * Returns the expando row local service.
 	 *
-	 * @return the role local service
+	 * @return the expando row local service
 	 */
-	public RoleLocalService getRoleLocalService() {
-		return roleLocalService;
+	public com.liferay.expando.kernel.service.ExpandoRowLocalService getExpandoRowLocalService() {
+		return expandoRowLocalService;
 	}
 
 	/**
-	 * Sets the role local service.
+	 * Sets the expando row local service.
 	 *
-	 * @param roleLocalService the role local service
+	 * @param expandoRowLocalService the expando row local service
 	 */
-	public void setRoleLocalService(RoleLocalService roleLocalService) {
-		this.roleLocalService = roleLocalService;
+	public void setExpandoRowLocalService(
+		com.liferay.expando.kernel.service.ExpandoRowLocalService expandoRowLocalService) {
+		this.expandoRowLocalService = expandoRowLocalService;
 	}
 
 	/**
-	 * Returns the role remote service.
+	 * Returns the expando row persistence.
 	 *
-	 * @return the role remote service
+	 * @return the expando row persistence
 	 */
-	public RoleService getRoleService() {
-		return roleService;
+	public ExpandoRowPersistence getExpandoRowPersistence() {
+		return expandoRowPersistence;
 	}
 
 	/**
-	 * Sets the role remote service.
+	 * Sets the expando row persistence.
 	 *
-	 * @param roleService the role remote service
+	 * @param expandoRowPersistence the expando row persistence
 	 */
-	public void setRoleService(RoleService roleService) {
-		this.roleService = roleService;
-	}
-
-	/**
-	 * Returns the role persistence.
-	 *
-	 * @return the role persistence
-	 */
-	public RolePersistence getRolePersistence() {
-		return rolePersistence;
-	}
-
-	/**
-	 * Sets the role persistence.
-	 *
-	 * @param rolePersistence the role persistence
-	 */
-	public void setRolePersistence(RolePersistence rolePersistence) {
-		this.rolePersistence = rolePersistence;
-	}
-
-	/**
-	 * Returns the role finder.
-	 *
-	 * @return the role finder
-	 */
-	public RoleFinder getRoleFinder() {
-		return roleFinder;
-	}
-
-	/**
-	 * Sets the role finder.
-	 *
-	 * @param roleFinder the role finder
-	 */
-	public void setRoleFinder(RoleFinder roleFinder) {
-		this.roleFinder = roleFinder;
-	}
-
-	/**
-	 * Returns the service component local service.
-	 *
-	 * @return the service component local service
-	 */
-	public ServiceComponentLocalService getServiceComponentLocalService() {
-		return serviceComponentLocalService;
-	}
-
-	/**
-	 * Sets the service component local service.
-	 *
-	 * @param serviceComponentLocalService the service component local service
-	 */
-	public void setServiceComponentLocalService(
-		ServiceComponentLocalService serviceComponentLocalService) {
-		this.serviceComponentLocalService = serviceComponentLocalService;
-	}
-
-	/**
-	 * Returns the service component persistence.
-	 *
-	 * @return the service component persistence
-	 */
-	public ServiceComponentPersistence getServiceComponentPersistence() {
-		return serviceComponentPersistence;
-	}
-
-	/**
-	 * Sets the service component persistence.
-	 *
-	 * @param serviceComponentPersistence the service component persistence
-	 */
-	public void setServiceComponentPersistence(
-		ServiceComponentPersistence serviceComponentPersistence) {
-		this.serviceComponentPersistence = serviceComponentPersistence;
-	}
-
-	/**
-	 * Returns the shard local service.
-	 *
-	 * @return the shard local service
-	 */
-	public ShardLocalService getShardLocalService() {
-		return shardLocalService;
-	}
-
-	/**
-	 * Sets the shard local service.
-	 *
-	 * @param shardLocalService the shard local service
-	 */
-	public void setShardLocalService(ShardLocalService shardLocalService) {
-		this.shardLocalService = shardLocalService;
-	}
-
-	/**
-	 * Returns the shard persistence.
-	 *
-	 * @return the shard persistence
-	 */
-	public ShardPersistence getShardPersistence() {
-		return shardPersistence;
-	}
-
-	/**
-	 * Sets the shard persistence.
-	 *
-	 * @param shardPersistence the shard persistence
-	 */
-	public void setShardPersistence(ShardPersistence shardPersistence) {
-		this.shardPersistence = shardPersistence;
-	}
-
-	/**
-	 * Returns the subscription local service.
-	 *
-	 * @return the subscription local service
-	 */
-	public SubscriptionLocalService getSubscriptionLocalService() {
-		return subscriptionLocalService;
-	}
-
-	/**
-	 * Sets the subscription local service.
-	 *
-	 * @param subscriptionLocalService the subscription local service
-	 */
-	public void setSubscriptionLocalService(
-		SubscriptionLocalService subscriptionLocalService) {
-		this.subscriptionLocalService = subscriptionLocalService;
-	}
-
-	/**
-	 * Returns the subscription persistence.
-	 *
-	 * @return the subscription persistence
-	 */
-	public SubscriptionPersistence getSubscriptionPersistence() {
-		return subscriptionPersistence;
-	}
-
-	/**
-	 * Sets the subscription persistence.
-	 *
-	 * @param subscriptionPersistence the subscription persistence
-	 */
-	public void setSubscriptionPersistence(
-		SubscriptionPersistence subscriptionPersistence) {
-		this.subscriptionPersistence = subscriptionPersistence;
+	public void setExpandoRowPersistence(
+		ExpandoRowPersistence expandoRowPersistence) {
+		this.expandoRowPersistence = expandoRowPersistence;
 	}
 
 	/**
@@ -3285,7 +1263,7 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @return the team local service
 	 */
-	public TeamLocalService getTeamLocalService() {
+	public com.liferay.portal.kernel.service.TeamLocalService getTeamLocalService() {
 		return teamLocalService;
 	}
 
@@ -3294,26 +1272,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param teamLocalService the team local service
 	 */
-	public void setTeamLocalService(TeamLocalService teamLocalService) {
+	public void setTeamLocalService(
+		com.liferay.portal.kernel.service.TeamLocalService teamLocalService) {
 		this.teamLocalService = teamLocalService;
-	}
-
-	/**
-	 * Returns the team remote service.
-	 *
-	 * @return the team remote service
-	 */
-	public TeamService getTeamService() {
-		return teamService;
-	}
-
-	/**
-	 * Sets the team remote service.
-	 *
-	 * @param teamService the team remote service
-	 */
-	public void setTeamService(TeamService teamService) {
-		this.teamService = teamService;
 	}
 
 	/**
@@ -3353,83 +1314,11 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the theme local service.
-	 *
-	 * @return the theme local service
-	 */
-	public ThemeLocalService getThemeLocalService() {
-		return themeLocalService;
-	}
-
-	/**
-	 * Sets the theme local service.
-	 *
-	 * @param themeLocalService the theme local service
-	 */
-	public void setThemeLocalService(ThemeLocalService themeLocalService) {
-		this.themeLocalService = themeLocalService;
-	}
-
-	/**
-	 * Returns the theme remote service.
-	 *
-	 * @return the theme remote service
-	 */
-	public ThemeService getThemeService() {
-		return themeService;
-	}
-
-	/**
-	 * Sets the theme remote service.
-	 *
-	 * @param themeService the theme remote service
-	 */
-	public void setThemeService(ThemeService themeService) {
-		this.themeService = themeService;
-	}
-
-	/**
-	 * Returns the ticket local service.
-	 *
-	 * @return the ticket local service
-	 */
-	public TicketLocalService getTicketLocalService() {
-		return ticketLocalService;
-	}
-
-	/**
-	 * Sets the ticket local service.
-	 *
-	 * @param ticketLocalService the ticket local service
-	 */
-	public void setTicketLocalService(TicketLocalService ticketLocalService) {
-		this.ticketLocalService = ticketLocalService;
-	}
-
-	/**
-	 * Returns the ticket persistence.
-	 *
-	 * @return the ticket persistence
-	 */
-	public TicketPersistence getTicketPersistence() {
-		return ticketPersistence;
-	}
-
-	/**
-	 * Sets the ticket persistence.
-	 *
-	 * @param ticketPersistence the ticket persistence
-	 */
-	public void setTicketPersistence(TicketPersistence ticketPersistence) {
-		this.ticketPersistence = ticketPersistence;
-	}
-
-	/**
 	 * Returns the user local service.
 	 *
 	 * @return the user local service
 	 */
-	public UserLocalService getUserLocalService() {
+	public com.liferay.portal.kernel.service.UserLocalService getUserLocalService() {
 		return userLocalService;
 	}
 
@@ -3438,26 +1327,9 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 *
 	 * @param userLocalService the user local service
 	 */
-	public void setUserLocalService(UserLocalService userLocalService) {
+	public void setUserLocalService(
+		com.liferay.portal.kernel.service.UserLocalService userLocalService) {
 		this.userLocalService = userLocalService;
-	}
-
-	/**
-	 * Returns the user remote service.
-	 *
-	 * @return the user remote service
-	 */
-	public UserService getUserService() {
-		return userService;
-	}
-
-	/**
-	 * Sets the user remote service.
-	 *
-	 * @param userService the user remote service
-	 */
-	public void setUserService(UserService userService) {
-		this.userService = userService;
 	}
 
 	/**
@@ -3497,85 +1369,11 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Returns the user group local service.
-	 *
-	 * @return the user group local service
-	 */
-	public UserGroupLocalService getUserGroupLocalService() {
-		return userGroupLocalService;
-	}
-
-	/**
-	 * Sets the user group local service.
-	 *
-	 * @param userGroupLocalService the user group local service
-	 */
-	public void setUserGroupLocalService(
-		UserGroupLocalService userGroupLocalService) {
-		this.userGroupLocalService = userGroupLocalService;
-	}
-
-	/**
-	 * Returns the user group remote service.
-	 *
-	 * @return the user group remote service
-	 */
-	public UserGroupService getUserGroupService() {
-		return userGroupService;
-	}
-
-	/**
-	 * Sets the user group remote service.
-	 *
-	 * @param userGroupService the user group remote service
-	 */
-	public void setUserGroupService(UserGroupService userGroupService) {
-		this.userGroupService = userGroupService;
-	}
-
-	/**
-	 * Returns the user group persistence.
-	 *
-	 * @return the user group persistence
-	 */
-	public UserGroupPersistence getUserGroupPersistence() {
-		return userGroupPersistence;
-	}
-
-	/**
-	 * Sets the user group persistence.
-	 *
-	 * @param userGroupPersistence the user group persistence
-	 */
-	public void setUserGroupPersistence(
-		UserGroupPersistence userGroupPersistence) {
-		this.userGroupPersistence = userGroupPersistence;
-	}
-
-	/**
-	 * Returns the user group finder.
-	 *
-	 * @return the user group finder
-	 */
-	public UserGroupFinder getUserGroupFinder() {
-		return userGroupFinder;
-	}
-
-	/**
-	 * Sets the user group finder.
-	 *
-	 * @param userGroupFinder the user group finder
-	 */
-	public void setUserGroupFinder(UserGroupFinder userGroupFinder) {
-		this.userGroupFinder = userGroupFinder;
-	}
-
-	/**
 	 * Returns the user group group role local service.
 	 *
 	 * @return the user group group role local service
 	 */
-	public UserGroupGroupRoleLocalService getUserGroupGroupRoleLocalService() {
+	public com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService getUserGroupGroupRoleLocalService() {
 		return userGroupGroupRoleLocalService;
 	}
 
@@ -3585,27 +1383,8 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param userGroupGroupRoleLocalService the user group group role local service
 	 */
 	public void setUserGroupGroupRoleLocalService(
-		UserGroupGroupRoleLocalService userGroupGroupRoleLocalService) {
+		com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService userGroupGroupRoleLocalService) {
 		this.userGroupGroupRoleLocalService = userGroupGroupRoleLocalService;
-	}
-
-	/**
-	 * Returns the user group group role remote service.
-	 *
-	 * @return the user group group role remote service
-	 */
-	public UserGroupGroupRoleService getUserGroupGroupRoleService() {
-		return userGroupGroupRoleService;
-	}
-
-	/**
-	 * Sets the user group group role remote service.
-	 *
-	 * @param userGroupGroupRoleService the user group group role remote service
-	 */
-	public void setUserGroupGroupRoleService(
-		UserGroupGroupRoleService userGroupGroupRoleService) {
-		this.userGroupGroupRoleService = userGroupGroupRoleService;
 	}
 
 	/**
@@ -3628,11 +1407,30 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
+	 * Returns the user group group role finder.
+	 *
+	 * @return the user group group role finder
+	 */
+	public UserGroupGroupRoleFinder getUserGroupGroupRoleFinder() {
+		return userGroupGroupRoleFinder;
+	}
+
+	/**
+	 * Sets the user group group role finder.
+	 *
+	 * @param userGroupGroupRoleFinder the user group group role finder
+	 */
+	public void setUserGroupGroupRoleFinder(
+		UserGroupGroupRoleFinder userGroupGroupRoleFinder) {
+		this.userGroupGroupRoleFinder = userGroupGroupRoleFinder;
+	}
+
+	/**
 	 * Returns the user group role local service.
 	 *
 	 * @return the user group role local service
 	 */
-	public UserGroupRoleLocalService getUserGroupRoleLocalService() {
+	public com.liferay.portal.kernel.service.UserGroupRoleLocalService getUserGroupRoleLocalService() {
 		return userGroupRoleLocalService;
 	}
 
@@ -3642,27 +1440,8 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	 * @param userGroupRoleLocalService the user group role local service
 	 */
 	public void setUserGroupRoleLocalService(
-		UserGroupRoleLocalService userGroupRoleLocalService) {
+		com.liferay.portal.kernel.service.UserGroupRoleLocalService userGroupRoleLocalService) {
 		this.userGroupRoleLocalService = userGroupRoleLocalService;
-	}
-
-	/**
-	 * Returns the user group role remote service.
-	 *
-	 * @return the user group role remote service
-	 */
-	public UserGroupRoleService getUserGroupRoleService() {
-		return userGroupRoleService;
-	}
-
-	/**
-	 * Sets the user group role remote service.
-	 *
-	 * @param userGroupRoleService the user group role remote service
-	 */
-	public void setUserGroupRoleService(
-		UserGroupRoleService userGroupRoleService) {
-		this.userGroupRoleService = userGroupRoleService;
 	}
 
 	/**
@@ -3702,466 +1481,24 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 		this.userGroupRoleFinder = userGroupRoleFinder;
 	}
 
-	/**
-	 * Returns the user ID mapper local service.
-	 *
-	 * @return the user ID mapper local service
-	 */
-	public UserIdMapperLocalService getUserIdMapperLocalService() {
-		return userIdMapperLocalService;
-	}
-
-	/**
-	 * Sets the user ID mapper local service.
-	 *
-	 * @param userIdMapperLocalService the user ID mapper local service
-	 */
-	public void setUserIdMapperLocalService(
-		UserIdMapperLocalService userIdMapperLocalService) {
-		this.userIdMapperLocalService = userIdMapperLocalService;
-	}
-
-	/**
-	 * Returns the user ID mapper persistence.
-	 *
-	 * @return the user ID mapper persistence
-	 */
-	public UserIdMapperPersistence getUserIdMapperPersistence() {
-		return userIdMapperPersistence;
-	}
-
-	/**
-	 * Sets the user ID mapper persistence.
-	 *
-	 * @param userIdMapperPersistence the user ID mapper persistence
-	 */
-	public void setUserIdMapperPersistence(
-		UserIdMapperPersistence userIdMapperPersistence) {
-		this.userIdMapperPersistence = userIdMapperPersistence;
-	}
-
-	/**
-	 * Returns the user notification event local service.
-	 *
-	 * @return the user notification event local service
-	 */
-	public UserNotificationEventLocalService getUserNotificationEventLocalService() {
-		return userNotificationEventLocalService;
-	}
-
-	/**
-	 * Sets the user notification event local service.
-	 *
-	 * @param userNotificationEventLocalService the user notification event local service
-	 */
-	public void setUserNotificationEventLocalService(
-		UserNotificationEventLocalService userNotificationEventLocalService) {
-		this.userNotificationEventLocalService = userNotificationEventLocalService;
-	}
-
-	/**
-	 * Returns the user notification event persistence.
-	 *
-	 * @return the user notification event persistence
-	 */
-	public UserNotificationEventPersistence getUserNotificationEventPersistence() {
-		return userNotificationEventPersistence;
-	}
-
-	/**
-	 * Sets the user notification event persistence.
-	 *
-	 * @param userNotificationEventPersistence the user notification event persistence
-	 */
-	public void setUserNotificationEventPersistence(
-		UserNotificationEventPersistence userNotificationEventPersistence) {
-		this.userNotificationEventPersistence = userNotificationEventPersistence;
-	}
-
-	/**
-	 * Returns the user tracker local service.
-	 *
-	 * @return the user tracker local service
-	 */
-	public UserTrackerLocalService getUserTrackerLocalService() {
-		return userTrackerLocalService;
-	}
-
-	/**
-	 * Sets the user tracker local service.
-	 *
-	 * @param userTrackerLocalService the user tracker local service
-	 */
-	public void setUserTrackerLocalService(
-		UserTrackerLocalService userTrackerLocalService) {
-		this.userTrackerLocalService = userTrackerLocalService;
-	}
-
-	/**
-	 * Returns the user tracker persistence.
-	 *
-	 * @return the user tracker persistence
-	 */
-	public UserTrackerPersistence getUserTrackerPersistence() {
-		return userTrackerPersistence;
-	}
-
-	/**
-	 * Sets the user tracker persistence.
-	 *
-	 * @param userTrackerPersistence the user tracker persistence
-	 */
-	public void setUserTrackerPersistence(
-		UserTrackerPersistence userTrackerPersistence) {
-		this.userTrackerPersistence = userTrackerPersistence;
-	}
-
-	/**
-	 * Returns the user tracker path local service.
-	 *
-	 * @return the user tracker path local service
-	 */
-	public UserTrackerPathLocalService getUserTrackerPathLocalService() {
-		return userTrackerPathLocalService;
-	}
-
-	/**
-	 * Sets the user tracker path local service.
-	 *
-	 * @param userTrackerPathLocalService the user tracker path local service
-	 */
-	public void setUserTrackerPathLocalService(
-		UserTrackerPathLocalService userTrackerPathLocalService) {
-		this.userTrackerPathLocalService = userTrackerPathLocalService;
-	}
-
-	/**
-	 * Returns the user tracker path persistence.
-	 *
-	 * @return the user tracker path persistence
-	 */
-	public UserTrackerPathPersistence getUserTrackerPathPersistence() {
-		return userTrackerPathPersistence;
-	}
-
-	/**
-	 * Sets the user tracker path persistence.
-	 *
-	 * @param userTrackerPathPersistence the user tracker path persistence
-	 */
-	public void setUserTrackerPathPersistence(
-		UserTrackerPathPersistence userTrackerPathPersistence) {
-		this.userTrackerPathPersistence = userTrackerPathPersistence;
-	}
-
-	/**
-	 * Returns the virtual host local service.
-	 *
-	 * @return the virtual host local service
-	 */
-	public VirtualHostLocalService getVirtualHostLocalService() {
-		return virtualHostLocalService;
-	}
-
-	/**
-	 * Sets the virtual host local service.
-	 *
-	 * @param virtualHostLocalService the virtual host local service
-	 */
-	public void setVirtualHostLocalService(
-		VirtualHostLocalService virtualHostLocalService) {
-		this.virtualHostLocalService = virtualHostLocalService;
-	}
-
-	/**
-	 * Returns the virtual host persistence.
-	 *
-	 * @return the virtual host persistence
-	 */
-	public VirtualHostPersistence getVirtualHostPersistence() {
-		return virtualHostPersistence;
-	}
-
-	/**
-	 * Sets the virtual host persistence.
-	 *
-	 * @param virtualHostPersistence the virtual host persistence
-	 */
-	public void setVirtualHostPersistence(
-		VirtualHostPersistence virtualHostPersistence) {
-		this.virtualHostPersistence = virtualHostPersistence;
-	}
-
-	/**
-	 * Returns the web d a v props local service.
-	 *
-	 * @return the web d a v props local service
-	 */
-	public WebDAVPropsLocalService getWebDAVPropsLocalService() {
-		return webDAVPropsLocalService;
-	}
-
-	/**
-	 * Sets the web d a v props local service.
-	 *
-	 * @param webDAVPropsLocalService the web d a v props local service
-	 */
-	public void setWebDAVPropsLocalService(
-		WebDAVPropsLocalService webDAVPropsLocalService) {
-		this.webDAVPropsLocalService = webDAVPropsLocalService;
-	}
-
-	/**
-	 * Returns the web d a v props persistence.
-	 *
-	 * @return the web d a v props persistence
-	 */
-	public WebDAVPropsPersistence getWebDAVPropsPersistence() {
-		return webDAVPropsPersistence;
-	}
-
-	/**
-	 * Sets the web d a v props persistence.
-	 *
-	 * @param webDAVPropsPersistence the web d a v props persistence
-	 */
-	public void setWebDAVPropsPersistence(
-		WebDAVPropsPersistence webDAVPropsPersistence) {
-		this.webDAVPropsPersistence = webDAVPropsPersistence;
-	}
-
-	/**
-	 * Returns the website local service.
-	 *
-	 * @return the website local service
-	 */
-	public WebsiteLocalService getWebsiteLocalService() {
-		return websiteLocalService;
-	}
-
-	/**
-	 * Sets the website local service.
-	 *
-	 * @param websiteLocalService the website local service
-	 */
-	public void setWebsiteLocalService(WebsiteLocalService websiteLocalService) {
-		this.websiteLocalService = websiteLocalService;
-	}
-
-	/**
-	 * Returns the website remote service.
-	 *
-	 * @return the website remote service
-	 */
-	public WebsiteService getWebsiteService() {
-		return websiteService;
-	}
-
-	/**
-	 * Sets the website remote service.
-	 *
-	 * @param websiteService the website remote service
-	 */
-	public void setWebsiteService(WebsiteService websiteService) {
-		this.websiteService = websiteService;
-	}
-
-	/**
-	 * Returns the website persistence.
-	 *
-	 * @return the website persistence
-	 */
-	public WebsitePersistence getWebsitePersistence() {
-		return websitePersistence;
-	}
-
-	/**
-	 * Sets the website persistence.
-	 *
-	 * @param websitePersistence the website persistence
-	 */
-	public void setWebsitePersistence(WebsitePersistence websitePersistence) {
-		this.websitePersistence = websitePersistence;
-	}
-
-	/**
-	 * Returns the workflow definition link local service.
-	 *
-	 * @return the workflow definition link local service
-	 */
-	public WorkflowDefinitionLinkLocalService getWorkflowDefinitionLinkLocalService() {
-		return workflowDefinitionLinkLocalService;
-	}
-
-	/**
-	 * Sets the workflow definition link local service.
-	 *
-	 * @param workflowDefinitionLinkLocalService the workflow definition link local service
-	 */
-	public void setWorkflowDefinitionLinkLocalService(
-		WorkflowDefinitionLinkLocalService workflowDefinitionLinkLocalService) {
-		this.workflowDefinitionLinkLocalService = workflowDefinitionLinkLocalService;
-	}
-
-	/**
-	 * Returns the workflow definition link persistence.
-	 *
-	 * @return the workflow definition link persistence
-	 */
-	public WorkflowDefinitionLinkPersistence getWorkflowDefinitionLinkPersistence() {
-		return workflowDefinitionLinkPersistence;
-	}
-
-	/**
-	 * Sets the workflow definition link persistence.
-	 *
-	 * @param workflowDefinitionLinkPersistence the workflow definition link persistence
-	 */
-	public void setWorkflowDefinitionLinkPersistence(
-		WorkflowDefinitionLinkPersistence workflowDefinitionLinkPersistence) {
-		this.workflowDefinitionLinkPersistence = workflowDefinitionLinkPersistence;
-	}
-
-	/**
-	 * Returns the workflow instance link local service.
-	 *
-	 * @return the workflow instance link local service
-	 */
-	public WorkflowInstanceLinkLocalService getWorkflowInstanceLinkLocalService() {
-		return workflowInstanceLinkLocalService;
-	}
-
-	/**
-	 * Sets the workflow instance link local service.
-	 *
-	 * @param workflowInstanceLinkLocalService the workflow instance link local service
-	 */
-	public void setWorkflowInstanceLinkLocalService(
-		WorkflowInstanceLinkLocalService workflowInstanceLinkLocalService) {
-		this.workflowInstanceLinkLocalService = workflowInstanceLinkLocalService;
-	}
-
-	/**
-	 * Returns the workflow instance link persistence.
-	 *
-	 * @return the workflow instance link persistence
-	 */
-	public WorkflowInstanceLinkPersistence getWorkflowInstanceLinkPersistence() {
-		return workflowInstanceLinkPersistence;
-	}
-
-	/**
-	 * Sets the workflow instance link persistence.
-	 *
-	 * @param workflowInstanceLinkPersistence the workflow instance link persistence
-	 */
-	public void setWorkflowInstanceLinkPersistence(
-		WorkflowInstanceLinkPersistence workflowInstanceLinkPersistence) {
-		this.workflowInstanceLinkPersistence = workflowInstanceLinkPersistence;
-	}
-
-	/**
-	 * Returns the counter local service.
-	 *
-	 * @return the counter local service
-	 */
-	public CounterLocalService getCounterLocalService() {
-		return counterLocalService;
-	}
-
-	/**
-	 * Sets the counter local service.
-	 *
-	 * @param counterLocalService the counter local service
-	 */
-	public void setCounterLocalService(CounterLocalService counterLocalService) {
-		this.counterLocalService = counterLocalService;
-	}
-
-	/**
-	 * Returns the expando value local service.
-	 *
-	 * @return the expando value local service
-	 */
-	public ExpandoValueLocalService getExpandoValueLocalService() {
-		return expandoValueLocalService;
-	}
-
-	/**
-	 * Sets the expando value local service.
-	 *
-	 * @param expandoValueLocalService the expando value local service
-	 */
-	public void setExpandoValueLocalService(
-		ExpandoValueLocalService expandoValueLocalService) {
-		this.expandoValueLocalService = expandoValueLocalService;
-	}
-
-	/**
-	 * Returns the expando value remote service.
-	 *
-	 * @return the expando value remote service
-	 */
-	public ExpandoValueService getExpandoValueService() {
-		return expandoValueService;
-	}
-
-	/**
-	 * Sets the expando value remote service.
-	 *
-	 * @param expandoValueService the expando value remote service
-	 */
-	public void setExpandoValueService(ExpandoValueService expandoValueService) {
-		this.expandoValueService = expandoValueService;
-	}
-
-	/**
-	 * Returns the expando value persistence.
-	 *
-	 * @return the expando value persistence
-	 */
-	public ExpandoValuePersistence getExpandoValuePersistence() {
-		return expandoValuePersistence;
-	}
-
-	/**
-	 * Sets the expando value persistence.
-	 *
-	 * @param expandoValuePersistence the expando value persistence
-	 */
-	public void setExpandoValuePersistence(
-		ExpandoValuePersistence expandoValuePersistence) {
-		this.expandoValuePersistence = expandoValuePersistence;
-	}
-
 	public void afterPropertiesSet() {
-		persistedModelLocalServiceRegistry.register("com.liferay.portal.model.Role",
+		persistedModelLocalServiceRegistry.register("com.liferay.portal.kernel.model.Role",
 			roleLocalService);
 	}
 
 	public void destroy() {
 		persistedModelLocalServiceRegistry.unregister(
-			"com.liferay.portal.model.Role");
+			"com.liferay.portal.kernel.model.Role");
 	}
 
 	/**
-	 * Returns the Spring bean ID for this bean.
+	 * Returns the OSGi service identifier.
 	 *
-	 * @return the Spring bean ID for this bean
+	 * @return the OSGi service identifier
 	 */
 	@Override
-	public String getBeanIdentifier() {
-		return _beanIdentifier;
-	}
-
-	/**
-	 * Sets the Spring bean ID for this bean.
-	 *
-	 * @param beanIdentifier the Spring bean ID for this bean
-	 */
-	@Override
-	public void setBeanIdentifier(String beanIdentifier) {
-		_beanIdentifier = beanIdentifier;
+	public String getOSGiServiceIdentifier() {
+		return RoleLocalService.class.getName();
 	}
 
 	protected Class<?> getModelClass() {
@@ -4173,16 +1510,21 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 	}
 
 	/**
-	 * Performs an SQL query.
+	 * Performs a SQL query.
 	 *
 	 * @param sql the sql query
 	 */
-	protected void runSQL(String sql) throws SystemException {
+	protected void runSQL(String sql) {
 		try {
 			DataSource dataSource = rolePersistence.getDataSource();
 
+			DB db = DBManagerUtil.getDB();
+
+			sql = db.buildSQL(sql);
+			sql = PortalUtil.transformSQL(sql);
+
 			SqlUpdate sqlUpdate = SqlUpdateFactoryUtil.getSqlUpdate(dataSource,
-					sql, new int[0]);
+					sql);
 
 			sqlUpdate.update();
 		}
@@ -4191,375 +1533,90 @@ public abstract class RoleLocalServiceBaseImpl extends BaseLocalServiceImpl
 		}
 	}
 
-	@BeanReference(type = AccountLocalService.class)
-	protected AccountLocalService accountLocalService;
-	@BeanReference(type = AccountService.class)
-	protected AccountService accountService;
-	@BeanReference(type = AccountPersistence.class)
-	protected AccountPersistence accountPersistence;
-	@BeanReference(type = AddressLocalService.class)
-	protected AddressLocalService addressLocalService;
-	@BeanReference(type = AddressService.class)
-	protected AddressService addressService;
-	@BeanReference(type = AddressPersistence.class)
-	protected AddressPersistence addressPersistence;
-	@BeanReference(type = BrowserTrackerLocalService.class)
-	protected BrowserTrackerLocalService browserTrackerLocalService;
-	@BeanReference(type = BrowserTrackerPersistence.class)
-	protected BrowserTrackerPersistence browserTrackerPersistence;
-	@BeanReference(type = ClassNameLocalService.class)
-	protected ClassNameLocalService classNameLocalService;
-	@BeanReference(type = ClassNameService.class)
-	protected ClassNameService classNameService;
-	@BeanReference(type = ClassNamePersistence.class)
-	protected ClassNamePersistence classNamePersistence;
-	@BeanReference(type = ClusterGroupLocalService.class)
-	protected ClusterGroupLocalService clusterGroupLocalService;
-	@BeanReference(type = ClusterGroupPersistence.class)
-	protected ClusterGroupPersistence clusterGroupPersistence;
-	@BeanReference(type = CMISRepositoryLocalService.class)
-	protected CMISRepositoryLocalService cmisRepositoryLocalService;
-	@BeanReference(type = CompanyLocalService.class)
-	protected CompanyLocalService companyLocalService;
-	@BeanReference(type = CompanyService.class)
-	protected CompanyService companyService;
-	@BeanReference(type = CompanyPersistence.class)
-	protected CompanyPersistence companyPersistence;
-	@BeanReference(type = ContactLocalService.class)
-	protected ContactLocalService contactLocalService;
-	@BeanReference(type = ContactService.class)
-	protected ContactService contactService;
-	@BeanReference(type = ContactPersistence.class)
-	protected ContactPersistence contactPersistence;
-	@BeanReference(type = CountryService.class)
-	protected CountryService countryService;
-	@BeanReference(type = CountryPersistence.class)
-	protected CountryPersistence countryPersistence;
-	@BeanReference(type = EmailAddressLocalService.class)
-	protected EmailAddressLocalService emailAddressLocalService;
-	@BeanReference(type = EmailAddressService.class)
-	protected EmailAddressService emailAddressService;
-	@BeanReference(type = EmailAddressPersistence.class)
-	protected EmailAddressPersistence emailAddressPersistence;
-	@BeanReference(type = GroupLocalService.class)
-	protected GroupLocalService groupLocalService;
-	@BeanReference(type = GroupService.class)
-	protected GroupService groupService;
-	@BeanReference(type = GroupPersistence.class)
-	protected GroupPersistence groupPersistence;
-	@BeanReference(type = GroupFinder.class)
-	protected GroupFinder groupFinder;
-	@BeanReference(type = ImageLocalService.class)
-	protected ImageLocalService imageLocalService;
-	@BeanReference(type = ImageService.class)
-	protected ImageService imageService;
-	@BeanReference(type = ImagePersistence.class)
-	protected ImagePersistence imagePersistence;
-	@BeanReference(type = LayoutLocalService.class)
-	protected LayoutLocalService layoutLocalService;
-	@BeanReference(type = LayoutService.class)
-	protected LayoutService layoutService;
-	@BeanReference(type = LayoutPersistence.class)
-	protected LayoutPersistence layoutPersistence;
-	@BeanReference(type = LayoutFinder.class)
-	protected LayoutFinder layoutFinder;
-	@BeanReference(type = LayoutBranchLocalService.class)
-	protected LayoutBranchLocalService layoutBranchLocalService;
-	@BeanReference(type = LayoutBranchService.class)
-	protected LayoutBranchService layoutBranchService;
-	@BeanReference(type = LayoutBranchPersistence.class)
-	protected LayoutBranchPersistence layoutBranchPersistence;
-	@BeanReference(type = LayoutFriendlyURLLocalService.class)
-	protected LayoutFriendlyURLLocalService layoutFriendlyURLLocalService;
-	@BeanReference(type = LayoutFriendlyURLPersistence.class)
-	protected LayoutFriendlyURLPersistence layoutFriendlyURLPersistence;
-	@BeanReference(type = LayoutPrototypeLocalService.class)
-	protected LayoutPrototypeLocalService layoutPrototypeLocalService;
-	@BeanReference(type = LayoutPrototypeService.class)
-	protected LayoutPrototypeService layoutPrototypeService;
-	@BeanReference(type = LayoutPrototypePersistence.class)
-	protected LayoutPrototypePersistence layoutPrototypePersistence;
-	@BeanReference(type = LayoutRevisionLocalService.class)
-	protected LayoutRevisionLocalService layoutRevisionLocalService;
-	@BeanReference(type = LayoutRevisionService.class)
-	protected LayoutRevisionService layoutRevisionService;
-	@BeanReference(type = LayoutRevisionPersistence.class)
-	protected LayoutRevisionPersistence layoutRevisionPersistence;
-	@BeanReference(type = LayoutSetLocalService.class)
-	protected LayoutSetLocalService layoutSetLocalService;
-	@BeanReference(type = LayoutSetService.class)
-	protected LayoutSetService layoutSetService;
-	@BeanReference(type = LayoutSetPersistence.class)
-	protected LayoutSetPersistence layoutSetPersistence;
-	@BeanReference(type = LayoutSetBranchLocalService.class)
-	protected LayoutSetBranchLocalService layoutSetBranchLocalService;
-	@BeanReference(type = LayoutSetBranchService.class)
-	protected LayoutSetBranchService layoutSetBranchService;
-	@BeanReference(type = LayoutSetBranchPersistence.class)
-	protected LayoutSetBranchPersistence layoutSetBranchPersistence;
-	@BeanReference(type = LayoutSetBranchFinder.class)
-	protected LayoutSetBranchFinder layoutSetBranchFinder;
-	@BeanReference(type = LayoutSetPrototypeLocalService.class)
-	protected LayoutSetPrototypeLocalService layoutSetPrototypeLocalService;
-	@BeanReference(type = LayoutSetPrototypeService.class)
-	protected LayoutSetPrototypeService layoutSetPrototypeService;
-	@BeanReference(type = LayoutSetPrototypePersistence.class)
-	protected LayoutSetPrototypePersistence layoutSetPrototypePersistence;
-	@BeanReference(type = LayoutTemplateLocalService.class)
-	protected LayoutTemplateLocalService layoutTemplateLocalService;
-	@BeanReference(type = ListTypeService.class)
-	protected ListTypeService listTypeService;
-	@BeanReference(type = ListTypePersistence.class)
-	protected ListTypePersistence listTypePersistence;
-	@BeanReference(type = LockLocalService.class)
-	protected LockLocalService lockLocalService;
-	@BeanReference(type = LockPersistence.class)
-	protected LockPersistence lockPersistence;
-	@BeanReference(type = LockFinder.class)
-	protected LockFinder lockFinder;
-	@BeanReference(type = MembershipRequestLocalService.class)
-	protected MembershipRequestLocalService membershipRequestLocalService;
-	@BeanReference(type = MembershipRequestService.class)
-	protected MembershipRequestService membershipRequestService;
-	@BeanReference(type = MembershipRequestPersistence.class)
-	protected MembershipRequestPersistence membershipRequestPersistence;
-	@BeanReference(type = OrganizationLocalService.class)
-	protected OrganizationLocalService organizationLocalService;
-	@BeanReference(type = OrganizationService.class)
-	protected OrganizationService organizationService;
-	@BeanReference(type = OrganizationPersistence.class)
-	protected OrganizationPersistence organizationPersistence;
-	@BeanReference(type = OrganizationFinder.class)
-	protected OrganizationFinder organizationFinder;
-	@BeanReference(type = OrgGroupRolePersistence.class)
-	protected OrgGroupRolePersistence orgGroupRolePersistence;
-	@BeanReference(type = OrgLaborLocalService.class)
-	protected OrgLaborLocalService orgLaborLocalService;
-	@BeanReference(type = OrgLaborService.class)
-	protected OrgLaborService orgLaborService;
-	@BeanReference(type = OrgLaborPersistence.class)
-	protected OrgLaborPersistence orgLaborPersistence;
-	@BeanReference(type = PasswordPolicyLocalService.class)
-	protected PasswordPolicyLocalService passwordPolicyLocalService;
-	@BeanReference(type = PasswordPolicyService.class)
-	protected PasswordPolicyService passwordPolicyService;
-	@BeanReference(type = PasswordPolicyPersistence.class)
-	protected PasswordPolicyPersistence passwordPolicyPersistence;
-	@BeanReference(type = PasswordPolicyFinder.class)
-	protected PasswordPolicyFinder passwordPolicyFinder;
-	@BeanReference(type = PasswordPolicyRelLocalService.class)
-	protected PasswordPolicyRelLocalService passwordPolicyRelLocalService;
-	@BeanReference(type = PasswordPolicyRelPersistence.class)
-	protected PasswordPolicyRelPersistence passwordPolicyRelPersistence;
-	@BeanReference(type = PasswordTrackerLocalService.class)
-	protected PasswordTrackerLocalService passwordTrackerLocalService;
-	@BeanReference(type = PasswordTrackerPersistence.class)
-	protected PasswordTrackerPersistence passwordTrackerPersistence;
-	@BeanReference(type = PermissionService.class)
-	protected PermissionService permissionService;
-	@BeanReference(type = PhoneLocalService.class)
-	protected PhoneLocalService phoneLocalService;
-	@BeanReference(type = PhoneService.class)
-	protected PhoneService phoneService;
-	@BeanReference(type = PhonePersistence.class)
-	protected PhonePersistence phonePersistence;
-	@BeanReference(type = PluginSettingLocalService.class)
-	protected PluginSettingLocalService pluginSettingLocalService;
-	@BeanReference(type = PluginSettingService.class)
-	protected PluginSettingService pluginSettingService;
-	@BeanReference(type = PluginSettingPersistence.class)
-	protected PluginSettingPersistence pluginSettingPersistence;
-	@BeanReference(type = PortalLocalService.class)
-	protected PortalLocalService portalLocalService;
-	@BeanReference(type = PortalService.class)
-	protected PortalService portalService;
-	@BeanReference(type = PortalPreferencesLocalService.class)
-	protected PortalPreferencesLocalService portalPreferencesLocalService;
-	@BeanReference(type = PortalPreferencesPersistence.class)
-	protected PortalPreferencesPersistence portalPreferencesPersistence;
-	@BeanReference(type = PortletLocalService.class)
-	protected PortletLocalService portletLocalService;
-	@BeanReference(type = PortletService.class)
-	protected PortletService portletService;
-	@BeanReference(type = PortletPersistence.class)
-	protected PortletPersistence portletPersistence;
-	@BeanReference(type = PortletItemLocalService.class)
-	protected PortletItemLocalService portletItemLocalService;
-	@BeanReference(type = PortletItemPersistence.class)
-	protected PortletItemPersistence portletItemPersistence;
-	@BeanReference(type = PortletPreferencesLocalService.class)
-	protected PortletPreferencesLocalService portletPreferencesLocalService;
-	@BeanReference(type = PortletPreferencesService.class)
-	protected PortletPreferencesService portletPreferencesService;
-	@BeanReference(type = PortletPreferencesPersistence.class)
-	protected PortletPreferencesPersistence portletPreferencesPersistence;
-	@BeanReference(type = PortletPreferencesFinder.class)
-	protected PortletPreferencesFinder portletPreferencesFinder;
-	@BeanReference(type = QuartzLocalService.class)
-	protected QuartzLocalService quartzLocalService;
-	@BeanReference(type = RegionService.class)
-	protected RegionService regionService;
-	@BeanReference(type = RegionPersistence.class)
-	protected RegionPersistence regionPersistence;
-	@BeanReference(type = ReleaseLocalService.class)
-	protected ReleaseLocalService releaseLocalService;
-	@BeanReference(type = ReleasePersistence.class)
-	protected ReleasePersistence releasePersistence;
-	@BeanReference(type = RepositoryLocalService.class)
-	protected RepositoryLocalService repositoryLocalService;
-	@BeanReference(type = RepositoryService.class)
-	protected RepositoryService repositoryService;
-	@BeanReference(type = RepositoryPersistence.class)
-	protected RepositoryPersistence repositoryPersistence;
-	@BeanReference(type = RepositoryEntryLocalService.class)
-	protected RepositoryEntryLocalService repositoryEntryLocalService;
-	@BeanReference(type = RepositoryEntryPersistence.class)
-	protected RepositoryEntryPersistence repositoryEntryPersistence;
-	@BeanReference(type = ResourceLocalService.class)
-	protected ResourceLocalService resourceLocalService;
-	@BeanReference(type = ResourceActionLocalService.class)
-	protected ResourceActionLocalService resourceActionLocalService;
-	@BeanReference(type = ResourceActionPersistence.class)
-	protected ResourceActionPersistence resourceActionPersistence;
-	@BeanReference(type = ResourceBlockLocalService.class)
-	protected ResourceBlockLocalService resourceBlockLocalService;
-	@BeanReference(type = ResourceBlockService.class)
-	protected ResourceBlockService resourceBlockService;
-	@BeanReference(type = ResourceBlockPersistence.class)
-	protected ResourceBlockPersistence resourceBlockPersistence;
-	@BeanReference(type = ResourceBlockFinder.class)
-	protected ResourceBlockFinder resourceBlockFinder;
-	@BeanReference(type = ResourceBlockPermissionLocalService.class)
-	protected ResourceBlockPermissionLocalService resourceBlockPermissionLocalService;
-	@BeanReference(type = ResourceBlockPermissionPersistence.class)
-	protected ResourceBlockPermissionPersistence resourceBlockPermissionPersistence;
-	@BeanReference(type = ResourcePermissionLocalService.class)
-	protected ResourcePermissionLocalService resourcePermissionLocalService;
-	@BeanReference(type = ResourcePermissionService.class)
-	protected ResourcePermissionService resourcePermissionService;
-	@BeanReference(type = ResourcePermissionPersistence.class)
-	protected ResourcePermissionPersistence resourcePermissionPersistence;
-	@BeanReference(type = ResourcePermissionFinder.class)
-	protected ResourcePermissionFinder resourcePermissionFinder;
-	@BeanReference(type = ResourceTypePermissionLocalService.class)
-	protected ResourceTypePermissionLocalService resourceTypePermissionLocalService;
-	@BeanReference(type = ResourceTypePermissionPersistence.class)
-	protected ResourceTypePermissionPersistence resourceTypePermissionPersistence;
-	@BeanReference(type = ResourceTypePermissionFinder.class)
-	protected ResourceTypePermissionFinder resourceTypePermissionFinder;
 	@BeanReference(type = RoleLocalService.class)
 	protected RoleLocalService roleLocalService;
-	@BeanReference(type = RoleService.class)
-	protected RoleService roleService;
 	@BeanReference(type = RolePersistence.class)
 	protected RolePersistence rolePersistence;
 	@BeanReference(type = RoleFinder.class)
 	protected RoleFinder roleFinder;
-	@BeanReference(type = ServiceComponentLocalService.class)
-	protected ServiceComponentLocalService serviceComponentLocalService;
-	@BeanReference(type = ServiceComponentPersistence.class)
-	protected ServiceComponentPersistence serviceComponentPersistence;
-	@BeanReference(type = ShardLocalService.class)
-	protected ShardLocalService shardLocalService;
-	@BeanReference(type = ShardPersistence.class)
-	protected ShardPersistence shardPersistence;
-	@BeanReference(type = SubscriptionLocalService.class)
-	protected SubscriptionLocalService subscriptionLocalService;
-	@BeanReference(type = SubscriptionPersistence.class)
-	protected SubscriptionPersistence subscriptionPersistence;
-	@BeanReference(type = TeamLocalService.class)
-	protected TeamLocalService teamLocalService;
-	@BeanReference(type = TeamService.class)
-	protected TeamService teamService;
+	@BeanReference(type = com.liferay.counter.kernel.service.CounterLocalService.class)
+	protected com.liferay.counter.kernel.service.CounterLocalService counterLocalService;
+	@BeanReference(type = com.liferay.portal.kernel.service.ClassNameLocalService.class)
+	protected com.liferay.portal.kernel.service.ClassNameLocalService classNameLocalService;
+	@BeanReference(type = ClassNamePersistence.class)
+	protected ClassNamePersistence classNamePersistence;
+	@BeanReference(type = com.liferay.portal.kernel.service.CompanyLocalService.class)
+	protected com.liferay.portal.kernel.service.CompanyLocalService companyLocalService;
+	@BeanReference(type = CompanyPersistence.class)
+	protected CompanyPersistence companyPersistence;
+	@BeanReference(type = com.liferay.portal.kernel.service.GroupLocalService.class)
+	protected com.liferay.portal.kernel.service.GroupLocalService groupLocalService;
+	@BeanReference(type = GroupPersistence.class)
+	protected GroupPersistence groupPersistence;
+	@BeanReference(type = GroupFinder.class)
+	protected GroupFinder groupFinder;
+	@BeanReference(type = com.liferay.portal.kernel.service.LayoutLocalService.class)
+	protected com.liferay.portal.kernel.service.LayoutLocalService layoutLocalService;
+	@BeanReference(type = LayoutPersistence.class)
+	protected LayoutPersistence layoutPersistence;
+	@BeanReference(type = LayoutFinder.class)
+	protected LayoutFinder layoutFinder;
+	@BeanReference(type = com.liferay.portal.kernel.service.ResourceLocalService.class)
+	protected com.liferay.portal.kernel.service.ResourceLocalService resourceLocalService;
+	@BeanReference(type = com.liferay.portal.kernel.service.ResourceActionLocalService.class)
+	protected com.liferay.portal.kernel.service.ResourceActionLocalService resourceActionLocalService;
+	@BeanReference(type = ResourceActionPersistence.class)
+	protected ResourceActionPersistence resourceActionPersistence;
+	@BeanReference(type = com.liferay.portal.kernel.service.ResourceBlockLocalService.class)
+	protected com.liferay.portal.kernel.service.ResourceBlockLocalService resourceBlockLocalService;
+	@BeanReference(type = ResourceBlockPersistence.class)
+	protected ResourceBlockPersistence resourceBlockPersistence;
+	@BeanReference(type = ResourceBlockFinder.class)
+	protected ResourceBlockFinder resourceBlockFinder;
+	@BeanReference(type = com.liferay.portal.kernel.service.ResourceBlockPermissionLocalService.class)
+	protected com.liferay.portal.kernel.service.ResourceBlockPermissionLocalService resourceBlockPermissionLocalService;
+	@BeanReference(type = ResourceBlockPermissionPersistence.class)
+	protected ResourceBlockPermissionPersistence resourceBlockPermissionPersistence;
+	@BeanReference(type = com.liferay.portal.kernel.service.ResourcePermissionLocalService.class)
+	protected com.liferay.portal.kernel.service.ResourcePermissionLocalService resourcePermissionLocalService;
+	@BeanReference(type = ResourcePermissionPersistence.class)
+	protected ResourcePermissionPersistence resourcePermissionPersistence;
+	@BeanReference(type = ResourcePermissionFinder.class)
+	protected ResourcePermissionFinder resourcePermissionFinder;
+	@BeanReference(type = com.liferay.portal.kernel.service.ResourceTypePermissionLocalService.class)
+	protected com.liferay.portal.kernel.service.ResourceTypePermissionLocalService resourceTypePermissionLocalService;
+	@BeanReference(type = ResourceTypePermissionPersistence.class)
+	protected ResourceTypePermissionPersistence resourceTypePermissionPersistence;
+	@BeanReference(type = ResourceTypePermissionFinder.class)
+	protected ResourceTypePermissionFinder resourceTypePermissionFinder;
+	@BeanReference(type = com.liferay.expando.kernel.service.ExpandoRowLocalService.class)
+	protected com.liferay.expando.kernel.service.ExpandoRowLocalService expandoRowLocalService;
+	@BeanReference(type = ExpandoRowPersistence.class)
+	protected ExpandoRowPersistence expandoRowPersistence;
+	@BeanReference(type = com.liferay.portal.kernel.service.TeamLocalService.class)
+	protected com.liferay.portal.kernel.service.TeamLocalService teamLocalService;
 	@BeanReference(type = TeamPersistence.class)
 	protected TeamPersistence teamPersistence;
 	@BeanReference(type = TeamFinder.class)
 	protected TeamFinder teamFinder;
-	@BeanReference(type = ThemeLocalService.class)
-	protected ThemeLocalService themeLocalService;
-	@BeanReference(type = ThemeService.class)
-	protected ThemeService themeService;
-	@BeanReference(type = TicketLocalService.class)
-	protected TicketLocalService ticketLocalService;
-	@BeanReference(type = TicketPersistence.class)
-	protected TicketPersistence ticketPersistence;
-	@BeanReference(type = UserLocalService.class)
-	protected UserLocalService userLocalService;
-	@BeanReference(type = UserService.class)
-	protected UserService userService;
+	@BeanReference(type = com.liferay.portal.kernel.service.UserLocalService.class)
+	protected com.liferay.portal.kernel.service.UserLocalService userLocalService;
 	@BeanReference(type = UserPersistence.class)
 	protected UserPersistence userPersistence;
 	@BeanReference(type = UserFinder.class)
 	protected UserFinder userFinder;
-	@BeanReference(type = UserGroupLocalService.class)
-	protected UserGroupLocalService userGroupLocalService;
-	@BeanReference(type = UserGroupService.class)
-	protected UserGroupService userGroupService;
-	@BeanReference(type = UserGroupPersistence.class)
-	protected UserGroupPersistence userGroupPersistence;
-	@BeanReference(type = UserGroupFinder.class)
-	protected UserGroupFinder userGroupFinder;
-	@BeanReference(type = UserGroupGroupRoleLocalService.class)
-	protected UserGroupGroupRoleLocalService userGroupGroupRoleLocalService;
-	@BeanReference(type = UserGroupGroupRoleService.class)
-	protected UserGroupGroupRoleService userGroupGroupRoleService;
+	@BeanReference(type = com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService.class)
+	protected com.liferay.portal.kernel.service.UserGroupGroupRoleLocalService userGroupGroupRoleLocalService;
 	@BeanReference(type = UserGroupGroupRolePersistence.class)
 	protected UserGroupGroupRolePersistence userGroupGroupRolePersistence;
-	@BeanReference(type = UserGroupRoleLocalService.class)
-	protected UserGroupRoleLocalService userGroupRoleLocalService;
-	@BeanReference(type = UserGroupRoleService.class)
-	protected UserGroupRoleService userGroupRoleService;
+	@BeanReference(type = UserGroupGroupRoleFinder.class)
+	protected UserGroupGroupRoleFinder userGroupGroupRoleFinder;
+	@BeanReference(type = com.liferay.portal.kernel.service.UserGroupRoleLocalService.class)
+	protected com.liferay.portal.kernel.service.UserGroupRoleLocalService userGroupRoleLocalService;
 	@BeanReference(type = UserGroupRolePersistence.class)
 	protected UserGroupRolePersistence userGroupRolePersistence;
 	@BeanReference(type = UserGroupRoleFinder.class)
 	protected UserGroupRoleFinder userGroupRoleFinder;
-	@BeanReference(type = UserIdMapperLocalService.class)
-	protected UserIdMapperLocalService userIdMapperLocalService;
-	@BeanReference(type = UserIdMapperPersistence.class)
-	protected UserIdMapperPersistence userIdMapperPersistence;
-	@BeanReference(type = UserNotificationEventLocalService.class)
-	protected UserNotificationEventLocalService userNotificationEventLocalService;
-	@BeanReference(type = UserNotificationEventPersistence.class)
-	protected UserNotificationEventPersistence userNotificationEventPersistence;
-	@BeanReference(type = UserTrackerLocalService.class)
-	protected UserTrackerLocalService userTrackerLocalService;
-	@BeanReference(type = UserTrackerPersistence.class)
-	protected UserTrackerPersistence userTrackerPersistence;
-	@BeanReference(type = UserTrackerPathLocalService.class)
-	protected UserTrackerPathLocalService userTrackerPathLocalService;
-	@BeanReference(type = UserTrackerPathPersistence.class)
-	protected UserTrackerPathPersistence userTrackerPathPersistence;
-	@BeanReference(type = VirtualHostLocalService.class)
-	protected VirtualHostLocalService virtualHostLocalService;
-	@BeanReference(type = VirtualHostPersistence.class)
-	protected VirtualHostPersistence virtualHostPersistence;
-	@BeanReference(type = WebDAVPropsLocalService.class)
-	protected WebDAVPropsLocalService webDAVPropsLocalService;
-	@BeanReference(type = WebDAVPropsPersistence.class)
-	protected WebDAVPropsPersistence webDAVPropsPersistence;
-	@BeanReference(type = WebsiteLocalService.class)
-	protected WebsiteLocalService websiteLocalService;
-	@BeanReference(type = WebsiteService.class)
-	protected WebsiteService websiteService;
-	@BeanReference(type = WebsitePersistence.class)
-	protected WebsitePersistence websitePersistence;
-	@BeanReference(type = WorkflowDefinitionLinkLocalService.class)
-	protected WorkflowDefinitionLinkLocalService workflowDefinitionLinkLocalService;
-	@BeanReference(type = WorkflowDefinitionLinkPersistence.class)
-	protected WorkflowDefinitionLinkPersistence workflowDefinitionLinkPersistence;
-	@BeanReference(type = WorkflowInstanceLinkLocalService.class)
-	protected WorkflowInstanceLinkLocalService workflowInstanceLinkLocalService;
-	@BeanReference(type = WorkflowInstanceLinkPersistence.class)
-	protected WorkflowInstanceLinkPersistence workflowInstanceLinkPersistence;
-	@BeanReference(type = CounterLocalService.class)
-	protected CounterLocalService counterLocalService;
-	@BeanReference(type = ExpandoValueLocalService.class)
-	protected ExpandoValueLocalService expandoValueLocalService;
-	@BeanReference(type = ExpandoValueService.class)
-	protected ExpandoValueService expandoValueService;
-	@BeanReference(type = ExpandoValuePersistence.class)
-	protected ExpandoValuePersistence expandoValuePersistence;
 	@BeanReference(type = PersistedModelLocalServiceRegistry.class)
 	protected PersistedModelLocalServiceRegistry persistedModelLocalServiceRegistry;
-	private String _beanIdentifier;
 }

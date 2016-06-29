@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,9 @@
 
 package com.liferay.taglib.ui;
 
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portlet.asset.model.AssetEntry;
-import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -53,6 +53,8 @@ public class InputAssetLinksTag extends AssetLinksTag {
 		request.setAttribute(
 			"liferay-ui:input-asset-links:assetEntryId",
 			String.valueOf(assetEntryId));
+		request.setAttribute(
+			"liferay-ui:input-asset-links:className", className);
 	}
 
 	private static final String _PAGE =

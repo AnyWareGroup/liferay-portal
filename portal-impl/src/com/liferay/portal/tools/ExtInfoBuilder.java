@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,7 @@
 
 package com.liferay.portal.tools;
 
-import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
@@ -80,8 +80,7 @@ public class ExtInfoBuilder {
 		for (String file : files) {
 			DocUtil.add(
 				filesElement, "file",
-				StringUtil.replace(
-					file, StringPool.BACK_SLASH, StringPool.SLASH));
+				StringUtil.replace(file, CharPool.BACK_SLASH, CharPool.SLASH));
 		}
 
 		_fileUtil.write(
@@ -89,6 +88,6 @@ public class ExtInfoBuilder {
 			document.formattedString());
 	}
 
-	private static FileImpl _fileUtil = FileImpl.getInstance();
+	private static final FileImpl _fileUtil = FileImpl.getInstance();
 
 }

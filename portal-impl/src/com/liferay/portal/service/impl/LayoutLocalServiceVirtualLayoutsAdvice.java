@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,31 +14,30 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.staging.MergeLayoutPrototypesThreadLocal;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.impl.VirtualLayout;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.kernel.util.AutoResetThreadLocal;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.GroupConstants;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutConstants;
-import com.liferay.portal.model.LayoutSet;
-import com.liferay.portal.model.UserGroup;
-import com.liferay.portal.model.impl.VirtualLayout;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.service.LayoutSetLocalServiceUtil;
-import com.liferay.portal.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.sites.util.SitesUtil;
+import com.liferay.sites.kernel.util.SitesUtil;
 
 import java.lang.reflect.Method;
 
@@ -68,18 +67,9 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 		Method method = methodInvocation.getMethod();
 
 		String methodName = method.getName();
-
-		Object[] arguments = methodInvocation.getArguments();
-
 		Class<?>[] parameterTypes = method.getParameterTypes();
 
-		if (MergeLayoutPrototypesThreadLocal.isMergeComplete(
-				methodName, arguments, parameterTypes)) {
-
-			return methodInvocation.proceed();
-		}
-
-		boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
+		Object[] arguments = methodInvocation.getArguments();
 
 		if (methodName.equals("getLayout") &&
 			(Arrays.equals(parameterTypes, _TYPES_L) ||
@@ -87,17 +77,23 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 
 			Layout layout = (Layout)methodInvocation.proceed();
 
+			Group group = layout.getGroup();
+
+			if (isMergeComplete(method, arguments, group)) {
+				return layout;
+			}
+
 			if (Validator.isNull(layout.getLayoutPrototypeUuid()) &&
 				Validator.isNull(layout.getSourcePrototypeLayoutUuid())) {
 
 				return layout;
 			}
 
-			Group group = layout.getGroup();
+			boolean workflowEnabled = WorkflowThreadLocal.isEnabled();
+
 			LayoutSet layoutSet = layout.getLayoutSet();
 
 			try {
-				MergeLayoutPrototypesThreadLocal.setInProgress(true);
 				WorkflowThreadLocal.setEnabled(false);
 
 				SitesUtil.mergeLayoutPrototypeLayout(group, layout);
@@ -105,15 +101,12 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 				if (Validator.isNotNull(
 						layout.getSourcePrototypeLayoutUuid())) {
 
-					if (!SitesUtil.isLayoutModifiedSinceLastMerge(layout)) {
-						SitesUtil.mergeLayoutSetPrototypeLayouts(
-							group, layoutSet);
-					}
+					SitesUtil.mergeLayoutSetPrototypeLayouts(group, layoutSet);
 				}
 			}
 			finally {
 				MergeLayoutPrototypesThreadLocal.setMergeComplete(
-					methodName, arguments, parameterTypes);
+					method, arguments);
 				WorkflowThreadLocal.setEnabled(workflowEnabled);
 			}
 		}
@@ -122,18 +115,23 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 				  Arrays.equals(parameterTypes, _TYPES_L_B_L_B_I_I))) {
 
 			long groupId = (Long)arguments[0];
+
+			Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+			if (isMergeComplete(method, arguments, group)) {
+				return methodInvocation.proceed();
+			}
+
 			boolean privateLayout = (Boolean)arguments[1];
 			long parentLayoutId = (Long)arguments[2];
 
 			try {
-				Group group = GroupLocalServiceUtil.getGroup(groupId);
-
 				LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
 					groupId, privateLayout);
 
 				mergeLayoutSetPrototypeLayouts(
-					methodName, arguments, parameterTypes, group, layoutSet,
-					privateLayout, workflowEnabled);
+					method, arguments, group, layoutSet, privateLayout,
+					WorkflowThreadLocal.isEnabled());
 
 				List<Layout> layouts = (List<Layout>)methodInvocation.proceed();
 
@@ -188,7 +186,7 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 
 		layouts = ListUtil.copy(layouts);
 
-		List<Layout> childLayouts = new ArrayList<Layout>();
+		List<Layout> childLayouts = new ArrayList<>();
 
 		for (Layout layout : layouts) {
 			Layout childLayout = layout;
@@ -234,8 +232,7 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 	}
 
 	protected List<Layout> getPrototypeLinkedLayouts(
-			long groupId, boolean privateLayout)
-		throws SystemException {
+		long groupId, boolean privateLayout) {
 
 		Class<?> clazz = getClass();
 
@@ -264,36 +261,31 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 		return LayoutLocalServiceUtil.dynamicQuery(dynamicQuery);
 	}
 
+	protected boolean isMergeComplete(
+		Method method, Object[] arguments, Group group) {
+
+		if (MergeLayoutPrototypesThreadLocal.isMergeComplete(
+				method, arguments) &&
+			(!group.isUser() ||
+			 PropsValues.USER_GROUPS_COPY_LAYOUTS_TO_USER_PERSONAL_SITE)) {
+
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+
 	protected void mergeLayoutSetPrototypeLayouts(
-		String methodName, Object[] arguments, Class<?>[] parameterTypes,
-		Group group, LayoutSet layoutSet, boolean privateLayout,
-		boolean workflowEnabled) {
+		Method method, Object[] arguments, Group group, LayoutSet layoutSet,
+		boolean privateLayout, boolean workflowEnabled) {
 
 		try {
 			if (!SitesUtil.isLayoutSetMergeable(group, layoutSet)) {
 				return;
 			}
 
-			MergeLayoutPrototypesThreadLocal.setInProgress(true);
 			WorkflowThreadLocal.setEnabled(false);
-
-			int count = LayoutLocalServiceUtil.getLayoutsCount(
-				group, privateLayout);
-
-			if (count == 0) {
-				SitesUtil.mergeLayoutSetPrototypeLayouts(group, layoutSet);
-
-				return;
-			}
-
-			List<Layout> layouts = getPrototypeLinkedLayouts(
-				group.getGroupId(), privateLayout);
-
-			for (Layout layout : layouts) {
-				if (SitesUtil.isLayoutModifiedSinceLastMerge(layout)) {
-					return;
-				}
-			}
 
 			SitesUtil.mergeLayoutSetPrototypeLayouts(group, layoutSet);
 		}
@@ -304,7 +296,7 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 		}
 		finally {
 			MergeLayoutPrototypesThreadLocal.setMergeComplete(
-				methodName, arguments, parameterTypes);
+				method, arguments);
 			WorkflowThreadLocal.setEnabled(workflowEnabled);
 		}
 	}
@@ -320,10 +312,10 @@ public class LayoutLocalServiceVirtualLayoutsAdvice
 		Integer.TYPE
 	};
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		LayoutLocalServiceVirtualLayoutsAdvice.class);
 
-	private static ThreadLocal<Long> _virtualLayoutTargetGroupId =
+	private static final ThreadLocal<Long> _virtualLayoutTargetGroupId =
 		new AutoResetThreadLocal<Long>(
 			LayoutLocalServiceVirtualLayoutsAdvice.class +
 				"._virtualLayoutTargetGroupId",

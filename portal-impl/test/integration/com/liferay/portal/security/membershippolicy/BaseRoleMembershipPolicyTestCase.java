@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,24 @@
 
 package com.liferay.portal.security.membershippolicy;
 
-import com.liferay.portal.util.RoleTestUtil;
+import com.liferay.portal.kernel.security.membershippolicy.RoleMembershipPolicy;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
+import com.liferay.portal.security.membershippolicy.samples.TestRoleMembershipPolicy;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceRegistration;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.After;
+import org.junit.Before;
 
 /**
  * @author Roberto Díaz
  */
 public abstract class BaseRoleMembershipPolicyTestCase
-	extends BaseMembersipPolicyTestCase {
+	extends BaseMembershipPolicyTestCase {
 
 	public static long[] getForbiddenRoleIds() {
 		return _forbiddenRoleIds;
@@ -34,6 +43,24 @@ public abstract class BaseRoleMembershipPolicyTestCase
 
 	public static long[] getStandardRoleIds() {
 		return _standardRoleIds;
+	}
+
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+
+		Registry registry = RegistryUtil.getRegistry();
+
+		Map<String, Object> properties = new HashMap<>();
+
+		properties.put("service.ranking", 1);
+
+		ServiceRegistration<?> serviceRegistration = registry.registerService(
+			RoleMembershipPolicy.class, new TestRoleMembershipPolicy(),
+			properties);
+
+		serviceRegistrations.add(serviceRegistration);
 	}
 
 	@After

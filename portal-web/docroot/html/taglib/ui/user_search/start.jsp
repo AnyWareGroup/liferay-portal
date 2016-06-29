@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,9 +16,6 @@
 
 <%@ include file="/html/taglib/init.jsp" %>
 
-<%@ page import="com.liferay.portlet.usersadmin.search.UserSearch" %>
-<%@ page import="com.liferay.portlet.usersadmin.search.UserSearchTerms" %>
-
 <portlet:defineObjects />
 
 <%
@@ -31,23 +28,29 @@ UserSearch searchContainer = new UserSearch(renderRequest, portletURL);
 request.setAttribute(WebKeys.SEARCH_CONTAINER, searchContainer);
 
 searchContainer.setRowChecker(rowChecker);
-%>
 
-<liferay-ui:search-form
-	page="/html/portlet/users_admin/user_search.jsp"
-	searchContainer="<%= searchContainer %>"
-/>
+SearchContainer userSearchContainer = searchContainer;
 
-<%
 UserSearchTerms searchTerms = (UserSearchTerms)searchContainer.getSearchTerms();
 
 List<User> results = null;
 int total = 0;
 %>
 
-<%@ include file="/html/portlet/users_admin/user_search_results.jspf" %>
+<liferay-ui:user-search-form />
 
 <%
+if (searchTerms.isAdvancedSearch()) {
+	total = UserLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getFirstName(), searchTerms.getMiddleName(), searchTerms.getLastName(), searchTerms.getScreenName(), searchTerms.getEmailAddress(), searchTerms.getStatus(), userParams, searchTerms.isAndOperator());
+
+	results = UserLocalServiceUtil.search(company.getCompanyId(), searchTerms.getFirstName(), searchTerms.getMiddleName(), searchTerms.getLastName(), searchTerms.getScreenName(), searchTerms.getEmailAddress(), searchTerms.getStatus(), userParams, searchTerms.isAndOperator(), userSearchContainer.getStart(), userSearchContainer.getEnd(), userSearchContainer.getOrderByComparator());
+}
+else {
+	total = UserLocalServiceUtil.searchCount(company.getCompanyId(), searchTerms.getKeywords(), searchTerms.getStatus(), userParams);
+
+	results = UserLocalServiceUtil.search(company.getCompanyId(), searchTerms.getKeywords(), searchTerms.getStatus(), userParams, userSearchContainer.getStart(), userSearchContainer.getEnd(), userSearchContainer.getOrderByComparator());
+}
+
 searchContainer.setResults(results);
 searchContainer.setTotal(total);
 %>

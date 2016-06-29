@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -36,7 +36,7 @@ public class MethodFactory {
 	}
 
 	private MethodFactory() {
-		_methods = new HashMap<String, Object>();
+		_methods = new HashMap<>();
 
 		Method method = (Method)InstancePool.get(_CHECKOUT_METHOD_IMPL);
 
@@ -166,8 +166,8 @@ public class MethodFactory {
 			PropsUtil.get(MethodFactory.class.getName() + ".URL_TO_WEB_URL"),
 			UrlToWebUrlMethodImpl.class.getName());
 
-	private static MethodFactory _instance = new MethodFactory();
+	private static final MethodFactory _instance = new MethodFactory();
 
-	private Map<String, Object> _methods;
+	private final Map<String, Object> _methods;
 
 }

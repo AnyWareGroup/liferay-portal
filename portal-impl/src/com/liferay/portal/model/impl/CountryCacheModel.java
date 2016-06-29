@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.Country;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.Country;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -31,12 +35,53 @@ import java.io.ObjectOutput;
  * @see Country
  * @generated
  */
-public class CountryCacheModel implements CacheModel<Country>, Externalizable {
+@ProviderType
+public class CountryCacheModel implements CacheModel<Country>, Externalizable,
+	MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CountryCacheModel)) {
+			return false;
+		}
+
+		CountryCacheModel countryCacheModel = (CountryCacheModel)obj;
+
+		if ((countryId == countryCacheModel.countryId) &&
+				(mvccVersion == countryCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, countryId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(17);
+		StringBundler sb = new StringBundler(19);
 
-		sb.append("{countryId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", countryId=");
 		sb.append(countryId);
 		sb.append(", name=");
 		sb.append(name);
@@ -61,6 +106,7 @@ public class CountryCacheModel implements CacheModel<Country>, Externalizable {
 	public Country toEntityModel() {
 		CountryImpl countryImpl = new CountryImpl();
 
+		countryImpl.setMvccVersion(mvccVersion);
 		countryImpl.setCountryId(countryId);
 
 		if (name == null) {
@@ -108,19 +154,25 @@ public class CountryCacheModel implements CacheModel<Country>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		countryId = objectInput.readLong();
 		name = objectInput.readUTF();
 		a2 = objectInput.readUTF();
 		a3 = objectInput.readUTF();
 		number = objectInput.readUTF();
 		idd = objectInput.readUTF();
+
 		zipRequired = objectInput.readBoolean();
+
 		active = objectInput.readBoolean();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(countryId);
 
 		if (name == null) {
@@ -159,9 +211,11 @@ public class CountryCacheModel implements CacheModel<Country>, Externalizable {
 		}
 
 		objectOutput.writeBoolean(zipRequired);
+
 		objectOutput.writeBoolean(active);
 	}
 
+	public long mvccVersion;
 	public long countryId;
 	public String name;
 	public String a2;

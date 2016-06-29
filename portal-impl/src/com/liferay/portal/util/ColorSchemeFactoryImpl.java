@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,9 @@
 
 package com.liferay.portal.util;
 
+import com.liferay.portal.kernel.model.ColorScheme;
 import com.liferay.portal.kernel.util.ColorSchemeFactory;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.ColorScheme;
 import com.liferay.portal.model.impl.ColorSchemeImpl;
 
 /**
@@ -51,17 +51,6 @@ public class ColorSchemeFactoryImpl implements ColorSchemeFactory {
 	@Override
 	public String getDefaultRegularColorSchemeId() {
 		return PropsValues.DEFAULT_REGULAR_COLOR_SCHEME_ID;
-	}
-
-	@Override
-	public ColorScheme getDefaultWapColorScheme() {
-		return new ColorSchemeImpl(
-			getDefaultWapColorSchemeId(), StringPool.BLANK, StringPool.BLANK);
-	}
-
-	@Override
-	public String getDefaultWapColorSchemeId() {
-		return PropsValues.DEFAULT_WAP_COLOR_SCHEME_ID;
 	}
 
 }

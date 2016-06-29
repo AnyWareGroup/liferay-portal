@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,135 +14,74 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
-import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
-import com.liferay.portal.kernel.json.JSONObject;
-import com.liferay.portal.kernel.upgrade.BaseUpgradePortletPreferences;
-import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.portlet.bookmarks.model.BookmarksEntry;
-import com.liferay.portlet.bookmarks.model.BookmarksFolder;
-import com.liferay.portlet.documentlibrary.model.DLFileEntryConstants;
-import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
-import com.liferay.portlet.journal.model.JournalArticle;
-import com.liferay.portlet.journal.model.JournalFolder;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
+import com.liferay.portal.kernel.util.StringBundler;
 
-import javax.portlet.PortletPreferences;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
- * @author Alexander Chow
+ * @author Julio Camarero
  */
-public class UpgradePortletPreferences extends BaseUpgradePortletPreferences {
+public class UpgradePortletPreferences extends UpgradeProcess {
 
-	@Override
-	protected String[] getPortletIds() {
-		return new String[] {PortletKeys.SEARCH};
-	}
+	protected void deletePortletPreferences() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			StringBundler sb = new StringBundler(7);
 
-	protected JSONObject upgradeDataJSONObject(JSONObject dataJSONObject)
-		throws Exception {
+			sb.append("select PortletPreferences.portletPreferencesId, ");
+			sb.append("PortletPreferences.plid,");
+			sb.append("PortletPreferences.portletId, Layout.typeSettings ");
+			sb.append("from PortletPreferences inner join Layout on ");
+			sb.append("PortletPreferences.plid = Layout.plid where ");
+			sb.append("preferences like '%<portlet-preferences />%' or ");
+			sb.append("preferences like '' or preferences is null");
 
-		JSONArray valuesJSONArray = dataJSONObject.getJSONArray("values");
+			String sql = sb.toString();
 
-		boolean hasBookmarksEntry = false;
-		boolean hasDLFileEntry = false;
-		boolean hasJournalArticle = false;
+			try (PreparedStatement ps = connection.prepareStatement(sql);
+				ResultSet rs = ps.executeQuery()) {
 
-		for (int i = 0; i < valuesJSONArray.length(); i++) {
-			String value = valuesJSONArray.getString(i);
+				while (rs.next()) {
+					long portletPreferencesId = rs.getLong(
+						"portletPreferencesId");
+					String portletId = GetterUtil.getString(
+						rs.getString("portletId"));
+					String typeSettings = GetterUtil.getString(
+						rs.getString("typeSettings"));
 
-			if (value.equals(BookmarksEntry.class.getName())) {
-				hasBookmarksEntry = true;
-			}
+					if (typeSettings.contains(portletId)) {
+						continue;
+					}
 
-			if (value.equals(DLFileEntryConstants.getClassName())) {
-				hasDLFileEntry = true;
-			}
-
-			if (value.equals(JournalArticle.class.getName())) {
-				hasJournalArticle = true;
-			}
-		}
-
-		if (!hasBookmarksEntry && !hasDLFileEntry && !hasJournalArticle) {
-			return null;
-		}
-
-		if (hasBookmarksEntry) {
-			valuesJSONArray.put(BookmarksFolder.class.getName());
-		}
-
-		if (hasDLFileEntry) {
-			valuesJSONArray.put(DLFolderConstants.getClassName());
-		}
-
-		if (hasJournalArticle) {
-			valuesJSONArray.put(JournalFolder.class.getName());
-		}
-
-		dataJSONObject.put("values", valuesJSONArray);
-
-		return dataJSONObject;
-	}
-
-	@Override
-	protected String upgradePreferences(
-			long companyId, long ownerId, int ownerType, long plid,
-			String portletId, String xml)
-		throws Exception {
-
-		PortletPreferences portletPreferences =
-			PortletPreferencesFactoryUtil.fromXML(
-				companyId, ownerId, ownerType, plid, portletId, xml);
-
-		String searchConfiguration = portletPreferences.getValue(
-			"searchConfiguration", null);
-
-		if (Validator.isNull(searchConfiguration)) {
-			return null;
-		}
-
-		JSONObject searchConfigurationJSONObject =
-			JSONFactoryUtil.createJSONObject(searchConfiguration);
-
-		JSONArray oldFacetsJSONArray =
-			searchConfigurationJSONObject.getJSONArray("facets");
-
-		if (oldFacetsJSONArray == null) {
-			return null;
-		}
-
-		JSONArray newFacetsJSONArray = JSONFactoryUtil.createJSONArray();
-
-		for (int i = 0; i < oldFacetsJSONArray.length(); i++) {
-			JSONObject oldFacetJSONObject = oldFacetsJSONArray.getJSONObject(i);
-
-			String fieldName = oldFacetJSONObject.getString("fieldName");
-
-			if (fieldName.equals("entryClassName")) {
-				JSONObject oldDataJSONObject = oldFacetJSONObject.getJSONObject(
-					"data");
-
-				JSONObject newDataJSONObject = upgradeDataJSONObject(
-					oldDataJSONObject);
-
-				if (newDataJSONObject == null) {
-					return null;
+					deletePortletPreferences(portletPreferencesId);
 				}
-
-				oldFacetJSONObject.put("data", newDataJSONObject);
 			}
+		}
+	}
 
-			newFacetsJSONArray.put(oldFacetJSONObject);
+	protected void deletePortletPreferences(long portletPreferencesId)
+		throws Exception {
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("Deleting portlet preferences " + portletPreferencesId);
 		}
 
-		searchConfigurationJSONObject.put("facets", newFacetsJSONArray);
-
-		portletPreferences.setValue(
-			"searchConfiguration", searchConfigurationJSONObject.toString());
-
-		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
+		runSQL(
+			"delete from PortletPreferences where portletPreferencesId = " +
+				portletPreferencesId);
 	}
+
+	@Override
+	protected void doUpgrade() throws Exception {
+		deletePortletPreferences();
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		UpgradePortletPreferences.class);
 
 }

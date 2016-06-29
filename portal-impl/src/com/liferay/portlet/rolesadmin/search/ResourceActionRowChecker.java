@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,12 +15,12 @@
 package com.liferay.portlet.rolesadmin.search;
 
 import com.liferay.portal.kernel.dao.search.RowChecker;
-import com.liferay.portal.model.Role;
-import com.liferay.portal.service.ResourceBlockLocalServiceUtil;
-import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
-import com.liferay.portal.service.ResourceTypePermissionLocalServiceUtil;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.service.ResourceBlockLocalServiceUtil;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
+import com.liferay.portal.kernel.service.ResourceTypePermissionLocalServiceUtil;
 
-import javax.portlet.RenderResponse;
+import javax.portlet.PortletResponse;
 
 /**
  * @author Jorge Ferrer
@@ -28,8 +28,8 @@ import javax.portlet.RenderResponse;
  */
 public class ResourceActionRowChecker extends RowChecker {
 
-	public ResourceActionRowChecker(RenderResponse renderResponse) {
-		super(renderResponse);
+	public ResourceActionRowChecker(PortletResponse portletResponse) {
+		super(portletResponse);
 	}
 
 	@Override
@@ -57,10 +57,9 @@ public class ResourceActionRowChecker extends RowChecker {
 					actionId);
 		}
 
-		return
-			ResourcePermissionLocalServiceUtil.hasScopeResourcePermission(
-				role.getCompanyId(), resourceName, scope, role.getRoleId(),
-				actionId);
+		return ResourcePermissionLocalServiceUtil.hasScopeResourcePermission(
+			role.getCompanyId(), resourceName, scope, role.getRoleId(),
+			actionId);
 	}
 
 }

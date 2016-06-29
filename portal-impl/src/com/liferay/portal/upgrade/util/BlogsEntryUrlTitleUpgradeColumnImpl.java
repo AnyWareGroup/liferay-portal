@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,7 +35,7 @@ public class BlogsEntryUrlTitleUpgradeColumnImpl extends BaseUpgradeColumnImpl {
 
 		_entryIdColumn = entryIdColumn;
 		_titleColumn = titleColumn;
-		_urlTitles = new HashSet<String>();
+		_urlTitles = new HashSet<>();
 	}
 
 	@Override
@@ -74,8 +74,8 @@ public class BlogsEntryUrlTitleUpgradeColumnImpl extends BaseUpgradeColumnImpl {
 		return newUrlTitle;
 	}
 
-	private UpgradeColumn _entryIdColumn;
-	private UpgradeColumn _titleColumn;
-	private Set<String> _urlTitles;
+	private final UpgradeColumn _entryIdColumn;
+	private final UpgradeColumn _titleColumn;
+	private final Set<String> _urlTitles;
 
 }

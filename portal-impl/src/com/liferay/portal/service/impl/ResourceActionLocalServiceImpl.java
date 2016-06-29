@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,20 +14,19 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.NoSuchResourceActionException;
+import com.liferay.portal.kernel.exception.NoSuchResourceActionException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.model.ResourceAction;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.spring.aop.Skip;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.ResourceAction;
-import com.liferay.portal.model.ResourceConstants;
-import com.liferay.portal.model.RoleConstants;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.util.comparator.ResourceActionBitwiseValueComparator;
 import com.liferay.portal.service.base.ResourceActionLocalServiceBaseImpl;
-import com.liferay.portal.util.comparator.ResourceActionBitwiseValueComparator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +41,31 @@ public class ResourceActionLocalServiceImpl
 	extends ResourceActionLocalServiceBaseImpl {
 
 	@Override
+	public ResourceAction addResourceAction(
+		String name, String actionId, long bitwiseValue) {
+
+		ResourceAction resourceAction = resourceActionPersistence.fetchByN_A(
+			name, actionId);
+
+		if (resourceAction == null) {
+			long resourceActionId = counterLocalService.increment(
+				ResourceAction.class.getName());
+
+			resourceAction = resourceActionPersistence.create(resourceActionId);
+
+			resourceAction.setName(name);
+			resourceAction.setActionId(actionId);
+			resourceAction.setBitwiseValue(bitwiseValue);
+
+			resourceActionPersistence.update(resourceAction);
+		}
+
+		return resourceAction;
+	}
+
+	@Override
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public void checkResourceActions() throws SystemException {
+	public void checkResourceActions() {
 		List<ResourceAction> resourceActions =
 			resourceActionPersistence.findAll();
 
@@ -56,16 +78,13 @@ public class ResourceActionLocalServiceImpl
 	}
 
 	@Override
-	public void checkResourceActions(String name, List<String> actionIds)
-		throws SystemException {
-
+	public void checkResourceActions(String name, List<String> actionIds) {
 		checkResourceActions(name, actionIds, false);
 	}
 
 	@Override
 	public void checkResourceActions(
-			String name, List<String> actionIds, boolean addDefaultActions)
-		throws SystemException {
+		String name, List<String> actionIds, boolean addDefaultActions) {
 
 		long lastBitwiseValue = -1;
 		List<ResourceAction> newResourceActions = null;
@@ -106,20 +125,19 @@ public class ResourceActionLocalServiceImpl
 					bitwiseValue = lastBitwiseValue;
 				}
 
-				long resourceActionId = counterLocalService.increment(
-					ResourceAction.class.getName());
-
-				resourceAction = resourceActionPersistence.create(
-					resourceActionId);
-
-				resourceAction.setName(name);
-				resourceAction.setActionId(actionId);
-				resourceAction.setBitwiseValue(bitwiseValue);
-
-				resourceActionPersistence.update(resourceAction);
+				try {
+					resourceAction =
+						resourceActionLocalService.addResourceAction(
+							name, actionId, bitwiseValue);
+				}
+				catch (Throwable t) {
+					resourceAction =
+						resourceActionLocalService.addResourceAction(
+							name, actionId, bitwiseValue);
+				}
 
 				if (newResourceActions == null) {
-					newResourceActions = new ArrayList<ResourceAction>();
+					newResourceActions = new ArrayList<>();
 				}
 
 				newResourceActions.add(resourceAction);
@@ -176,6 +194,22 @@ public class ResourceActionLocalServiceImpl
 	}
 
 	@Override
+	public ResourceAction deleteResourceAction(long resourceActionId)
+		throws PortalException {
+
+		return deleteResourceAction(
+			resourceActionPersistence.findByPrimaryKey(resourceActionId));
+	}
+
+	@Override
+	public ResourceAction deleteResourceAction(ResourceAction resourceAction) {
+		_resourceActions.remove(
+			encodeKey(resourceAction.getName(), resourceAction.getActionId()));
+
+		return resourceActionPersistence.remove(resourceAction);
+	}
+
+	@Override
 	@Skip
 	public ResourceAction fetchResourceAction(String name, String actionId) {
 		String key = encodeKey(name, actionId);
@@ -200,17 +234,20 @@ public class ResourceActionLocalServiceImpl
 	}
 
 	@Override
-	public List<ResourceAction> getResourceActions(String name)
-		throws SystemException {
-
+	public List<ResourceAction> getResourceActions(String name) {
 		return resourceActionPersistence.findByName(name);
+	}
+
+	@Override
+	public int getResourceActionsCount(String name) {
+		return resourceActionPersistence.countByName(name);
 	}
 
 	protected String encodeKey(String name, String actionId) {
 		return name.concat(StringPool.POUND).concat(actionId);
 	}
 
-	private static Map<String, ResourceAction> _resourceActions =
-		new ConcurrentHashMap<String, ResourceAction>();
+	private static final Map<String, ResourceAction> _resourceActions =
+		new ConcurrentHashMap<>();
 
 }

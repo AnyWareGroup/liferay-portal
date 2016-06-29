@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,8 +16,8 @@ package com.liferay.portal.spring.transaction;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.SortedProperties;
-import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
 
@@ -44,9 +44,11 @@ public class TransactionManagerFactory {
 
 		ClassLoader classLoader = ClassLoaderUtil.getPortalClassLoader();
 
+		Class<?> clazz = classLoader.loadClass(
+			PropsValues.TRANSACTION_MANAGER_IMPL);
+
 		AbstractPlatformTransactionManager abstractPlatformTransactionManager =
-			(AbstractPlatformTransactionManager)classLoader.loadClass(
-				PropsValues.TRANSACTION_MANAGER_IMPL).newInstance();
+			(AbstractPlatformTransactionManager)clazz.newInstance();
 
 		Properties properties = PropsUtil.getProperties(
 			"transaction.manager.property.", true);
@@ -74,9 +76,9 @@ public class TransactionManagerFactory {
 		}
 
 		if (_log.isDebugEnabled()) {
-			_log.debug(
-				"Created transaction manager " +
-					abstractPlatformTransactionManager.getClass().getName());
+			clazz = abstractPlatformTransactionManager.getClass();
+
+			_log.debug("Created transaction manager " + clazz.getName());
 
 			SortedProperties sortedProperties = new SortedProperties(
 				properties);
@@ -87,7 +89,7 @@ public class TransactionManagerFactory {
 		return abstractPlatformTransactionManager;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		TransactionManagerFactory.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.workflow;
 
 import com.liferay.portal.kernel.messaging.proxy.BaseProxyBean;
+import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.workflow.WorkflowStatusManager;
 
 import java.io.Serializable;
@@ -24,6 +25,9 @@ import java.util.Map;
 /**
  * @author Bruno Farache
  */
+@OSGiBeanProperties(
+	property = "proxy.bean=true", service = WorkflowStatusManager.class
+)
 public class WorkflowStatusManagerProxyBean
 	extends BaseProxyBean implements WorkflowStatusManager {
 

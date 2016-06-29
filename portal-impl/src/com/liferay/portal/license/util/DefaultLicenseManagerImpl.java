@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,28 +14,32 @@
 
 package com.liferay.portal.license.util;
 
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.json.JSONObjectImpl;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.license.LicenseInfo;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.SecureRandomUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.license.LicenseInfo;
+import com.liferay.portal.util.LicenseUtil;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Amos Fong
  */
 @DoPrivileged
 public class DefaultLicenseManagerImpl
-	implements com.liferay.portal.license.util.LicenseManager {
+	implements com.liferay.portal.kernel.license.util.LicenseManager {
 
 	@Override
 	public void checkLicense(String productId) {
@@ -50,7 +54,7 @@ public class DefaultLicenseManagerImpl
 
 	@Override
 	public String getHostName() {
-		return LicenseUtil.getHostName();
+		return PortalUtil.getComputerName();
 	}
 
 	@Override
@@ -82,11 +86,12 @@ public class DefaultLicenseManagerImpl
 		}
 
 		try {
-			JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+			JSONObject jsonObject = new JSONObjectImpl();
 
 			byte[] serverIdBytes = LicenseUtil.getServerIdBytes();
 
-			jsonObject.put("cmd", "GET_LICENSE_STATE");
+			jsonObject.put(Constants.CMD, "GET_LICENSE_STATE");
+
 			jsonObject.put("hostName", getHostName());
 			jsonObject.put("ipAddresses", StringUtil.merge(getIpAddresses()));
 			jsonObject.put("macAddresses", StringUtil.merge(getMacAddresses()));
@@ -96,7 +101,10 @@ public class DefaultLicenseManagerImpl
 
 			jsonObject.put("productVersion", productVersion);
 
-			String randomUuid = PortalUUIDUtil.generate();
+			UUID uuid = new UUID(
+				SecureRandomUtil.nextLong(), SecureRandomUtil.nextLong());
+
+			String randomUuid = uuid.toString();
 
 			jsonObject.put("randomUuid", randomUuid);
 
@@ -110,8 +118,7 @@ public class DefaultLicenseManagerImpl
 
 			String response = LicenseUtil.sendRequest(jsonObject.toString());
 
-			JSONObject responseJSONObject = JSONFactoryUtil.createJSONObject(
-				response);
+			JSONObject responseJSONObject = new JSONObjectImpl(response);
 
 			String errorMessage = responseJSONObject.getString("errorMessage");
 
@@ -129,7 +136,7 @@ public class DefaultLicenseManagerImpl
 			}
 		}
 		catch (Exception e) {
-			_log.error(e.getMessage());
+			_log.error(e, e);
 		}
 
 		return 0;
@@ -137,7 +144,7 @@ public class DefaultLicenseManagerImpl
 
 	@Override
 	public int getLicenseState(String productId) {
-		Map<String, String> licenseProperties = new HashMap<String, String>();
+		Map<String, String> licenseProperties = new HashMap<>();
 
 		licenseProperties.put("productId", productId);
 
@@ -153,7 +160,7 @@ public class DefaultLicenseManagerImpl
 	public void registerLicense(JSONObject jsonObject) throws Exception {
 		String serverId = jsonObject.getString("serverId");
 
-		if (serverId.length() <= 2) {
+		if (Validator.isNotNull(serverId) && (serverId.length() <= 2)) {
 			return;
 		}
 
@@ -170,7 +177,7 @@ public class DefaultLicenseManagerImpl
 		LicenseUtil.writeServerProperties(bytes);
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultLicenseManagerImpl.class);
 
 }

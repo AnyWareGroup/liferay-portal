@@ -1,6 +1,9 @@
-Export-Package:\
-	com.liferay.util.*,\
-	org.slf4j.impl.*
-Import-Package: *;resolution:=optional
+Bundle-Name: ${manifest.bundle.name}
+Bundle-SymbolicName: ${manifest.bundle.symbolic.name}
+Bundle-Version: 2.2.0
+Export-Package: com.liferay.util.*
+Import-Package:\
+	com.liferay.*,\
+	*;resolution:=optional
 Include-Resource: classes
-Private-Package: *
+-baseline: *;file=${project.dir}/.bnd/ant-baseline-cache/com.liferay.util.java-2.1.0.jar

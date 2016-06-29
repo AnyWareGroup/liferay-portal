@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,14 +15,11 @@
 package com.liferay.portal.module.framework;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 
 import java.io.InputStream;
 
 import java.net.URL;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * This class is a simple wrapper in order to make the framework module running
@@ -30,22 +27,22 @@ import java.util.Map;
  *
  * @author Miguel Pastor
  * @author Raymond Augé
- * @see    {@link ModuleFrameworkClassloader}
+ * @see    ModuleFrameworkClassLoader
  */
 public class ModuleFrameworkUtilAdapter {
 
-	public static Object addBundle(String location) throws PortalException {
+	public static long addBundle(String location) throws PortalException {
 		return _moduleFramework.addBundle(location);
 	}
 
-	public static Object addBundle(String location, InputStream inputStream)
+	public static long addBundle(String location, InputStream inputStream)
 		throws PortalException {
 
 		return _moduleFramework.addBundle(location, inputStream);
 	}
 
-	public static Map<String, List<URL>> getExtraPackageMap() {
-		return _moduleFramework.getExtraPackageMap();
+	public static URL getBundleResource(long bundleId, String name) {
+		return _moduleFramework.getBundleResource(bundleId, name);
 	}
 
 	public static Object getFramework() {
@@ -56,6 +53,20 @@ public class ModuleFrameworkUtilAdapter {
 		return _moduleFramework.getState(bundleId);
 	}
 
+	public static void initFramework() throws Exception {
+		ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
+
+		ClassLoaderUtil.setContextClassLoader(
+			ModuleFrameworkAdapterHelper.getClassLoader());
+
+		try {
+			_moduleFramework.initFramework();
+		}
+		finally {
+			ClassLoaderUtil.setContextClassLoader(classLoader);
+		}
+	}
+
 	public static void registerContext(Object context) {
 		_moduleFramework.registerContext(context);
 	}
@@ -64,6 +75,14 @@ public class ModuleFrameworkUtilAdapter {
 		throws PortalException {
 
 		_moduleFramework.setBundleStartLevel(bundleId, startLevel);
+	}
+
+	public static void setModuleFramework(ModuleFramework moduleFramework) {
+		_moduleFramework = moduleFramework;
+
+		_moduleFrameworkAdapterHelper.exec(
+			"setModuleFramework", new Class[] {ModuleFramework.class},
+			_moduleFramework);
 	}
 
 	public static void startBundle(long bundleId) throws PortalException {
@@ -77,17 +96,7 @@ public class ModuleFrameworkUtilAdapter {
 	}
 
 	public static void startFramework() throws Exception {
-		ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
-
-		ClassLoaderUtil.setContextClassLoader(
-			ModuleFrameworkAdapterHelper.getClassLoader());
-
-		try {
-			_moduleFramework.startFramework();
-		}
-		finally {
-			ClassLoaderUtil.setContextClassLoader(classLoader);
-		}
+		_moduleFramework.startFramework();
 	}
 
 	public static void startRuntime() throws Exception {
@@ -104,8 +113,8 @@ public class ModuleFrameworkUtilAdapter {
 		_moduleFramework.stopBundle(bundleId, options);
 	}
 
-	public static void stopFramework() throws Exception {
-		_moduleFramework.stopFramework();
+	public static void stopFramework(long timeout) throws Exception {
+		_moduleFramework.stopFramework(timeout);
 	}
 
 	public static void stopRuntime() throws Exception {
@@ -114,6 +123,10 @@ public class ModuleFrameworkUtilAdapter {
 
 	public static void uninstallBundle(long bundleId) throws PortalException {
 		_moduleFramework.uninstallBundle(bundleId);
+	}
+
+	public static void unregisterContext(Object context) {
+		_moduleFramework.unregisterContext(context);
 	}
 
 	public static void updateBundle(long bundleId) throws PortalException {
@@ -127,9 +140,9 @@ public class ModuleFrameworkUtilAdapter {
 	}
 
 	private static ModuleFramework _moduleFramework;
-	private static ModuleFrameworkAdapterHelper _moduleFrameworkAdapterHelper =
-		new ModuleFrameworkAdapterHelper(
-			"com.liferay.osgi.bootstrap.ModuleFrameworkUtil");
+	private static final ModuleFrameworkAdapterHelper
+		_moduleFrameworkAdapterHelper = new ModuleFrameworkAdapterHelper(
+			"com.liferay.portal.bootstrap.ModuleFrameworkUtil");
 
 	static {
 		_moduleFramework =

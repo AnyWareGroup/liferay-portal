@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.sharepoint;
 
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.xml.Element;
@@ -25,7 +26,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Bruno Farache
@@ -130,12 +130,13 @@ public abstract class BaseSharepointStorageImpl implements SharepointStorage {
 
 		if (xml) {
 			sb.append(
-				DateUtil.getDate(date, "yyyy-mm-dd HH:mm:ss Z", Locale.US));
+				DateUtil.getDate(date, "yyyy-mm-dd HH:mm:ss Z", LocaleUtil.US));
 		}
 		else {
 			sb.append("TR|");
 			sb.append(
-				DateUtil.getDate(date, "dd MMM yyyy HH:mm:ss Z", Locale.US));
+				DateUtil.getDate(
+					date, "dd MMM yyyy HH:mm:ss Z", LocaleUtil.US));
 		}
 
 		return sb.toString();
@@ -216,7 +217,7 @@ public abstract class BaseSharepointStorageImpl implements SharepointStorage {
 			long groupId, String path, long defaultParentFolderId)
 		throws Exception {
 
-		List<Long> folderIds = new ArrayList<Long>();
+		List<Long> folderIds = new ArrayList<>();
 
 		folderIds.add(defaultParentFolderId);
 

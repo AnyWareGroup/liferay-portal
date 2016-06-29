@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,12 @@
 
 package com.liferay.portlet.social.util;
 
-import com.liferay.portal.service.ServiceContext;
-import com.liferay.portlet.social.model.BaseSocialActivityInterpreter;
-import com.liferay.portlet.social.model.SocialActivity;
-import com.liferay.portlet.social.model.SocialActivityFeedEntry;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.language.LanguageResources;
+import com.liferay.social.kernel.model.BaseSocialActivityInterpreter;
+import com.liferay.social.kernel.model.SocialActivity;
+import com.liferay.social.kernel.model.SocialActivityFeedEntry;
 
 /**
  * @author Brian Wing Shun Chan
@@ -35,6 +37,11 @@ public class PortalActivityInterpreter extends BaseSocialActivityInterpreter {
 		throws Exception {
 
 		return null;
+	}
+
+	@Override
+	protected ResourceBundleLoader getResourceBundleLoader() {
+		return LanguageResources.RESOURCE_BUNDLE_LOADER;
 	}
 
 	private static final String[] _CLASS_NAMES =

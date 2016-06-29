@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,68 +14,39 @@
 
 package com.liferay.portal.service.impl;
 
+import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
+import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceMode;
+import com.liferay.portal.kernel.model.AuditedModel;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupedModel;
+import com.liferay.portal.kernel.model.PermissionedModel;
+import com.liferay.portal.kernel.model.PortletConstants;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.Team;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.service.permission.TeamPermissionUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.model.AuditedModel;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.GroupedModel;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.PermissionedModel;
-import com.liferay.portal.model.PortletConstants;
-import com.liferay.portal.model.ResourceConstants;
-import com.liferay.portal.model.ResourcePermission;
-import com.liferay.portal.model.Role;
-import com.liferay.portal.model.Team;
-import com.liferay.portal.model.User;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.security.permission.ResourceActionsUtil;
 import com.liferay.portal.service.base.PermissionServiceBaseImpl;
-import com.liferay.portal.service.permission.GroupPermissionUtil;
-import com.liferay.portal.service.permission.LayoutPermissionUtil;
-import com.liferay.portal.service.permission.PortletPermissionUtil;
-import com.liferay.portal.service.permission.TeamPermissionUtil;
-import com.liferay.portal.service.permission.UserPermissionUtil;
-import com.liferay.portlet.asset.AssetRendererFactoryRegistryUtil;
-import com.liferay.portlet.asset.model.AssetRendererFactory;
-import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.service.permission.BlogsEntryPermission;
-import com.liferay.portlet.bookmarks.model.BookmarksEntry;
-import com.liferay.portlet.bookmarks.model.BookmarksFolder;
-import com.liferay.portlet.bookmarks.service.permission.BookmarksEntryPermission;
-import com.liferay.portlet.bookmarks.service.permission.BookmarksFolderPermission;
-import com.liferay.portlet.calendar.model.CalEvent;
-import com.liferay.portlet.calendar.service.permission.CalEventPermission;
-import com.liferay.portlet.documentlibrary.model.DLFileEntry;
-import com.liferay.portlet.documentlibrary.model.DLFolder;
-import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermission;
-import com.liferay.portlet.documentlibrary.service.permission.DLFolderPermission;
-import com.liferay.portlet.journal.model.JournalArticle;
-import com.liferay.portlet.journal.model.JournalFeed;
-import com.liferay.portlet.journal.service.permission.JournalArticlePermission;
-import com.liferay.portlet.journal.service.permission.JournalFeedPermission;
-import com.liferay.portlet.messageboards.model.MBCategory;
-import com.liferay.portlet.messageboards.model.MBMessage;
-import com.liferay.portlet.messageboards.service.permission.MBCategoryPermission;
-import com.liferay.portlet.messageboards.service.permission.MBMessagePermission;
-import com.liferay.portlet.polls.model.PollsQuestion;
-import com.liferay.portlet.polls.service.permission.PollsQuestionPermission;
-import com.liferay.portlet.shopping.model.ShoppingCategory;
-import com.liferay.portlet.shopping.model.ShoppingItem;
-import com.liferay.portlet.shopping.service.permission.ShoppingCategoryPermission;
-import com.liferay.portlet.shopping.service.permission.ShoppingItemPermission;
-import com.liferay.portlet.softwarecatalog.model.SCFrameworkVersion;
-import com.liferay.portlet.softwarecatalog.model.SCProductEntry;
-import com.liferay.portlet.softwarecatalog.service.permission.SCFrameworkVersionPermission;
-import com.liferay.portlet.softwarecatalog.service.permission.SCProductEntryPermission;
-import com.liferay.portlet.wiki.model.WikiNode;
-import com.liferay.portlet.wiki.model.WikiPage;
-import com.liferay.portlet.wiki.service.permission.WikiNodePermission;
-import com.liferay.portlet.wiki.service.permission.WikiPagePermission;
+import com.liferay.registry.Filter;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceReference;
+import com.liferay.registry.ServiceTracker;
+import com.liferay.registry.ServiceTrackerCustomizer;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides the remote service for checking permissions.
@@ -85,20 +56,31 @@ import java.util.List;
  */
 public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 
+	@Override
+	public void afterPropertiesSet() {
+		Registry registry = RegistryUtil.getRegistry();
+
+		Filter filter = registry.getFilter(
+			"(&(model.class.name=*)(objectClass=" +
+				BaseModelPermissionChecker.class.getName() + "))");
+
+		_serviceTracker = registry.trackServices(
+			filter, new BaseModelPermissionCheckerServiceTrackerCustomizer());
+
+		_serviceTracker.open();
+	}
+
 	/**
 	 * Checks to see if the group has permission to the service.
 	 *
-	 * @param  groupId the primary key of the group
-	 * @param  name the service name
-	 * @param  primKey the primary key of the service
-	 * @throws PortalException if the group did not have permission to the
-	 *         service, if a group with the primary key could not be found or if
-	 *         the permission information was invalid
-	 * @throws SystemException if a system exception occurred
+	 * @param groupId the primary key of the group
+	 * @param name the service name
+	 * @param primKey the primary key of the service
 	 */
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
 	@Override
 	public void checkPermission(long groupId, String name, long primKey)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		checkPermission(
 			getPermissionChecker(), groupId, name, String.valueOf(primKey));
@@ -107,140 +89,61 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 	/**
 	 * Checks to see if the group has permission to the service.
 	 *
-	 * @param  groupId the primary key of the group
-	 * @param  name the service name
-	 * @param  primKey the primary key of the service
-	 * @throws PortalException if the group did not have permission to the
-	 *         service, if a group with the primary key could not be found or if
-	 *         the permission information was invalid
-	 * @throws SystemException if a system exception occurred
+	 * @param groupId the primary key of the group
+	 * @param name the service name
+	 * @param primKey the primary key of the service
 	 */
 	@Override
 	public void checkPermission(long groupId, String name, String primKey)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		checkPermission(getPermissionChecker(), groupId, name, primKey);
+	}
+
+	protected boolean checkBaseModelPermission(
+			PermissionChecker permissionChecker, long groupId, String className,
+			long classPK)
+		throws PortalException {
+
+		String actionId = ActionKeys.PERMISSIONS;
+
+		if (className.equals(Team.class.getName())) {
+			className = Group.class.getName();
+
+			Team team = teamLocalService.fetchTeam(classPK);
+
+			classPK = team.getGroupId();
+
+			actionId = ActionKeys.MANAGE_TEAMS;
+		}
+
+		BaseModelPermissionChecker baseModelPermissionChecker =
+			_baseModelPermissionCheckers.get(className);
+
+		if (baseModelPermissionChecker != null) {
+			baseModelPermissionChecker.checkBaseModel(
+				permissionChecker, groupId, classPK, actionId);
+
+			return true;
+		}
+
+		return false;
 	}
 
 	protected void checkPermission(
 			PermissionChecker permissionChecker, long groupId, String name,
 			String primKey)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		if (name.equals(BlogsEntry.class.getName())) {
-			BlogsEntryPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(BookmarksEntry.class.getName())) {
-			BookmarksEntryPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(BookmarksFolder.class.getName())) {
-			BookmarksFolderPermission.check(
-				permissionChecker, groupId, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(CalEvent.class.getName())) {
-			CalEventPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(DLFileEntry.class.getName())) {
-			DLFileEntryPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(DLFolder.class.getName())) {
-			DLFolderPermission.check(
-				permissionChecker, groupId, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(Group.class.getName())) {
-			GroupPermissionUtil.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(JournalArticle.class.getName())) {
-			JournalArticlePermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(JournalFeed.class.getName())) {
-			JournalFeedPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(Layout.class.getName())) {
-			LayoutPermissionUtil.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(MBCategory.class.getName())) {
-			MBCategoryPermission.check(
-				permissionChecker, groupId, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(MBMessage.class.getName())) {
-			MBMessagePermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(PollsQuestion.class.getName())) {
-			PollsQuestionPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(SCFrameworkVersion.class.getName())) {
-			SCFrameworkVersionPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(SCProductEntry.class.getName())) {
-			SCProductEntryPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(ShoppingCategory.class.getName())) {
-			ShoppingCategoryPermission.check(
-				permissionChecker, groupId, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(ShoppingItem.class.getName())) {
-			ShoppingItemPermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(Team.class.getName())) {
-			long teamId = GetterUtil.getLong(primKey);
+		if (checkBaseModelPermission(
+				permissionChecker, groupId, name,
+				GetterUtil.getLong(primKey))) {
 
-			Team team = teamPersistence.findByPrimaryKey(teamId);
+			return;
+		}
 
-			GroupPermissionUtil.check(
-				permissionChecker, team.getGroupId(), ActionKeys.MANAGE_TEAMS);
-		}
-		else if (name.equals(User.class.getName())) {
-			long userId = GetterUtil.getLong(primKey);
-
-			User user = userPersistence.findByPrimaryKey(userId);
-
-			UserPermissionUtil.check(
-				permissionChecker, userId, user.getOrganizationIds(),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(WikiNode.class.getName())) {
-			WikiNodePermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if (name.equals(WikiPage.class.getName())) {
-			WikiPagePermission.check(
-				permissionChecker, GetterUtil.getLong(primKey),
-				ActionKeys.PERMISSIONS);
-		}
-		else if ((primKey != null) &&
-				 primKey.contains(PortletConstants.LAYOUT_SEPARATOR)) {
+		if ((primKey != null) &&
+			primKey.contains(PortletConstants.LAYOUT_SEPARATOR)) {
 
 			int pos = primKey.indexOf(PortletConstants.LAYOUT_SEPARATOR);
 
@@ -250,12 +153,13 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 				pos + PortletConstants.LAYOUT_SEPARATOR.length());
 
 			PortletPermissionUtil.check(
-				permissionChecker, plid, portletId, ActionKeys.CONFIGURATION);
+				permissionChecker, groupId, plid, portletId,
+				ActionKeys.CONFIGURATION);
 		}
 		else if (!permissionChecker.hasPermission(
 					groupId, name, primKey, ActionKeys.PERMISSIONS)) {
 
-			AssetRendererFactory assetRendererFactory =
+			AssetRendererFactory<?> assetRendererFactory =
 				AssetRendererFactoryRegistryUtil.
 					getAssetRendererFactoryByClassName(name);
 
@@ -319,8 +223,7 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 				Team team = teamPersistence.findByPrimaryKey(role.getClassPK());
 
 				TeamPermissionUtil.check(
-					permissionChecker, team.getTeamId(),
-					ActionKeys.PERMISSIONS);
+					permissionChecker, team, ActionKeys.PERMISSIONS);
 			}
 			else {
 				List<String> resourceActions =
@@ -331,10 +234,64 @@ public class PermissionServiceImpl extends PermissionServiceBaseImpl {
 						groupId, name, primKey,
 						ActionKeys.DEFINE_PERMISSIONS)) {
 
-					throw new PrincipalException();
+					throw new PrincipalException.MustHavePermission(
+						permissionChecker, name, Long.valueOf(primKey),
+						ActionKeys.DEFINE_PERMISSIONS);
 				}
 			}
 		}
+	}
+
+	private final Map<String, BaseModelPermissionChecker>
+		_baseModelPermissionCheckers = new ConcurrentHashMap<>();
+	private ServiceTracker
+		<BaseModelPermissionChecker, BaseModelPermissionChecker>
+			_serviceTracker;
+
+	private class BaseModelPermissionCheckerServiceTrackerCustomizer
+		implements
+			ServiceTrackerCustomizer
+				<BaseModelPermissionChecker, BaseModelPermissionChecker> {
+
+		@Override
+		public BaseModelPermissionChecker addingService(
+			ServiceReference<BaseModelPermissionChecker> serviceReference) {
+
+			Registry registry = RegistryUtil.getRegistry();
+
+			BaseModelPermissionChecker baseModelPermissionChecker =
+				registry.getService(serviceReference);
+
+			String modelClassName = GetterUtil.getString(
+				serviceReference.getProperty("model.class.name"));
+
+			_baseModelPermissionCheckers.put(
+				modelClassName, baseModelPermissionChecker);
+
+			return baseModelPermissionChecker;
+		}
+
+		@Override
+		public void modifiedService(
+			ServiceReference<BaseModelPermissionChecker> serviceReference,
+			BaseModelPermissionChecker baseModelPermissionChecker) {
+		}
+
+		@Override
+		public void removedService(
+			ServiceReference<BaseModelPermissionChecker> serviceReference,
+			BaseModelPermissionChecker baseModelPermissionChecker) {
+
+			Registry registry = RegistryUtil.getRegistry();
+
+			registry.ungetService(serviceReference);
+
+			String modelClassName = GetterUtil.getString(
+				serviceReference.getProperty("model.class.name"));
+
+			_baseModelPermissionCheckers.remove(modelClassName);
+		}
+
 	}
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,26 +14,29 @@
 
 package com.liferay.portal.kernel.dao.search;
 
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletURL;
 
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import org.powermock.api.mockito.PowerMockito;
 
 /**
  * @author Roberto Díaz
  */
-@ExecutionTestListeners(listeners = {EnvironmentExecutionTestListener.class})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
 public class SearchContainerTest {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
 
 	@After
 	public void tearDown() {
@@ -77,6 +80,46 @@ public class SearchContainerTest {
 	}
 
 	@Test
+	public void testCalculateStartAndEndWhenEmptyResultsPage() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(10);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
+	@Test
+	public void testCalculateStartAndEndWhenFullResultsPage() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(20);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
+	@Test
+	public void testCalculateStartAndEndWhenNoResults() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(0);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
+	@Test
+	public void testCalculateStartAndEndWhenResultsPage() {
+		buildSearchContainer(2);
+
+		_searchContainer.setTotal(80);
+
+		Assert.assertEquals(20, _searchContainer.getStart());
+		Assert.assertEquals(40, _searchContainer.getEnd());
+	}
+
+	@Test
 	public void testNotCalculateCurWhenNoResultsAndInitialPage() {
 		buildSearchContainer(1);
 
@@ -85,8 +128,18 @@ public class SearchContainerTest {
 		Assert.assertEquals(false, _searchContainer.isRecalculateCur());
 	}
 
+	@Test
+	public void testNotCalculateStartAndEndWhenNoResultsAndInitialPage() {
+		buildSearchContainer(1);
+
+		_searchContainer.setTotal(0);
+
+		Assert.assertEquals(0, _searchContainer.getStart());
+		Assert.assertEquals(20, _searchContainer.getEnd());
+	}
+
 	protected void buildSearchContainer(int cur) {
-		PortletRequest portletRequest= PowerMockito.mock(PortletRequest.class);
+		PortletRequest portletRequest = PowerMockito.mock(PortletRequest.class);
 
 		PortletURL portletURL = PowerMockito.mock(PortletURL.class);
 
@@ -95,7 +148,7 @@ public class SearchContainerTest {
 			_DEFAULT_DELTA, portletURL, null, null);
 	}
 
-	private final static int _DEFAULT_DELTA = 20;
+	private static final int _DEFAULT_DELTA = 20;
 
 	private SearchContainer<?> _searchContainer;
 

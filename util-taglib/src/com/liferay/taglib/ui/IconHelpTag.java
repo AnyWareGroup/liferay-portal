@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,11 +15,13 @@
 package com.liferay.taglib.ui;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.servlet.taglib.FileAvailabilityUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.util.PwdGenerator;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.taglib.FileAvailabilityUtil;
+import com.liferay.taglib.util.TagResourceBundleUtil;
 
-import javax.servlet.jsp.JspWriter;
+import java.util.ResourceBundle;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Scott Lee
@@ -38,33 +40,17 @@ public class IconHelpTag extends IconTag {
 	}
 
 	@Override
-	protected int processEndTag() throws Exception {
-		ThemeDisplay themeDisplay = (ThemeDisplay)pageContext.getAttribute(
-			"themeDisplay");
+	protected void setAttributes(HttpServletRequest request) {
+		request.setAttribute("liferay-ui:icon-help:id", StringUtil.randomId());
 
-		JspWriter jspWriter = pageContext.getOut();
+		ResourceBundle resourceBundle = TagResourceBundleUtil.getResourceBundle(
+			pageContext);
 
-		String id = PwdGenerator.getPassword(PwdGenerator.KEY3, 4);
+		String message = LanguageUtil.get(resourceBundle, getMessage());
 
-		jspWriter.write("<span class=\"taglib-icon-help\"><img alt=\"\" ");
-		jspWriter.write("aria-labelledby=\"");
-		jspWriter.write(id);
-		jspWriter.write("\" ");
-		jspWriter.write("onBlur=\"Liferay.Portal.ToolTip.hide();\" ");
-		jspWriter.write("onFocus=\"Liferay.Portal.ToolTip.show(this);\" ");
-		jspWriter.write("onMouseOver=\"Liferay.Portal.ToolTip.show(this);\" ");
-		jspWriter.write("src=\"");
-		jspWriter.write(themeDisplay.getPathThemeImages());
-		jspWriter.write("/portlet/help.png\" tabIndex=\"0\" ");
-		jspWriter.write("/><span ");
-		jspWriter.write("class=\"hide-accessible tooltip-text\" ");
-		jspWriter.write("id=\"");
-		jspWriter.write(id);
-		jspWriter.write("\" >");
-		jspWriter.write(LanguageUtil.get(pageContext, getMessage()));
-		jspWriter.write("</span></span>");
+		request.setAttribute("liferay-ui:icon-help:message", message);
 
-		return EVAL_PAGE;
+		super.setAttributes(request);
 	}
 
 	private static final String _PAGE = "/html/taglib/ui/icon_help/page.jsp";

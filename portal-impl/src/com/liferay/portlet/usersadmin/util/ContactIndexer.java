@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,60 +15,56 @@
 package com.liferay.portlet.usersadmin.util;
 
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Contact;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.IndexWriterHelperUtil;
 import com.liferay.portal.kernel.search.SearchContext;
-import com.liferay.portal.kernel.search.SearchEngineUtil;
 import com.liferay.portal.kernel.search.Summary;
+import com.liferay.portal.kernel.search.filter.BooleanFilter;
+import com.liferay.portal.kernel.service.ContactLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.model.Contact;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.ContactLocalServiceUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.service.persistence.ContactActionableDynamicQuery;
-import com.liferay.portal.util.PortletKeys;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 
-import javax.portlet.PortletURL;
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 
 /**
  * @author Raymond Augé
  * @author Zsigmond Rab
  * @author Hugo Huijser
  */
-public class ContactIndexer extends BaseIndexer {
+@OSGiBeanProperties
+public class ContactIndexer extends BaseIndexer<Contact> {
 
-	public static final String[] CLASS_NAMES = {Contact.class.getName()};
-
-	public static final String PORTLET_ID = PortletKeys.USERS_ADMIN;
+	public static final String CLASS_NAME = Contact.class.getName();
 
 	public ContactIndexer() {
 		setStagingAware(false);
 	}
 
 	@Override
-	public String[] getClassNames() {
-		return CLASS_NAMES;
-	}
-
-	@Override
-	public String getPortletId() {
-		return PORTLET_ID;
+	public String getClassName() {
+		return CLASS_NAME;
 	}
 
 	@Override
 	public void postProcessSearchQuery(
-			BooleanQuery searchQuery, SearchContext searchContext)
+			BooleanQuery searchQuery, BooleanFilter fullQueryBooleanFilter,
+			SearchContext searchContext)
 		throws Exception {
 
 		addSearchTerm(searchQuery, searchContext, "city", false);
@@ -96,28 +92,24 @@ public class ContactIndexer extends BaseIndexer {
 	}
 
 	@Override
-	protected void doDelete(Object obj) throws Exception {
-		Contact contact = (Contact)obj;
-
+	protected void doDelete(Contact contact) throws Exception {
 		deleteDocument(contact.getCompanyId(), contact.getContactId());
 	}
 
 	@Override
-	protected Document doGetDocument(Object obj) throws Exception {
-		Contact contact = (Contact)obj;
-
+	protected Document doGetDocument(Contact contact) throws Exception {
 		if (contact.isUser()) {
-			User user = UserLocalServiceUtil.getUserByContactId(
+			User user = UserLocalServiceUtil.fetchUserByContactId(
 				contact.getContactId());
 
-			if (user.isDefaultUser() ||
+			if ((user == null) || user.isDefaultUser() ||
 				(user.getStatus() != WorkflowConstants.STATUS_APPROVED)) {
 
 				return null;
 			}
 		}
 
-		Document document = getBaseModelDocument(PORTLET_ID, contact);
+		Document document = getBaseModelDocument(CLASS_NAME, contact);
 
 		document.addKeyword(Field.COMPANY_ID, contact.getCompanyId());
 		document.addDate(Field.MODIFIED_DATE, contact.getModifiedDate());
@@ -156,21 +148,18 @@ public class ContactIndexer extends BaseIndexer {
 	@Override
 	protected Summary doGetSummary(
 		Document document, Locale locale, String snippet,
-		PortletURL portletURL) {
+		PortletRequest portletRequest, PortletResponse portletResponse) {
 
 		return null;
 	}
 
 	@Override
-	protected void doReindex(Object obj) throws Exception {
-		Contact contact = (Contact)obj;
-
+	protected void doReindex(Contact contact) throws Exception {
 		Document document = getDocument(contact);
 
-		if (document != null) {
-			SearchEngineUtil.updateDocument(
-				getSearchEngineId(), contact.getCompanyId(), document);
-		}
+		IndexWriterHelperUtil.updateDocument(
+			getSearchEngineId(), contact.getCompanyId(), document,
+			isCommitImmediately());
 	}
 
 	@Override
@@ -187,38 +176,37 @@ public class ContactIndexer extends BaseIndexer {
 		reindexContacts(companyId);
 	}
 
-	@Override
-	protected String getPortletId(SearchContext searchContext) {
-		return PORTLET_ID;
-	}
+	protected void reindexContacts(long companyId) throws PortalException {
+		final IndexableActionableDynamicQuery indexableActionableDynamicQuery =
+			ContactLocalServiceUtil.getIndexableActionableDynamicQuery();
 
-	protected void reindexContacts(long companyId)
-		throws PortalException, SystemException {
+		indexableActionableDynamicQuery.setCompanyId(companyId);
+		indexableActionableDynamicQuery.setPerformActionMethod(
+			new ActionableDynamicQuery.PerformActionMethod<Contact>() {
 
-		final Collection<Document> documents = new ArrayList<Document>();
+				@Override
+				public void performAction(Contact contact) {
+					try {
+						Document document = getDocument(contact);
 
-		ActionableDynamicQuery actionableDynamicQuery =
-			new ContactActionableDynamicQuery() {
-
-			@Override
-			protected void performAction(Object object) throws PortalException {
-				Contact contact = (Contact)object;
-
-				Document document = getDocument(contact);
-
-				if (document != null) {
-					documents.add(document);
+						indexableActionableDynamicQuery.addDocuments(document);
+					}
+					catch (PortalException pe) {
+						if (_log.isWarnEnabled()) {
+							_log.warn(
+								"Unable to index contact " +
+									contact.getContactId(),
+								pe);
+						}
+					}
 				}
-			}
 
-		};
+			});
+		indexableActionableDynamicQuery.setSearchEngineId(getSearchEngineId());
 
-		actionableDynamicQuery.setCompanyId(companyId);
-
-		actionableDynamicQuery.performActions();
-
-		SearchEngineUtil.updateDocuments(
-			getSearchEngineId(), companyId, documents);
+		indexableActionableDynamicQuery.performActions();
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(ContactIndexer.class);
 
 }

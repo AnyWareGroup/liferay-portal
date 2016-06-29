@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,7 @@ import org.hibernate.Query;
  * @deprecated As of 6.2.0, moved to {@link
  *             com.liferay.portal.kernel.dao.orm.QueryPos}
  */
+@Deprecated
 public class QueryPos {
 
 	public static QueryPos getInstance(Query query) {
@@ -140,6 +141,6 @@ public class QueryPos {
 	}
 
 	private int _pos;
-	private Query _query;
+	private final Query _query;
 
 }

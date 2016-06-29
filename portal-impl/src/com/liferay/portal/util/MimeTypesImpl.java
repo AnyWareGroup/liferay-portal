@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,7 +67,9 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 
 		_webImageMimeTypes = SetUtil.fromArray(
 			PropsValues.MIME_TYPES_WEB_IMAGES);
+	}
 
+	public void afterPropertiesSet() {
 		URL url = org.apache.tika.mime.MimeTypes.class.getResource(
 			"tika-mimetypes.xml");
 
@@ -113,16 +115,17 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 
 		String contentType = null;
 
+		TikaInputStream tikaInputStream = null;
+
 		try {
-			CloseShieldInputStream closeShieldInputStream =
-				new CloseShieldInputStream(inputStream);
+			tikaInputStream = TikaInputStream.get(
+				new CloseShieldInputStream(inputStream));
 
 			Metadata metadata = new Metadata();
 
 			metadata.set(Metadata.RESOURCE_NAME_KEY, fileName);
 
-			MediaType mediaType = _detector.detect(
-				TikaInputStream.get(closeShieldInputStream), metadata);
+			MediaType mediaType = _detector.detect(tikaInputStream, metadata);
 
 			contentType = mediaType.toString();
 
@@ -146,6 +149,9 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 			_log.error(e, e);
 
 			contentType = ContentTypes.APPLICATION_OCTET_STREAM;
+		}
+		finally {
+			StreamUtil.cleanUp(tikaInputStream);
 		}
 
 		return contentType;
@@ -238,9 +244,9 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 	}
 
 	protected void readMimeType(Element element) {
-		Set<String> mimeTypes = new HashSet<String>();
+		Set<String> mimeTypes = new HashSet<>();
 
-		Set<String> extensions = new HashSet<String>();
+		Set<String> extensions = new HashSet<>();
 
 		String name = element.getAttribute(MIME_TYPE_TYPE_ATTR);
 
@@ -291,11 +297,10 @@ public class MimeTypesImpl implements MimeTypes, MimeTypesReaderMetKeys {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(MimeTypesImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(MimeTypesImpl.class);
 
-	private Detector _detector;
-	private Map<String, Set<String>> _extensionsMap =
-		new HashMap<String, Set<String>>();
-	private Set<String> _webImageMimeTypes = new HashSet<String>();
+	private final Detector _detector;
+	private final Map<String, Set<String>> _extensionsMap = new HashMap<>();
+	private final Set<String> _webImageMimeTypes;
 
 }

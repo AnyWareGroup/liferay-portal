@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.Company;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -31,12 +35,53 @@ import java.io.ObjectOutput;
  * @see Company
  * @generated
  */
-public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
+@ProviderType
+public class CompanyCacheModel implements CacheModel<Company>, Externalizable,
+	MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof CompanyCacheModel)) {
+			return false;
+		}
+
+		CompanyCacheModel companyCacheModel = (CompanyCacheModel)obj;
+
+		if ((companyId == companyCacheModel.companyId) &&
+				(mvccVersion == companyCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, companyId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(21);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{companyId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", companyId=");
 		sb.append(companyId);
 		sb.append(", accountId=");
 		sb.append(accountId);
@@ -65,6 +110,7 @@ public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
 	public Company toEntityModel() {
 		CompanyImpl companyImpl = new CompanyImpl();
 
+		companyImpl.setMvccVersion(mvccVersion);
 		companyImpl.setCompanyId(companyId);
 		companyImpl.setAccountId(accountId);
 
@@ -103,6 +149,8 @@ public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
 
 		companyImpl.resetOriginalValues();
 
+		companyImpl.setCompanySecurityBag(_companySecurityBag);
+
 		companyImpl.setKeyObj(_keyObj);
 
 		companyImpl.setVirtualHostname(_virtualHostname);
@@ -113,17 +161,25 @@ public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
 	@Override
 	public void readExternal(ObjectInput objectInput)
 		throws ClassNotFoundException, IOException {
+		mvccVersion = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		accountId = objectInput.readLong();
 		webId = objectInput.readUTF();
 		key = objectInput.readUTF();
 		mx = objectInput.readUTF();
 		homeURL = objectInput.readUTF();
+
 		logoId = objectInput.readLong();
+
 		system = objectInput.readBoolean();
+
 		maxUsers = objectInput.readInt();
+
 		active = objectInput.readBoolean();
 
+		_companySecurityBag = (CompanyImpl.CompanySecurityBag)objectInput.readObject();
 		_keyObj = (java.security.Key)objectInput.readObject();
 		_virtualHostname = (java.lang.String)objectInput.readObject();
 	}
@@ -131,7 +187,10 @@ public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(accountId);
 
 		if (webId == null) {
@@ -163,14 +222,19 @@ public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
 		}
 
 		objectOutput.writeLong(logoId);
+
 		objectOutput.writeBoolean(system);
+
 		objectOutput.writeInt(maxUsers);
+
 		objectOutput.writeBoolean(active);
 
+		objectOutput.writeObject(_companySecurityBag);
 		objectOutput.writeObject(_keyObj);
 		objectOutput.writeObject(_virtualHostname);
 	}
 
+	public long mvccVersion;
 	public long companyId;
 	public long accountId;
 	public String webId;
@@ -181,6 +245,7 @@ public class CompanyCacheModel implements CacheModel<Company>, Externalizable {
 	public boolean system;
 	public int maxUsers;
 	public boolean active;
+	public CompanyImpl.CompanySecurityBag _companySecurityBag;
 	public java.security.Key _keyObj;
 	public java.lang.String _virtualHostname;
 }

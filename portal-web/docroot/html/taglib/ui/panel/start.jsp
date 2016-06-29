@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,10 +16,16 @@
 
 <%@ include file="/html/taglib/ui/panel/init.jsp" %>
 
-<div class="accordion-group <%= cssClass %>" id="<%= id %>">
-	<div class="accordion-heading <%= headerCssClass %>" data-persist-id="<%= persistState ? id : StringPool.BLANK %>">
-		<div class="accordion-toggle">
-			<liferay-ui:message key="<%= title %>" />
+<div class="panel panel-default <%= cssClass %>" id="<%= id %>">
+	<div class="panel-heading <%= headerCssClass %>" data-persist-id="<%= persistState ? id : StringPool.BLANK %>">
+		<div class="panel-toggle">
+			<c:if test="<%= Validator.isNotNull(iconCssClass) %>">
+				<i class="<%= iconCssClass %>"></i>
+			</c:if>
+
+			<span class="title-text">
+				<liferay-ui:message key="<%= title %>" />
+			</span>
 
 			<c:if test="<%= Validator.isNotNull(helpMessage) %>">
 				<liferay-ui:icon-help message="<%= helpMessage %>" />
@@ -27,4 +33,4 @@
 		</div>
 	</div>
 	<div class="<%= contentCssClass %>" id="<%= id %>Content">
-		<div class="accordion-inner row-fluid">
+		<div class="panel-body">

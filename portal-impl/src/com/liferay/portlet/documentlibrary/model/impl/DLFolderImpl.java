@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,18 +14,18 @@
 
 package com.liferay.portlet.documentlibrary.model.impl;
 
+import com.liferay.document.library.kernel.exception.NoSuchFolderException;
+import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLFolderLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLFolderServiceUtil;
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.model.Repository;
+import com.liferay.portal.kernel.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.model.Repository;
-import com.liferay.portal.service.RepositoryLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
-import com.liferay.portlet.documentlibrary.model.DLFolder;
-import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
-import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFolderServiceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,14 +35,9 @@ import java.util.List;
  */
 public class DLFolderImpl extends DLFolderBaseImpl {
 
-	public DLFolderImpl() {
-	}
-
 	@Override
-	public List<Long> getAncestorFolderIds()
-		throws PortalException, SystemException {
-
-		List<Long> ancestorFolderIds = new ArrayList<Long>();
+	public List<Long> getAncestorFolderIds() throws PortalException {
+		List<Long> ancestorFolderIds = new ArrayList<>();
 
 		DLFolder folder = this;
 
@@ -65,10 +60,8 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	}
 
 	@Override
-	public List<DLFolder> getAncestors()
-		throws PortalException, SystemException {
-
-		List<DLFolder> ancestors = new ArrayList<DLFolder>();
+	public List<DLFolder> getAncestors() throws PortalException {
+		List<DLFolder> ancestors = new ArrayList<>();
 
 		DLFolder folder = this;
 
@@ -91,7 +84,7 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	}
 
 	@Override
-	public DLFolder getParentFolder() throws PortalException, SystemException {
+	public DLFolder getParentFolder() throws PortalException {
 		if (getParentFolderId() == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 			return null;
 		}
@@ -100,7 +93,7 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	}
 
 	@Override
-	public String getPath() throws PortalException, SystemException {
+	public String getPath() throws PortalException {
 		StringBuilder sb = new StringBuilder();
 
 		DLFolder folder = this;
@@ -116,7 +109,7 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	}
 
 	@Override
-	public String[] getPathArray() throws PortalException, SystemException {
+	public String[] getPathArray() throws PortalException {
 		String path = getPath();
 
 		// Remove leading /
@@ -127,36 +120,14 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 	}
 
 	@Override
-	public DLFolder getTrashContainer() {
-		DLFolder dlFolder = null;
-
-		try {
-			dlFolder = getParentFolder();
-		}
-		catch (Exception e) {
-			return null;
-		}
-
-		while (dlFolder != null) {
-			if (dlFolder.isInTrash()) {
-				return dlFolder;
-			}
-
-			try {
-				dlFolder = dlFolder.getParentFolder();
-			}
-			catch (Exception e) {
-				return null;
-			}
-		}
-
-		return null;
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(DLFolderConstants.getClassName());
 	}
 
 	@Override
 	public boolean hasInheritableLock() {
 		try {
-			return DLFolderServiceUtil.hasInheritableLock(getFolderId());
+			return DLFolderLocalServiceUtil.hasInheritableLock(getFolderId());
 		}
 		catch (Exception e) {
 		}
@@ -191,16 +162,6 @@ public class DLFolderImpl extends DLFolderBaseImpl {
 		}
 
 		return false;
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
 	}
 
 	@Override

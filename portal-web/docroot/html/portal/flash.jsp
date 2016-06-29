@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,30 +26,24 @@ String movie = ParamUtil.getString(request, "movie");
 %>
 
 <html>
+	<head>
+		<title><%= HtmlUtil.escape(title) %></title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 
-<head>
-	<title><%= HtmlUtil.escape(title) %></title>
-	<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		<script src="<%= themeDisplay.getCDNHost() + themeDisplay.getPathJavaScript() %>/misc/swfobject.js" type="text/javascript"></script>
+	</head>
 
-	<script src="<%= themeDisplay.getCDNHost() + themeDisplay.getPathJavaScript() %>/misc/swfobject.js" type="text/javascript"></script>
-</head>
+	<body leftmargin="0" marginheight="0" marginwidth="0" rightmargin="0" topmargin="0">
+		<center>
+			<c:if test="<%= Validator.isNotNull(movie) %>">
+				<div id="flashMovie"></div>
 
-<body leftmargin="0" marginheight="0" marginwidth="0" rightmargin="0" topmargin="0">
+				<script type="text/javascript">
+					var so = new SWFObject('<%= HtmlUtil.escapeJS(movie) %>', 'flashMovie', '<%= HtmlUtil.escapeJS(width) %>', '<%= HtmlUtil.escapeJS(height) %>', '6', '#FFFFFF');
 
-<center>
-
-<c:if test="<%= Validator.isNotNull(movie) %>">
-	<div id="flashMovie"></div>
-
-	<script type="text/javascript">
-		var so = new SWFObject("<%= HtmlUtil.escapeJS(movie) %>", "flashMovie", "<%= HtmlUtil.escapeJS(width) %>", "<%= HtmlUtil.escapeJS(height) %>", "6", "#FFFFFF");
-
-		so.write("flashMovie");
-	</script>
-</c:if>
-
-</center>
-
-</body>
-
+					so.write('flashMovie');
+				</script>
+			</c:if>
+		</center>
+	</body>
 </html>

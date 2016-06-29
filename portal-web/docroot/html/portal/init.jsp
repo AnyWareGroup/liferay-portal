@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,31 +16,35 @@
 
 <%@ include file="/html/common/init.jsp" %>
 
-<%@ page import="com.liferay.portal.DuplicateUserEmailAddressException" %><%@
-page import="com.liferay.portal.LayoutFriendlyURLException" %><%@
-page import="com.liferay.portal.LayoutPermissionException" %><%@
-page import="com.liferay.portal.NoSuchResourceException" %><%@
-page import="com.liferay.portal.PortletActiveException" %><%@
-page import="com.liferay.portal.RequiredLayoutException" %><%@
-page import="com.liferay.portal.RequiredRoleException" %><%@
-page import="com.liferay.portal.ReservedUserEmailAddressException" %><%@
-page import="com.liferay.portal.UserActiveException" %><%@
-page import="com.liferay.portal.UserEmailAddressException" %><%@
-page import="com.liferay.portal.UserLockoutException" %><%@
-page import="com.liferay.portal.UserPasswordException" %><%@
-page import="com.liferay.portal.UserReminderQueryException" %><%@
+<%@ page import="com.liferay.admin.kernel.util.PortalProductMenuApplicationType" %><%@
+page import="com.liferay.exportimport.kernel.lar.DefaultConfigurationPortletDataHandler" %><%@
+page import="com.liferay.portal.kernel.cluster.ClusterExecutorUtil" %><%@
+page import="com.liferay.portal.kernel.cluster.ClusterNode" %><%@
+page import="com.liferay.portal.kernel.exception.LayoutPermissionException" %><%@
+page import="com.liferay.portal.kernel.exception.PortletActiveException" %><%@
+page import="com.liferay.portal.kernel.exception.RequiredLayoutException" %><%@
+page import="com.liferay.portal.kernel.exception.RequiredRoleException" %><%@
+page import="com.liferay.portal.kernel.exception.UserActiveException" %><%@
+page import="com.liferay.portal.kernel.exception.UserEmailAddressException" %><%@
+page import="com.liferay.portal.kernel.exception.UserLockoutException" %><%@
+page import="com.liferay.portal.kernel.exception.UserPasswordException" %><%@
+page import="com.liferay.portal.kernel.exception.UserReminderQueryException" %><%@
+page import="com.liferay.portal.kernel.license.util.LicenseManagerUtil" %><%@
+page import="com.liferay.portal.kernel.parsers.bbcode.BBCodeTranslatorUtil" %><%@
+page import="com.liferay.portal.kernel.portlet.PortletConfigurationLayoutUtil" %><%@
+page import="com.liferay.portal.kernel.servlet.HttpHeaders" %><%@
 page import="com.liferay.portal.kernel.templateparser.TransformException" %><%@
 page import="com.liferay.portal.kernel.util.ProgressTracker" %><%@
-page import="com.liferay.portal.layoutconfiguration.util.RuntimePageUtil" %><%@
-page import="com.liferay.portal.service.permission.OrganizationPermissionUtil" %><%@
+page import="com.liferay.portal.kernel.util.TermsOfUseContentProvider" %><%@
+page import="com.liferay.portal.kernel.util.TermsOfUseContentProviderRegistryUtil" %><%@
+page import="com.liferay.portal.setup.SetupWizardUtil" %><%@
 page import="com.liferay.portal.struts.PortletRequestProcessor" %><%@
-page import="com.liferay.portal.util.LayoutLister" %><%@
-page import="com.liferay.portal.util.LayoutView" %><%@
-page import="com.liferay.portlet.journalcontent.util.JournalContentUtil" %><%@
-page import="com.liferay.portlet.usersadmin.util.UsersAdmin" %><%@
-page import="com.liferay.portlet.usersadmin.util.UsersAdminUtil" %>
+page import="com.liferay.portal.util.LicenseUtil" %><%@
+page import="com.liferay.portal.util.PortletCategoryUtil" %><%@
+page import="com.liferay.portlet.configuration.kernel.util.PortletConfigurationApplicationType" %><%@
+page import="com.liferay.taglib.servlet.PipingServletResponse" %>
 
 <%@ page import="org.apache.struts.action.ActionMapping" %><%@
-page import="org.apache.struts.taglib.tiles.ComponentConstants" %><%@
 page import="org.apache.struts.tiles.ComponentDefinition" %><%@
-page import="org.apache.struts.tiles.TilesUtil" %>
+page import="org.apache.struts.tiles.TilesUtil" %><%@
+page import="org.apache.struts.tiles.taglib.ComponentConstants" %>

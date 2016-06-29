@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.upload;
 
 import java.io.File;
 
-import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 
 /**
@@ -31,15 +30,15 @@ public class LiferayFileItemFactory extends DiskFileItemFactory {
 	}
 
 	@Override
-	public FileItem createItem(
-		String fieldName, String contentType, boolean isFormField,
+	public LiferayFileItem createItem(
+		String fieldName, String contentType, boolean formField,
 		String fileName) {
 
 		return new LiferayFileItem(
-			fieldName, contentType, isFormField, fileName, DEFAULT_SIZE,
+			fieldName, contentType, formField, fileName, DEFAULT_SIZE,
 			_tempDir);
 	}
 
-	private File _tempDir;
+	private final File _tempDir;
 
 }

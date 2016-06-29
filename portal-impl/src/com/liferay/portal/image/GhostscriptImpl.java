@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,6 +21,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.process.ProcessUtil;
 import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,8 +29,6 @@ import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Future;
-
-import jodd.util.StringPool;
 
 /**
  * @author Ivica Cardic
@@ -51,14 +50,14 @@ public class GhostscriptImpl implements Ghostscript {
 			throw new IllegalStateException(sb.toString());
 		}
 
-		LinkedList<String> arguments = new LinkedList<String>();
+		LinkedList<String> arguments = new LinkedList<>();
 
 		arguments.add(_commandPath);
 		arguments.add("-dBATCH");
 		arguments.add("-dSAFER");
 		arguments.add("-dNOPAUSE");
 		arguments.add("-dNOPROMPT");
-		arguments.add("-sFONTPATH" + _globalSearchPath);
+		arguments.add("-sFONTPATH=" + _globalSearchPath);
 		arguments.addAll(commandArguments);
 
 		if (_log.isInfoEnabled()) {
@@ -69,7 +68,7 @@ public class GhostscriptImpl implements Ghostscript {
 				sb.append(StringPool.SPACE);
 			}
 
-			_log.info("Excecuting command '" + sb.toString() + "'");
+			_log.info("Executing command '" + sb.toString() + "'");
 		}
 
 		return ProcessUtil.execute(
@@ -165,7 +164,8 @@ public class GhostscriptImpl implements Ghostscript {
 		"gswin32c", "gswin64c"
 	};
 
-	private static Log _log = LogFactoryUtil.getLog(GhostscriptImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		GhostscriptImpl.class);
 
 	private String _commandPath;
 	private String _globalSearchPath;

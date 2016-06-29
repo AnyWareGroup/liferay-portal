@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,8 @@
 
 package com.liferay.portal.sharepoint.dws;
 
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.model.User;
 
 /**
  * @author Bruno Farache
@@ -50,12 +50,12 @@ public class MemberResponseElement implements ResponseElement {
 		el.addElement("IsSiteAdmin").setText(String.valueOf(_siteAdmin));
 	}
 
-	private boolean _domainGroup;
-	private String _email;
-	private String _id;
-	private String _loginName;
-	private boolean _member;
-	private String _name;
-	private boolean _siteAdmin;
+	private final boolean _domainGroup;
+	private final String _email;
+	private final String _id;
+	private final String _loginName;
+	private final boolean _member;
+	private final String _name;
+	private final boolean _siteAdmin;
 
 }

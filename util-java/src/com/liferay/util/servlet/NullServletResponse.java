@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -45,16 +45,7 @@ public class NullServletResponse extends HttpServletResponseWrapper {
 		return _printWriter;
 	}
 
-	/*public void sendError(int status) throws IOException {
-	}
-
-	public void sendError(int status, String msg) throws IOException {
-	}
-
-	public void sendRedirect(String location) throws IOException {
-	}*/
-
-	private PrintWriter _printWriter;
-	private ServletOutputStream _servletOutputStream;
+	private final PrintWriter _printWriter;
+	private final ServletOutputStream _servletOutputStream;
 
 }

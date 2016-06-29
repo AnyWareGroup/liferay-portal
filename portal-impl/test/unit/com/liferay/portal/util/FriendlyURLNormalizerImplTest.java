@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,6 @@
 
 package com.liferay.portal.util;
 
-import com.liferay.portal.kernel.test.TestCase;
 import com.liferay.portal.kernel.util.StringPool;
 
 import org.junit.Assert;
@@ -23,7 +22,7 @@ import org.junit.Test;
 /**
  * @author Julio Camarero
  */
-public class FriendlyURLNormalizerImplTest extends TestCase {
+public class FriendlyURLNormalizerImplTest {
 
 	@Test
 	public void testNormalizeBlank() {
@@ -89,20 +88,12 @@ public class FriendlyURLNormalizerImplTest extends TestCase {
 	}
 
 	@Test
-	public void testNormalizeWordReplacingChars() {
-		Assert.assertEquals(
-			"s-nt-nc-ith-r-plac-chars",
-			_friendlyURLNormalizerImpl.normalize(
-				"sentence with replace chars", new char[] {'e', 'w'}));
-	}
-
-	@Test
 	public void testNormalizeWordWithNonASCIICharacters() {
 		Assert.assertEquals(
 			"wordnc", _friendlyURLNormalizerImpl.normalize("word\u00F1\u00C7"));
 	}
 
-	private FriendlyURLNormalizerImpl _friendlyURLNormalizerImpl =
+	private final FriendlyURLNormalizerImpl _friendlyURLNormalizerImpl =
 		new FriendlyURLNormalizerImpl();
 
 }

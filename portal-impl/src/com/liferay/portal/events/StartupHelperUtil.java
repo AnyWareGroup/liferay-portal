@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,16 +31,36 @@ public class StartupHelperUtil {
 		return _startupHelper;
 	}
 
+	public static boolean isDBNew() {
+		return getStartupHelper().isDBNew();
+	}
+
+	public static boolean isStartupFinished() {
+		return getStartupHelper().isStartupFinished();
+	}
+
 	public static boolean isUpgraded() {
 		return getStartupHelper().isUpgraded();
+	}
+
+	public static boolean isUpgrading() {
+		return getStartupHelper().isUpgrading();
 	}
 
 	public static boolean isVerified() {
 		return getStartupHelper().isVerified();
 	}
 
+	public static void setDbNew(boolean dbNew) {
+		getStartupHelper().setDbNew(dbNew);
+	}
+
 	public static void setDropIndexes(boolean dropIndexes) {
 		getStartupHelper().setDropIndexes(dropIndexes);
+	}
+
+	public static void setStartupFinished(boolean startupFinished) {
+		getStartupHelper().setStartupFinished(startupFinished);
 	}
 
 	public static void updateIndexes() {
@@ -61,8 +81,10 @@ public class StartupHelperUtil {
 		getStartupHelper().upgradeProcess(buildNumber);
 	}
 
-	public static void verifyProcess(boolean verified) throws VerifyException {
-		getStartupHelper().verifyProcess(verified);
+	public static void verifyProcess(boolean newBuildNumber, boolean verified)
+		throws VerifyException {
+
+		getStartupHelper().verifyProcess(newBuildNumber, verified);
 	}
 
 	public void setStartupHelper(StartupHelper startupHelper) {

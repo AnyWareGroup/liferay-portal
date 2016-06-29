@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,47 +14,60 @@
 
 package com.liferay.portlet.documentlibrary.util;
 
+import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
+import com.liferay.document.library.kernel.model.DLProcessorConstants;
+import com.liferay.document.library.kernel.store.DLStoreUtil;
+import com.liferay.document.library.kernel.util.DLPreviewableProcessor;
+import com.liferay.document.library.kernel.util.DLUtil;
+import com.liferay.document.library.kernel.util.PDFProcessor;
+import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.portal.fabric.InputResource;
+import com.liferay.portal.fabric.OutputResource;
 import com.liferay.portal.kernel.image.GhostscriptUtil;
-import com.liferay.portal.kernel.image.ImageToolUtil;
-import com.liferay.portal.kernel.lar.PortletDataContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
+import com.liferay.portal.kernel.process.ClassPathUtil;
+import com.liferay.portal.kernel.process.ProcessCallable;
+import com.liferay.portal.kernel.process.ProcessChannel;
+import com.liferay.portal.kernel.process.ProcessException;
+import com.liferay.portal.kernel.process.ProcessExecutorUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StreamUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.SystemEnv;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.log.Log4jLogFactoryImpl;
 import com.liferay.portal.repository.liferayrepository.model.LiferayFileVersion;
+import com.liferay.portal.util.PropsUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.documentlibrary.NoSuchFileEntryException;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
-
-import java.awt.image.BufferedImage;
-import java.awt.image.RenderedImage;
+import com.liferay.util.log4j.Log4JUtil;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.InputStream;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.Future;
-
-import javax.imageio.ImageIO;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang.time.StopWatch;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
-import org.apache.pdfbox.pdmodel.PDPage;
 
 /**
  * @author Alexander Chow
@@ -118,6 +131,11 @@ public class PDFProcessorImpl
 		throws Exception {
 
 		return doGetThumbnailFileSize(fileVersion, index);
+	}
+
+	@Override
+	public String getType() {
+		return DLProcessorConstants.PDF_PROCESSOR;
 	}
 
 	@Override
@@ -377,6 +395,16 @@ public class PDFProcessorImpl
 					destinationFileVersion.getFileEntryId(),
 					destinationFileVersion.getVersion());
 
+				if (Objects.equals(
+						"PWC", destinationFileVersion.getVersion()) ||
+					destinationFileVersion.isPending()) {
+
+					File file = new File(
+						DocumentConversionUtil.getFilePath(tempFileId, "pdf"));
+
+					FileUtil.delete(file);
+				}
+
 				File file = DocumentConversionUtil.convert(
 					tempFileId, inputStream, extension, "pdf");
 
@@ -384,6 +412,9 @@ public class PDFProcessorImpl
 			}
 		}
 		catch (NoSuchFileEntryException nsfee) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(nsfee, nsfee);
+			}
 		}
 		finally {
 			StreamUtil.cleanUp(inputStream);
@@ -408,13 +439,9 @@ public class PDFProcessorImpl
 		throws Exception {
 
 		if (_isGeneratePreview(fileVersion)) {
-			StopWatch stopWatch = null;
+			StopWatch stopWatch = new StopWatch();
 
-			if (_log.isInfoEnabled()) {
-				stopWatch = new StopWatch();
-
-				stopWatch.start();
-			}
+			stopWatch.start();
 
 			_generateImagesGS(fileVersion, file, false);
 
@@ -424,25 +451,22 @@ public class PDFProcessorImpl
 				_log.info(
 					"Ghostscript generated " + previewFileCount +
 						" preview pages for " + fileVersion.getTitle() +
-							" in " + stopWatch);
+							" in " + stopWatch.getTime() + " ms");
 			}
 		}
 
 		if (_isGenerateThumbnail(fileVersion)) {
-			StopWatch stopWatch = null;
+			StopWatch stopWatch = new StopWatch();
 
-			if (_log.isInfoEnabled()) {
-				stopWatch = new StopWatch();
-
-				stopWatch.start();
-			}
+			stopWatch.start();
 
 			_generateImagesGS(fileVersion, file, true);
 
 			if (_log.isInfoEnabled()) {
 				_log.info(
 					"Ghostscript generated a thumbnail for " +
-						fileVersion.getTitle() + " in " + stopWatch);
+						fileVersion.getTitle() + " in " + stopWatch.getTime() +
+							" ms");
 			}
 		}
 	}
@@ -456,7 +480,7 @@ public class PDFProcessorImpl
 		String tempFileId = DLUtil.getTempFileId(
 			fileVersion.getFileEntryId(), fileVersion.getVersion());
 
-		List<String> arguments = new ArrayList<String>();
+		List<String> arguments = new ArrayList<>();
 
 		arguments.add("-sDEVICE=png16m");
 
@@ -478,13 +502,13 @@ public class PDFProcessorImpl
 
 		if (PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH != 0) {
 			arguments.add(
-				"-dDEVICEWIDTH" +
+				"-dDEVICEWIDTH=" +
 					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH);
 		}
 
 		if (PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT != 0) {
 			arguments.add(
-				"-dDEVICEHEIGHT" +
+				"-dDEVICEHEIGHT=" +
 					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT);
 		}
 
@@ -494,9 +518,49 @@ public class PDFProcessorImpl
 
 		String processIdentity = String.valueOf(fileVersion.getFileVersionId());
 
-		futures.put(processIdentity, future);
+		long ghostscriptTimeout =
+			PropsValues.DL_FILE_ENTRY_PREVIEW_GENERATION_TIMEOUT_GHOSTSCRIPT;
 
-		future.get();
+		if (_log.isDebugEnabled()) {
+			if (thumbnail) {
+				_log.debug(
+					"Waiting for " + ghostscriptTimeout +
+						" seconds to generate thumbnail for " + file.getPath());
+			}
+			else {
+				_log.debug(
+					"Waiting for " + ghostscriptTimeout +
+						" seconds to generate preview for " + file.getPath());
+			}
+		}
+
+		try {
+			future.get(ghostscriptTimeout, TimeUnit.SECONDS);
+
+			futures.put(processIdentity, future);
+		}
+		catch (TimeoutException te) {
+			String errorMessage =
+				"Timeout when generating preview for " + file.getPath();
+
+			if (thumbnail) {
+				errorMessage =
+					"Timeout when generating thumbanil for " + file.getPath();
+			}
+
+			if (future.cancel(true)) {
+				errorMessage += " resulted in a canceled timeout for " + future;
+			}
+
+			_log.error(errorMessage);
+
+			throw te;
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+
+			throw e;
+		}
 
 		// Store images
 
@@ -548,110 +612,201 @@ public class PDFProcessorImpl
 	private void _generateImagesPB(FileVersion fileVersion, File file)
 		throws Exception {
 
-		_generateImagesPB(fileVersion, new FileInputStream(file));
+		String tempFileId = DLUtil.getTempFileId(
+			fileVersion.getFileEntryId(), fileVersion.getVersion());
+
+		File thumbnailFile = getThumbnailTempFile(tempFileId);
+
+		int previewFilesCount = 0;
+
+		try (PDDocument pdDocument = PDDocument.load(file)) {
+			previewFilesCount = pdDocument.getNumberOfPages();
+		}
+
+		File[] previewFiles = new File[previewFilesCount];
+
+		for (int i = 0; i < previewFilesCount; i++) {
+			previewFiles[i] = getPreviewTempFile(tempFileId, i);
+		}
+
+		boolean generatePreview = _isGeneratePreview(fileVersion);
+		boolean generateThumbnail = _isGenerateThumbnail(fileVersion);
+
+		StopWatch stopWatch = new StopWatch();
+
+		stopWatch.start();
+
+		if (PropsValues.DL_FILE_ENTRY_PREVIEW_FORK_PROCESS_ENABLED) {
+			ProcessCallable<String> processCallable =
+				new LiferayPDFBoxProcessCallable(
+					ServerDetector.getServerId(),
+					PropsUtil.get(PropsKeys.LIFERAY_HOME),
+					Log4JUtil.getCustomLogSettings(), file, thumbnailFile,
+					previewFiles, getThumbnailType(fileVersion),
+					getPreviewType(fileVersion),
+					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_DPI,
+					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT,
+					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH,
+					generatePreview, generateThumbnail);
+
+			ProcessChannel<String> processChannel = ProcessExecutorUtil.execute(
+				ClassPathUtil.getPortalProcessConfig(), processCallable);
+
+			Future<String> future = processChannel.getProcessNoticeableFuture();
+
+			String processIdentity = String.valueOf(
+				fileVersion.getFileVersionId());
+
+			long pdfBoxTimeout =
+				PropsValues.DL_FILE_ENTRY_PREVIEW_GENERATION_TIMEOUT_PDFBOX;
+
+			if (_log.isDebugEnabled()) {
+				if (generateThumbnail && generatePreview) {
+					_log.debug(
+						"Waiting for " + pdfBoxTimeout +
+							" seconds to generate thumbnail and preview for " +
+								file.getPath());
+				}
+				else {
+					if (generateThumbnail) {
+						_log.debug(
+							"Waiting for " + pdfBoxTimeout +
+								" seconds to generate thumbnail for " +
+									file.getPath());
+					}
+
+					if (generatePreview) {
+						_log.debug(
+							"Waiting for " + pdfBoxTimeout +
+								" seconds to generate preview for " +
+									file.getPath());
+					}
+				}
+			}
+
+			try {
+				future.get(pdfBoxTimeout, TimeUnit.SECONDS);
+
+				futures.put(processIdentity, future);
+			}
+			catch (TimeoutException te) {
+				String errorMessage = null;
+
+				if (generateThumbnail && generatePreview) {
+					errorMessage =
+						"Timeout when generating thumbnail and preview for " +
+							file.getPath();
+				}
+				else {
+					if (generateThumbnail) {
+						errorMessage =
+							"Timeout when generating thumbnail for " +
+								file.getPath();
+					}
+
+					if (generatePreview) {
+						errorMessage =
+							"Timeout when generating preview for " +
+								file.getPath();
+					}
+				}
+
+				if (future.cancel(true)) {
+					errorMessage +=
+						" resulted in a canceled timeout for " + future;
+				}
+
+				_log.error(errorMessage);
+
+				throw te;
+			}
+			catch (Exception e) {
+				_log.error(e, e);
+
+				throw e;
+			}
+		}
+		else {
+			LiferayPDFBoxConverter liferayConverter =
+				new LiferayPDFBoxConverter(
+					file, thumbnailFile, previewFiles,
+					getPreviewType(fileVersion), getThumbnailType(fileVersion),
+					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_DPI,
+					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT,
+					PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH,
+					generatePreview, generateThumbnail);
+
+			liferayConverter.generateImagesPB();
+		}
+
+		if (generateThumbnail) {
+			try {
+				storeThumbnailImages(fileVersion, thumbnailFile);
+			}
+			finally {
+				FileUtil.delete(thumbnailFile);
+			}
+		}
+
+		if (generatePreview) {
+			int index = 0;
+
+			for (File previewFile : previewFiles) {
+				try {
+					addFileToStore(
+						fileVersion.getCompanyId(), PREVIEW_PATH,
+						getPreviewFilePath(fileVersion, index + 1),
+						previewFile);
+				}
+				finally {
+					FileUtil.delete(previewFile);
+				}
+
+				index++;
+			}
+		}
+
+		if (_log.isInfoEnabled()) {
+			long fileVersionId = fileVersion.getFileVersionId();
+			int previewFileCount = getPreviewFileCount(fileVersion);
+			long time = stopWatch.getTime();
+
+			if (generateThumbnail && generatePreview) {
+				_log.info(
+					"PDFBox generated a thumbnail and " + previewFileCount +
+						" preview pages for " + fileVersionId + " in " + time +
+							" ms");
+			}
+			else {
+				if (generateThumbnail) {
+					_log.info(
+						"PDFBox generated a thumbnail for " + fileVersionId +
+							" in " + time + " ms");
+				}
+
+				if (generatePreview) {
+					_log.info(
+						"PDFBox generated " + previewFileCount +
+							" preview pages for " + fileVersionId + " in " +
+								time + " ms");
+				}
+			}
+		}
 	}
 
 	private void _generateImagesPB(
 			FileVersion fileVersion, InputStream inputStream)
 		throws Exception {
 
-		boolean generatePreview = _isGeneratePreview(fileVersion);
-		boolean generateThumbnail = _isGenerateThumbnail(fileVersion);
-
-		PDDocument pdDocument = null;
+		File file = null;
 
 		try {
-			pdDocument = PDDocument.load(inputStream);
+			file = FileUtil.createTempFile(inputStream);
 
-			PDDocumentCatalog pdDocumentCatalog =
-				pdDocument.getDocumentCatalog();
-
-			List<PDPage> pdPages = pdDocumentCatalog.getAllPages();
-
-			for (int i = 0; i < pdPages.size(); i++) {
-				PDPage pdPage = pdPages.get(i);
-
-				if (generateThumbnail && (i == 0)) {
-					_generateImagesPB(fileVersion, pdPage, i);
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"PDFBox generated a thumbnail for " +
-								fileVersion.getFileVersionId());
-					}
-				}
-
-				if (!generatePreview) {
-					break;
-				}
-
-				_generateImagesPB(fileVersion, pdPage, i + 1);
-			}
-
-			if (_log.isInfoEnabled() && generatePreview) {
-				_log.info(
-					"PDFBox generated " +
-						getPreviewFileCount(fileVersion) +
-							" preview pages for " +
-								fileVersion.getFileVersionId());
-			}
+			_generateImagesPB(fileVersion, file);
 		}
 		finally {
-			if (pdDocument != null) {
-				pdDocument.close();
-			}
-		}
-	}
-
-	private void _generateImagesPB(
-			FileVersion fileVersion, PDPage pdPage, int index)
-		throws Exception {
-
-		// Generate images
-
-		RenderedImage renderedImage = pdPage.convertToImage(
-			BufferedImage.TYPE_INT_RGB,
-			PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_DPI);
-
-		if (PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT != 0) {
-			renderedImage = ImageToolUtil.scale(
-				renderedImage,
-				PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH,
-				PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_HEIGHT);
-		}
-		else {
-			renderedImage = ImageToolUtil.scale(
-				renderedImage,
-				PropsValues.DL_FILE_ENTRY_PREVIEW_DOCUMENT_MAX_WIDTH);
-		}
-
-		// Store images
-
-		if (index == 0) {
-			storeThumbnailImages(fileVersion, renderedImage);
-		}
-		else {
-			File tempFile = null;
-
-			try {
-				String tempFileId = DLUtil.getTempFileId(
-					fileVersion.getFileEntryId(), fileVersion.getVersion());
-
-				tempFile = getPreviewTempFile(tempFileId, index);
-
-				tempFile.createNewFile();
-
-				ImageIO.write(
-					renderedImage, PREVIEW_TYPE,
-					new FileOutputStream(tempFile));
-
-				addFileToStore(
-					fileVersion.getCompanyId(), PREVIEW_PATH,
-					getPreviewFilePath(fileVersion, index), tempFile);
-			}
-			finally {
-				FileUtil.delete(tempFile);
-			}
+			FileUtil.delete(file);
 		}
 	}
 
@@ -725,14 +880,96 @@ public class PDFProcessorImpl
 
 			sendGenerationMessage(
 				DestinationNames.DOCUMENT_LIBRARY_PDF_PROCESSOR,
-				PropsValues.DL_FILE_ENTRY_PROCESSORS_TRIGGER_SYNCHRONOUSLY,
 				sourceFileVersion, destinationFileVersion);
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(PDFProcessorImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		PDFProcessorImpl.class);
 
-	private List<Long> _fileVersionIds = new Vector<Long>();
-	private boolean _ghostscriptInitialized = false;
+	private final List<Long> _fileVersionIds = new Vector<>();
+	private boolean _ghostscriptInitialized;
+
+	private static class LiferayPDFBoxProcessCallable
+		implements ProcessCallable<String> {
+
+		public LiferayPDFBoxProcessCallable(
+			String serverId, String liferayHome,
+			Map<String, String> customLogSettings, File inputFile,
+			File thumbnailFile, File[] previewFiles, String extension,
+			String thumbnailExtension, int dpi, int height, int width,
+			boolean generatePreview, boolean generateThumbnail) {
+
+			_serverId = serverId;
+			_liferayHome = liferayHome;
+			_customLogSettings = customLogSettings;
+			_inputFile = inputFile;
+			_thumbnailFile = thumbnailFile;
+			_previewFiles = previewFiles;
+			_extension = extension;
+			_thumbnailExtension = thumbnailExtension;
+			_dpi = dpi;
+			_height = height;
+			_width = width;
+			_generatePreview = generatePreview;
+			_generateThumbnail = generateThumbnail;
+		}
+
+		@Override
+		public String call() throws ProcessException {
+			Properties systemProperties = System.getProperties();
+
+			SystemEnv.setProperties(systemProperties);
+
+			Class<?> clazz = getClass();
+
+			ClassLoader classLoader = clazz.getClassLoader();
+
+			Log4JUtil.initLog4J(
+				_serverId, _liferayHome, classLoader, new Log4jLogFactoryImpl(),
+				_customLogSettings);
+
+			try {
+				LiferayPDFBoxConverter liferayConverter =
+					new LiferayPDFBoxConverter(
+						_inputFile, _thumbnailFile, _previewFiles, _extension,
+						_thumbnailExtension, _dpi, _height, _width,
+						_generatePreview, _generateThumbnail);
+
+				liferayConverter.generateImagesPB();
+			}
+			catch (Exception e) {
+				throw new ProcessException(e);
+			}
+
+			return StringPool.BLANK;
+		}
+
+		private static final long serialVersionUID = 1L;
+
+		private final Map<String, String> _customLogSettings;
+		private final int _dpi;
+		private final String _extension;
+		private final boolean _generatePreview;
+		private final boolean _generateThumbnail;
+		private final int _height;
+
+		@InputResource
+		private final File _inputFile;
+
+		private final String _liferayHome;
+
+		@OutputResource
+		private final File[] _previewFiles;
+
+		private final String _serverId;
+		private final String _thumbnailExtension;
+
+		@OutputResource
+		private final File _thumbnailFile;
+
+		private final int _width;
+
+	}
 
 }

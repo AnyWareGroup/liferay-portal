@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,24 @@
 --%>
 
 <%
-if (Validator.isNotNull(id)) {
+String bodyContentString = StringPool.BLANK;
+
+Object bodyContent = request.getAttribute("aui:nav-bar:bodyContent");
+
+if (bodyContent != null) {
+	bodyContentString = bodyContent.toString();
+}
+
+if ((portletResponse != null) && Validator.isNotNull(id)) {
 	id = portletResponse.getNamespace() + id;
 }
+
+if (Validator.isNull(id)) {
+	id = StringUtil.randomId();
+}
+
+String dataTarget = (String)request.getAttribute("aui:nav-bar:dataTarget");
+IntegerWrapper navItemCount = (IntegerWrapper)request.getAttribute("aui:nav-bar:navItemCount");
+String responsiveButtons = (String)request.getAttribute("aui:nav-bar:responsiveButtons");
+String selectedItemName = (String)request.getAttribute("aui:nav-bar:selectedItemName");
 %>

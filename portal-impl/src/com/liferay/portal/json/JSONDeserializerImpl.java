@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,8 +15,10 @@
 package com.liferay.portal.json;
 
 import com.liferay.portal.kernel.json.JSONDeserializer;
+import com.liferay.portal.kernel.json.JSONDeserializerTransformer;
 
-import java.io.Reader;
+import jodd.json.JsonParser;
+import jodd.json.ValueConverter;
 
 /**
  * @author Brian Wing Shun Chan
@@ -24,38 +26,39 @@ import java.io.Reader;
 public class JSONDeserializerImpl<T> implements JSONDeserializer<T> {
 
 	public JSONDeserializerImpl() {
-		_jsonDeserializer = new flexjson.JSONDeserializer<T>();
-
-		_portalBeanObjectFactory = new PortalBeanObjectFactory();
-
-		_jsonDeserializer.use(Object.class, _portalBeanObjectFactory);
-	}
-
-	@Override
-	public T deserialize(Reader input) {
-		return _jsonDeserializer.deserialize(input);
+		_jsonDeserializer = new PortalJsonParser();
 	}
 
 	@Override
 	public T deserialize(String input) {
-		return _jsonDeserializer.deserialize(input);
+		return _jsonDeserializer.parse(input);
 	}
 
 	@Override
-	public JSONDeserializer<T> safeMode(boolean safeMode) {
-		_portalBeanObjectFactory.setSafeMode(safeMode);
+	public T deserialize(String input, Class<T> targetType) {
+		return _jsonDeserializer.parse(input, targetType);
+	}
+
+	@Override
+	public <K, V> JSONDeserializer<T> transform(
+		JSONDeserializerTransformer<K, V> jsonDeserializerTransformer,
+		String field) {
+
+		ValueConverter<K, V> valueConverter =
+			new JoddJsonDeserializerTransformer<>(jsonDeserializerTransformer);
+
+		_jsonDeserializer.use(field, valueConverter);
 
 		return this;
 	}
 
 	@Override
 	public JSONDeserializer<T> use(String path, Class<?> clazz) {
-		_jsonDeserializer.use(path, clazz);
+		_jsonDeserializer.map(path, clazz);
 
 		return this;
 	}
 
-	private flexjson.JSONDeserializer<T> _jsonDeserializer;
-	private PortalBeanObjectFactory _portalBeanObjectFactory;
+	private final JsonParser _jsonDeserializer;
 
 }

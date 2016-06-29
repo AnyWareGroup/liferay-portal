@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,17 @@
 
 package com.liferay.portal.tools;
 
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.NumericalStringComparator;
+import com.liferay.portal.kernel.util.NaturalOrderStringComparator;
 import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.InitUtil;
+import com.liferay.portal.util.FileImpl;
 
 import java.io.File;
 
@@ -41,25 +42,24 @@ import org.apache.tools.ant.DirectoryScanner;
  */
 public class PluginsSummaryBuilder {
 
-	public static void main(String[] args) {
-		InitUtil.initWithSpring();
+	public static void main(String[] args) throws Exception {
+		ToolDependencies.wireBasic();
 
 		File pluginsDir = new File(System.getProperty("plugins.dir"));
 
 		new PluginsSummaryBuilder(pluginsDir);
 	}
 
-	public PluginsSummaryBuilder(File pluginsDir) {
-		try {
-			_pluginsDir = pluginsDir;
+	public PluginsSummaryBuilder(File pluginsDir) throws Exception {
+		_pluginsDir = pluginsDir;
 
-			_latestHASH = _getLatestHASH(pluginsDir);
+		String latestHASH = null;
 
-			_createPluginsSummary();
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
+		latestHASH = _getLatestHASH(pluginsDir);
+
+		_latestHASH = latestHASH;
+
+		_createPluginsSummary();
 	}
 
 	private void _createPluginsSummary() throws Exception {
@@ -69,9 +69,7 @@ public class PluginsSummaryBuilder {
 		directoryScanner.setExcludes(
 			new String[] {"**\\tmp\\**", "**\\tools\\**"});
 		directoryScanner.setIncludes(
-			new String[] {
-				"**\\liferay-plugin-package.properties"
-			});
+			new String[] {"**\\liferay-plugin-package.properties"});
 
 		directoryScanner.scan();
 
@@ -89,7 +87,7 @@ public class PluginsSummaryBuilder {
 
 		for (String fileName : fileNames) {
 			fileName = StringUtil.replace(
-				fileName, StringPool.BACK_SLASH, StringPool.SLASH);
+				fileName, CharPool.BACK_SLASH, CharPool.SLASH);
 
 			_createPluginSummary(sb, fileName);
 		}
@@ -169,9 +167,8 @@ public class PluginsSummaryBuilder {
 	private Set<String> _extractTicketIds(File pluginDir, String range)
 		throws Exception {
 
-		Set<String> ticketIds = new TreeSet<String>(
-			new NumericalStringComparator()
-		);
+		Set<String> ticketIds = new TreeSet<>(
+			new NaturalOrderStringComparator());
 
 		Runtime runtime = Runtime.getRuntime();
 
@@ -185,7 +182,7 @@ public class PluginsSummaryBuilder {
 
 		String content = StringUtil.read(process.getInputStream());
 
-		content = StringUtil.replace(content, "\n", " ");
+		content = StringUtil.replace(content, '\n', ' ');
 
 		for (String ticketIdPrefix : _TICKET_ID_PREFIXES) {
 			int x = 0;
@@ -218,6 +215,44 @@ public class PluginsSummaryBuilder {
 
 				x = y;
 			}
+		}
+
+		File buildXmlFile = new File(pluginDir, "build.xml");
+		System.out.println("## read a " + buildXmlFile);
+
+		String buildXmlContent = _fileUtil.read(buildXmlFile);
+
+		int x = buildXmlContent.indexOf("import.shared");
+
+		if (x == -1) {
+			return ticketIds;
+		}
+
+		x = buildXmlContent.indexOf("value=\"", x);
+		x = buildXmlContent.indexOf("\"", x);
+
+		int y = buildXmlContent.indexOf("\" />", x);
+
+		if ((x == -1) || (y == -1)) {
+			return ticketIds;
+		}
+
+		String[] importShared = StringUtil.split(
+			buildXmlContent.substring(x + 1, y));
+
+		if (importShared.length == 0) {
+			return ticketIds;
+		}
+
+		for (String currentImportShared : importShared) {
+			File currentImportSharedDir = new File(
+				pluginDir, "../../shared/" + currentImportShared);
+
+			if (!currentImportSharedDir.exists()) {
+				continue;
+			}
+
+			ticketIds.addAll(_extractTicketIds(currentImportSharedDir, range));
 		}
 
 		return ticketIds;
@@ -375,7 +410,7 @@ public class PluginsSummaryBuilder {
 
 		String relengChangeLogContent = FileUtil.read(relengChangeLogFile);
 
-		List<String> relengChangeLogEntries = new ArrayList<String>();
+		List<String> relengChangeLogEntries = new ArrayList<>();
 
 		String[] relengChangeLogEntriesArray = StringUtil.split(
 			relengChangeLogContent, "\n");
@@ -410,6 +445,12 @@ public class PluginsSummaryBuilder {
 			}
 		}
 
+		File webInfDir = relengChangeLogFile.getParentFile();
+
+		File docrootDir = webInfDir.getParentFile();
+
+		File pluginDir = docrootDir.getParentFile();
+
 		for (int i = 0; i < relengChangeLogEntries.size(); i++) {
 			String relengChangeLogEntry = relengChangeLogEntries.get(i);
 
@@ -427,12 +468,6 @@ public class PluginsSummaryBuilder {
 
 				break;
 			}
-
-			File webInfDir = relengChangeLogFile.getParentFile();
-
-			File docrootDir = webInfDir.getParentFile();
-
-			File pluginDir = docrootDir.getParentFile();
 
 			Set<String> ticketIds = _extractTicketIds(pluginDir, range);
 
@@ -496,8 +531,7 @@ public class PluginsSummaryBuilder {
 		}
 
 		File pluginPackagePropertiesFile = new File(
-			relengChangeLogFile.getParentFile(),
-			"liferay-plugin-package.properties");
+			webInfDir, "liferay-plugin-package.properties");
 
 		String pluginPackagePropertiesContent = FileUtil.read(
 			pluginPackagePropertiesFile);
@@ -522,6 +556,13 @@ public class PluginsSummaryBuilder {
 			pluginPackagePropertiesFile, pluginPackagePropertiesContent);
 
 		FileUtil.write(relengChangeLogFile, sb.toString());
+
+		File relengChangeLogMD5File = new File(
+			webInfDir, "liferay-releng.changelog.md5");
+
+		String md5Checksum = FileUtil.getMD5Checksum(relengChangeLogFile);
+
+		FileUtil.write(relengChangeLogMD5File, md5Checksum);
 	}
 
 	private String _updateRelengPropertiesFile(
@@ -585,11 +626,14 @@ public class PluginsSummaryBuilder {
 		sb.append(value);
 	}
 
-	private static final String[] _TICKET_ID_PREFIXES = {"LPS", "SOS"};
+	private static final String[] _TICKET_ID_PREFIXES =
+		{"CLDSVCS", "LPS", "SOS", "SYNC"};
 
-	private Set<String> _distinctAuthors = new TreeSet<String>();
-	private Set<String> _distinctLicenses = new TreeSet<String>();
-	private String _latestHASH;
-	private File _pluginsDir;
+	private static final FileImpl _fileUtil = FileImpl.getInstance();
+
+	private final Set<String> _distinctAuthors = new TreeSet<>();
+	private final Set<String> _distinctLicenses = new TreeSet<>();
+	private final String _latestHASH;
+	private final File _pluginsDir;
 
 }

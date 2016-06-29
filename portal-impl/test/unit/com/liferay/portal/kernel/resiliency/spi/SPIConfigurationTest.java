@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,17 @@
 
 package com.liferay.portal.kernel.resiliency.spi;
 
-import com.liferay.portal.kernel.test.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.util.HtmlImpl;
+import com.liferay.portal.util.PropsImpl;
 import com.liferay.portal.xml.SAXReaderImpl;
 
 import java.util.Arrays;
@@ -37,8 +40,8 @@ import org.junit.Test;
 public class SPIConfigurationTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	public static final CodeCoverageAssertor codeCoverageAssertor =
+		CodeCoverageAssertor.INSTANCE;
 
 	@Before
 	public void setUp() {
@@ -46,9 +49,22 @@ public class SPIConfigurationTest {
 
 		htmlUtil.setHtml(new HtmlImpl());
 
+		PropsUtil.setProps(new PropsImpl());
+
 		SAXReaderUtil saxReaderUtil = new SAXReaderUtil();
 
-		saxReaderUtil.setSAXReader(new SAXReaderImpl());
+		SAXReaderImpl secureSAXReader = new SAXReaderImpl();
+
+		secureSAXReader.setSecure(true);
+
+		saxReaderUtil.setSAXReader(secureSAXReader);
+
+		UnsecureSAXReaderUtil unsecureSAXReaderUtil =
+			new UnsecureSAXReaderUtil();
+
+		SAXReaderImpl unsecureSAXReader = new SAXReaderImpl();
+
+		unsecureSAXReaderUtil.setSAXReader(unsecureSAXReader);
 	}
 
 	@Test
@@ -64,11 +80,12 @@ public class SPIConfigurationTest {
 		long pingInterval = 1000;
 		long registerTimeout = 5000;
 		long shutdownTimeout = 5000;
+		String extraSettings = "key1=value1\nkey2=values";
 
 		SPIConfiguration spiConfiguration = new SPIConfiguration(
 			spiId, javaExecutable, jvmArguments, spiAgentClassName,
 			connectorPort, baseDir, portletIds, servletContextNames,
-			pingInterval, registerTimeout, shutdownTimeout);
+			pingInterval, registerTimeout, shutdownTimeout, extraSettings);
 
 		Assert.assertEquals(spiId, spiConfiguration.getSPIId());
 		Assert.assertEquals(
@@ -88,10 +105,12 @@ public class SPIConfigurationTest {
 			registerTimeout, spiConfiguration.getRegisterTimeout());
 		Assert.assertEquals(
 			shutdownTimeout, spiConfiguration.getShutdownTimeout());
+		Assert.assertEquals(extraSettings, spiConfiguration.getExtraSettings());
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(7);
 
 		sb.append("{baseDir=baseDir, connectorPort=8080, ");
+		sb.append("extraSettings=key1=value1\nkey2=values, ");
 		sb.append("javaExecutable=/usr/bin/java, jvmArguments=-Xmx2048m ");
 		sb.append("-XX:PermSize=256m, pingInterval=1000, ");
 		sb.append("portletIds=[portlet1,portlet2], registerTimeout=5000, ");
@@ -100,7 +119,7 @@ public class SPIConfigurationTest {
 
 		Assert.assertEquals(sb.toString(), spiConfiguration.toString());
 
-		sb = new StringBundler(12);
+		sb = new StringBundler(14);
 
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<SPIConfiguration><id>spiId</id>");
@@ -113,7 +132,9 @@ public class SPIConfigurationTest {
 		sb.append("<servletContextNames>app1,app2</servletContextNames>");
 		sb.append("<pingInterval>1000</pingInterval>");
 		sb.append("<registerTimeout>5000</registerTimeout>");
-		sb.append("<shutdownTimeout>5000</shutdownTimeout></SPIConfiguration>");
+		sb.append("<shutdownTimeout>5000</shutdownTimeout>");
+		sb.append("<extraSettings>key1=value1\nkey2=values</extraSettings>");
+		sb.append("</SPIConfiguration>");
 
 		Assert.assertEquals(sb.toString(), spiConfiguration.toXMLString());
 	}
@@ -126,10 +147,11 @@ public class SPIConfigurationTest {
 		String baseDir = "baseDir";
 		String[] portletIds = {"portlet1", "portlet2"};
 		String[] servletContextNames = {"app1", "app2"};
+		String extraSettings = "key1=value1\nkey2=values";
 
 		SPIConfiguration spiConfiguration = new SPIConfiguration(
 			spiId, spiAgentClassName, connectorPort, baseDir, portletIds,
-			servletContextNames);
+			servletContextNames, extraSettings);
 
 		Assert.assertEquals(spiId, spiConfiguration.getSPIId());
 		Assert.assertEquals(
@@ -156,10 +178,12 @@ public class SPIConfigurationTest {
 		Assert.assertEquals(
 			SPIConfiguration.SHUTDOWN_TIMEOUT_DEFAULT,
 			spiConfiguration.getShutdownTimeout());
+		Assert.assertEquals(extraSettings, spiConfiguration.getExtraSettings());
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(7);
 
 		sb.append("{baseDir=baseDir, connectorPort=8080, ");
+		sb.append("extraSettings=key1=value1\nkey2=values, ");
 		sb.append("javaExecutable=java, jvmArguments=-Xmx1024m ");
 		sb.append("-XX:PermSize=200m, pingInterval=5000, ");
 		sb.append("portletIds=[portlet1,portlet2], registerTimeout=10000, ");
@@ -168,7 +192,7 @@ public class SPIConfigurationTest {
 
 		Assert.assertEquals(sb.toString(), spiConfiguration.toString());
 
-		sb = new StringBundler(13);
+		sb = new StringBundler(14);
 
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<SPIConfiguration><id>spiId</id>");
@@ -182,6 +206,7 @@ public class SPIConfigurationTest {
 		sb.append("<pingInterval>5000</pingInterval>");
 		sb.append("<registerTimeout>10000</registerTimeout>");
 		sb.append("<shutdownTimeout>10000</shutdownTimeout>");
+		sb.append("<extraSettings>key1=value1\nkey2=values</extraSettings>");
 		sb.append("</SPIConfiguration>");
 
 		Assert.assertEquals(sb.toString(), spiConfiguration.toXMLString());
@@ -189,7 +214,7 @@ public class SPIConfigurationTest {
 
 	@Test
 	public void testFromXMLString() throws DocumentException {
-		StringBundler sb = new StringBundler(12);
+		StringBundler sb = new StringBundler(14);
 
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<SPIConfiguration><id>spiId</id>");
@@ -202,7 +227,9 @@ public class SPIConfigurationTest {
 		sb.append("<servletContextNames>app1,app2,app3</servletContextNames>");
 		sb.append("<pingInterval>1000</pingInterval>");
 		sb.append("<registerTimeout>1000</registerTimeout>");
-		sb.append("<shutdownTimeout>1000</shutdownTimeout></SPIConfiguration>");
+		sb.append("<shutdownTimeout>1000</shutdownTimeout>");
+		sb.append("<extraSettings>key1=value1\nkey2=values</extraSettings>");
+		sb.append("</SPIConfiguration>");
 
 		SPIConfiguration spiConfiguration = SPIConfiguration.fromXMLString(
 			sb.toString());

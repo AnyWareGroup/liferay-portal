@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,14 +14,13 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.upgrade.BaseUpgradePortletPreferences;
-import com.liferay.portal.kernel.upgrade.util.UpgradeTable;
-import com.liferay.portal.kernel.upgrade.util.UpgradeTableFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
+import com.liferay.portal.kernel.util.RSSUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.upgrade.v6_2_0.util.BlogsEntryTable;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.util.RSSUtil;
 
 import javax.portlet.PortletPreferences;
 
@@ -44,18 +43,24 @@ public class UpgradeBlogs extends BaseUpgradePortletPreferences {
 	}
 
 	protected void updateEntries() throws Exception {
-		try {
-			runSQL("alter_column_type BlogsEntry description STRING null");
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			alter(
+				BlogsEntryTable.class,
+				new AlterColumnType("description", "STRING null"));
 		}
-		catch (Exception e) {
-			UpgradeTable upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
-				BlogsEntryTable.TABLE_NAME, BlogsEntryTable.TABLE_COLUMNS);
+	}
 
-			upgradeTable.setCreateSQL(BlogsEntryTable.TABLE_SQL_CREATE);
-			upgradeTable.setIndexesSQL(BlogsEntryTable.TABLE_SQL_ADD_INDEXES);
+	protected void upgradeDisplayStyle(PortletPreferences portletPreferences)
+		throws Exception {
 
-			upgradeTable.updateTable();
+		String pageDisplayStyle = GetterUtil.getString(
+			portletPreferences.getValue("pageDisplayStyle", null));
+
+		if (Validator.isNotNull(pageDisplayStyle)) {
+			portletPreferences.setValue("displayStyle", pageDisplayStyle);
 		}
+
+		portletPreferences.reset("pageDisplayStyle");
 	}
 
 	@Override
@@ -67,6 +72,15 @@ public class UpgradeBlogs extends BaseUpgradePortletPreferences {
 		PortletPreferences portletPreferences =
 			PortletPreferencesFactoryUtil.fromXML(
 				companyId, ownerId, ownerType, plid, portletId, xml);
+
+		upgradeDisplayStyle(portletPreferences);
+		upgradeRss(portletPreferences);
+
+		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
+	}
+
+	protected void upgradeRss(PortletPreferences portletPreferences)
+		throws Exception {
 
 		String rssFormat = GetterUtil.getString(
 			portletPreferences.getValue("rssFormat", null));
@@ -82,8 +96,6 @@ public class UpgradeBlogs extends BaseUpgradePortletPreferences {
 		}
 
 		portletPreferences.reset("rssFormat");
-
-		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
 	}
 
 }

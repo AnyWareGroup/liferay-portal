@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,12 @@
 
 package com.liferay.portal.verify;
 
+import com.liferay.blogs.kernel.model.BlogsEntry;
+import com.liferay.blogs.kernel.service.BlogsEntryLocalServiceUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portlet.blogs.model.BlogsEntry;
-import com.liferay.portlet.blogs.service.BlogsEntryLocalServiceUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.List;
 
@@ -28,33 +30,49 @@ public class VerifyBlogs extends VerifyProcess {
 
 	@Override
 	protected void doVerify() throws Exception {
-		List<BlogsEntry> entries =
-			BlogsEntryLocalServiceUtil.getNoAssetEntries();
+		updateEntryAssets();
+		verifyStatus();
+	}
 
-		if (_log.isDebugEnabled()) {
-			_log.debug(
-				"Processing " + entries.size() + " entries with no asset");
-		}
+	protected void updateEntryAssets() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			List<BlogsEntry> entries =
+				BlogsEntryLocalServiceUtil.getNoAssetEntries();
 
-		for (BlogsEntry entry : entries) {
-			try {
-				BlogsEntryLocalServiceUtil.updateAsset(
-					entry.getUserId(), entry, null, null, null);
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"Processing " + entries.size() + " entries with no asset");
 			}
-			catch (Exception e) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						"Unable to update asset for entry " +
-							entry.getEntryId() + ": " + e.getMessage());
+
+			for (BlogsEntry entry : entries) {
+				try {
+					BlogsEntryLocalServiceUtil.updateAsset(
+						entry.getUserId(), entry, null, null, null, null);
+				}
+				catch (Exception e) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"Unable to update asset for entry " +
+								entry.getEntryId() + ": " + e.getMessage());
+					}
 				}
 			}
-		}
 
-		if (_log.isDebugEnabled()) {
-			_log.debug("Assets verified for entries");
+			if (_log.isDebugEnabled()) {
+				_log.debug("Assets verified for entries");
+			}
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(VerifyBlogs.class);
+	protected void verifyStatus() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			runSQL(
+				"update BlogsEntry set status = " +
+					WorkflowConstants.STATUS_APPROVED +
+						" where status is null");
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(VerifyBlogs.class);
 
 }

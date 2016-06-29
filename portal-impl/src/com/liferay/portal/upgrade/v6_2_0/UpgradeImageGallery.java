@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,16 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
-import com.liferay.portal.upgrade.util.UpgradePortletId;
-import com.liferay.portal.util.PortletKeys;
+import com.liferay.portal.kernel.upgrade.BaseUpgradePortletId;
 
 /**
  * @author Eduardo Garcia
  */
-public class UpgradeImageGallery extends UpgradePortletId {
+public class UpgradeImageGallery extends BaseUpgradePortletId {
 
 	@Override
 	protected String[] getUninstanceablePortletIds() {
-		return new String[] {PortletKeys.MEDIA_GALLERY_DISPLAY};
+		return new String[] {"31"};
 	}
 
 }

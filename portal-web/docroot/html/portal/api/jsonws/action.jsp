@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,16 +26,9 @@ String signature = ParamUtil.getString(request, "signature");
 
 			<%
 			JSONWebServiceActionMapping jsonWebServiceActionMapping = JSONWebServiceActionsManagerUtil.getJSONWebServiceActionMapping(signature);
-
-			String invocationPath = jsonWebServiceActionMapping.getPath();
-
-			if (Validator.isNotNull(contextPath)) {
-				invocationPath = invocationPath.substring(1);
-				invocationPath = jsonWebServiceActionMapping.getContextPath() + StringPool.PERIOD + invocationPath;
-			}
 			%>
 
-			<h2><%= invocationPath %></h2>
+			<h2><%= jsonWebServiceActionMapping.getPath() %></h2>
 
 			<dl class="lfr-api-http-method">
 				<dt>
@@ -283,12 +276,15 @@ String signature = ParamUtil.getString(request, "signature");
 					<liferay-ui:section>
 						<pre class="lfr-code-block" id="serviceOutput"></pre>
 					</liferay-ui:section>
+
 					<liferay-ui:section>
 						<pre class="lfr-code-block" id="jsExample"></pre>
 					</liferay-ui:section>
+
 					<liferay-ui:section>
 						<pre class="lfr-code-block" id="curlExample"></pre>
 					</liferay-ui:section>
+
 					<liferay-ui:section>
 						<pre class="lfr-code-block" id="urlExample"></pre>
 					</liferay-ui:section>
@@ -298,12 +294,13 @@ String signature = ParamUtil.getString(request, "signature");
 			<aui:script>
 				Liferay.TPL_DATA_TYPES = {
 					array: {},
+					file: {},
 					other: {},
 					string: {}
 				};
 			</aui:script>
 
-			<aui:form action="<%= jsonWSPath + invocationPath %>" enctype="<%= enctype %>" method="<%= jsonWebServiceActionMapping.getMethod() %>" name="execute">
+			<aui:form action="<%= jsonWSPath + jsonWebServiceActionMapping.getPath() %>" enctype="<%= enctype %>" method="<%= jsonWebServiceActionMapping.getMethod() %>" name="execute">
 
 				<%
 				if (PropsValues.JSON_SERVICE_AUTH_TOKEN_ENABLED) {
@@ -345,9 +342,9 @@ String signature = ParamUtil.getString(request, "signature");
 					%>
 
 						<aui:field-wrapper label="<%= methodParameterName %>">
-							<aui:input checked="<%= true %>" id='<%= "fieldTrue" + i %>' inlineField="<%= true %>" label="true" name="<%= methodParameterName %>" type="radio" value="<%= true %>" />
+							<aui:input checked="<%= true %>" id='<%= "fieldTrue" + i %>' inlineField="<%= true %>" label="<%= Boolean.TRUE.toString() %>" name="<%= methodParameterName %>" type="radio" value="<%= true %>" />
 
-							<aui:input id='<%= "fieldFalse" + i %>' inlineField="<%= true %>" label="false" name="<%= methodParameterName %>" type="radio" value="<%= false %>" />
+							<aui:input id='<%= "fieldFalse" + i %>' inlineField="<%= true %>" label="<%= Boolean.FALSE.toString() %>" name="<%= methodParameterName %>" type="radio" value="<%= false %>" />
 
 							<span class="suffix"><%= methodParameterTypeClassName %></span>
 						</aui:field-wrapper>
@@ -376,6 +373,9 @@ String signature = ParamUtil.getString(request, "signature");
 						if (methodParameterTypeClass.isArray()) {
 							jsObjectType = "array";
 						}
+						else if (methodParameterTypeClass.equals(File.class)) {
+							jsObjectType = "file";
+						}
 						else if (methodParameterTypeClass.equals(String.class)) {
 							jsObjectType = "string";
 						}
@@ -397,19 +397,26 @@ String signature = ParamUtil.getString(request, "signature");
 
 			var form = A.one('#execute');
 
+			var tplDataTypes = Liferay.TPL_DATA_TYPES;
+
+			var multipart = !A.Object.isEmpty(tplDataTypes.file);
+
 			var curlTpl = A.Template.from('#curlTpl');
+
 			var scriptTpl = A.Template.from('#scriptTpl');
 			var urlTpl = A.Template.from('#urlTpl');
 
-			var tplDataTypes = Liferay.TPL_DATA_TYPES;
-
-			var stringType = tplDataTypes.string;
 			var arrayType = tplDataTypes.array;
+			var fileType = tplDataTypes.file;
+			var stringType = tplDataTypes.string;
 
 			var formatDataType = function(key, value, includeNull) {
 				value = decodeURIComponent(value.replace(/\+/g, ' '));
 
-				if (stringType[key]) {
+				if (fileType[key]) {
+					value = 'null';
+				}
+				else if (stringType[key]) {
 					value = '\'' + value + '\'';
 				}
 				else if (arrayType[key]) {
@@ -424,11 +431,26 @@ String signature = ParamUtil.getString(request, "signature");
 				return value;
 			};
 
-			curlTpl.formatDataType = formatDataType;
+			var formatCurlDataType = function(key, value, includeNull) {
+				var filePath = fileType[key];
+
+				if (!multipart || !filePath) {
+					value = formatDataType(key, value, includeNull);
+				}
+				else {
+					value = '@path_to_file';
+				}
+
+				return value;
+			};
+
+			curlTpl.formatDataType = formatCurlDataType;
 			scriptTpl.formatDataType = A.rbind(formatDataType, scriptTpl, true);
 
 			urlTpl.toURIParam = function(value) {
-				return A.Lang.String.uncamelize(value, '-').toLowerCase();
+				value = A.Lang.String.uncamelize(value, '-');
+
+				return value.toLowerCase();
 			};
 
 			var curlExample = A.one('#curlExample');
@@ -450,10 +472,10 @@ String signature = ParamUtil.getString(request, "signature");
 					var formEl = form.getDOM();
 
 					Liferay.Service(
-						'<%= invocationPath %>',
+						'<%= jsonWebServiceActionMapping.getPath() %>',
 						formEl,
 						function(obj) {
-							serviceOutput.html(A.JSON.stringify(obj, null, 2));
+							serviceOutput.html(JSON.stringify(obj, null, 2));
 
 							output.removeClass('loading-results');
 
@@ -462,6 +484,14 @@ String signature = ParamUtil.getString(request, "signature");
 					);
 
 					var formQueryString = A.IO.prototype._serialize(formEl);
+
+					if (multipart) {
+						formQueryString += Object.keys(tplDataTypes.file).map(
+							function(item, index) {
+								return '&' + item + '=';
+							}
+						).join('');
+					}
 
 					var curlData = [];
 					var scriptData = [];
@@ -493,7 +523,8 @@ String signature = ParamUtil.getString(request, "signature");
 					);
 
 					var tplCurlData = {
-						data: curlData
+						data: curlData,
+						flag: multipart ? 'F' : 'd'
 					};
 
 					var tplScriptData = {
@@ -504,7 +535,7 @@ String signature = ParamUtil.getString(request, "signature");
 					scriptTpl.render(tplScriptData, jsExample);
 
 					var urlTplData = {
-						data : [],
+						data: [],
 						extraData: []
 					};
 
@@ -550,7 +581,7 @@ String signature = ParamUtil.getString(request, "signature");
 
 <textarea class="hide" id="scriptTpl">
 Liferay.Service(
-  '<%= invocationPath %>',
+  '<%= jsonWebServiceActionMapping.getPath() %>',
   <tpl if="data.length">{
 <%= StringPool.FOUR_SPACES %><tpl for="data">{key}: {[this.formatDataType(values.key, values.value)]}<tpl if="!$last">,
 <%= StringPool.FOUR_SPACES %></tpl></tpl>
@@ -562,14 +593,14 @@ Liferay.Service(
 </textarea>
 
 <textarea class="hide" id="curlTpl">
-curl <%= themeDisplay.getPortalURL() + jsonWSPath + invocationPath %> \\
+curl <%= themeDisplay.getPortalURL() + jsonWSPath + jsonWebServiceActionMapping.getPath() %> \\
   -u test@liferay.com:test <tpl if="data.length">\\
-  <tpl for="data">-d {key}={[this.formatDataType(values.key, values.value)]} <tpl if="!$last">\\
+  <tpl for="data">-{parent.flag} {key}={[this.formatDataType(values.key, values.value)]} <tpl if="!$last">\\
   </tpl></tpl></tpl>
 </textarea>
 
 <textarea class="hide" id="urlTpl">
-<%= themeDisplay.getPortalURL() + jsonWSPath + invocationPath %><tpl if="data.length">/<tpl for="data">{key:this.toURIParam}<tpl if="value.length">/{value}</tpl><tpl if="!$last">/</tpl></tpl></tpl><tpl if="extraData.length">?<tpl for="extraData">{key:this.toURIParam}={value}<tpl if="!$last">&amp;</tpl></tpl></tpl>
+<%= themeDisplay.getPortalURL() + jsonWSPath + jsonWebServiceActionMapping.getPath() %><tpl if="data.length">/<tpl for="data">{key:this.toURIParam}<tpl if="value.length">/{value}</tpl><tpl if="!$last">/</tpl></tpl></tpl><tpl if="extraData.length">?<tpl for="extraData">{key:this.toURIParam}={value}<tpl if="!$last">&amp;</tpl></tpl></tpl>
 </textarea>
 	</c:when>
 	<c:otherwise>

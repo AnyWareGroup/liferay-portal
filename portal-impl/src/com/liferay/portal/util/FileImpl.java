@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,12 +22,18 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.nio.charset.CharsetEncoderUtil;
 import com.liferay.portal.kernel.process.ClassPathUtil;
 import com.liferay.portal.kernel.process.ProcessCallable;
+import com.liferay.portal.kernel.process.ProcessChannel;
 import com.liferay.portal.kernel.process.ProcessException;
-import com.liferay.portal.kernel.process.ProcessExecutor;
+import com.liferay.portal.kernel.process.ProcessExecutorUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
+import com.liferay.portal.kernel.util.Digester;
+import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.FileComparator;
+import com.liferay.portal.kernel.util.PwdGenerator;
+import com.liferay.portal.kernel.util.ReflectionUtil;
 import com.liferay.portal.kernel.util.StreamUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
@@ -35,7 +41,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.util.PwdGenerator;
 import com.liferay.util.ant.ExpandTask;
 
 import java.io.File;
@@ -58,11 +63,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
+import org.apache.commons.compress.archivers.zip.UnsupportedZipFeatureException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.pdfbox.exceptions.CryptographyException;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.tika.Tika;
+import org.apache.tika.exception.TikaException;
 import org.apache.tools.ant.DirectoryScanner;
 
 import org.mozilla.intl.chardet.nsDetector;
@@ -80,6 +87,49 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
+	public String appendParentheticalSuffix(String fileName, String suffix) {
+		String fileNameWithoutExtension = stripExtension(fileName);
+
+		String fileNameWithParentheticalSuffix =
+			StringUtil.appendParentheticalSuffix(
+				fileNameWithoutExtension, suffix);
+
+		String extension = getExtension(fileName);
+
+		if (Validator.isNull(extension)) {
+			return fileNameWithParentheticalSuffix;
+		}
+
+		StringBundler sb = new StringBundler(3);
+
+		sb.append(fileNameWithParentheticalSuffix);
+		sb.append(StringPool.PERIOD);
+		sb.append(extension);
+
+		return sb.toString();
+	}
+
+	@Override
+	public String appendSuffix(String fileName, String suffix) {
+		StringBundler sb = new StringBundler(4);
+
+		String fileNameWithoutExtension = stripExtension(fileName);
+
+		sb.append(fileNameWithoutExtension);
+
+		sb.append(suffix);
+
+		String extension = getExtension(fileName);
+
+		if (Validator.isNotNull(extension)) {
+			sb.append(StringPool.PERIOD);
+			sb.append(extension);
+		}
+
+		return sb.toString();
+	}
+
+	@Override
 	public void copyDirectory(File source, File destination)
 		throws IOException {
 
@@ -87,9 +137,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 			return;
 		}
 
-		if (!destination.exists()) {
-			destination.mkdirs();
-		}
+		mkdirs(destination);
 
 		File[] fileArray = source.listFiles();
 
@@ -182,7 +230,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	public File createTempFile(byte[] bytes) throws IOException {
 		File file = createTempFile(StringPool.BLANK);
 
-		write(file, bytes);
+		write(file, bytes, false);
 
 		return file;
 	}
@@ -202,18 +250,33 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
+	public File createTempFile(String prefix, String extension) {
+		return new File(createTempFileName(prefix, extension));
+	}
+
+	@Override
 	public String createTempFileName() {
-		return createTempFileName(null);
+		return createTempFileName(null, null);
 	}
 
 	@Override
 	public String createTempFileName(String extension) {
-		StringBundler sb = new StringBundler();
+		return createTempFileName(null, extension);
+	}
+
+	@Override
+	public String createTempFileName(String prefix, String extension) {
+		StringBundler sb = new StringBundler(7);
 
 		sb.append(SystemProperties.get(SystemProperties.TMP_DIR));
 		sb.append(StringPool.SLASH);
+
+		if (Validator.isNotNull(prefix)) {
+			sb.append(prefix);
+		}
+
 		sb.append(Time.getTimestamp());
-		sb.append(PwdGenerator.getPassword(PwdGenerator.KEY2, 8));
+		sb.append(PwdGenerator.getPassword(8, PwdGenerator.KEY2));
 
 		if (Validator.isFileExtension(extension)) {
 			sb.append(StringPool.PERIOD);
@@ -224,10 +287,10 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
-	public File createTempFolder() {
+	public File createTempFolder() throws IOException {
 		File file = new File(createTempFileName());
 
-		file.mkdirs();
+		mkdirs(file);
 
 		return file;
 	}
@@ -311,6 +374,17 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 	@Override
 	public String extractText(InputStream is, String fileName) {
+		return extractText(is, fileName, -1);
+	}
+
+	@Override
+	public String extractText(
+		InputStream is, String fileName, int maxStringLength) {
+
+		if (maxStringLength == 0) {
+			return StringPool.BLANK;
+		}
+
 		String text = null;
 
 		ClassLoader portalClassLoader = ClassLoaderUtil.getPortalClassLoader();
@@ -325,7 +399,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 			Tika tika = new Tika();
 
-			tika.setMaxStringLength(-1);
+			tika.setMaxStringLength(maxStringLength);
 
 			boolean forkProcess = false;
 
@@ -341,9 +415,13 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 			}
 
 			if (forkProcess) {
-				Future<String> future = ProcessExecutor.execute(
-					ClassPathUtil.getPortalClassPath(),
-					new ExtractTextProcessCallable(getBytes(is)));
+				ProcessChannel<String> processChannel =
+					ProcessExecutorUtil.execute(
+						ClassPathUtil.getPortalProcessConfig(),
+						new ExtractTextProcessCallable(getBytes(is)));
+
+				Future<String> future =
+					processChannel.getProcessNoticeableFuture();
 
 				text = future.get();
 			}
@@ -351,18 +429,26 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 				text = tika.parseToString(is);
 			}
 		}
-		catch (Exception e) {
-			Throwable throwable = ExceptionUtils.getRootCause(e);
+		catch (Throwable t) {
+			Throwable throwable = ExceptionUtils.getRootCause(t);
 
 			if ((throwable instanceof CryptographyException) ||
-				(throwable instanceof EncryptedDocumentException)) {
+				(throwable instanceof EncryptedDocumentException) ||
+				(throwable instanceof UnsupportedZipFeatureException)) {
 
 				if (_log.isWarnEnabled()) {
-					_log.warn("Unable to extract text from an encrypted file");
+					_log.warn(
+						"Unable to extract text from an encrypted file " +
+							fileName);
+				}
+			}
+			else if (t instanceof TikaException) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Unable to extract text from " + fileName);
 				}
 			}
 			else {
-				_log.error(e, e);
+				_log.error(t, t);
 			}
 		}
 		finally {
@@ -434,20 +520,25 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
+	public byte[] getBytes(Class<?> clazz, String fileName) throws IOException {
+		return getBytes(clazz.getResourceAsStream(fileName));
+	}
+
+	@Override
 	public byte[] getBytes(File file) throws IOException {
 		if ((file == null) || !file.exists()) {
 			return null;
 		}
 
-		RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+		try (RandomAccessFile randomAccessFile = new RandomAccessFile(
+				file, "r")) {
 
-		byte[] bytes = new byte[(int)randomAccessFile.length()];
+			byte[] bytes = new byte[(int)randomAccessFile.length()];
 
-		randomAccessFile.readFully(bytes);
+			randomAccessFile.readFully(bytes);
 
-		randomAccessFile.close();
-
-		return bytes;
+			return bytes;
+		}
 	}
 
 	@Override
@@ -490,10 +581,25 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 		int pos = fileName.lastIndexOf(CharPool.PERIOD);
 
 		if (pos > 0) {
-			return fileName.substring(pos + 1, fileName.length()).toLowerCase();
+			return StringUtil.toLowerCase(
+				fileName.substring(pos + 1, fileName.length()));
 		}
 		else {
 			return StringPool.BLANK;
+		}
+	}
+
+	@Override
+	public String getMD5Checksum(File file) throws IOException {
+		FileInputStream fileInputStream = null;
+
+		try {
+			fileInputStream = new FileInputStream(file);
+
+			return DigesterUtil.digestHex(Digester.MD5, fileInputStream);
+		}
+		finally {
+			StreamUtil.cleanUp(fileInputStream);
 		}
 	}
 
@@ -527,25 +633,23 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 		nsDetector detector = new nsDetector(nsPSMDetector.ALL);
 
-		InputStream inputStream = new FileInputStream(file);
+		try (InputStream inputStream = new FileInputStream(file)) {
+			byte[] buffer = new byte[1024];
 
-		byte[] buffer = new byte[1024];
+			int len = 0;
 
-		int len = 0;
+			while ((len = inputStream.read(buffer, 0, buffer.length)) != -1) {
+				if (ascii) {
+					ascii = detector.isAscii(buffer, len);
 
-		while ((len = inputStream.read(buffer, 0, buffer.length)) != -1) {
-			if (ascii) {
-				ascii = detector.isAscii(buffer, len);
-
-				if (!ascii) {
-					break;
+					if (!ascii) {
+						break;
+					}
 				}
 			}
+
+			detector.DataEnd();
 		}
-
-		detector.DataEnd();
-
-		inputStream.close();
 
 		return ascii;
 	}
@@ -612,7 +716,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 	@Override
 	public String[] listDirs(File file) {
-		List<String> dirs = new ArrayList<String>();
+		List<String> dirs = new ArrayList<>();
 
 		File[] fileArray = file.listFiles();
 
@@ -632,7 +736,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 	@Override
 	public String[] listFiles(File file) {
-		List<String> files = new ArrayList<String>();
+		List<String> files = new ArrayList<>();
 
 		File[] fileArray = file.listFiles();
 
@@ -655,10 +759,28 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
+	public void mkdirs(File file) throws IOException {
+		FileUtils.forceMkdir(file);
+	}
+
+	@Override
 	public void mkdirs(String pathName) {
 		File file = new File(pathName);
 
-		file.mkdirs();
+		if (file.exists() && file.isDirectory()) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Directory " + pathName + " already exists");
+			}
+
+			return;
+		}
+
+		try {
+			mkdirs(file);
+		}
+		catch (IOException ioe) {
+			ReflectionUtil.throwException(ioe);
+		}
 	}
 
 	@Override
@@ -732,8 +854,8 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 		Arrays.sort(files, new FileComparator());
 
-		List<File> directoryList = new ArrayList<File>();
-		List<File> fileList = new ArrayList<File>();
+		List<File> directoryList = new ArrayList<>();
+		List<File> fileList = new ArrayList<>();
 
 		for (int i = 0; i < files.length; i++) {
 			if (files[i].isDirectory()) {
@@ -766,20 +888,35 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 	}
 
 	@Override
-	public List<String> toList(Reader reader) {
-		List<String> list = new ArrayList<String>();
+	public String stripParentheticalSuffix(String fileName) {
+		StringBundler sb = new StringBundler(3);
 
-		try {
-			UnsyncBufferedReader unsyncBufferedReader =
-				new UnsyncBufferedReader(reader);
+		String fileNameWithoutExtension = stripExtension(fileName);
+
+		sb.append(
+			StringUtil.stripParentheticalSuffix(fileNameWithoutExtension));
+
+		sb.append(StringPool.PERIOD);
+
+		String extension = getExtension(fileName);
+
+		sb.append(extension);
+
+		return sb.toString();
+	}
+
+	@Override
+	public List<String> toList(Reader reader) {
+		List<String> list = new ArrayList<>();
+
+		try (UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(reader)) {
 
 			String line = null;
 
 			while ((line = unsyncBufferedReader.readLine()) != null) {
 				list.add(line);
 			}
-
-			unsyncBufferedReader.close();
 		}
 		catch (IOException ioe) {
 		}
@@ -793,7 +930,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 			return toList(new FileReader(fileName));
 		}
 		catch (IOException ioe) {
-			return new ArrayList<String>();
+			return new ArrayList<>();
 		}
 	}
 
@@ -837,20 +974,35 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 	@Override
 	public void write(File file, byte[] bytes) throws IOException {
-		write(file, bytes, 0, bytes.length);
+		write(file, bytes, 0, bytes.length, false);
+	}
+
+	@Override
+	public void write(File file, byte[] bytes, boolean append)
+		throws IOException {
+
+		write(file, bytes, 0, bytes.length, append);
 	}
 
 	@Override
 	public void write(File file, byte[] bytes, int offset, int length)
 		throws IOException {
 
+		write(file, bytes, offset, bytes.length, false);
+	}
+
+	@Override
+	public void write(
+			File file, byte[] bytes, int offset, int length, boolean append)
+		throws IOException {
+
 		mkdirsParentFile(file);
 
-		FileOutputStream fileOutputStream = new FileOutputStream(file);
+		try (FileOutputStream fileOutputStream = new FileOutputStream(
+				file, append)) {
 
-		fileOutputStream.write(bytes, offset, length);
-
-		fileOutputStream.close();
+			fileOutputStream.write(bytes, offset, length);
+		}
 	}
 
 	@Override
@@ -888,12 +1040,11 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 			}
 		}
 
-		Writer writer = new OutputStreamWriter(
-			new FileOutputStream(file, append), StringPool.UTF8);
+		try (Writer writer = new OutputStreamWriter(
+				new FileOutputStream(file, append), StringPool.UTF8)) {
 
-		writer.write(s);
-
-		writer.close();
+			writer.write(s);
+		}
 	}
 
 	@Override
@@ -948,7 +1099,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 		write(new File(pathName, fileName), s, lazy, append);
 	}
 
-	protected void mkdirsParentFile(File file) {
+	protected void mkdirsParentFile(File file) throws IOException {
 		File parentFile = file.getParentFile();
 
 		if (parentFile == null) {
@@ -956,9 +1107,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 		}
 
 		try {
-			if (!parentFile.exists()) {
-				parentFile.mkdirs();
-			}
+			mkdirs(parentFile);
 		}
 		catch (SecurityException se) {
 
@@ -977,9 +1126,9 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 		"_AMP_", "_CP_", "_OP_", "_SEM_"
 	};
 
-	private static Log _log = LogFactoryUtil.getLog(FileImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(FileImpl.class);
 
-	private static FileImpl _instance = new FileImpl();
+	private static final FileImpl _instance = new FileImpl();
 
 	private static class ExtractTextProcessCallable
 		implements ProcessCallable<String> {
@@ -1003,7 +1152,7 @@ public class FileImpl implements com.liferay.portal.kernel.util.File {
 
 		private static final long serialVersionUID = 1L;
 
-		private byte[] _data;
+		private final byte[] _data;
 
 	}
 

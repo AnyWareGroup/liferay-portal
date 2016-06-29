@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portlet;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import java.util.Enumeration;
 import java.util.Map;
@@ -25,12 +26,18 @@ import javax.portlet.ReadOnlyException;
 /**
  * @author Alexander Chow
  */
-public class PortalPreferencesWrapper implements PortletPreferences {
+public class PortalPreferencesWrapper
+	implements Cloneable, PortletPreferences, Serializable {
 
 	public PortalPreferencesWrapper(
 		PortalPreferencesImpl portalPreferencesImpl) {
 
 		_portalPreferencesImpl = portalPreferencesImpl;
+	}
+
+	@Override
+	public PortalPreferencesWrapper clone() {
+		return new PortalPreferencesWrapper(_portalPreferencesImpl.clone());
 	}
 
 	@Override
@@ -84,6 +91,6 @@ public class PortalPreferencesWrapper implements PortletPreferences {
 		_portalPreferencesImpl.store();
 	}
 
-	private PortalPreferencesImpl _portalPreferencesImpl;
+	private final PortalPreferencesImpl _portalPreferencesImpl;
 
 }

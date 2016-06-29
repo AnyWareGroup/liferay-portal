@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,7 +22,7 @@ import com.liferay.portal.kernel.json.JSON;
 @JSON(strict = true)
 public class Four {
 
-	@JSON
+	@JSON(name = "nuMber")
 	public int getNumber() {
 		return _number;
 	}
@@ -50,7 +50,7 @@ public class Four {
 	private int _number = 173;
 	private long _private = 0xCAFEBABE;
 
-	@JSON
+	@JSON(name = "vaLue")
 	private String _value = "something";
 
 }

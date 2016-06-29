@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,24 +17,21 @@ package com.liferay.portlet.social.service.impl;
 import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.social.NoSuchActivitySettingException;
-import com.liferay.portlet.social.model.SocialActivityCounterDefinition;
-import com.liferay.portlet.social.model.SocialActivityDefinition;
-import com.liferay.portlet.social.model.SocialActivitySetting;
-import com.liferay.portlet.social.model.SocialActivitySettingConstants;
 import com.liferay.portlet.social.service.base.SocialActivitySettingLocalServiceBaseImpl;
-import com.liferay.portlet.social.util.SocialConfigurationUtil;
+import com.liferay.social.kernel.model.SocialActivityCounterDefinition;
+import com.liferay.social.kernel.model.SocialActivityDefinition;
+import com.liferay.social.kernel.model.SocialActivitySetting;
+import com.liferay.social.kernel.model.SocialActivitySettingConstants;
+import com.liferay.social.kernel.util.SocialConfigurationUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,29 +44,28 @@ public class SocialActivitySettingLocalServiceImpl
 
 	@Override
 	public void deleteActivitySetting(
-			long groupId, String className, long classPK)
-		throws SystemException {
+		long groupId, String className, long classPK) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		String name = _PREFIX_CLASS_PK.concat(String.valueOf(classPK));
 
-		try {
-			socialActivitySettingPersistence.removeByG_C_A_N(
+		SocialActivitySetting activitySetting =
+			socialActivitySettingPersistence.fetchByG_C_A_N(
 				groupId, classNameId, 0, name);
-		}
-		catch (NoSuchActivitySettingException nsase) {
+
+		if (activitySetting != null) {
+			socialActivitySettingPersistence.remove(activitySetting);
 		}
 	}
 
 	@Override
-	public void deleteActivitySettings(long groupId) throws SystemException {
+	public void deleteActivitySettings(long groupId) {
 		socialActivitySettingPersistence.removeByGroupId(groupId);
 	}
 
 	@Override
 	public SocialActivityDefinition getActivityDefinition(
-			long groupId, String className, int activityType)
-		throws SystemException {
+		long groupId, String className, int activityType) {
 
 		String key = encodeKey(groupId, className, activityType);
 
@@ -98,11 +94,9 @@ public class SocialActivitySettingLocalServiceImpl
 
 	@Override
 	public List<SocialActivityDefinition> getActivityDefinitions(
-			long groupId, String className)
-		throws SystemException {
+		long groupId, String className) {
 
-		List<SocialActivityDefinition> activityDefinitions =
-			new ArrayList<SocialActivityDefinition>();
+		List<SocialActivityDefinition> activityDefinitions = new ArrayList<>();
 
 		List<SocialActivityDefinition> defaultActivityDefinitions =
 			SocialConfigurationUtil.getActivityDefinitions(className);
@@ -121,16 +115,12 @@ public class SocialActivitySettingLocalServiceImpl
 	}
 
 	@Override
-	public List<SocialActivitySetting> getActivitySettings(long groupId)
-		throws SystemException {
-
+	public List<SocialActivitySetting> getActivitySettings(long groupId) {
 		return socialActivitySettingPersistence.findByG_A(groupId, 0);
 	}
 
 	@Override
-	public boolean isEnabled(long groupId, long classNameId)
-		throws SystemException {
-
+	public boolean isEnabled(long groupId, long classNameId) {
 		SocialActivitySetting activitySetting =
 			socialActivitySettingPersistence.fetchByG_C_A_N(
 				groupId, classNameId, 0,
@@ -144,9 +134,7 @@ public class SocialActivitySettingLocalServiceImpl
 	}
 
 	@Override
-	public boolean isEnabled(long groupId, long classNameId, long classPK)
-		throws SystemException {
-
+	public boolean isEnabled(long groupId, long classNameId, long classPK) {
 		String name = _PREFIX_CLASS_PK.concat(String.valueOf(classPK));
 
 		SocialActivitySetting activitySetting =
@@ -175,9 +163,9 @@ public class SocialActivitySettingLocalServiceImpl
 	@Override
 	public void updateActivitySetting(
 			long groupId, String className, boolean enabled)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		SocialActivitySetting activitySetting =
 			socialActivitySettingPersistence.fetchByG_C_A_N(
@@ -208,9 +196,9 @@ public class SocialActivitySettingLocalServiceImpl
 	public void updateActivitySetting(
 			long groupId, String className, int activityType,
 			SocialActivityCounterDefinition activityCounterDefinition)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		SocialActivityDefinition defaultActivityDefinition =
 			SocialConfigurationUtil.getActivityDefinition(
@@ -265,9 +253,9 @@ public class SocialActivitySettingLocalServiceImpl
 	@Override
 	public void updateActivitySetting(
 			long groupId, String className, long classPK, boolean enabled)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 		String name = _PREFIX_CLASS_PK.concat(String.valueOf(classPK));
 
 		SocialActivitySetting activitySetting =
@@ -301,7 +289,7 @@ public class SocialActivitySettingLocalServiceImpl
 	public void updateActivitySettings(
 			long groupId, String className, int activityType,
 			List<SocialActivityCounterDefinition> activityCounterDefinitions)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		for (SocialActivityCounterDefinition activityCounterDefinition :
 				activityCounterDefinitions) {
@@ -326,9 +314,8 @@ public class SocialActivitySettingLocalServiceImpl
 	}
 
 	protected SocialActivityDefinition getActivityDefinition(
-			long groupId, String className, int activityType,
-			SocialActivityDefinition defaultActivityDefinition)
-		throws SystemException {
+		long groupId, String className, int activityType,
+		SocialActivityDefinition defaultActivityDefinition) {
 
 		SocialActivityDefinition activityDefinition =
 			defaultActivityDefinition.clone();
@@ -395,10 +382,9 @@ public class SocialActivitySettingLocalServiceImpl
 	}
 
 	protected List<SocialActivitySetting> getActivitySettings(
-			long groupId, String className, int activityType)
-		throws SystemException {
+		long groupId, String className, int activityType) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		List<SocialActivitySetting> activitySettings =
 			socialActivitySettingPersistence.findByG_C_A(
@@ -426,11 +412,11 @@ public class SocialActivitySettingLocalServiceImpl
 
 	private static final String _PREFIX_CLASS_PK = "_LFR_CLASS_PK_";
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		SocialActivitySettingLocalServiceImpl.class);
 
-	private static PortalCache<String, SocialActivityDefinition>
-		_activityDefinitions = MultiVMPoolUtil.getCache(
+	private static final PortalCache<String, SocialActivityDefinition>
+		_activityDefinitions = MultiVMPoolUtil.getPortalCache(
 			SocialActivitySettingLocalServiceImpl.class.getName());
 
 }

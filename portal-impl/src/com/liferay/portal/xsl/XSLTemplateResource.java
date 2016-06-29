@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.Reader;
+
+import java.util.Objects;
 
 /**
  * @author Tina Tian
@@ -72,7 +74,7 @@ public class XSLTemplateResource implements TemplateResource {
 
 		if (_templateId.equals(xslTemplateResource._templateId) &&
 			_xsl.equals(xslTemplateResource._xsl) &&
-			Validator.equals(
+			Objects.equals(
 				_xslURIResolver, xslTemplateResource._xslURIResolver) &&
 			_xml.equals(xslTemplateResource._xml)) {
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Tuple;
@@ -32,9 +33,7 @@ import com.liferay.portal.util.PortalInstances;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -45,55 +44,15 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class XmlRpcServlet extends HttpServlet {
 
-	public static void registerMethod(Method method) {
-		if (method == null) {
-			return;
-		}
+	@Override
+	protected void doGet(
+			HttpServletRequest request, HttpServletResponse response)
+		throws IOException, ServletException {
 
-		String token = method.getToken();
-		String methodName = method.getMethodName();
-
-		Map<String, Method> tokenMethods = _methodRegistry.get(token);
-
-		if (tokenMethods == null) {
-			tokenMethods = new HashMap<String, Method>();
-
-			_methodRegistry.put(token, tokenMethods);
-		}
-
-		Method registeredMethod = tokenMethods.get(methodName);
-
-		if (registeredMethod != null) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"There is already an XML-RPC method registered with name " +
-						methodName + " at " + token);
-			}
-		}
-		else {
-			tokenMethods.put(methodName, method);
-		}
-	}
-
-	public static void unregisterMethod(Method method) {
-		if (method == null) {
-			return;
-		}
-
-		String token = method.getToken();
-		String methodName = method.getMethodName();
-
-		Map<String, Method> tokenMethods = _methodRegistry.get(token);
-
-		if (tokenMethods == null) {
-			return;
-		}
-
-		tokenMethods.remove(methodName);
-
-		if (tokenMethods.isEmpty()) {
-			_methodRegistry.remove(token);
-		}
+		PortalUtil.sendError(
+			HttpServletResponse.SC_NOT_FOUND,
+			new IllegalArgumentException("The GET method is not supported"),
+			request, response);
 	}
 
 	@Override
@@ -126,8 +85,8 @@ public class XmlRpcServlet extends HttpServlet {
 				_log.debug(ioe, ioe);
 			}
 		}
-		catch (XmlRpcException xmlrpce) {
-			_log.error(xmlrpce, xmlrpce);
+		catch (XmlRpcException xre) {
+			_log.error(xre, xre);
 		}
 
 		if (xmlRpcResponse == null) {
@@ -151,18 +110,6 @@ public class XmlRpcServlet extends HttpServlet {
 		}
 	}
 
-	protected Method getMethod(String token, String methodName) {
-		Method method = null;
-
-		Map<String, Method> tokenMethods = _methodRegistry.get(token);
-
-		if (tokenMethods != null) {
-			method = tokenMethods.get(methodName);
-		}
-
-		return method;
-	}
-
 	protected String getToken(HttpServletRequest request) {
 		String token = request.getPathInfo();
 
@@ -173,7 +120,7 @@ public class XmlRpcServlet extends HttpServlet {
 			long companyId, String token, String methodName, Object[] arguments)
 		throws XmlRpcException {
 
-		Method method = getMethod(token, methodName);
+		Method method = XmlRpcMethodUtil.getMethod(token, methodName);
 
 		if (method == null) {
 			return XmlRpcUtil.createFault(
@@ -190,9 +137,6 @@ public class XmlRpcServlet extends HttpServlet {
 		return method.execute(companyId);
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(XmlRpcServlet.class);
-
-	private static Map<String, Map<String, Method>> _methodRegistry =
-		new HashMap<String, Map<String, Method>>();
+	private static final Log _log = LogFactoryUtil.getLog(XmlRpcServlet.class);
 
 }

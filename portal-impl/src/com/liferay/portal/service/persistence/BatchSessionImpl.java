@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,14 +16,16 @@ package com.liferay.portal.service.persistence;
 
 import com.liferay.portal.kernel.dao.orm.ORMException;
 import com.liferay.portal.kernel.dao.orm.Session;
+import com.liferay.portal.kernel.model.BaseModel;
+import com.liferay.portal.kernel.service.persistence.BatchSession;
 import com.liferay.portal.kernel.util.InitialThreadLocal;
-import com.liferay.portal.model.BaseModel;
 
 /**
  * @author     Raymond Augé
  * @author     Brian Wing Shun Chan
  * @deprecated As of 6.2.0, see LPS-30598.
  */
+@Deprecated
 public class BatchSessionImpl implements BatchSession {
 
 	@Override
@@ -64,8 +66,7 @@ public class BatchSessionImpl implements BatchSession {
 		}
 	}
 
-	private static ThreadLocal<Boolean> _enabled =
-		new InitialThreadLocal<Boolean>(
-			BatchSessionImpl.class + "._enabled", false);
+	private static final ThreadLocal<Boolean> _enabled =
+		new InitialThreadLocal<>(BatchSessionImpl.class + "._enabled", false);
 
 }

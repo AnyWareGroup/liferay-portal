@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,18 @@
 
 package com.liferay.portlet.expando.service.impl;
 
+import com.liferay.expando.kernel.model.ExpandoColumn;
+import com.liferay.expando.kernel.model.ExpandoValue;
+import com.liferay.expando.kernel.service.permission.ExpandoColumnPermissionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebService;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceMode;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portlet.expando.model.ExpandoColumn;
-import com.liferay.portlet.expando.model.ExpandoValue;
 import com.liferay.portlet.expando.service.base.ExpandoValueServiceBaseImpl;
-import com.liferay.portlet.expando.service.permission.ExpandoColumnPermissionUtil;
 
 import java.io.Serializable;
 
@@ -36,11 +37,12 @@ import java.util.Map;
  */
 public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 
+	@JSONWebService(mode = JSONWebServiceMode.IGNORE)
 	@Override
 	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
 			String columnName, long classPK, Object data)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
@@ -56,7 +58,7 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 	public ExpandoValue addValue(
 			long companyId, String className, String tableName,
 			String columnName, long classPK, String data)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
@@ -72,7 +74,7 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 	public void addValues(
 			long companyId, String className, String tableName, long classPK,
 			Map<String, Serializable> attributeValues)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		for (Map.Entry<String, Serializable> entry :
 				attributeValues.entrySet()) {
@@ -87,7 +89,7 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 	public Map<String, Serializable> getData(
 			long companyId, String className, String tableName,
 			Collection<String> columnNames, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Map<String, Serializable> attributeValues =
 			expandoValueLocalService.getData(
@@ -111,7 +113,7 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 	public Serializable getData(
 			long companyId, String className, String tableName,
 			String columnName, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
@@ -131,32 +133,35 @@ public class ExpandoValueServiceImpl extends ExpandoValueServiceBaseImpl {
 	public JSONObject getJSONData(
 			long companyId, String className, String tableName,
 			String columnName, long classPK)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoColumn column = expandoColumnLocalService.getColumn(
 			companyId, className, tableName, columnName);
 
-		if (ExpandoColumnPermissionUtil.contains(
+		if (!ExpandoColumnPermissionUtil.contains(
 				getPermissionChecker(), column, ActionKeys.VIEW)) {
 
-			String data = expandoValueLocalService.getData(
-				companyId, className, tableName, columnName, classPK,
-				StringPool.BLANK);
-
-			if (Validator.isNotNull(data)) {
-				if (!data.startsWith(StringPool.OPEN_CURLY_BRACE)) {
-					data = "{data:".concat(data).concat("}");
-				}
-
-				return JSONFactoryUtil.createJSONObject(data);
-			}
-			else {
-				return null;
-			}
-		}
-		else {
 			return null;
 		}
+
+		Serializable dataSerializable = expandoValueLocalService.getData(
+			companyId, className, tableName, columnName, classPK);
+
+		String data = dataSerializable.toString();
+
+		if (Validator.isNull(data)) {
+			return null;
+		}
+
+		if (data.startsWith(StringPool.OPEN_CURLY_BRACE)) {
+			return JSONFactoryUtil.createJSONObject(data);
+		}
+
+		JSONObject jsonObject = JSONFactoryUtil.createJSONObject();
+
+		jsonObject.put("data", data);
+
+		return jsonObject;
 	}
 
 }

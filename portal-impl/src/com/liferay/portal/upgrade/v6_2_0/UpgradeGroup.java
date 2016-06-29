@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,9 @@
 package com.liferay.portal.upgrade.v6_2_0;
 
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.util.LoggingTimer;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.upgrade.v6_2_0.util.GroupTable;
-
-import java.sql.SQLException;
 
 /**
  * @author Hugo Huijser
@@ -26,14 +26,21 @@ public class UpgradeGroup extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try {
-			runSQL("alter_column_type Group_ typeSettings TEXT null");
-			runSQL("alter_column_type Group_ friendlyURL VARCHAR(255) null");
-		}
-		catch (SQLException sqle) {
-			upgradeTable(
-				GroupTable.TABLE_NAME, GroupTable.TABLE_COLUMNS,
-				GroupTable.TABLE_SQL_CREATE, GroupTable.TABLE_SQL_ADD_INDEXES);
+		alter(
+			GroupTable.class, new AlterColumnType("typeSettings", "TEXT null"),
+			new AlterColumnType("friendlyURL", "VARCHAR(255) null"));
+
+		upgradeGroup();
+	}
+
+	protected void upgradeGroup() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			long classNameId = PortalUtil.getClassNameId(
+				"com.liferay.portal.model.Company");
+
+			runSQL(
+				"update Group_ set site = TRUE where classNameId = " +
+					classNameId);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.ServiceComponent;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.ServiceComponent;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -31,13 +35,53 @@ import java.io.ObjectOutput;
  * @see ServiceComponent
  * @generated
  */
+@ProviderType
 public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
-	Externalizable {
+	Externalizable, MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ServiceComponentCacheModel)) {
+			return false;
+		}
+
+		ServiceComponentCacheModel serviceComponentCacheModel = (ServiceComponentCacheModel)obj;
+
+		if ((serviceComponentId == serviceComponentCacheModel.serviceComponentId) &&
+				(mvccVersion == serviceComponentCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, serviceComponentId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(13);
 
-		sb.append("{serviceComponentId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", serviceComponentId=");
 		sb.append(serviceComponentId);
 		sb.append(", buildNamespace=");
 		sb.append(buildNamespace);
@@ -56,6 +100,7 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 	public ServiceComponent toEntityModel() {
 		ServiceComponentImpl serviceComponentImpl = new ServiceComponentImpl();
 
+		serviceComponentImpl.setMvccVersion(mvccVersion);
 		serviceComponentImpl.setServiceComponentId(serviceComponentId);
 
 		if (buildNamespace == null) {
@@ -82,9 +127,13 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		serviceComponentId = objectInput.readLong();
 		buildNamespace = objectInput.readUTF();
+
 		buildNumber = objectInput.readLong();
+
 		buildDate = objectInput.readLong();
 		data = objectInput.readUTF();
 	}
@@ -92,6 +141,8 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(serviceComponentId);
 
 		if (buildNamespace == null) {
@@ -102,6 +153,7 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 		}
 
 		objectOutput.writeLong(buildNumber);
+
 		objectOutput.writeLong(buildDate);
 
 		if (data == null) {
@@ -112,6 +164,7 @@ public class ServiceComponentCacheModel implements CacheModel<ServiceComponent>,
 		}
 	}
 
+	public long mvccVersion;
 	public long serviceComponentId;
 	public String buildNamespace;
 	public long buildNumber;

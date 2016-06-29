@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MimeTypesUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
@@ -52,6 +53,24 @@ public class DLAppUtil {
 		return mimeType;
 	}
 
+	public static String getSourceFileName(FileVersion fileVersion) {
+		String extension = fileVersion.getExtension();
+
+		if (Validator.isNull(extension)) {
+			return fileVersion.getTitle();
+		}
+
+		String suffix = StringPool.PERIOD + extension;
+
+		String title = fileVersion.getTitle();
+
+		if (title.endsWith(suffix)) {
+			return title;
+		}
+
+		return title + suffix;
+	}
+
 	public static boolean isMajorVersion(
 		FileVersion previousFileVersion, FileVersion currentFileVersion) {
 
@@ -60,7 +79,11 @@ public class DLAppUtil {
 		long previousVersion = GetterUtil.getLong(
 			previousFileVersion.getVersion());
 
-		return (currentVersion - previousVersion) >= 1;
+		if ((currentVersion - previousVersion) >= 1) {
+			return true;
+		}
+
+		return false;
 	}
 
 }

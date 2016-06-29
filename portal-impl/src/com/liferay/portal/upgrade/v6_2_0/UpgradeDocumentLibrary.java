@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,81 +14,66 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.document.library.kernel.model.DLFileEntryTypeConstants;
+import com.liferay.document.library.kernel.store.DLStoreUtil;
+import com.liferay.portal.kernel.security.auth.FullNameGenerator;
+import com.liferay.portal.kernel.security.auth.FullNameGeneratorFactory;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
+import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.security.auth.FullNameGenerator;
-import com.liferay.portal.security.auth.FullNameGeneratorFactory;
-import com.liferay.portal.upgrade.v6_2_0.util.DLFileRankTable;
-import com.liferay.portlet.documentlibrary.store.DLStoreUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.upgrade.v6_2_0.util.DLFileEntryTypeTable;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Dennis Ju
  * @author Mate Thurzo
  * @author Alexander Chow
+ * @author Roberto Díaz
  */
 public class UpgradeDocumentLibrary extends UpgradeProcess {
 
 	protected void deleteChecksumDirectory() throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement(
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
 				"select distinct companyId from DLFileEntry");
-
-			rs = ps.executeQuery();
+			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				long companyId = rs.getLong("companyId");
 
-				try {
-					DLStoreUtil.deleteDirectory(companyId, 0, "checksum");
-				}
-				catch (Exception e) {
-				}
+				DLStoreUtil.deleteDirectory(companyId, 0, "checksum");
 			}
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
 	protected void deleteTempDirectory() {
-		try {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
 			DLStoreUtil.deleteDirectory(0, 0, "liferay_temp/");
-		}
-		catch (Exception e) {
 		}
 	}
 
 	@Override
 	protected void doUpgrade() throws Exception {
 
-		// DLFileRank
+		// DLFileEntryType
 
-		try {
-			runSQL("alter table DLFileRank add userName STRING");
+		alter(
+			DLFileEntryTypeTable.class,
+			new AlterTableAddColumn("fileEntryTypeKey STRING"),
+			new AlterColumnType("name", "STRING null"));
 
-			runSQL("alter table DLFileRank add modifiedDate DATE");
-		}
-		catch (SQLException sqle) {
-			upgradeTable(
-				DLFileRankTable.TABLE_NAME, DLFileRankTable.TABLE_COLUMNS,
-				DLFileRankTable.TABLE_SQL_CREATE,
-				DLFileRankTable.TABLE_SQL_ADD_INDEXES);
-		}
-
-		updateFileRanks();
+		updateFileEntryTypes();
 
 		// Checksum directory
 
@@ -100,88 +85,87 @@ public class UpgradeDocumentLibrary extends UpgradeProcess {
 	}
 
 	protected String getUserName(long userId) throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"select firstName, middleName, lastName from User_ where " +
-					"userId = ?");
+					"userId = ?")) {
 
 			ps.setLong(1, userId);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					String firstName = rs.getString("firstName");
+					String middleName = rs.getString("middleName");
+					String lastName = rs.getString("lastName");
 
-			if (rs.next()) {
-				String firstName = rs.getString("firstName");
-				String middleName = rs.getString("middleName");
-				String lastName = rs.getString("lastName");
+					FullNameGenerator fullNameGenerator =
+						FullNameGeneratorFactory.getInstance();
 
-				FullNameGenerator fullNameGenerator =
-					FullNameGeneratorFactory.getInstance();
+					return fullNameGenerator.getFullName(
+						firstName, middleName, lastName);
+				}
 
-				return fullNameGenerator.getFullName(
-					firstName, middleName, lastName);
+				return StringPool.BLANK;
 			}
-
-			return StringPool.BLANK;
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
-	protected void updateFileRank(
-			long fileRankId, long userId, Timestamp modifiedDate)
+	protected String localize(long companyId, String content, String key)
 		throws Exception {
 
-		Connection con = null;
-		PreparedStatement ps = null;
+		String languageId = UpgradeProcessUtil.getDefaultLanguageId(companyId);
 
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
+		Locale locale = LocaleUtil.fromLanguageId(languageId);
 
-			ps = con.prepareStatement(
-				"update DLFileRank set userName = ?, modifiedDate = ? where " +
-					"fileRankId = ?");
+		Map<Locale, String> localizationMap = new HashMap<>();
 
-			ps.setString(1, getUserName(userId));
-			ps.setTimestamp(2, modifiedDate);
-			ps.setLong(3, fileRankId);
+		localizationMap.put(locale, content);
+
+		return LocalizationUtil.updateLocalization(
+			localizationMap, StringPool.BLANK, key, languageId);
+	}
+
+	protected void updateFileEntryType(
+			long fileEntryTypeId, long companyId, String fileEntryTypeKey,
+			String name, String description)
+		throws Exception {
+
+		try (PreparedStatement ps = connection.prepareStatement(
+				"update DLFileEntryType set fileEntryTypeKey = ?, name = ?, " +
+					"description = ? where fileEntryTypeId = ?")) {
+
+			ps.setString(1, fileEntryTypeKey);
+			ps.setString(2, localize(companyId, name, "Name"));
+			ps.setString(3, localize(companyId, description, "Description"));
+			ps.setLong(4, fileEntryTypeId);
 
 			ps.executeUpdate();
 		}
-		finally {
-			DataAccess.cleanUp(con, ps);
-		}
 	}
 
-	protected void updateFileRanks() throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement(
-				"select fileRankId, userId, createDate from DLFileRank");
-
-			rs = ps.executeQuery();
+	protected void updateFileEntryTypes() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
+				"select fileEntryTypeId, companyId, name, description from " +
+					"DLFileEntryType");
+			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
-				long fileRankId = rs.getLong("fileRankId");
-				long userId = rs.getLong("userId");
-				Timestamp createDate = rs.getTimestamp("createDate");
+				long fileEntryTypeId = rs.getLong("fileEntryTypeId");
+				long companyId = rs.getLong("companyId");
+				String name = GetterUtil.getString(rs.getString("name"));
+				String description = rs.getString("description");
 
-				updateFileRank(fileRankId, userId, createDate);
+				if (fileEntryTypeId ==
+						DLFileEntryTypeConstants.
+							FILE_ENTRY_TYPE_ID_BASIC_DOCUMENT) {
+
+					name = DLFileEntryTypeConstants.NAME_BASIC_DOCUMENT;
+				}
+
+				updateFileEntryType(
+					fileEntryTypeId, companyId, StringUtil.toUpperCase(name),
+					name, description);
 			}
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 

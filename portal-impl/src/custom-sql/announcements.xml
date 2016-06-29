@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 
 <custom-sql>
-	<sql id="com.liferay.portlet.announcements.service.persistence.AnnouncementsEntryFinder.countByHidden">
+	<sql id="com.liferay.announcements.kernel.service.persistence.AnnouncementsEntryFinder.countByHidden">
 		<![CDATA[
 			SELECT
-				DISTINCT COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AnnouncementsEntry.entryId) AS COUNT_VALUE
 			FROM
 				AnnouncementsEntry
 			LEFT JOIN
@@ -19,10 +19,10 @@
 				(AnnouncementsFlag.value = ?)
 		]]>
 	</sql>
-	<sql id="com.liferay.portlet.announcements.service.persistence.AnnouncementsEntryFinder.countByNotHidden">
+	<sql id="com.liferay.announcements.kernel.service.persistence.AnnouncementsEntryFinder.countByNotHidden">
 		<![CDATA[
 			SELECT
-				DISTINCT COUNT(*) AS COUNT_VALUE
+				COUNT(DISTINCT AnnouncementsEntry.entryId) AS COUNT_VALUE
 			FROM
 				AnnouncementsEntry
 			WHERE
@@ -44,7 +44,7 @@
 				)
 		]]>
 	</sql>
-	<sql id="com.liferay.portlet.announcements.service.persistence.AnnouncementsEntryFinder.findByDisplayDate">
+	<sql id="com.liferay.announcements.kernel.service.persistence.AnnouncementsEntryFinder.findByDisplayDate">
 		<![CDATA[
 			SELECT
 				{AnnouncementsEntry.*}
@@ -55,10 +55,10 @@
 				(displayDate <= ?)
 		]]>
 	</sql>
-	<sql id="com.liferay.portlet.announcements.service.persistence.AnnouncementsEntryFinder.findByHidden">
+	<sql id="com.liferay.announcements.kernel.service.persistence.AnnouncementsEntryFinder.findByHidden">
 		<![CDATA[
 			SELECT
-				DISTINCT {AnnouncementsEntry.*}
+				{AnnouncementsEntry.*}
 			FROM
 				AnnouncementsEntry
 			LEFT JOIN
@@ -76,10 +76,10 @@
 				AnnouncementsEntry.modifiedDate DESC
 		]]>
 	</sql>
-	<sql id="com.liferay.portlet.announcements.service.persistence.AnnouncementsEntryFinder.findByNotHidden">
+	<sql id="com.liferay.announcements.kernel.service.persistence.AnnouncementsEntryFinder.findByNotHidden">
 		<![CDATA[
 			SELECT
-				DISTINCT {AnnouncementsEntry.*}
+				{AnnouncementsEntry.*}
 			FROM
 				AnnouncementsEntry
 			WHERE

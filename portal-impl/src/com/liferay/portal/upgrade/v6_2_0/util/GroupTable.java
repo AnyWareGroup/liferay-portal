@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -38,17 +38,21 @@ public class GroupTable {
 		{"description", Types.VARCHAR},
 		{"type_", Types.INTEGER},
 		{"typeSettings", Types.CLOB},
+		{"manualMembership", Types.BOOLEAN},
+		{"membershipRestriction", Types.INTEGER},
 		{"friendlyURL", Types.VARCHAR},
 		{"site", Types.BOOLEAN},
+		{"remoteStagingGroupCount", Types.INTEGER},
 		{"active_", Types.BOOLEAN}
 	};
 
-	public static final String TABLE_SQL_CREATE = "create table Group_ (uuid_ VARCHAR(75) null,groupId LONG not null primary key,companyId LONG,creatorUserId LONG,classNameId LONG,classPK LONG,parentGroupId LONG,liveGroupId LONG,treePath VARCHAR(75) null,name VARCHAR(150) null,description STRING null,type_ INTEGER,typeSettings TEXT null,friendlyURL VARCHAR(255) null,site BOOLEAN,active_ BOOLEAN)";
+	public static final String TABLE_SQL_CREATE = "create table Group_ (uuid_ VARCHAR(75) null,groupId LONG not null primary key,companyId LONG,creatorUserId LONG,classNameId LONG,classPK LONG,parentGroupId LONG,liveGroupId LONG,treePath STRING null,name VARCHAR(150) null,description STRING null,type_ INTEGER,typeSettings TEXT null,manualMembership BOOLEAN,membershipRestriction INTEGER,friendlyURL VARCHAR(255) null,site BOOLEAN,remoteStagingGroupCount INTEGER,active_ BOOLEAN)";
 
 	public static final String TABLE_SQL_DROP = "drop table Group_";
 
 	public static final String[] TABLE_SQL_ADD_INDEXES = {
 		"create index IX_ABA5CEC2 on Group_ (companyId)",
+		"create index IX_B584B5CC on Group_ (companyId, classNameId)",
 		"create unique index IX_D0D5E397 on Group_ (companyId, classNameId, classPK)",
 		"create unique index IX_5DE0BE11 on Group_ (companyId, classNameId, liveGroupId, name)",
 		"create index IX_ABE2D54 on Group_ (companyId, classNameId, parentGroupId)",

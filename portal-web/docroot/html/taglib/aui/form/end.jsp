@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,12 +16,19 @@
 
 <%@ include file="/html/taglib/aui/form/init.jsp" %>
 
+	<c:if test="<%= (checkboxNames != null) && !checkboxNames.isEmpty() %>">
+		<aui:input name="checkboxNames" type="hidden" value="<%= StringUtil.merge(checkboxNames) %>" />
+	</c:if>
+
+	<c:if test="<%= Validator.isNotNull(onSubmit) %>">
+		</fieldset>
+	</c:if>
 </form>
 
 <aui:script use="liferay-form">
 	Liferay.Form.register(
 		{
-			id: '<%= namespace + name %>'
+			id: '<%= namespace + HtmlUtil.escapeJS(name) %>'
 
 			<c:if test="<%= validatorTagsMap != null %>">
 				, fieldRules: [
@@ -29,8 +36,9 @@
 					<%
 					int i = 0;
 
-					for (String fieldName : validatorTagsMap.keySet()) {
-						List<ValidatorTag> validatorTags = validatorTagsMap.get(fieldName);
+					for (Map.Entry<String, List<ValidatorTag>> entry : validatorTagsMap.entrySet()) {
+						String fieldName = entry.getKey();
+						List<ValidatorTag> validatorTags = entry.getValue();
 
 						for (ValidatorTag validatorTag : validatorTags) {
 					%>
@@ -40,8 +48,8 @@
 							{
 								body: <%= validatorTag.getBody() %>,
 								custom: <%= validatorTag.isCustom() %>,
-								errorMessage: '<%= UnicodeLanguageUtil.get(pageContext, validatorTag.getErrorMessage()) %>',
-								fieldName: '<%= namespace + fieldName %>',
+								errorMessage: '<%= UnicodeLanguageUtil.get(resourceBundle, validatorTag.getErrorMessage()) %>',
+								fieldName: '<%= namespace + HtmlUtil.escapeJS(fieldName) %>',
 								validatorName: '<%= validatorTag.getName() %>'
 							}
 
@@ -61,4 +69,18 @@
 			</c:if>
 		}
 	);
+
+	var onDestroyPortlet = function(event) {
+		if (event.portletId === '<%= portletDisplay.getRootPortletId() %>') {
+			delete Liferay.Form._INSTANCES['<%= namespace + HtmlUtil.escapeJS(name) %>'];
+		}
+	};
+
+	Liferay.on('destroyPortlet', onDestroyPortlet);
+
+	<c:if test="<%= Validator.isNotNull(onSubmit) %>">
+		A.all('#<%= namespace + HtmlUtil.escapeJS(name) %> .input-container').removeAttribute('disabled');
+	</c:if>
+
+	Liferay.fire('<portlet:namespace />formReady');
 </aui:script>

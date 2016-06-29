@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.Layout;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,12 +37,53 @@ import java.util.Date;
  * @see Layout
  * @generated
  */
-public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
+@ProviderType
+public class LayoutCacheModel implements CacheModel<Layout>, Externalizable,
+	MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LayoutCacheModel)) {
+			return false;
+		}
+
+		LayoutCacheModel layoutCacheModel = (LayoutCacheModel)obj;
+
+		if ((plid == layoutCacheModel.plid) &&
+				(mvccVersion == layoutCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, plid);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(63);
+		StringBundler sb = new StringBundler(61);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", plid=");
 		sb.append(plid);
@@ -78,18 +123,12 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		sb.append(hidden);
 		sb.append(", friendlyURL=");
 		sb.append(friendlyURL);
-		sb.append(", iconImage=");
-		sb.append(iconImage);
 		sb.append(", iconImageId=");
 		sb.append(iconImageId);
 		sb.append(", themeId=");
 		sb.append(themeId);
 		sb.append(", colorSchemeId=");
 		sb.append(colorSchemeId);
-		sb.append(", wapThemeId=");
-		sb.append(wapThemeId);
-		sb.append(", wapColorSchemeId=");
-		sb.append(wapColorSchemeId);
 		sb.append(", css=");
 		sb.append(css);
 		sb.append(", priority=");
@@ -100,6 +139,8 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		sb.append(layoutPrototypeLinkEnabled);
 		sb.append(", sourcePrototypeLayoutUuid=");
 		sb.append(sourcePrototypeLayoutUuid);
+		sb.append(", lastPublishDate=");
+		sb.append(lastPublishDate);
 		sb.append("}");
 
 		return sb.toString();
@@ -108,6 +149,8 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 	@Override
 	public Layout toEntityModel() {
 		LayoutImpl layoutImpl = new LayoutImpl();
+
+		layoutImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			layoutImpl.setUuid(StringPool.BLANK);
@@ -204,7 +247,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 			layoutImpl.setFriendlyURL(friendlyURL);
 		}
 
-		layoutImpl.setIconImage(iconImage);
 		layoutImpl.setIconImageId(iconImageId);
 
 		if (themeId == null) {
@@ -219,20 +261,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		}
 		else {
 			layoutImpl.setColorSchemeId(colorSchemeId);
-		}
-
-		if (wapThemeId == null) {
-			layoutImpl.setWapThemeId(StringPool.BLANK);
-		}
-		else {
-			layoutImpl.setWapThemeId(wapThemeId);
-		}
-
-		if (wapColorSchemeId == null) {
-			layoutImpl.setWapColorSchemeId(StringPool.BLANK);
-		}
-		else {
-			layoutImpl.setWapColorSchemeId(wapColorSchemeId);
 		}
 
 		if (css == null) {
@@ -260,6 +288,13 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 			layoutImpl.setSourcePrototypeLayoutUuid(sourcePrototypeLayoutUuid);
 		}
 
+		if (lastPublishDate == Long.MIN_VALUE) {
+			layoutImpl.setLastPublishDate(null);
+		}
+		else {
+			layoutImpl.setLastPublishDate(new Date(lastPublishDate));
+		}
+
 		layoutImpl.resetOriginalValues();
 
 		return layoutImpl;
@@ -267,16 +302,24 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
+
 		plid = objectInput.readLong();
+
 		groupId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+
 		privateLayout = objectInput.readBoolean();
+
 		layoutId = objectInput.readLong();
+
 		parentLayoutId = objectInput.readLong();
 		name = objectInput.readUTF();
 		title = objectInput.readUTF();
@@ -285,24 +328,28 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		robots = objectInput.readUTF();
 		type = objectInput.readUTF();
 		typeSettings = objectInput.readUTF();
+
 		hidden = objectInput.readBoolean();
 		friendlyURL = objectInput.readUTF();
-		iconImage = objectInput.readBoolean();
+
 		iconImageId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
-		wapThemeId = objectInput.readUTF();
-		wapColorSchemeId = objectInput.readUTF();
 		css = objectInput.readUTF();
+
 		priority = objectInput.readInt();
 		layoutPrototypeUuid = objectInput.readUTF();
+
 		layoutPrototypeLinkEnabled = objectInput.readBoolean();
 		sourcePrototypeLayoutUuid = objectInput.readUTF();
+		lastPublishDate = objectInput.readLong();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -311,8 +358,11 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		}
 
 		objectOutput.writeLong(plid);
+
 		objectOutput.writeLong(groupId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
 
 		if (userName == null) {
@@ -324,8 +374,11 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeBoolean(privateLayout);
+
 		objectOutput.writeLong(layoutId);
+
 		objectOutput.writeLong(parentLayoutId);
 
 		if (name == null) {
@@ -386,7 +439,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 			objectOutput.writeUTF(friendlyURL);
 		}
 
-		objectOutput.writeBoolean(iconImage);
 		objectOutput.writeLong(iconImageId);
 
 		if (themeId == null) {
@@ -401,20 +453,6 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		}
 		else {
 			objectOutput.writeUTF(colorSchemeId);
-		}
-
-		if (wapThemeId == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(wapThemeId);
-		}
-
-		if (wapColorSchemeId == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(wapColorSchemeId);
 		}
 
 		if (css == null) {
@@ -441,8 +479,11 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 		else {
 			objectOutput.writeUTF(sourcePrototypeLayoutUuid);
 		}
+
+		objectOutput.writeLong(lastPublishDate);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long plid;
 	public long groupId;
@@ -463,15 +504,13 @@ public class LayoutCacheModel implements CacheModel<Layout>, Externalizable {
 	public String typeSettings;
 	public boolean hidden;
 	public String friendlyURL;
-	public boolean iconImage;
 	public long iconImageId;
 	public String themeId;
 	public String colorSchemeId;
-	public String wapThemeId;
-	public String wapColorSchemeId;
 	public String css;
 	public int priority;
 	public String layoutPrototypeUuid;
 	public boolean layoutPrototypeLinkEnabled;
 	public String sourcePrototypeLayoutUuid;
+	public long lastPublishDate;
 }

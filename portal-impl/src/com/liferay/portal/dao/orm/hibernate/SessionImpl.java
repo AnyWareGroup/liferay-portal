@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -84,9 +84,8 @@ public class SessionImpl implements Session {
 		try {
 			queryString = SQLTransformer.transformFromJpqlToHql(queryString);
 
-			return DoPrivilegedUtil.wrap(
-				new QueryImpl(_session.createQuery(queryString), strictName),
-				true);
+			return DoPrivilegedUtil.wrapWhenActive(
+				new QueryImpl(_session.createQuery(queryString), strictName));
 		}
 		catch (Exception e) {
 			throw ExceptionTranslator.translate(e);
@@ -105,10 +104,39 @@ public class SessionImpl implements Session {
 		try {
 			queryString = SQLTransformer.transformFromJpqlToHql(queryString);
 
-			return DoPrivilegedUtil.wrap(
+			return DoPrivilegedUtil.wrapWhenActive(
 				new SQLQueryImpl(
-					_session.createSQLQuery(queryString), strictName),
-				true);
+					_session.createSQLQuery(queryString), strictName));
+		}
+		catch (Exception e) {
+			throw ExceptionTranslator.translate(e);
+		}
+	}
+
+	@Override
+	public SQLQuery createSynchronizedSQLQuery(String queryString)
+		throws ORMException {
+
+		return createSynchronizedSQLQuery(queryString, true);
+	}
+
+	@Override
+	public SQLQuery createSynchronizedSQLQuery(
+			String queryString, boolean strictName)
+		throws ORMException {
+
+		try {
+			queryString = SQLTransformer.transformFromJpqlToHql(queryString);
+
+			SQLQuery sqlQuery = new SQLQueryImpl(
+				_session.createSQLQuery(queryString), strictName);
+
+			String[] tableNames = SQLQueryTableNamesUtil.getTableNames(
+				queryString);
+
+			sqlQuery.addSynchronizedQuerySpaces(tableNames);
+
+			return DoPrivilegedUtil.wrapWhenActive(sqlQuery);
 		}
 		catch (Exception e) {
 			throw ExceptionTranslator.translate(e);
@@ -162,8 +190,9 @@ public class SessionImpl implements Session {
 	/**
 	 * @deprecated As of 6.1.0
 	 */
-	@Override
+	@Deprecated
 	@NotPrivileged
+	@Override
 	public Object get(Class<?> clazz, Serializable id, LockMode lockMode)
 		throws ORMException {
 
@@ -184,6 +213,17 @@ public class SessionImpl implements Session {
 
 	@NotPrivileged
 	@Override
+	public boolean isDirty() throws ORMException {
+		try {
+			return _session.isDirty();
+		}
+		catch (Exception e) {
+			throw ExceptionTranslator.translate(e);
+		}
+	}
+
+	@NotPrivileged
+	@Override
 	public Object load(Class<?> clazz, Serializable id) throws ORMException {
 		try {
 			return _session.load(clazz, id);
@@ -200,7 +240,7 @@ public class SessionImpl implements Session {
 			return _session.merge(object);
 		}
 		catch (Exception e) {
-			throw ExceptionTranslator.translate(e);
+			throw ExceptionTranslator.translate(e, _session, object);
 		}
 	}
 
@@ -222,10 +262,10 @@ public class SessionImpl implements Session {
 			_session.saveOrUpdate(object);
 		}
 		catch (Exception e) {
-			throw ExceptionTranslator.translate(e);
+			throw ExceptionTranslator.translate(e, _session, object);
 		}
 	}
 
-	private org.hibernate.Session _session;
+	private final org.hibernate.Session _session;
 
 }

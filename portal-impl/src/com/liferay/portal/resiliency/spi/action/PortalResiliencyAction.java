@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,17 @@
 
 package com.liferay.portal.resiliency.spi.action;
 
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.portlet.ActionResult;
 import com.liferay.portal.kernel.portlet.PortletContainer;
 import com.liferay.portal.kernel.portlet.PortletContainerUtil;
 import com.liferay.portal.kernel.resiliency.spi.agent.SPIAgent;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.Portlet;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.resiliency.spi.agent.SPIAgentRequest;
 import com.liferay.portal.resiliency.spi.agent.SPIAgentResponse;
-import com.liferay.portal.security.auth.PrincipalThreadLocal;
-import com.liferay.portal.util.WebKeys;
 
 import java.util.List;
 
@@ -45,8 +46,8 @@ public class PortalResiliencyAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		SPIAgentRequest spiAgentRequest = (SPIAgentRequest)request.getAttribute(
@@ -86,7 +87,11 @@ public class PortalResiliencyAction extends Action {
 		Portlet portlet = (Portlet)request.getAttribute(
 			WebKeys.SPI_AGENT_PORTLET);
 
-		portletContainer.preparePortlet(request, portlet);
+		String portletId = ParamUtil.getString(request, "p_p_id");
+
+		if (portletId.equals(portlet.getPortletId())) {
+			portletContainer.preparePortlet(request, portlet);
+		}
 
 		SPIAgent.Lifecycle lifecycle = (SPIAgent.Lifecycle)request.getAttribute(
 			WebKeys.SPI_AGENT_LIFECYCLE);

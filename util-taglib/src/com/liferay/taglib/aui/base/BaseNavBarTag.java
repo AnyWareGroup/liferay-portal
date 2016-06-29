@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,7 @@ import javax.servlet.jsp.JspException;
  * @author Julio Camarero
  * @generated
  */
-public class BaseNavBarTag extends com.liferay.taglib.util.IncludeTag {
+public abstract class BaseNavBarTag extends com.liferay.taglib.util.IncludeTag {
 
 	@Override
 	public int doStartTag() throws JspException {
@@ -37,8 +37,16 @@ public class BaseNavBarTag extends com.liferay.taglib.util.IncludeTag {
 		return _cssClass;
 	}
 
+	public java.lang.Object getData() {
+		return _data;
+	}
+
 	public java.lang.String getId() {
 		return _id;
+	}
+
+	public java.lang.String getMarkupView() {
+		return _markupView;
 	}
 
 	public void setCssClass(java.lang.String cssClass) {
@@ -47,43 +55,55 @@ public class BaseNavBarTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("cssClass", cssClass);
 	}
 
+	public void setData(java.lang.Object data) {
+		_data = data;
+
+		setScopedAttribute("data", data);
+	}
+
 	public void setId(java.lang.String id) {
 		_id = id;
 
 		setScopedAttribute("id", id);
 	}
 
+	public void setMarkupView(java.lang.String markupView) {
+		_markupView = markupView;
+
+		setScopedAttribute("markupView", markupView);
+	}
+
 	@Override
 	protected void cleanUp() {
+		super.cleanUp();
+
 		_cssClass = null;
+		_data = null;
 		_id = null;
+		_markupView = null;
 	}
 
 	@Override
-	protected String getEndPage() {
-		return _END_PAGE;
-	}
-
-	@Override
-	protected String getStartPage() {
-		return _START_PAGE;
+	protected String getPage() {
+		return _PAGE;
 	}
 
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
 		setNamespacedAttribute(request, "cssClass", _cssClass);
+		setNamespacedAttribute(request, "data", _data);
 		setNamespacedAttribute(request, "id", _id);
+		setNamespacedAttribute(request, "markupView", _markupView);
 	}
 
 	protected static final String _ATTRIBUTE_NAMESPACE = "aui:nav-bar:";
 
-	private static final String _END_PAGE =
-		"/html/taglib/aui/nav_bar/end.jsp";
-
-	private static final String _START_PAGE =
-		"/html/taglib/aui/nav_bar/start.jsp";
+	private static final String _PAGE =
+		"/html/taglib/aui/nav_bar/page.jsp";
 
 	private java.lang.String _cssClass = null;
+	private java.lang.Object _data = null;
 	private java.lang.String _id = null;
+	private java.lang.String _markupView = null;
 
 }

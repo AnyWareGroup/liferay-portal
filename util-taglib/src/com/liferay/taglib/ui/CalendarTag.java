@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -75,9 +75,9 @@ public class CalendarTag extends IncludeTag {
 	protected void setAttributes(HttpServletRequest request) {
 		request.setAttribute("liferay-ui:calendar:data", _data);
 		request.setAttribute("liferay-ui:calendar:day", String.valueOf(_day));
+		request.setAttribute("liferay-ui:calendar:headerFormat", _headerFormat);
 		request.setAttribute(
 			"liferay-ui:calendar:headerPattern", _headerPattern);
-		request.setAttribute("liferay-ui:calendar:headerFormat", _headerFormat);
 		request.setAttribute(
 			"liferay-ui:calendar:month", String.valueOf(_month));
 		request.setAttribute(

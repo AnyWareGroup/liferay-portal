@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ServiceBeanMethodInvocationFactory;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.spring.aop.ServiceBeanMethodInvocation;
@@ -43,9 +44,7 @@ public class ServiceBeanMethodInvocationFactoryImpl
 			Object[] arguments, String[] methodInterceptorBeanIds)
 		throws Exception {
 
-		if ((methodInterceptorBeanIds == null) ||
-			(methodInterceptorBeanIds.length == 0)) {
-
+		if (ArrayUtil.isEmpty(methodInterceptorBeanIds)) {
 			throw new IllegalArgumentException(
 				"Method interceptor bean IDs array is empty");
 		}
@@ -91,7 +90,7 @@ public class ServiceBeanMethodInvocationFactoryImpl
 			return methodInterceptors;
 		}
 
-		methodInterceptors = new ArrayList<MethodInterceptor>();
+		methodInterceptors = new ArrayList<>();
 
 		for (String methodInterceptorBeanId : methodInterceptorBeanIds) {
 			MethodInterceptor methodInterceptor =
@@ -106,7 +105,7 @@ public class ServiceBeanMethodInvocationFactoryImpl
 		return methodInterceptors;
 	}
 
-	private Map<String, List<MethodInterceptor>> _methodInterceptors =
-		new HashMap<String, List<MethodInterceptor>>();
+	private final Map<String, List<MethodInterceptor>> _methodInterceptors =
+		new HashMap<>();
 
 }

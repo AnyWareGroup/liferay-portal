@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,33 +14,41 @@
 
 package com.liferay.portlet;
 
+import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.expando.kernel.model.CustomAttributesDisplay;
+import com.liferay.exportimport.kernel.lar.PortletDataHandler;
+import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.portal.kernel.atom.AtomCollectionAdapter;
-import com.liferay.portal.kernel.lar.PortletDataHandler;
-import com.liferay.portal.kernel.lar.StagedModelDataHandler;
+import com.liferay.portal.kernel.notifications.UserNotificationDefinition;
+import com.liferay.portal.kernel.notifications.UserNotificationHandler;
 import com.liferay.portal.kernel.poller.PollerProcessor;
 import com.liferay.portal.kernel.pop.MessageListener;
 import com.liferay.portal.kernel.portlet.ConfigurationAction;
-import com.liferay.portal.kernel.portlet.FriendlyURLMapper;
+import com.liferay.portal.kernel.portlet.ControlPanelEntry;
+import com.liferay.portal.kernel.portlet.FriendlyURLMapperTracker;
 import com.liferay.portal.kernel.portlet.PortletBag;
 import com.liferay.portal.kernel.portlet.PortletLayoutListener;
+import com.liferay.portal.kernel.scheduler.messaging.SchedulerEventMessageListener;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.OpenSearch;
+import com.liferay.portal.kernel.security.permission.PermissionPropagator;
 import com.liferay.portal.kernel.servlet.URLEncoder;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.trash.TrashHandler;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.ResourceBundleLoader;
+import com.liferay.portal.kernel.util.ResourceBundleLoaderUtil;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.workflow.WorkflowHandler;
 import com.liferay.portal.kernel.xmlrpc.Method;
-import com.liferay.portal.security.permission.PermissionPropagator;
-import com.liferay.portlet.asset.model.AssetRendererFactory;
-import com.liferay.portlet.expando.model.CustomAttributesDisplay;
-import com.liferay.portlet.social.model.SocialActivityInterpreter;
-import com.liferay.portlet.social.model.SocialRequestInterpreter;
+import com.liferay.social.kernel.model.SocialActivityInterpreter;
+import com.liferay.social.kernel.model.SocialRequestInterpreter;
+
+import java.io.Closeable;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.portlet.Portlet;
@@ -56,83 +64,122 @@ public class PortletBagImpl implements PortletBag {
 
 	public PortletBagImpl(
 		String portletName, ServletContext servletContext,
-		Portlet portletInstance,
-		ConfigurationAction configurationActionInstance,
-		List<Indexer> indexerInstances, OpenSearch openSearchInstance,
-		FriendlyURLMapper friendlyURLMapperInstance,
-		URLEncoder urlEncoderInstance,
-		PortletDataHandler portletDataHandlerInstance,
+		Portlet portletInstance, String resourceBundleBaseName,
+		List<ConfigurationAction> configurationActionInstances,
+		List<Indexer<?>> indexerInstances, List<OpenSearch> openSearchInstances,
+		List<SchedulerEventMessageListener> schedulerEventMessageListeners,
+		FriendlyURLMapperTracker friendlyURLMapperTracker,
+		List<URLEncoder> urlEncoderInstances,
+		List<PortletDataHandler> portletDataHandlerInstances,
 		List<StagedModelDataHandler<?>> stagedModelDataHandlerInstances,
-		TemplateHandler templateHandlerInstance,
-		PortletLayoutListener portletLayoutListenerInstance,
-		PollerProcessor pollerProcessorInstance,
-		MessageListener popMessageListenerInstance,
+		List<TemplateHandler> templateHandlerInstances,
+		List<PortletLayoutListener> portletLayoutListenerInstances,
+		List<PollerProcessor> pollerProcessorInstances,
+		List<MessageListener> popMessageListenerInstances,
 		List<SocialActivityInterpreter> socialActivityInterpreterInstances,
-		SocialRequestInterpreter socialRequestInterpreterInstance,
-		WebDAVStorage webDAVStorageInstance, Method xmlRpcMethodInstance,
-		ControlPanelEntry controlPanelEntryInstance,
-		List<AssetRendererFactory> assetRendererFactoryInstances,
+		List<SocialRequestInterpreter> socialRequestInterpreterInstances,
+		List<UserNotificationDefinition> userNotificationDefinitionInstances,
+		List<UserNotificationHandler> userNotificationHandlerInstances,
+		List<WebDAVStorage> webDAVStorageInstances,
+		List<Method> xmlRpcMethodInstances,
+		List<ControlPanelEntry> controlPanelEntryInstances,
+		List<AssetRendererFactory<?>> assetRendererFactoryInstances,
 		List<AtomCollectionAdapter<?>> atomCollectionAdapters,
 		List<CustomAttributesDisplay> customAttributesDisplayInstances,
-		PermissionPropagator permissionPropagatorInstance,
+		List<PermissionPropagator> permissionPropagatorInstances,
 		List<TrashHandler> trashHandlerInstances,
-		List<WorkflowHandler> workflowHandlerInstances,
-		PreferencesValidator preferencesValidatorInstance,
-		Map<String, ResourceBundle> resourceBundles) {
+		List<WorkflowHandler<?>> workflowHandlerInstances,
+		List<PreferencesValidator> preferencesValidatorInstances) {
 
 		_portletName = portletName;
 		_servletContext = servletContext;
 		_portletInstance = portletInstance;
-		_configurationActionInstance = configurationActionInstance;
+		_resourceBundleBaseName = resourceBundleBaseName;
+		_configurationActionInstances = configurationActionInstances;
 		_indexerInstances = indexerInstances;
-		_openSearchInstance = openSearchInstance;
-		_friendlyURLMapperInstance = friendlyURLMapperInstance;
-		_urlEncoderInstance = urlEncoderInstance;
-		_portletDataHandlerInstance = portletDataHandlerInstance;
+		_openSearchInstances = openSearchInstances;
+		_schedulerEventMessageListeners = schedulerEventMessageListeners;
+		_friendlyURLMapperTracker = friendlyURLMapperTracker;
+		_urlEncoderInstances = urlEncoderInstances;
+		_portletDataHandlerInstances = portletDataHandlerInstances;
 		_stagedModelDataHandlerInstances = stagedModelDataHandlerInstances;
-		_templateHandlerInstance = templateHandlerInstance;
-		_portletLayoutListenerInstance = portletLayoutListenerInstance;
-		_pollerProcessorInstance = pollerProcessorInstance;
-		_popMessageListenerInstance = popMessageListenerInstance;
+		_templateHandlerInstances = templateHandlerInstances;
+		_portletLayoutListenerInstances = portletLayoutListenerInstances;
+		_pollerProcessorInstances = pollerProcessorInstances;
+		_popMessageListenerInstances = popMessageListenerInstances;
 		_socialActivityInterpreterInstances =
 			socialActivityInterpreterInstances;
-		_socialRequestInterpreterInstance = socialRequestInterpreterInstance;
-		_webDAVStorageInstance = webDAVStorageInstance;
-		_xmlRpcMethodInstance = xmlRpcMethodInstance;
-		_controlPanelEntryInstance = controlPanelEntryInstance;
+		_socialRequestInterpreterInstances = socialRequestInterpreterInstances;
+		_userNotificationDefinitionInstances =
+			userNotificationDefinitionInstances;
+		_userNotificationHandlerInstances = userNotificationHandlerInstances;
+		_webDAVStorageInstances = webDAVStorageInstances;
+		_xmlRpcMethodInstances = xmlRpcMethodInstances;
+		_controlPanelEntryInstances = controlPanelEntryInstances;
 		_assetRendererFactoryInstances = assetRendererFactoryInstances;
 		_atomCollectionAdapterInstances = atomCollectionAdapters;
 		_customAttributesDisplayInstances = customAttributesDisplayInstances;
-		_permissionPropagatorInstance = permissionPropagatorInstance;
+		_permissionPropagatorInstances = permissionPropagatorInstances;
 		_trashHandlerInstances = trashHandlerInstances;
 		_workflowHandlerInstances = workflowHandlerInstances;
-		_preferencesValidatorInstance = preferencesValidatorInstance;
-		_resourceBundles = resourceBundles;
+		_preferencesValidatorInstances = preferencesValidatorInstances;
 	}
 
 	@Override
 	public Object clone() {
 		return new PortletBagImpl(
 			getPortletName(), getServletContext(), getPortletInstance(),
-			getConfigurationActionInstance(), getIndexerInstances(),
-			getOpenSearchInstance(), getFriendlyURLMapperInstance(),
-			getURLEncoderInstance(), getPortletDataHandlerInstance(),
-			getStagedModelDataHandlerInstances(), getTemplateHandlerInstance(),
-			getPortletLayoutListenerInstance(), getPollerProcessorInstance(),
-			getPopMessageListenerInstance(),
+			getResourceBundleBaseName(), getConfigurationActionInstances(),
+			getIndexerInstances(), getOpenSearchInstances(),
+			getSchedulerEventMessageListeners(), getFriendlyURLMapperTracker(),
+			getURLEncoderInstances(), getPortletDataHandlerInstances(),
+			getStagedModelDataHandlerInstances(), getTemplateHandlerInstances(),
+			getPortletLayoutListenerInstances(), getPollerProcessorInstances(),
+			getPopMessageListenerInstances(),
 			getSocialActivityInterpreterInstances(),
-			getSocialRequestInterpreterInstance(), getWebDAVStorageInstance(),
-			getXmlRpcMethodInstance(), getControlPanelEntryInstance(),
+			getSocialRequestInterpreterInstances(),
+			getUserNotificationDefinitionInstances(),
+			getUserNotificationHandlerInstances(), getWebDAVStorageInstances(),
+			getXmlRpcMethodInstances(), getControlPanelEntryInstances(),
 			getAssetRendererFactoryInstances(),
 			getAtomCollectionAdapterInstances(),
 			getCustomAttributesDisplayInstances(),
-			getPermissionPropagatorInstance(), getTrashHandlerInstances(),
-			getWorkflowHandlerInstances(), getPreferencesValidatorInstance(),
-			getResourceBundles());
+			getPermissionPropagatorInstances(), getTrashHandlerInstances(),
+			getWorkflowHandlerInstances(), getPreferencesValidatorInstances());
 	}
 
 	@Override
-	public List<AssetRendererFactory> getAssetRendererFactoryInstances() {
+	public void destroy() {
+		close(_assetRendererFactoryInstances);
+		close(_atomCollectionAdapterInstances);
+		close(_configurationActionInstances);
+		close(_controlPanelEntryInstances);
+		close(_customAttributesDisplayInstances);
+		close(_friendlyURLMapperTracker);
+		close(_indexerInstances);
+		close(_openSearchInstances);
+		close(_permissionPropagatorInstances);
+		close(_pollerProcessorInstances);
+		close(_popMessageListenerInstances);
+		close(_portletDataHandlerInstances);
+		close(_portletLayoutListenerInstances);
+		close(_preferencesValidatorInstances);
+		close(_schedulerEventMessageListeners);
+		close(_socialActivityInterpreterInstances);
+		close(_socialRequestInterpreterInstances);
+		close(_stagedModelDataHandlerInstances);
+		close(_templateHandlerInstances);
+		close(_trashHandlerInstances);
+		close(_urlEncoderInstances);
+		close(_userNotificationDefinitionInstances);
+		close(_userNotificationHandlerInstances);
+		close(_webDAVStorageInstances);
+		close(_workflowHandlerInstances);
+		close(_xmlRpcMethodInstances);
+	}
+
+	@Override
+	public List<AssetRendererFactory<?>> getAssetRendererFactoryInstances() {
 		return _assetRendererFactoryInstances;
 	}
 
@@ -142,13 +189,13 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public ConfigurationAction getConfigurationActionInstance() {
-		return _configurationActionInstance;
+	public List<ConfigurationAction> getConfigurationActionInstances() {
+		return _configurationActionInstances;
 	}
 
 	@Override
-	public ControlPanelEntry getControlPanelEntryInstance() {
-		return _controlPanelEntryInstance;
+	public List<ControlPanelEntry> getControlPanelEntryInstances() {
+		return _controlPanelEntryInstances;
 	}
 
 	@Override
@@ -157,38 +204,38 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public FriendlyURLMapper getFriendlyURLMapperInstance() {
-		return _friendlyURLMapperInstance;
+	public FriendlyURLMapperTracker getFriendlyURLMapperTracker() {
+		return _friendlyURLMapperTracker;
 	}
 
 	@Override
-	public List<Indexer> getIndexerInstances() {
+	public List<Indexer<?>> getIndexerInstances() {
 		return _indexerInstances;
 	}
 
 	@Override
-	public OpenSearch getOpenSearchInstance() {
-		return _openSearchInstance;
+	public List<OpenSearch> getOpenSearchInstances() {
+		return _openSearchInstances;
 	}
 
 	@Override
-	public PermissionPropagator getPermissionPropagatorInstance() {
-		return _permissionPropagatorInstance;
+	public List<PermissionPropagator> getPermissionPropagatorInstances() {
+		return _permissionPropagatorInstances;
 	}
 
 	@Override
-	public PollerProcessor getPollerProcessorInstance() {
-		return _pollerProcessorInstance;
+	public List<PollerProcessor> getPollerProcessorInstances() {
+		return _pollerProcessorInstances;
 	}
 
 	@Override
-	public MessageListener getPopMessageListenerInstance() {
-		return _popMessageListenerInstance;
+	public List<MessageListener> getPopMessageListenerInstances() {
+		return _popMessageListenerInstances;
 	}
 
 	@Override
-	public PortletDataHandler getPortletDataHandlerInstance() {
-		return _portletDataHandlerInstance;
+	public List<PortletDataHandler> getPortletDataHandlerInstances() {
+		return _portletDataHandlerInstances;
 	}
 
 	@Override
@@ -197,8 +244,8 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public PortletLayoutListener getPortletLayoutListenerInstance() {
-		return _portletLayoutListenerInstance;
+	public List<PortletLayoutListener> getPortletLayoutListenerInstances() {
+		return _portletLayoutListenerInstances;
 	}
 
 	@Override
@@ -207,30 +254,36 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public PreferencesValidator getPreferencesValidatorInstance() {
-		return _preferencesValidatorInstance;
+	public List<PreferencesValidator> getPreferencesValidatorInstances() {
+		return _preferencesValidatorInstances;
 	}
 
 	@Override
 	public ResourceBundle getResourceBundle(Locale locale) {
-		ResourceBundle resourceBundle = _resourceBundles.get(
-			LocaleUtil.toLanguageId(locale));
+		ResourceBundleLoader resourceBundleLoader =
+			ResourceBundleLoaderUtil.
+				getResourceBundleLoaderByServletContextNameAndBaseName(
+					_servletContext.getServletContextName(),
+					getResourceBundleBaseName());
 
-		if (resourceBundle == null) {
-			resourceBundle = _resourceBundles.get(locale.getLanguage());
-
-			if (resourceBundle == null) {
-				resourceBundle = _resourceBundles.get(
-					LocaleUtil.toLanguageId(LocaleUtil.getDefault()));
-			}
+		if (resourceBundleLoader == null) {
+			return null;
 		}
 
-		return resourceBundle;
+		return resourceBundleLoader.loadResourceBundle(
+			LocaleUtil.toLanguageId(locale));
 	}
 
 	@Override
-	public Map<String, ResourceBundle> getResourceBundles() {
-		return _resourceBundles;
+	public String getResourceBundleBaseName() {
+		return _resourceBundleBaseName;
+	}
+
+	@Override
+	public List<SchedulerEventMessageListener>
+		getSchedulerEventMessageListeners() {
+
+		return _schedulerEventMessageListeners;
 	}
 
 	@Override
@@ -246,8 +299,10 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public SocialRequestInterpreter getSocialRequestInterpreterInstance() {
-		return _socialRequestInterpreterInstance;
+	public List<SocialRequestInterpreter>
+		getSocialRequestInterpreterInstances() {
+
+		return _socialRequestInterpreterInstances;
 	}
 
 	@Override
@@ -258,8 +313,8 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public TemplateHandler getTemplateHandlerInstance() {
-		return _templateHandlerInstance;
+	public List<TemplateHandler> getTemplateHandlerInstances() {
+		return _templateHandlerInstances;
 	}
 
 	@Override
@@ -268,23 +323,35 @@ public class PortletBagImpl implements PortletBag {
 	}
 
 	@Override
-	public URLEncoder getURLEncoderInstance() {
-		return _urlEncoderInstance;
+	public List<URLEncoder> getURLEncoderInstances() {
+		return _urlEncoderInstances;
 	}
 
 	@Override
-	public WebDAVStorage getWebDAVStorageInstance() {
-		return _webDAVStorageInstance;
+	public List<UserNotificationDefinition>
+		getUserNotificationDefinitionInstances() {
+
+		return _userNotificationDefinitionInstances;
 	}
 
 	@Override
-	public List<WorkflowHandler> getWorkflowHandlerInstances() {
+	public List<UserNotificationHandler> getUserNotificationHandlerInstances() {
+		return _userNotificationHandlerInstances;
+	}
+
+	@Override
+	public List<WebDAVStorage> getWebDAVStorageInstances() {
+		return _webDAVStorageInstances;
+	}
+
+	@Override
+	public List<WorkflowHandler<?>> getWorkflowHandlerInstances() {
 		return _workflowHandlerInstances;
 	}
 
 	@Override
-	public Method getXmlRpcMethodInstance() {
-		return _xmlRpcMethodInstance;
+	public List<Method> getXmlRpcMethodInstances() {
+		return _xmlRpcMethodInstances;
 	}
 
 	@Override
@@ -297,32 +364,55 @@ public class PortletBagImpl implements PortletBag {
 		_portletName = portletName;
 	}
 
-	private List<AssetRendererFactory> _assetRendererFactoryInstances;
-	private List<AtomCollectionAdapter<?>> _atomCollectionAdapterInstances;
-	private ConfigurationAction _configurationActionInstance;
-	private ControlPanelEntry _controlPanelEntryInstance;
-	private List<CustomAttributesDisplay> _customAttributesDisplayInstances;
-	private FriendlyURLMapper _friendlyURLMapperInstance;
-	private List<Indexer> _indexerInstances;
-	private OpenSearch _openSearchInstance;
-	private PermissionPropagator _permissionPropagatorInstance;
-	private PollerProcessor _pollerProcessorInstance;
-	private MessageListener _popMessageListenerInstance;
-	private PortletDataHandler _portletDataHandlerInstance;
+	protected void close(Object object) {
+		try {
+			Closeable closeable = (Closeable)object;
+
+			closeable.close();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(
+				"Unable to close " + ClassUtil.getClassName(object), e);
+		}
+	}
+
+	private final List<AssetRendererFactory<?>> _assetRendererFactoryInstances;
+	private final List<AtomCollectionAdapter<?>>
+		_atomCollectionAdapterInstances;
+	private final List<ConfigurationAction> _configurationActionInstances;
+	private final List<ControlPanelEntry> _controlPanelEntryInstances;
+	private final List<CustomAttributesDisplay>
+		_customAttributesDisplayInstances;
+	private final FriendlyURLMapperTracker _friendlyURLMapperTracker;
+	private final List<Indexer<?>> _indexerInstances;
+	private final List<OpenSearch> _openSearchInstances;
+	private final List<PermissionPropagator> _permissionPropagatorInstances;
+	private final List<PollerProcessor> _pollerProcessorInstances;
+	private final List<MessageListener> _popMessageListenerInstances;
+	private final List<PortletDataHandler> _portletDataHandlerInstances;
 	private Portlet _portletInstance;
-	private PortletLayoutListener _portletLayoutListenerInstance;
+	private final List<PortletLayoutListener> _portletLayoutListenerInstances;
 	private String _portletName;
-	private PreferencesValidator _preferencesValidatorInstance;
-	private Map<String, ResourceBundle> _resourceBundles;
-	private ServletContext _servletContext;
-	private List<SocialActivityInterpreter> _socialActivityInterpreterInstances;
-	private SocialRequestInterpreter _socialRequestInterpreterInstance;
-	private List<StagedModelDataHandler<?>> _stagedModelDataHandlerInstances;
-	private TemplateHandler _templateHandlerInstance;
-	private List<TrashHandler> _trashHandlerInstances;
-	private URLEncoder _urlEncoderInstance;
-	private WebDAVStorage _webDAVStorageInstance;
-	private List<WorkflowHandler> _workflowHandlerInstances;
-	private Method _xmlRpcMethodInstance;
+	private final List<PreferencesValidator> _preferencesValidatorInstances;
+	private final String _resourceBundleBaseName;
+	private final List<SchedulerEventMessageListener>
+		_schedulerEventMessageListeners;
+	private final ServletContext _servletContext;
+	private final List<SocialActivityInterpreter>
+		_socialActivityInterpreterInstances;
+	private final List<SocialRequestInterpreter>
+		_socialRequestInterpreterInstances;
+	private final List<StagedModelDataHandler<?>>
+		_stagedModelDataHandlerInstances;
+	private final List<TemplateHandler> _templateHandlerInstances;
+	private final List<TrashHandler> _trashHandlerInstances;
+	private final List<URLEncoder> _urlEncoderInstances;
+	private final List<UserNotificationDefinition>
+		_userNotificationDefinitionInstances;
+	private final List<UserNotificationHandler>
+		_userNotificationHandlerInstances;
+	private final List<WebDAVStorage> _webDAVStorageInstances;
+	private final List<WorkflowHandler<?>> _workflowHandlerInstances;
+	private final List<Method> _xmlRpcMethodInstances;
 
 }

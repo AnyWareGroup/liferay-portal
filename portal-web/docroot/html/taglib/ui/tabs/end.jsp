@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,11 +17,11 @@
 <%@ include file="/html/taglib/ui/tabs/init.jsp" %>
 
 <%
-String errorSection = (String)request.getAttribute("errorSection");
+String errorSection = (String)request.getAttribute(WebKeys.ERROR_SECTION);
 %>
 
 <c:if test="<%= !themeDisplay.isFacebook() %>">
 	<aui:script>
-		Liferay.Portal.Tabs.show("<%= namespace + param %>", <%= namesJS %>, "<%= UnicodeFormatter.toString((errorSection == null) ? value : errorSection) %>");
+		Liferay.Portal.Tabs.show('<%= namespace + param %>', <%= namesJS %>, '<%= UnicodeFormatter.toString((errorSection == null) ? value : errorSection) %>');
 	</aui:script>
 </c:if>

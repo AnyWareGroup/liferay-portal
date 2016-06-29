@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,19 +14,32 @@
 
 package com.liferay.portal.repository.liferayrepository.model;
 
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFileEntryConstants;
+import com.liferay.document.library.kernel.model.DLFileVersion;
+import com.liferay.document.library.kernel.service.DLAppHelperLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLFileVersionLocalServiceUtil;
+import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lock.Lock;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.Repository;
+import com.liferay.portal.kernel.repository.RepositoryProviderUtil;
+import com.liferay.portal.kernel.repository.capabilities.Capability;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.FileShortcut;
 import com.liferay.portal.kernel.repository.model.FileVersion;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.repository.model.RepositoryModelOperation;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.model.Lock;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portlet.documentlibrary.model.DLFileEntry;
-import com.liferay.portlet.documentlibrary.model.DLFileVersion;
-import com.liferay.portlet.documentlibrary.service.DLFileVersionLocalServiceUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portlet.documentlibrary.service.permission.DLFileEntryPermission;
-import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portlet.documentlibrary.util.RepositoryModelUtil;
 
 import java.io.InputStream;
 import java.io.Serializable;
@@ -34,6 +47,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Alexander Chow
@@ -41,7 +55,7 @@ import java.util.Map;
 public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 	public LiferayFileEntry(DLFileEntry dlFileEntry) {
-		_dlFileEntry = dlFileEntry;
+		this(dlFileEntry, dlFileEntry.isEscapedModel());
 	}
 
 	public LiferayFileEntry(DLFileEntry fileEntry, boolean escapedModel) {
@@ -51,41 +65,42 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 	@Override
 	public Object clone() {
-		LiferayFileEntry liferayFileEntry = new LiferayFileEntry(
-			_dlFileEntry, _escapedModel);
-
-		FileVersion cachedFileVersion = getCachedFileVersion();
-
-		if (cachedFileVersion != null) {
-			liferayFileEntry.setCachedFileVersion(cachedFileVersion);
-		}
-
-		liferayFileEntry.setCompanyId(getCompanyId());
-		liferayFileEntry.setCreateDate(getCreateDate());
-		liferayFileEntry.setGroupId(getGroupId());
-		liferayFileEntry.setModifiedDate(getModifiedDate());
-		liferayFileEntry.setPrimaryKey(getPrimaryKey());
-		liferayFileEntry.setUserId(getUserId());
-		liferayFileEntry.setUserName(getUserName());
-
-		try {
-			liferayFileEntry.setUserUuid(getUserUuid());
-		}
-		catch (SystemException se) {
-		}
-
-		liferayFileEntry.setUuid(getUuid());
-
-		return liferayFileEntry;
+		return new LiferayFileEntry(_dlFileEntry);
 	}
 
 	@Override
 	public boolean containsPermission(
 			PermissionChecker permissionChecker, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return DLFileEntryPermission.contains(
 			permissionChecker, _dlFileEntry, actionId);
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LiferayFileEntry)) {
+			return false;
+		}
+
+		LiferayFileEntry liferayFileEntry = (LiferayFileEntry)obj;
+
+		if (Objects.equals(_dlFileEntry, liferayFileEntry._dlFileEntry)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public void execute(RepositoryModelOperation repositoryModelOperation)
+		throws PortalException {
+
+		repositoryModelOperation.execute(this);
 	}
 
 	@Override
@@ -109,17 +124,33 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
-	public InputStream getContentStream()
-		throws PortalException, SystemException {
+	public InputStream getContentStream() throws PortalException {
+		InputStream inputStream = _dlFileEntry.getContentStream();
 
-		return _dlFileEntry.getContentStream();
+		try {
+			DLAppHelperLocalServiceUtil.getFileAsStream(
+				PrincipalThreadLocal.getUserId(), this, true);
+		}
+		catch (Exception e) {
+			_log.error(e);
+		}
+
+		return inputStream;
 	}
 
 	@Override
-	public InputStream getContentStream(String version)
-		throws PortalException, SystemException {
+	public InputStream getContentStream(String version) throws PortalException {
+		InputStream inputStream = _dlFileEntry.getContentStream(version);
 
-		return _dlFileEntry.getContentStream(version);
+		try {
+			DLAppHelperLocalServiceUtil.getFileAsStream(
+				PrincipalThreadLocal.getUserId(), this, true);
+		}
+		catch (Exception e) {
+			_log.error(e);
+		}
+
+		return inputStream;
 	}
 
 	@Override
@@ -152,9 +183,18 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
-	public FileVersion getFileVersion()
-		throws PortalException, SystemException {
+	public String getFileName() {
+		return _dlFileEntry.getFileName();
+	}
 
+	@Override
+	public List<FileShortcut> getFileShortcuts() {
+		return RepositoryModelUtil.toFileShortcuts(
+			_dlFileEntry.getFileShortcuts());
+	}
+
+	@Override
+	public FileVersion getFileVersion() throws PortalException {
 		DLFileVersion dlFileVersion = _dlFileVersion;
 
 		if (dlFileVersion == null) {
@@ -165,22 +205,33 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
-	public FileVersion getFileVersion(String version)
-		throws PortalException, SystemException {
-
+	public FileVersion getFileVersion(String version) throws PortalException {
 		return new LiferayFileVersion(_dlFileEntry.getFileVersion(version));
 	}
 
 	@Override
-	public List<FileVersion> getFileVersions(int status)
-		throws SystemException {
+	public List<FileVersion> getFileVersions(int status) {
+		return RepositoryModelUtil.toFileVersions(
+			_dlFileEntry.getFileVersions(status));
+	}
 
-		return toFileVersions(_dlFileEntry.getFileVersions(status));
+	@Override
+	public int getFileVersionsCount(int status) {
+		return _dlFileEntry.getFileVersionsCount(status);
 	}
 
 	@Override
 	public Folder getFolder() {
-		return new LiferayFolder(_dlFileEntry.getFolder());
+		Folder folder = null;
+
+		try {
+			folder = new LiferayFolder(_dlFileEntry.getFolder());
+		}
+		catch (Exception e) {
+			return null;
+		}
+
+		return folder;
 	}
 
 	@Override
@@ -199,10 +250,26 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
-	public FileVersion getLatestFileVersion()
-		throws PortalException, SystemException {
+	public String getIconCssClass() {
+		return _dlFileEntry.getIconCssClass();
+	}
 
-		return new LiferayFileVersion(_dlFileEntry.getLatestFileVersion(false));
+	@Override
+	public Date getLastPublishDate() {
+		return _dlFileEntry.getLastPublishDate();
+	}
+
+	@Override
+	public FileVersion getLatestFileVersion() throws PortalException {
+		return getLatestFileVersion(false);
+	}
+
+	@Override
+	public FileVersion getLatestFileVersion(boolean trusted)
+		throws PortalException {
+
+		return new LiferayFileVersion(
+			_dlFileEntry.getLatestFileVersion(trusted));
 	}
 
 	@Override
@@ -266,6 +333,15 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
+	public <T extends Capability> T getRepositoryCapability(
+		Class<T> capabilityClass) {
+
+		Repository repository = getRepository();
+
+		return repository.getCapability(capabilityClass);
+	}
+
+	@Override
 	public long getRepositoryId() {
 		return _dlFileEntry.getRepositoryId();
 	}
@@ -273,6 +349,11 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	@Override
 	public long getSize() {
 		return _dlFileEntry.getSize();
+	}
+
+	@Override
+	public StagedModelType getStagedModelType() {
+		return new StagedModelType(DLFileEntryConstants.getClassName());
 	}
 
 	@Override
@@ -287,11 +368,11 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 
 	@Override
 	public String getUserName() {
-		return _dlFileEntry.getVersionUserName();
+		return _dlFileEntry.getUserName();
 	}
 
 	@Override
-	public String getUserUuid() throws SystemException {
+	public String getUserUuid() {
 		return _dlFileEntry.getUserUuid();
 	}
 
@@ -305,19 +386,69 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 		return _dlFileEntry.getVersion();
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserId()}
+	 */
+	@Deprecated
 	@Override
 	public long getVersionUserId() {
-		return _dlFileEntry.getVersionUserId();
+		long versionUserId = 0;
+
+		try {
+			DLFileVersion dlFileVersion = _dlFileEntry.getFileVersion();
+
+			versionUserId = dlFileVersion.getUserId();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserId;
 	}
 
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserName()}
+	 */
+	@Deprecated
 	@Override
 	public String getVersionUserName() {
-		return _dlFileEntry.getVersionUserName();
+		String versionUserName = StringPool.BLANK;
+
+		try {
+			DLFileVersion dlFileVersion = _dlFileEntry.getFileVersion();
+
+			versionUserName = dlFileVersion.getUserName();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserName;
+	}
+
+	/**
+	 * @deprecated As of 6.2.0, replaced by {@link DLFileVersion#getUserUuid()}
+	 */
+	@Deprecated
+	@Override
+	public String getVersionUserUuid() {
+		String versionUserUuid = StringPool.BLANK;
+
+		try {
+			DLFileVersion dlFileVersion = _dlFileEntry.getFileVersion();
+
+			versionUserUuid = dlFileVersion.getUserUuid();
+		}
+		catch (Exception e) {
+			_log.error(e, e);
+		}
+
+		return versionUserUuid;
 	}
 
 	@Override
-	public String getVersionUserUuid() throws SystemException {
-		return _dlFileEntry.getVersionUserUuid();
+	public int hashCode() {
+		return _dlFileEntry.hashCode();
 	}
 
 	@Override
@@ -346,8 +477,32 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
+	public boolean isInTrash() {
+		return _dlFileEntry.isInTrash();
+	}
+
+	@Override
+	public boolean isInTrashContainer() {
+		try {
+			return _dlFileEntry.isInTrashContainer();
+		}
+		catch (Exception e) {
+			return false;
+		}
+	}
+
+	@Override
 	public boolean isManualCheckInRequired() {
 		return _dlFileEntry.isManualCheckInRequired();
+	}
+
+	@Override
+	public <T extends Capability> boolean isRepositoryCapabilityProvided(
+		Class<T> capabilityClass) {
+
+		Repository repository = getRepository();
+
+		return repository.isCapabilityProvided(capabilityClass);
 	}
 
 	@Override
@@ -375,8 +530,8 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
-	public void setCreateDate(Date date) {
-		_dlFileEntry.setCreateDate(date);
+	public void setCreateDate(Date createDate) {
+		_dlFileEntry.setCreateDate(createDate);
 	}
 
 	@Override
@@ -385,8 +540,13 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 	}
 
 	@Override
-	public void setModifiedDate(Date date) {
-		_dlFileEntry.setModifiedDate(date);
+	public void setLastPublishDate(Date lastPublishDate) {
+		_dlFileEntry.setLastPublishDate(lastPublishDate);
+	}
+
+	@Override
+	public void setModifiedDate(Date modifiedDate) {
+		_dlFileEntry.setModifiedDate(modifiedDate);
 	}
 
 	public void setPrimaryKey(long primaryKey) {
@@ -443,8 +603,22 @@ public class LiferayFileEntry extends LiferayModel implements FileEntry {
 		}
 	}
 
-	private DLFileEntry _dlFileEntry;
+	protected Repository getRepository() {
+		try {
+			return RepositoryProviderUtil.getRepository(getRepositoryId());
+		}
+		catch (PortalException pe) {
+			throw new SystemException(
+				"Unable to get repository for file entry " + getFileEntryId(),
+				pe);
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LiferayFileEntry.class);
+
+	private final DLFileEntry _dlFileEntry;
 	private DLFileVersion _dlFileVersion;
-	private boolean _escapedModel;
+	private final boolean _escapedModel;
 
 }

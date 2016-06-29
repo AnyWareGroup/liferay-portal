@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -40,14 +40,13 @@ public class SearchContainerRowParameterTag<R> extends TagSupport {
 		ResultRow resultRow = searchContainerRowTag.getRow();
 
 		if (_name.equals("className")) {
-			resultRow.setClassName(_name);
+			resultRow.setClassName((String)_value);
 		}
 		else if (_name.equals("classHoverName")) {
 			resultRow.setClassHoverName((String)_value);
 		}
 		else if (_name.equals("restricted")) {
-			resultRow.setRestricted(
-				GetterUtil.getBoolean((String)_value, false));
+			resultRow.setRestricted(GetterUtil.getBoolean((String)_value));
 		}
 		else {
 			resultRow.setParameter(_name, _value);

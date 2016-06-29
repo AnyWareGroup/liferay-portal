@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,17 +16,23 @@
 
 <%@ include file="/html/taglib/aui/select/init.jsp" %>
 
-<div class="<%= controlGroupCss %>">
+<div class="<%= controlGroupCssClass %>">
 	<c:if test='<%= Validator.isNotNull(label) && !inlineLabel.equals("right") %>'>
 		<label <%= AUIUtil.buildLabel("select", inlineField, true, namespace + id) %>>
-			<liferay-ui:message key="<%= label %>" />
+			<liferay-ui:message key="<%= label %>" localizeKey="<%= localizeLabel %>" />
+
+			<c:if test="<%= required && showRequiredLabel %>">
+				<span class="icon-asterisk text-warning">
+					<span class="hide-accessible"><liferay-ui:message key="required" /></span>
+				</span>
+			</c:if>
 
 			<c:if test="<%= Validator.isNotNull(helpMessage) %>">
 				<liferay-ui:icon-help message="<%= helpMessage %>" />
 			</c:if>
 
 			<c:if test="<%= changesContext %>">
-				<span class="hide-accessible">(<liferay-ui:message key="changing-the-value-of-this-field-will-reload-the-page" />)</span>
+				<span class="hide-accessible">(<liferay-ui:message key="changing-the-value-of-this-field-reloads-the-page" />)</span>
 			</c:if>
 		</label>
 	</c:if>
@@ -37,15 +43,15 @@
 		</span>
 	</c:if>
 
-	<select class="<%= fieldCss %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + title + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>>
+	<select class="<%= fieldCss %>" <%= disabled ? "disabled" : StringPool.BLANK %> id="<%= namespace + id %>" <%= multiple ? "multiple" : StringPool.BLANK %> name="<%= namespace + name %>" <%= Validator.isNotNull(onChange) ? "onChange=\"" + onChange + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(onClick) ? "onClick=\"" + onClick + "\"" : StringPool.BLANK %> <%= Validator.isNotNull(title) ? "title=\"" + LanguageUtil.get(resourceBundle, title) + "\"" : StringPool.BLANK %> <%= AUIUtil.buildData(data) %> <%= InlineUtil.buildDynamicAttributes(dynamicAttributes) %>>
 		<c:if test="<%= showEmptyOption %>">
-			<aui:option value="<%= Validator.isNotNull(listType) ? 0 : StringPool.BLANK %>" />
+			<aui:option value="<%= (Validator.isNotNull(listType) || numericValue) ? 0 : StringPool.BLANK %>" />
 		</c:if>
 
 		<c:if test="<%= Validator.isNotNull(listType) %>">
 
 			<%
-			int listTypeId = ParamUtil.getInteger(request, name, BeanParamUtil.getInteger(bean, request, listTypeFieldName));
+			long listTypeId = ParamUtil.getLong(request, name, BeanParamUtil.getLong(bean, request, listTypeFieldName));
 
 			List<ListType> listTypeModels = ListTypeServiceUtil.getListTypes(listType);
 

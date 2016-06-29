@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,26 +16,28 @@ package com.liferay.portal.webdav;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InstancePool;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
-import com.liferay.portal.model.User;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.auth.PrincipalThreadLocal;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.security.permission.PermissionCheckerFactoryUtil;
-import com.liferay.portal.security.permission.PermissionThreadLocal;
-import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.webdav.methods.Method;
+import com.liferay.portal.kernel.webdav.methods.MethodFactory;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.webdav.methods.Method;
-import com.liferay.portal.webdav.methods.MethodFactory;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -44,6 +46,7 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * @author Brian Wing Shun Chan
  * @author Alexander Chow
+ * @author Fabio Pezzutto
  */
 public class WebDAVServlet extends HttpServlet {
 
@@ -101,7 +104,9 @@ public class WebDAVServlet extends HttpServlet {
 
 			// Get the method instance
 
-			Method method = MethodFactory.create(request);
+			MethodFactory methodFactory = storage.getMethodFactory();
+
+			Method method = methodFactory.create(request);
 
 			// Process the method
 
@@ -111,10 +116,10 @@ public class WebDAVServlet extends HttpServlet {
 
 				status = method.process(webDAVRequest);
 			}
-			catch (WebDAVException wde) {
+			catch (WebDAVException wdave) {
 				boolean logError = false;
 
-				Throwable cause = wde;
+				Throwable cause = wdave;
 
 				while (cause != null) {
 					if (cause instanceof PrincipalException) {
@@ -125,10 +130,10 @@ public class WebDAVServlet extends HttpServlet {
 				}
 
 				if (logError) {
-					_log.error(wde, wde);
+					_log.error(wdave, wdave);
 				}
 				else if (_log.isWarnEnabled()) {
-					_log.warn(wde, wde);
+					_log.warn(wdave, wdave);
 				}
 
 				status = HttpServletResponse.SC_PRECONDITION_FAILED;
@@ -157,11 +162,11 @@ public class WebDAVServlet extends HttpServlet {
 
 	protected String getRootPath(HttpServletRequest request) {
 		String contextPath = HttpUtil.fixPath(
-			request.getContextPath(), false, true);
-		String ServletPath = HttpUtil.fixPath(
+			PortalUtil.getPathContext(request), false, true);
+		String servletPath = HttpUtil.fixPath(
 			request.getServletPath(), false, true);
 
-		return contextPath.concat(ServletPath);
+		return contextPath.concat(servletPath);
 	}
 
 	protected WebDAVStorage getStorage(HttpServletRequest request) {
@@ -193,7 +198,7 @@ public class WebDAVServlet extends HttpServlet {
 		String[] pathArray = WebDAVUtil.getPathArray(
 			request.getPathInfo(), true);
 
-		if ((pathArray == null) || (pathArray.length == 0)) {
+		if (ArrayUtil.isEmpty(pathArray)) {
 			return false;
 		}
 
@@ -230,6 +235,6 @@ public class WebDAVServlet extends HttpServlet {
 		return false;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(WebDAVServlet.class);
+	private static final Log _log = LogFactoryUtil.getLog(WebDAVServlet.class);
 
 }

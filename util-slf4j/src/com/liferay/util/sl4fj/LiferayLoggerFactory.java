@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,21 +57,20 @@ public class LiferayLoggerFactory implements ILoggerFactory {
 			try {
 				Log log = LogFactoryUtil.getLog(name);
 
-				logger = new LiferayLoggerAdapter(log);
+				logger = new LiferayLoggerAdapter(log, name);
 
 				_loggers.put(name, logger);
 			}
 			finally {
 				_writeLock.unlock();
 			}
-
 		}
 
 		return logger;
 	}
 
-	private Map<String, Logger> _loggers = new HashMap<String, Logger>();
-	private Lock _readLock;
-	private Lock _writeLock;
+	private final Map<String, Logger> _loggers = new HashMap<>();
+	private final Lock _readLock;
+	private final Lock _writeLock;
 
 }

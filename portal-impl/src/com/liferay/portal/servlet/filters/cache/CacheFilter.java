@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,17 @@
 
 package com.liferay.portal.servlet.filters.cache;
 
-import com.liferay.portal.NoSuchLayoutException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.NoSuchLayoutException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.security.auth.AuthTokenUtil;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.kernel.servlet.BufferCacheServletResponse;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
@@ -29,24 +35,15 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutTypePortletConstants;
-import com.liferay.portal.model.Portlet;
-import com.liferay.portal.model.PortletConstants;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.service.PortletLocalServiceUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 import com.liferay.portal.util.PortalInstances;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 import com.liferay.util.servlet.filters.CacheResponseData;
 import com.liferay.util.servlet.filters.CacheResponseUtil;
 
@@ -72,8 +69,7 @@ public class CacheFilter extends BasePortalFilter {
 		_pattern = GetterUtil.getInteger(
 			filterConfig.getInitParameter("pattern"));
 
-		if ((_pattern != _PATTERN_FRIENDLY) &&
-			(_pattern != _PATTERN_LAYOUT) &&
+		if ((_pattern != _PATTERN_FRIENDLY) && (_pattern != _PATTERN_LAYOUT) &&
 			(_pattern != _PATTERN_RESOURCE)) {
 
 			_log.error("Cache pattern is invalid");
@@ -101,6 +97,11 @@ public class CacheFilter extends BasePortalFilter {
 
 		sb.append(HttpUtil.getProtocol(request));
 		sb.append(Http.PROTOCOL_DELIMITER);
+
+		String url = PortalUtil.getCurrentCompleteURL(request);
+
+		sb.append(HttpUtil.getDomain(url));
+
 		sb.append(request.getContextPath());
 		sb.append(request.getServletPath());
 		sb.append(request.getPathInfo());
@@ -113,9 +114,7 @@ public class CacheFilter extends BasePortalFilter {
 				JavaConstants.JAVAX_SERVLET_FORWARD_QUERY_STRING);
 
 			if (queryString == null) {
-				String url = PortalUtil.getCurrentCompleteURL(request);
-
-				int pos = url.indexOf(StringPool.QUESTION);
+				int pos = url.indexOf(CharPool.QUESTION);
 
 				if (pos > -1) {
 					queryString = url.substring(pos + 1);
@@ -146,14 +145,14 @@ public class CacheFilter extends BasePortalFilter {
 			request.getHeader(HttpHeaders.USER_AGENT));
 
 		sb.append(StringPool.POUND);
-		sb.append(userAgent.toLowerCase().hashCode());
+		sb.append(StringUtil.toLowerCase(userAgent).hashCode());
 
 		// Gzip compression
 
 		sb.append(StringPool.POUND);
 		sb.append(BrowserSnifferUtil.acceptsGzip(request));
 
-		return sb.toString().trim().toUpperCase();
+		return StringUtil.toUpperCase(sb.toString().trim());
 	}
 
 	protected long getPlid(
@@ -278,25 +277,6 @@ public class CacheFilter extends BasePortalFilter {
 		}
 	}
 
-	protected boolean isCacheableColumn(long companyId, String columnSettings)
-		throws SystemException {
-
-		String[] portletIds = StringUtil.split(columnSettings);
-
-		for (String portletId : portletIds) {
-			portletId = PortletConstants.getRootPortletId(portletId);
-
-			Portlet portlet = PortletLocalServiceUtil.getPortletById(
-				companyId, portletId);
-
-			if (!portlet.isLayoutCacheable()) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
 	protected boolean isCacheableData(
 		long companyId, HttpServletRequest request) {
 
@@ -319,36 +299,10 @@ public class CacheFilter extends BasePortalFilter {
 				return false;
 			}
 
-			UnicodeProperties properties = layout.getTypeSettingsProperties();
+			LayoutTypePortlet layoutTypePortlet =
+				(LayoutTypePortlet)layout.getLayoutType();
 
-			for (int i = 0; i < 10; i++) {
-				String columnId = "column-" + i;
-
-				String settings = properties.getProperty(
-					columnId, StringPool.BLANK);
-
-				if (!isCacheableColumn(companyId, settings)) {
-					return false;
-				}
-			}
-
-			String columnIdsString = properties.get(
-				LayoutTypePortletConstants.NESTED_COLUMN_IDS);
-
-			if (columnIdsString != null) {
-				String[] columnIds = StringUtil.split(columnIdsString);
-
-				for (String columnId : columnIds) {
-					String settings = properties.getProperty(
-						columnId, StringPool.BLANK);
-
-					if (!isCacheableColumn(companyId, settings)) {
-						return false;
-					}
-				}
-			}
-
-			return true;
+			return layoutTypePortlet.isCacheable();
 		}
 		catch (Exception e) {
 			return false;
@@ -419,19 +373,55 @@ public class CacheFilter extends BasePortalFilter {
 
 		String key = getCacheKey(request);
 
+		String pAuth = request.getParameter("p_auth");
+
+		if (Validator.isNotNull(pAuth)) {
+			try {
+				AuthTokenUtil.checkCSRFToken(
+					request, CacheFilter.class.getName());
+			}
+			catch (PortalException pe) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Request is not cacheable " + key +
+							", invalid token received");
+				}
+
+				processFilter(
+					CacheFilter.class.getName(), request, response,
+					filterChain);
+
+				return;
+			}
+
+			key = key.replace(StringUtil.toUpperCase(pAuth), "VALID");
+		}
+
 		long companyId = PortalInstances.getCompanyId(request);
 
 		CacheResponseData cacheResponseData = CacheUtil.getCacheResponseData(
 			companyId, key);
 
-		if (cacheResponseData == null) {
-			if (!isCacheableData(companyId, request)) {
+		if ((cacheResponseData == null) || !cacheResponseData.isValid()) {
+			if (!_isValidCache(cacheResponseData) ||
+				!isCacheableData(companyId, request)) {
+
 				if (_log.isDebugEnabled()) {
 					_log.debug("Request is not cacheable " + key);
 				}
 
+				if (cacheResponseData == null) {
+					if (_log.isInfoEnabled()) {
+						_log.info("Caching request with invalid state " + key);
+					}
+
+					CacheUtil.putCacheResponseData(
+						companyId, key, new CacheResponseData());
+				}
+
 				processFilter(
-					CacheFilter.class, request, response, filterChain);
+					CacheFilter.class.getName(), request, response,
+					filterChain);
 
 				return;
 			}
@@ -444,8 +434,8 @@ public class CacheFilter extends BasePortalFilter {
 				new BufferCacheServletResponse(response);
 
 			processFilter(
-				CacheFilter.class, request, bufferCacheServletResponse,
-				filterChain);
+				CacheFilter.class.getName(), request,
+				bufferCacheServletResponse, filterChain);
 
 			cacheResponseData = new CacheResponseData(
 				bufferCacheServletResponse);
@@ -466,11 +456,9 @@ public class CacheFilter extends BasePortalFilter {
 				bufferCacheServletResponse.getHeader(
 					HttpHeaders.CACHE_CONTROL));
 
-			if ((bufferCacheServletResponse.getStatus() ==
-					HttpServletResponse.SC_OK) &&
+			if (isCacheableResponse(bufferCacheServletResponse) &&
 				!cacheControl.contains(HttpHeaders.PRAGMA_NO_CACHE_VALUE) &&
-				isCacheableRequest(request) &&
-				isCacheableResponse(bufferCacheServletResponse)) {
+				isCacheableRequest(request)) {
 
 				CacheUtil.putCacheResponseData(
 					companyId, key, cacheResponseData);
@@ -490,13 +478,21 @@ public class CacheFilter extends BasePortalFilter {
 		CacheResponseUtil.write(response, cacheResponseData);
 	}
 
+	private boolean _isValidCache(CacheResponseData cacheResponseData) {
+		if ((cacheResponseData != null) && !cacheResponseData.isValid()) {
+			return false;
+		}
+
+		return true;
+	}
+
 	private static final int _PATTERN_FRIENDLY = 0;
 
 	private static final int _PATTERN_LAYOUT = 1;
 
 	private static final int _PATTERN_RESOURCE = 2;
 
-	private static Log _log = LogFactoryUtil.getLog(CacheFilter.class);
+	private static final Log _log = LogFactoryUtil.getLog(CacheFilter.class);
 
 	private int _pattern;
 

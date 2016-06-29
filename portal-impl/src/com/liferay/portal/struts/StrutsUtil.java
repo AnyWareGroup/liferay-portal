@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,7 +16,6 @@ package com.liferay.portal.struts;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 
 import java.io.IOException;
 
@@ -45,8 +44,6 @@ public class StrutsUtil {
 
 	public static final String TEXT_HTML_DIR = "/html";
 
-	public static final String TEXT_WAP_DIR = "/wap";
-
 	public static void forward(
 			String uri, ServletContext servletContext,
 			HttpServletRequest request, HttpServletResponse response)
@@ -63,10 +60,6 @@ public class StrutsUtil {
 		if (!response.isCommitted()) {
 			String path = TEXT_HTML_DIR + uri;
 
-			if (BrowserSnifferUtil.isWap(request)) {
-				path = TEXT_WAP_DIR + uri;
-			}
-
 			if (_log.isDebugEnabled()) {
 				_log.debug("Forward path " + path);
 			}
@@ -77,17 +70,15 @@ public class StrutsUtil {
 			try {
 				requestDispatcher.forward(request, response);
 			}
-			catch (IOException ioe1) {
-				_log.warn(ioe1, ioe1);
+			catch (IOException ioe) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(ioe, ioe);
+				}
 			}
 			catch (ServletException se1) {
 				request.setAttribute(PageContext.EXCEPTION, se1.getRootCause());
 
 				String errorPath = TEXT_HTML_DIR + "/common/error.jsp";
-
-				if (BrowserSnifferUtil.isWap(request)) {
-					path = TEXT_WAP_DIR + "/common/error.jsp";
-				}
 
 				requestDispatcher = servletContext.getRequestDispatcher(
 					errorPath);
@@ -96,14 +87,16 @@ public class StrutsUtil {
 					requestDispatcher.forward(request, response);
 				}
 				catch (IOException ioe2) {
-					_log.warn(ioe2, ioe2);
+					if (_log.isWarnEnabled()) {
+						_log.warn(ioe2, ioe2);
+					}
 				}
 				catch (ServletException se2) {
 					throw se2;
 				}
 			}
 		}
-		else {
+		else if (_log.isWarnEnabled()) {
 			_log.warn(uri + " is already committed");
 		}
 	}
@@ -119,10 +112,6 @@ public class StrutsUtil {
 
 		String path = TEXT_HTML_DIR + uri;
 
-		if (BrowserSnifferUtil.isWap(request)) {
-			path = TEXT_WAP_DIR + uri;
-		}
-
 		if (_log.isDebugEnabled()) {
 			_log.debug("Include path " + path);
 		}
@@ -134,14 +123,16 @@ public class StrutsUtil {
 			requestDispatcher.include(request, response);
 		}
 		catch (IOException ioe) {
-			_log.warn(ioe, ioe);
+			if (_log.isWarnEnabled()) {
+				_log.warn(ioe, ioe);
+			}
 		}
 	}
 
 	public static Map<String, Object> removeStrutsAttributes(
 		PortletContext portletContext, PortletRequest portletRequest) {
 
-		Map<String, Object> strutsAttributes = new HashMap<String, Object>();
+		Map<String, Object> strutsAttributes = new HashMap<>();
 
 		Enumeration<String> enu = portletRequest.getAttributeNames();
 
@@ -176,6 +167,6 @@ public class StrutsUtil {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(StrutsUtil.class);
+	private static final Log _log = LogFactoryUtil.getLog(StrutsUtil.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,8 +32,7 @@ public class RequestAttributes {
 	@Distributed(direction = Direction.REQUEST, matchType = MatchType.EXACT)
 	public static final String ATTRIBUTE_2 = "ATTRIBUTE_2";
 
-	@Distributed(
-		direction = Direction.RESPONSE, matchType = MatchType.EXACT)
+	@Distributed(direction = Direction.RESPONSE, matchType = MatchType.EXACT)
 	public static final String ATTRIBUTE_3 = "ATTRIBUTE_3";
 
 	public static void setRequestAttributes(HttpServletRequest request) {

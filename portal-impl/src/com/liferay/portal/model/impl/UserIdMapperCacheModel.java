@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.UserIdMapper;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.UserIdMapper;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -31,14 +35,56 @@ import java.io.ObjectOutput;
  * @see UserIdMapper
  * @generated
  */
+@ProviderType
 public class UserIdMapperCacheModel implements CacheModel<UserIdMapper>,
-	Externalizable {
+	Externalizable, MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof UserIdMapperCacheModel)) {
+			return false;
+		}
+
+		UserIdMapperCacheModel userIdMapperCacheModel = (UserIdMapperCacheModel)obj;
+
+		if ((userIdMapperId == userIdMapperCacheModel.userIdMapperId) &&
+				(mvccVersion == userIdMapperCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, userIdMapperId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(11);
+		StringBundler sb = new StringBundler(15);
 
-		sb.append("{userIdMapperId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", userIdMapperId=");
 		sb.append(userIdMapperId);
+		sb.append(", companyId=");
+		sb.append(companyId);
 		sb.append(", userId=");
 		sb.append(userId);
 		sb.append(", type=");
@@ -56,7 +102,9 @@ public class UserIdMapperCacheModel implements CacheModel<UserIdMapper>,
 	public UserIdMapper toEntityModel() {
 		UserIdMapperImpl userIdMapperImpl = new UserIdMapperImpl();
 
+		userIdMapperImpl.setMvccVersion(mvccVersion);
 		userIdMapperImpl.setUserIdMapperId(userIdMapperId);
+		userIdMapperImpl.setCompanyId(companyId);
 		userIdMapperImpl.setUserId(userId);
 
 		if (type == null) {
@@ -87,7 +135,12 @@ public class UserIdMapperCacheModel implements CacheModel<UserIdMapper>,
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		userIdMapperId = objectInput.readLong();
+
+		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
 		type = objectInput.readUTF();
 		description = objectInput.readUTF();
@@ -97,7 +150,12 @@ public class UserIdMapperCacheModel implements CacheModel<UserIdMapper>,
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(userIdMapperId);
+
+		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
 
 		if (type == null) {
@@ -122,7 +180,9 @@ public class UserIdMapperCacheModel implements CacheModel<UserIdMapper>,
 		}
 	}
 
+	public long mvccVersion;
 	public long userIdMapperId;
+	public long companyId;
 	public long userId;
 	public String type;
 	public String description;

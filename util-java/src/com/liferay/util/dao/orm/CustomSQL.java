@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,23 @@
 
 package com.liferay.util.dao.orm;
 
+import com.liferay.portal.kernel.configuration.Configuration;
+import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.QueryDefinition;
+import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -31,8 +38,7 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.util.PortalUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +57,7 @@ import java.util.Properties;
  * @author Brian Wing Shun Chan
  * @author Bruno Farache
  * @author Raymond Augé
+ * @see com.liferay.portal.dao.orm.custom.sql.CustomSQL
  */
 public class CustomSQL {
 
@@ -114,12 +121,12 @@ public class CustomSQL {
 		return _sqlPool.get(id);
 	}
 
-	public String get(String id, QueryDefinition queryDefinition) {
+	public String get(String id, QueryDefinition<?> queryDefinition) {
 		return get(id, queryDefinition, StringPool.BLANK);
 	}
 
 	public String get(
-		String id, QueryDefinition queryDefinition, String tableName) {
+		String id, QueryDefinition<?> queryDefinition, String tableName) {
 
 		String sql = get(id);
 
@@ -143,6 +150,37 @@ public class CustomSQL {
 					_STATUS_KEYWORD,
 					tableName.concat(_STATUS_CONDITION_DEFAULT));
 			}
+		}
+
+		if (queryDefinition.getOwnerUserId() > 0) {
+			if (queryDefinition.isIncludeOwner()) {
+				StringBundler sb = new StringBundler(7);
+
+				sb.append(StringPool.OPEN_PARENTHESIS);
+				sb.append(tableName);
+				sb.append(_OWNER_USER_ID_CONDITION_DEFAULT);
+				sb.append(" AND ");
+				sb.append(tableName);
+				sb.append(_STATUS_CONDITION_INVERSE);
+				sb.append(StringPool.CLOSE_PARENTHESIS);
+
+				sql = sql.replace(_OWNER_USER_ID_KEYWORD, sb.toString());
+
+				sql = sql.replace(_OWNER_USER_ID_AND_OR_CONNECTOR, " OR ");
+			}
+			else {
+				sql = sql.replace(
+					_OWNER_USER_ID_KEYWORD,
+					tableName.concat(_OWNER_USER_ID_CONDITION_DEFAULT));
+
+				sql = sql.replace(_OWNER_USER_ID_AND_OR_CONNECTOR, " AND ");
+			}
+		}
+		else {
+			sql = sql.replace(_OWNER_USER_ID_KEYWORD, StringPool.BLANK);
+
+			sql = sql.replace(
+				_OWNER_USER_ID_AND_OR_CONNECTOR, StringPool.BLANK);
 		}
 
 		return sql;
@@ -224,21 +262,31 @@ public class CustomSQL {
 	}
 
 	public String[] keywords(String keywords) {
-		return keywords(keywords, true);
+		return keywords(keywords, true, WildcardMode.SURROUND);
 	}
 
 	public String[] keywords(String keywords, boolean lowerCase) {
+		return keywords(keywords, lowerCase, WildcardMode.SURROUND);
+	}
+
+	public String[] keywords(
+		String keywords, boolean lowerCase, WildcardMode wildcardMode) {
+
 		if (Validator.isNull(keywords)) {
 			return new String[] {null};
 		}
 
+		if (_CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED) {
+			keywords = _escapeWildCards(keywords);
+		}
+
 		if (lowerCase) {
-			keywords = keywords.toLowerCase();
+			keywords = StringUtil.toLowerCase(keywords);
 		}
 
 		keywords = keywords.trim();
 
-		List<String> keywordsList = new ArrayList<String>();
+		List<String> keywordsList = new ArrayList<>();
 
 		for (int i = 0; i < keywords.length(); i++) {
 			char c = keywords.charAt(i);
@@ -255,8 +303,7 @@ public class CustomSQL {
 				if (i > pos) {
 					String keyword = keywords.substring(pos, i);
 
-					keywordsList.add(
-						StringUtil.quote(keyword, StringPool.PERCENT));
+					keywordsList.add(insertWildcard(keyword, wildcardMode));
 				}
 			}
 			else {
@@ -280,11 +327,15 @@ public class CustomSQL {
 
 				String keyword = keywords.substring(pos, i);
 
-				keywordsList.add(StringUtil.quote(keyword, StringPool.PERCENT));
+				keywordsList.add(insertWildcard(keyword, wildcardMode));
 			}
 		}
 
 		return keywordsList.toArray(new String[keywordsList.size()]);
+	}
+
+	public String[] keywords(String keywords, WildcardMode wildcardMode) {
+		return keywords(keywords, true, wildcardMode);
 	}
 
 	public String[] keywords(String[] keywordsArray) {
@@ -292,7 +343,7 @@ public class CustomSQL {
 	}
 
 	public String[] keywords(String[] keywordsArray, boolean lowerCase) {
-		if ((keywordsArray == null) || (keywordsArray.length == 0)) {
+		if (ArrayUtil.isEmpty(keywordsArray)) {
 			return new String[] {null};
 		}
 
@@ -416,7 +467,7 @@ public class CustomSQL {
 		}
 
 		if (_sqlPool == null) {
-			_sqlPool = new HashMap<String, String>();
+			_sqlPool = new HashMap<>();
 		}
 		else {
 			_sqlPool.clear();
@@ -429,8 +480,8 @@ public class CustomSQL {
 
 			String[] configs = getConfigs();
 
-			for (String _config : configs) {
-				read(classLoader, _config);
+			for (String config : configs) {
+				read(classLoader, config);
 			}
 		}
 		catch (Exception e) {
@@ -475,13 +526,8 @@ public class CustomSQL {
 		}
 
 		sql = StringUtil.replace(
-			sql,
-			new String[] {
-				"[$AND_OR_CONNECTOR$]", "[$AND_OR_NULL_CHECK$]"
-			},
-			new String[] {
-				andOrConnector, andOrNullCheck
-			});
+			sql, new String[] {"[$AND_OR_CONNECTOR$]", "[$AND_OR_NULL_CHECK$]"},
+			new String[] {andOrConnector, andOrNullCheck});
 
 		if (_vendorPostgreSQL) {
 			sql = StringUtil.replace(
@@ -530,7 +576,7 @@ public class CustomSQL {
 				sql = sql.concat(_GROUP_BY_CLAUSE).concat(groupBy);
 			}
 			else {
-				StringBundler sb = new StringBundler();
+				StringBundler sb = new StringBundler(4);
 
 				sb.append(sql.substring(0, y));
 				sb.append(_GROUP_BY_CLAUSE);
@@ -547,13 +593,8 @@ public class CustomSQL {
 	public String replaceIsNull(String sql) {
 		if (Validator.isNotNull(_functionIsNull)) {
 			sql = StringUtil.replace(
-				sql,
-				new String[] {
-					"? IS NULL", "? IS NOT NULL"
-				},
-				new String[] {
-					_functionIsNull, _functionIsNotNull
-				});
+				sql, new String[] {"? IS NULL", "? IS NOT NULL"},
+				new String[] {_functionIsNull, _functionIsNotNull});
 		}
 
 		return sql;
@@ -576,7 +617,7 @@ public class CustomSQL {
 			oldSql.append(" [$AND_OR_CONNECTOR$]");
 		}
 
-		if ((values == null) || (values.length == 0)) {
+		if (ArrayUtil.isEmpty(values)) {
 			return StringUtil.replace(sql, oldSql.toString(), StringPool.BLANK);
 		}
 
@@ -620,7 +661,7 @@ public class CustomSQL {
 			oldSql.append(" [$AND_OR_CONNECTOR$]");
 		}
 
-		if ((values == null) || (values.length == 0)) {
+		if (ArrayUtil.isEmpty(values)) {
 			return StringUtil.replace(sql, oldSql.toString(), StringPool.BLANK);
 		}
 
@@ -667,7 +708,7 @@ public class CustomSQL {
 			oldSql.append(" [$AND_OR_CONNECTOR$]");
 		}
 
-		StringBundler newSql = new StringBundler(values.length * 6 + 3);
+		StringBundler newSql = new StringBundler(values.length * 6 + 2);
 
 		newSql.append(StringPool.OPEN_PARENTHESIS);
 
@@ -692,7 +733,7 @@ public class CustomSQL {
 		return StringUtil.replace(sql, oldSql.toString(), newSql.toString());
 	}
 
-	public String replaceOrderBy(String sql, OrderByComparator obc) {
+	public String replaceOrderBy(String sql, OrderByComparator<?> obc) {
 		if (obc == null) {
 			return sql;
 		}
@@ -713,49 +754,78 @@ public class CustomSQL {
 	}
 
 	protected String[] getConfigs() {
-		if (PortalClassLoaderUtil.getClassLoader() ==
-				CustomSQL.class.getClassLoader()) {
+		ClassLoader classLoader = CustomSQL.class.getClassLoader();
 
+		if (PortalClassLoaderUtil.getClassLoader() == classLoader) {
 			Properties propsUtil = PortalUtil.getPortalProperties();
 
 			return StringUtil.split(
 				propsUtil.getProperty("custom.sql.configs"));
 		}
+
+		if (classLoader.getResource("portlet.properties") != null) {
+			Configuration configuration =
+				ConfigurationFactoryUtil.getConfiguration(
+					classLoader, "portlet");
+
+			return ArrayUtil.append(
+				StringUtil.split(configuration.get("custom.sql.configs")),
+				new String[] {
+					"custom-sql/default.xml", "META-INF/custom-sql/default.xml"
+				});
+		}
+
+		return new String[] {
+			"custom-sql/default.xml", "META-INF/custom-sql/default.xml"
+		};
+	}
+
+	protected String insertWildcard(String keyword, WildcardMode wildcardMode) {
+		if (wildcardMode == WildcardMode.LEADING) {
+			return StringPool.PERCENT.concat(keyword);
+		}
+		else if (wildcardMode == WildcardMode.SURROUND) {
+			return StringUtil.quote(keyword, StringPool.PERCENT);
+		}
+		else if (wildcardMode == WildcardMode.TRAILING) {
+			return keyword.concat(StringPool.PERCENT);
+		}
 		else {
-			return new String[] {"custom-sql/default.xml"};
+			throw new IllegalArgumentException(
+				"Invalid wildcard mode " + wildcardMode);
 		}
 	}
 
 	protected void read(ClassLoader classLoader, String source)
 		throws Exception {
 
-		InputStream is = classLoader.getResourceAsStream(source);
-
-		if (is == null) {
-			return;
-		}
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Loading " + source);
-		}
-
-		Document document = SAXReaderUtil.read(is);
-
-		Element rootElement = document.getRootElement();
-
-		for (Element sqlElement : rootElement.elements("sql")) {
-			String file = sqlElement.attributeValue("file");
-
-			if (Validator.isNotNull(file)) {
-				read(classLoader, file);
+		try (InputStream is = classLoader.getResourceAsStream(source)) {
+			if (is == null) {
+				return;
 			}
-			else {
-				String id = sqlElement.attributeValue("id");
-				String content = transform(sqlElement.getText());
 
-				content = replaceIsNull(content);
+			if (_log.isDebugEnabled()) {
+				_log.debug("Loading " + source);
+			}
 
-				_sqlPool.put(id, content);
+			Document document = UnsecureSAXReaderUtil.read(is);
+
+			Element rootElement = document.getRootElement();
+
+			for (Element sqlElement : rootElement.elements("sql")) {
+				String file = sqlElement.attributeValue("file");
+
+				if (Validator.isNotNull(file)) {
+					read(classLoader, file);
+				}
+				else {
+					String id = sqlElement.attributeValue("id");
+					String content = transform(sqlElement.getText());
+
+					content = replaceIsNull(content);
+
+					_sqlPool.put(id, content);
+				}
 			}
 		}
 	}
@@ -765,9 +835,8 @@ public class CustomSQL {
 
 		StringBundler sb = new StringBundler();
 
-		try {
-			UnsyncBufferedReader unsyncBufferedReader =
-				new UnsyncBufferedReader(new UnsyncStringReader(sql));
+		try (UnsyncBufferedReader unsyncBufferedReader =
+				new UnsyncBufferedReader(new UnsyncStringReader(sql))) {
 
 			String line = null;
 
@@ -775,8 +844,6 @@ public class CustomSQL {
 				sb.append(line.trim());
 				sb.append(StringPool.SPACE);
 			}
-
-			unsyncBufferedReader.close();
 		}
 		catch (IOException ioe) {
 			return sql;
@@ -785,9 +852,48 @@ public class CustomSQL {
 		return sb.toString();
 	}
 
+	private String _escapeWildCards(String keywords) {
+		if (!isVendorMySQL() && !isVendorOracle()) {
+			return keywords;
+		}
+
+		StringBuilder sb = new StringBuilder(keywords);
+
+		for (int i = 0; i < sb.length(); ++i) {
+			char c = sb.charAt(i);
+
+			if (c == CharPool.BACK_SLASH) {
+				i++;
+
+				continue;
+			}
+
+			if ((c == CharPool.UNDERLINE) || (c == CharPool.PERCENT)) {
+				sb.insert(i, CharPool.BACK_SLASH);
+
+				i++;
+
+				continue;
+			}
+		}
+
+		return sb.toString();
+	}
+
+	private static final boolean _CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.CUSTOM_SQL_AUTO_ESCAPE_WILDCARDS_ENABLED));
+
 	private static final String _GROUP_BY_CLAUSE = " GROUP BY ";
 
 	private static final String _ORDER_BY_CLAUSE = " ORDER BY ";
+
+	private static final String _OWNER_USER_ID_AND_OR_CONNECTOR =
+		"[$OWNER_USER_ID_AND_OR_CONNECTOR$]";
+
+	private static final String _OWNER_USER_ID_CONDITION_DEFAULT = "userId = ?";
+
+	private static final String _OWNER_USER_ID_KEYWORD = "[$OWNER_USER_ID$]";
 
 	private static final String _STATUS_CONDITION_DEFAULT = "status = ?";
 
@@ -798,7 +904,7 @@ public class CustomSQL {
 
 	private static final String _STATUS_KEYWORD = "[$STATUS$]";
 
-	private static Log _log = LogFactoryUtil.getLog(CustomSQL.class);
+	private static final Log _log = LogFactoryUtil.getLog(CustomSQL.class);
 
 	private String _functionIsNotNull;
 	private String _functionIsNull;

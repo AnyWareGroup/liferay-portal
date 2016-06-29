@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,17 +15,17 @@
 package com.liferay.portal.servlet.filters.compoundsessionid;
 
 import com.liferay.portal.kernel.servlet.WrapHttpServletRequestFilter;
-import com.liferay.portal.kernel.servlet.filters.compoundsessionid.CompoundSessionIdServletRequest;
-import com.liferay.portal.kernel.servlet.filters.compoundsessionid.CompoundSessionIdSplitterUtil;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceTracker;
 
-import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * <p>
- * See http://issues.liferay.com/browse/LPS-18587.
+ * See https://issues.liferay.com/browse/LPS-18587.
  * </p>
  *
  * @author Michael C. Han
@@ -33,30 +33,48 @@ import javax.servlet.http.HttpServletResponse;
 public class CompoundSessionIdFilter
 	extends BasePortalFilter implements WrapHttpServletRequestFilter {
 
+	public CompoundSessionIdFilter() {
+		Registry registry = RegistryUtil.getRegistry();
+
+		_serviceTracker = registry.trackServices(
+			CompoundSessionIdServletRequestFactory.class);
+
+		_serviceTracker.open();
+	}
+
+	@Override
+	public void destroy() {
+		_serviceTracker.close();
+
+		super.destroy();
+	}
+
 	@Override
 	public HttpServletRequest getWrappedHttpServletRequest(
 		HttpServletRequest request, HttpServletResponse response) {
 
-		return new CompoundSessionIdServletRequest(request);
-	}
+		CompoundSessionIdServletRequestFactory
+			compoundSessionIdServletRequestFactory =
+				_serviceTracker.getService();
 
-	@Override
-	public void init(FilterConfig filterConfig) {
-		super.init(filterConfig);
+		if (compoundSessionIdServletRequestFactory != null) {
+			return compoundSessionIdServletRequestFactory.create(request);
+		}
 
-		if (CompoundSessionIdSplitterUtil.hasSessionDelimiter()) {
-			_filterEnabled = true;
-		}
-		else {
-			_filterEnabled = false;
-		}
+		return request;
 	}
 
 	@Override
 	public boolean isFilterEnabled() {
-		return _filterEnabled;
+		if (_serviceTracker.isEmpty()) {
+			return false;
+		}
+
+		return true;
 	}
 
-	private static boolean _filterEnabled;
+	private final ServiceTracker
+		<CompoundSessionIdServletRequestFactory,
+			CompoundSessionIdServletRequestFactory> _serviceTracker;
 
 }

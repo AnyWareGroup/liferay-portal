@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -51,8 +51,7 @@ public class PortalSessionActivationListener
 
 	public static void setInstance(HttpSession session) {
 		TransientValue<PortalSessionActivationListener> transientValue =
-			new TransientValue<PortalSessionActivationListener>(
-				PortalSessionActivationListener.getInstance());
+			new TransientValue<>(PortalSessionActivationListener.getInstance());
 
 		session.setAttribute(
 			PortalSessionActivationListener.class.getName(), transientValue);
@@ -67,7 +66,7 @@ public class PortalSessionActivationListener
 	public void sessionWillPassivate(HttpSessionEvent httpSessionEvent) {
 	}
 
-	private static PortalSessionActivationListener _instance =
+	private static final PortalSessionActivationListener _instance =
 		new PortalSessionActivationListener();
 
 }

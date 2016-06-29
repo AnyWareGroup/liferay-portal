@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,8 +32,10 @@ import java.util.List;
 public class BeanToXMLUtil {
 
 	public static void addBean(Object obj, Element parentEl) {
+		Class<?> clazz = obj.getClass();
+
 		String classNameWithoutPackage = getClassNameWithoutPackage(
-			obj.getClass().getName());
+			clazz.getName());
 
 		Element el = parentEl.addElement(classNameWithoutPackage);
 
@@ -41,7 +43,9 @@ public class BeanToXMLUtil {
 	}
 
 	public static void addFields(Object obj, Element parentEl) {
-		Method[] methods = obj.getClass().getMethods();
+		Class<?> clazz = obj.getClass();
+
+		Method[] methods = clazz.getMethods();
 
 		for (int i = 0; i < methods.length; i++) {
 			Method method = methods[i];
@@ -56,7 +60,7 @@ public class BeanToXMLUtil {
 				memberName = TextFormatter.format(memberName, TextFormatter.K);
 
 				try {
-					Object returnValue = method.invoke(obj, new Object[] {});
+					Object returnValue = method.invoke(obj, new Object[0]);
 
 					if (returnValue instanceof List<?>) {
 						List<Object> list = (List<Object>)returnValue;
@@ -95,6 +99,6 @@ public class BeanToXMLUtil {
 		return classNameWithoutPackage;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(BeanToXMLUtil.class);
+	private static final Log _log = LogFactoryUtil.getLog(BeanToXMLUtil.class);
 
 }

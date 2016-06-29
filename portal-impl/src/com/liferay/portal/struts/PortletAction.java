@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,31 +15,29 @@
 package com.liferay.portal.struts;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.portlet.LiferayPortletConfig;
-import com.liferay.portal.kernel.portlet.PortletResponseUtil;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
-import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
 import com.liferay.portal.kernel.servlet.SessionMessages;
-import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutTypePortlet;
-import com.liferay.portal.model.Portlet;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.service.PortletLocalServiceUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import java.io.IOException;
 
@@ -50,6 +48,7 @@ import javax.portlet.EventResponse;
 import javax.portlet.MimeResponse;
 import javax.portlet.PortletConfig;
 import javax.portlet.PortletContext;
+import javax.portlet.PortletPreferences;
 import javax.portlet.PortletRequest;
 import javax.portlet.PortletRequestDispatcher;
 import javax.portlet.PortletResponse;
@@ -72,6 +71,7 @@ import org.apache.struts.util.MessageResources;
 
 /**
  * @author Brian Wing Shun Chan
+ * @see    com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand
  */
 public class PortletAction extends Action {
 
@@ -94,8 +94,8 @@ public class PortletAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		PortletConfig portletConfig = (PortletConfig)request.getAttribute(
@@ -111,69 +111,74 @@ public class PortletAction extends Action {
 			WebKeys.PORTLET_STRUTS_EXECUTE);
 
 		if ((strutsExecute != null) && strutsExecute.booleanValue()) {
-			return strutsExecute(mapping, form, request, response);
+			return strutsExecute(actionMapping, actionForm, request, response);
 		}
 		else if (portletRequest instanceof RenderRequest) {
 			return render(
-				mapping, form, portletConfig, (RenderRequest)portletRequest,
-				(RenderResponse)portletResponse);
+				actionMapping, actionForm, portletConfig,
+				(RenderRequest)portletRequest, (RenderResponse)portletResponse);
 		}
 		else {
 			if (portletRequest instanceof EventRequest) {
 				processEvent(
-					mapping, form, portletConfig, (EventRequest)portletRequest,
+					actionMapping, actionForm, portletConfig,
+					(EventRequest)portletRequest,
 					(EventResponse)portletResponse);
 			}
 			else {
 				serveResource(
-					mapping, form, portletConfig,
+					actionMapping, actionForm, portletConfig,
 					(ResourceRequest)portletRequest,
 					(ResourceResponse)portletResponse);
 			}
 
-			return mapping.findForward(ActionConstants.COMMON_NULL);
+			return actionMapping.findForward(ActionConstants.COMMON_NULL);
 		}
 	}
 
 	public void processAction(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ActionRequest actionRequest, ActionResponse actionResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ActionRequest actionRequest,
+			ActionResponse actionResponse)
 		throws Exception {
 	}
 
 	public void processEvent(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			EventRequest eventRequest, EventResponse eventResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, EventRequest eventRequest,
+			EventResponse eventResponse)
 		throws Exception {
 	}
 
 	public ActionForward render(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			RenderRequest renderRequest, RenderResponse renderResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, RenderRequest renderRequest,
+			RenderResponse renderResponse)
 		throws Exception {
 
 		if (_log.isDebugEnabled()) {
 			_log.debug("Forward to " + getForward(renderRequest));
 		}
 
-		return mapping.findForward(getForward(renderRequest));
+		return actionMapping.findForward(getForward(renderRequest));
 	}
 
 	public void serveResource(
-			ActionMapping mapping, ActionForm form, PortletConfig portletConfig,
-			ResourceRequest resourceRequest, ResourceResponse resourceResponse)
+			ActionMapping actionMapping, ActionForm actionForm,
+			PortletConfig portletConfig, ResourceRequest resourceRequest,
+			ResourceResponse resourceResponse)
 		throws Exception {
 
-		String resourceId = resourceRequest.getResourceID();
+		String resourceID = resourceRequest.getResourceID();
 
-		if (Validator.isNull(resourceId)) {
+		if (Validator.isNull(resourceID)) {
 			return;
 		}
 
 		PortletContext portletContext = portletConfig.getPortletContext();
 
 		PortletRequestDispatcher portletRequestDispatcher =
-			portletContext.getRequestDispatcher(resourceId);
+			portletContext.getRequestDispatcher(resourceID);
 
 		if (portletRequestDispatcher == null) {
 			return;
@@ -183,11 +188,11 @@ public class PortletAction extends Action {
 	}
 
 	public ActionForward strutsExecute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
-		return super.execute(mapping, form, request, response);
+		return super.execute(actionMapping, actionForm, request, response);
 	}
 
 	protected void addSuccessMessage(
@@ -248,13 +253,41 @@ public class PortletAction extends Action {
 		return getResources();
 	}
 
+	protected PortletPreferences getStrictPortletSetup(
+			Layout layout, String portletId)
+		throws PortalException {
+
+		return PortletPreferencesFactoryUtil.getExistingPortletSetup(
+			layout, portletId);
+	}
+
+	protected PortletPreferences getStrictPortletSetup(
+			PortletRequest portletRequest)
+		throws PortalException {
+
+		return PortletPreferencesFactoryUtil.getExistingPortletSetup(
+			portletRequest);
+	}
+
+	protected void hideDefaultErrorMessage(PortletRequest portletRequest) {
+		SessionMessages.add(
+			portletRequest,
+			PortalUtil.getPortletId(portletRequest) +
+				SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_ERROR_MESSAGE);
+	}
+
+	protected void hideDefaultSuccessMessage(PortletRequest portletRequest) {
+		SessionMessages.add(
+			portletRequest,
+			PortalUtil.getPortletId(portletRequest) +
+				SessionMessages.KEY_SUFFIX_HIDE_DEFAULT_SUCCESS_MESSAGE);
+	}
+
 	protected boolean isCheckMethodOnProcessAction() {
 		return _CHECK_METHOD_ON_PROCESS_ACTION;
 	}
 
-	protected boolean isDisplaySuccessMessage(PortletRequest portletRequest)
-		throws SystemException {
-
+	protected boolean isDisplaySuccessMessage(PortletRequest portletRequest) {
 		if (!SessionErrors.isEmpty(portletRequest)) {
 			return false;
 		}
@@ -271,18 +304,11 @@ public class PortletAction extends Action {
 		String portletId = (String)portletRequest.getAttribute(
 			WebKeys.PORTLET_ID);
 
-		try {
-			LayoutTypePortlet layoutTypePortlet =
-				themeDisplay.getLayoutTypePortlet();
+		LayoutTypePortlet layoutTypePortlet =
+			themeDisplay.getLayoutTypePortlet();
 
-			if (layoutTypePortlet.hasPortletId(portletId)) {
-				return true;
-			}
-		}
-		catch (PortalException pe) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(pe, pe);
-			}
+		if (layoutTypePortlet.hasPortletId(portletId)) {
+			return true;
 		}
 
 		Portlet portlet = PortletLocalServiceUtil.getPortletById(
@@ -319,7 +345,7 @@ public class PortletAction extends Action {
 
 	protected void sendRedirect(
 			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws IOException, SystemException {
+		throws IOException {
 
 		sendRedirect(actionRequest, actionResponse, null);
 	}
@@ -327,7 +353,7 @@ public class PortletAction extends Action {
 	protected void sendRedirect(
 			ActionRequest actionRequest, ActionResponse actionResponse,
 			String redirect)
-		throws IOException, SystemException {
+		throws IOException {
 
 		sendRedirect(null, actionRequest, actionResponse, redirect, null);
 	}
@@ -336,7 +362,7 @@ public class PortletAction extends Action {
 			PortletConfig portletConfig, ActionRequest actionRequest,
 			ActionResponse actionResponse, String redirect,
 			String closeRedirect)
-		throws IOException, SystemException {
+		throws IOException {
 
 		if (isDisplaySuccessMessage(actionRequest)) {
 			addSuccessMessage(actionRequest, actionResponse);
@@ -356,12 +382,9 @@ public class PortletAction extends Action {
 			redirect = HttpUtil.setParameter(
 				redirect, "closeRedirect", closeRedirect);
 
-			LiferayPortletConfig liferayPortletConfig =
-				(LiferayPortletConfig)portletConfig;
-
 			SessionMessages.add(
 				actionRequest,
-				liferayPortletConfig.getPortletId() +
+				PortalUtil.getPortletId(actionRequest) +
 					SessionMessages.KEY_SUFFIX_CLOSE_REDIRECT,
 				closeRedirect);
 		}
@@ -386,7 +409,7 @@ public class PortletAction extends Action {
 			}
 
 			redirect = StringUtil.replace(
-				redirect, StringPool.POUND, redirectToken);
+				redirect, CharPool.POUND, redirectToken);
 		}
 
 		redirect = PortalUtil.escapeRedirect(redirect);
@@ -405,14 +428,7 @@ public class PortletAction extends Action {
 			Object json)
 		throws IOException {
 
-		HttpServletResponse response = PortalUtil.getHttpServletResponse(
-			actionResponse);
-
-		response.setContentType(ContentTypes.APPLICATION_JSON);
-
-		ServletResponseUtil.write(response, json.toString());
-
-		response.flushBuffer();
+		JSONPortletResponseUtil.writeJSON(portletRequest, actionResponse, json);
 
 		setForward(portletRequest, ActionConstants.COMMON_NULL);
 	}
@@ -422,15 +438,11 @@ public class PortletAction extends Action {
 			Object json)
 		throws IOException {
 
-		mimeResponse.setContentType(ContentTypes.APPLICATION_JSON);
-
-		PortletResponseUtil.write(mimeResponse, json.toString());
-
-		mimeResponse.flushBuffer();
+		JSONPortletResponseUtil.writeJSON(portletRequest, mimeResponse, json);
 	}
 
 	private static final boolean _CHECK_METHOD_ON_PROCESS_ACTION = true;
 
-	private static Log _log = LogFactoryUtil.getLog(PortletAction.class);
+	private static final Log _log = LogFactoryUtil.getLog(PortletAction.class);
 
 }

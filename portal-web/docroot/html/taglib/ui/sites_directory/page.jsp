@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -47,7 +47,7 @@
 	}
 	%>
 
-	<div class="sites-directory-taglib nav-menu">
+	<div class="nav-menu sites-directory-taglib">
 		<c:choose>
 			<c:when test="<%= hidden %>">
 				<div class="alert alert-info">
@@ -75,13 +75,13 @@
 									List<Group> childGroups = null;
 
 									if (rootGroup != null) {
-										childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+										childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 									}
 									else {
-										childGroups = GroupLocalServiceUtil.getLayoutsGroups(group.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+										childGroups = GroupLocalServiceUtil.getLayoutsGroups(group.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 									}
 
-									List<Group> visibleGroups = new UniqueList<Group>();
+									Set<Group> visibleGroups = new LinkedHashSet<Group>();
 
 									for (Group childGroup : childGroups) {
 										if (childGroup.hasPublicLayouts()) {
@@ -91,44 +91,73 @@
 											visibleGroups.add(childGroup);
 										}
 									}
+
+									total = visibleGroups.size();
+
+									searchContainer.setTotal(total);
 									%>
 
 									<liferay-ui:search-container-results
-										results="<%= ListUtil.subList(visibleGroups, searchContainer.getStart(), searchContainer.getEnd()) %>"
-										total="<%= visibleGroups.size() %>"
+										results="<%= ListUtil.subList(new ArrayList<Group>(visibleGroups), searchContainer.getStart(), searchContainer.getEnd()) %>"
 									/>
 
 									<liferay-ui:search-container-row
-										className="com.liferay.portal.model.Group"
+										className="com.liferay.portal.kernel.model.Group"
+										keyProperty="groupId"
 										modelVar="childGroup"
 									>
+										<c:choose>
+											<c:when test='<%= displayStyle.equals("icon") %>'>
+												<liferay-ui:app-view-entry
+													assetCategoryClassName="<%= Group.class.getName() %>"
+													assetCategoryClassPK="<%= childGroup.getGroupId() %>"
+													assetTagClassName="<%= Group.class.getName() %>"
+													assetTagClassPK="<%= childGroup.getGroupId() %>"
+													description="<%= childGroup.getDescription(locale) %>"
+													displayStyle="<%= displayStyle %>"
+													showCheckbox="<%= false %>"
+													thumbnailSrc="<%= childGroup.getLogoURL(themeDisplay, true) %>"
+													title="<%= childGroup.getDescriptiveName(locale) %>"
+													url="<%= (childGroup.getGroupId() != scopeGroupId) ? childGroup.getDisplayURL(themeDisplay) : null %>"
+												/>
+											</c:when>
+											<c:otherwise>
+												<liferay-ui:search-container-column-image
+													src="<%= childGroup.getLogoURL(themeDisplay, true) %>"
+												/>
 
-										<%
-										LayoutSet layoutSet = null;
+												<liferay-ui:search-container-column-text
+													colspan="<%= 2 %>"
+												>
+													<h5>
+														<aui:a href="<%= (childGroup.getGroupId() != scopeGroupId) ? childGroup.getDisplayURL(themeDisplay) : null %>">
+															<%= childGroup.getDescriptiveName(locale) %>
+														</aui:a>
+													</h5>
 
-										if (childGroup.hasPublicLayouts()) {
-											layoutSet = childGroup.getPublicLayoutSet();
-										}
-										else {
-											layoutSet = childGroup.getPrivateLayoutSet();
-										}
-										%>
+													<h6 class="text-default">
+														<%= HtmlUtil.escape(childGroup.getDescription(locale)) %>
+													</h6>
 
-										<liferay-ui:app-view-entry
-											assetCategoryClassName="<%= Group.class.getName() %>"
-											assetCategoryClassPK="<%= childGroup.getGroupId() %>"
-											assetTagClassName="<%= Group.class.getName() %>"
-											assetTagClassPK="<%= childGroup.getGroupId() %>"
-											description="<%= HtmlUtil.escape(childGroup.getDescription()) %>"
-											displayStyle="<%= displayStyle %>"
-											showCheckbox="<%= false %>"
-											thumbnailSrc='<%= themeDisplay.getPathImage() + "/layout_set_logo?img_id=" + layoutSet.getLogoId() + "&t=" + WebServerServletTokenUtil.getToken(layoutSet.getLogoId()) %>'
-											title="<%= HtmlUtil.escape(childGroup.getDescriptiveName(locale)) %>"
-											url="<%= PortalUtil.getGroupFriendlyURL(childGroup, !childGroup.hasPublicLayouts(), themeDisplay) %>"
-										/>
+													<h6 class="text-default">
+														<liferay-ui:asset-tags-summary
+															className="<%= Group.class.getName() %>"
+															classPK="<%= childGroup.getGroupId() %>"
+														/>
+													</h6>
+
+													<h6 class="text-default">
+														<liferay-ui:asset-categories-summary
+															className="<%= Group.class.getName() %>"
+															classPK="<%= childGroup.getGroupId() %>"
+														/>
+													</h6>
+												</liferay-ui:search-container-column-text>
+											</c:otherwise>
+										</c:choose>
 									</liferay-ui:search-container-row>
 
-									<liferay-ui:search-iterator />
+									<liferay-ui:search-iterator displayStyle="<%= displayStyle %>" markupView="lexicon" />
 								</liferay-ui:search-container>
 							</c:otherwise>
 						</c:choose>
@@ -144,7 +173,6 @@
 						%>
 
 						<%= content %>
-
 					</c:otherwise>
 				</c:choose>
 			</c:otherwise>
@@ -157,27 +185,10 @@ private void _buildSitesList(Group rootGroup, Group curGroup, List<Group> branch
 	List<Group> childGroups = null;
 
 	if (rootGroup != null) {
-		childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		childGroups = rootGroup.getChildrenWithLayouts(true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 	}
 	else {
-		childGroups = GroupLocalServiceUtil.getLayoutsGroups(curGroup.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
-	}
-
-	List<Group> visibleGroups = new UniqueList<Group>();
-
-	for (Group childGroup : childGroups) {
-		if (childGroup.hasPublicLayouts()) {
-			visibleGroups.add(childGroup);
-		}
-		else {
-			User user = themeDisplay.getUser();
-
-			List<Group> mySites = user.getMySites(true, QueryUtil.ALL_POS);
-
-			if (mySites.contains(childGroup)) {
-				visibleGroups.add(childGroup);
-			}
-		}
+		childGroups = GroupLocalServiceUtil.getLayoutsGroups(curGroup.getCompanyId(), GroupConstants.DEFAULT_LIVE_GROUP_ID, true, QueryUtil.ALL_POS, QueryUtil.ALL_POS, new GroupNameComparator(true));
 	}
 
 	if (childGroups.isEmpty()) {
@@ -225,7 +236,14 @@ private void _buildSitesList(Group rootGroup, Group curGroup, List<Group> branch
 			sb.append("\" ");
 		}
 
-		sb.append("><a ");
+		sb.append(">");
+
+		if (childGroup.getGroupId() != themeDisplay.getScopeGroupId()) {
+			sb.append("<a ");
+		}
+		else {
+			sb.append("<span ");
+		}
 
 		if (Validator.isNotNull(className)) {
 			sb.append("class=\"");
@@ -233,13 +251,22 @@ private void _buildSitesList(Group rootGroup, Group curGroup, List<Group> branch
 			sb.append("\" ");
 		}
 
-		sb.append("href=\"");
-		sb.append(HtmlUtil.escapeHREF(PortalUtil.getGroupFriendlyURL(childGroup, !childGroup.hasPublicLayouts(), themeDisplay)));
-		sb.append("\"> ");
+		if (childGroup.getGroupId() != themeDisplay.getScopeGroupId()) {
+			sb.append("href=\"");
+			sb.append(HtmlUtil.escapeHREF(childGroup.getDisplayURL(themeDisplay, !childGroup.hasPublicLayouts())));
+			sb.append("\"");
+		}
+
+		sb.append("> ");
 
 		sb.append(HtmlUtil.escape(childGroup.getDescriptiveName(themeDisplay.getLocale())));
 
-		sb.append("</a>");
+		if (childGroup.getGroupId() != themeDisplay.getScopeGroupId()) {
+			sb.append("</a>");
+		}
+		else {
+			sb.append("</span>");
+		}
 
 		if (open) {
 			StringBundler childGroupSB = null;

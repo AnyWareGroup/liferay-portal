@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -46,7 +46,7 @@ if (displayStyle.equals("vertical")) {
 </liferay-util:html-bottom>
 
 <g:plusone
-	count="<%= !displayStyle.equals("simple") %>"
+	count='<%= !displayStyle.equals("simple") %>'
 	href="<%= url %>"
 	size="<%= plusOneDisplayStyle %>"
 >

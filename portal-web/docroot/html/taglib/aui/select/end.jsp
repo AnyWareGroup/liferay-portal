@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -33,7 +33,7 @@
 			</c:if>
 
 			<c:if test="<%= changesContext %>">
-				<span class="hide-accessible"><liferay-ui:message key="changing-the-value-of-this-field-will-reload-the-page" />)</span>
+				<span class="hide-accessible"><liferay-ui:message key="changing-the-value-of-this-field-reloads-the-page" />)</span>
 			</c:if>
 		</label>
 	</c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,12 +22,24 @@ import com.liferay.portal.kernel.json.JSON;
 @JSON(strict = true)
 public class Two {
 
-	public String fone = "string";
+	public String getFone() {
+		return _fone;
+	}
+
+	public int getFtwo() {
+		return _ftwo;
+	}
+
+	public long getNot() {
+		return _not;
+	}
+
+	private final String _fone = "string";
 
 	@JSON
-	public int ftwo = 173;
+	private final int _ftwo = 173;
 
 	@JSON(include = false)
-	public long not = -1;
+	private final long _not = -1;
 
 }

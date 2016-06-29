@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,7 +18,6 @@ import com.liferay.portal.kernel.servlet.BrowserSnifferUtil;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
 
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -28,8 +27,10 @@ import javax.servlet.http.HttpServletResponse;
 public class JSONContentTypeFilter extends BasePortalFilter {
 
 	@Override
-	public void init(FilterConfig filterConfig) {
-		super.init(filterConfig);
+	public boolean isFilterEnabled(
+		HttpServletRequest request, HttpServletResponse response) {
+
+		return BrowserSnifferUtil.isIe(request);
 	}
 
 	@Override
@@ -38,15 +39,9 @@ public class JSONContentTypeFilter extends BasePortalFilter {
 			FilterChain filterChain)
 		throws Exception {
 
-		if (!BrowserSnifferUtil.isIe(request)) {
-			processFilter(
-				JSONContentTypeFilter.class, request, response, filterChain);
-		}
-		else {
-			processFilter(
-				JSONContentTypeFilter.class, request,
-				new JSONContentTypeResponse(response), filterChain);
-		}
+		processFilter(
+			JSONContentTypeFilter.class.getName(), request,
+			new JSONContentTypeResponse(response), filterChain);
 	}
 
 }

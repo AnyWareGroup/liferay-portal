@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,9 @@ package com.liferay.portal.service;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.service.PermissionedModelLocalService;
+import com.liferay.portal.kernel.service.PersistedModelLocalService;
+import com.liferay.portal.kernel.service.PersistedModelLocalServiceRegistry;
 import com.liferay.portal.kernel.util.ListUtil;
 
 import java.util.List;
@@ -68,7 +71,7 @@ public class PersistedModelLocalServiceRegistryImpl
 			_persistedModelLocalServices.put(
 				className, persistedModelLocalService);
 
-		if (oldPersistedModelLocalService != null) {
+		if ((oldPersistedModelLocalService != null) && _log.isWarnEnabled()) {
 			_log.warn("Duplicate class name " + className);
 		}
 	}
@@ -78,11 +81,10 @@ public class PersistedModelLocalServiceRegistryImpl
 		_persistedModelLocalServices.remove(className);
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		PersistedModelLocalServiceRegistryImpl.class);
 
-	private Map<String, PersistedModelLocalService>
-		_persistedModelLocalServices =
-			new ConcurrentHashMap<String, PersistedModelLocalService>();
+	private final Map<String, PersistedModelLocalService>
+		_persistedModelLocalServices = new ConcurrentHashMap<>();
 
 }

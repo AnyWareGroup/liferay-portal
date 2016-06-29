@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,92 +14,105 @@
 
 package com.liferay.portlet.documentlibrary.service.permission;
 
+import com.liferay.document.library.kernel.exception.NoSuchFolderException;
+import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLFolderLocalServiceUtil;
+import com.liferay.exportimport.kernel.staging.permission.StagingPermissionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.portlet.PortletProvider;
+import com.liferay.portal.kernel.portlet.PortletProviderUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.staging.permission.StagingPermissionUtil;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.util.PortletKeys;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.BaseModelPermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.spring.osgi.OSGiBeanProperties;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
-import com.liferay.portlet.documentlibrary.model.DLFolder;
-import com.liferay.portlet.documentlibrary.model.DLFolderConstants;
-import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
 
 /**
  * @author Brian Wing Shun Chan
  */
-public class DLFolderPermission {
+@OSGiBeanProperties(
+	property = {
+		"model.class.name=com.liferay.document.library.kernel.model.DLFolder"
+	}
+)
+public class DLFolderPermission implements BaseModelPermissionChecker {
 
 	public static void check(
 			PermissionChecker permissionChecker, DLFolder dlFolder,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, dlFolder, actionId)) {
-			throw new PrincipalException();
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, DLFolder.class.getName(),
+				dlFolder.getFolderId(), actionId);
 		}
 	}
 
 	public static void check(
 			PermissionChecker permissionChecker, Folder folder, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!folder.containsPermission(permissionChecker, actionId)) {
-			throw new PrincipalException();
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, Folder.class.getName(), folder.getFolderId(),
+				actionId);
 		}
 	}
 
 	public static void check(
 			PermissionChecker permissionChecker, long groupId, long folderId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!contains(permissionChecker, groupId, folderId, actionId)) {
-			throw new PrincipalException();
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, Folder.class.getName(), folderId, actionId);
 		}
 	}
 
 	public static boolean contains(
 			PermissionChecker permissionChecker, DLFolder dlFolder,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (actionId.equals(ActionKeys.ADD_FOLDER)) {
 			actionId = ActionKeys.ADD_SUBFOLDER;
 		}
 
+		String portletId = PortletProviderUtil.getPortletId(
+			Folder.class.getName(), PortletProvider.Action.EDIT);
+
 		Boolean hasPermission = StagingPermissionUtil.hasPermission(
 			permissionChecker, dlFolder.getGroupId(), DLFolder.class.getName(),
-			dlFolder.getFolderId(), PortletKeys.DOCUMENT_LIBRARY, actionId);
+			dlFolder.getFolderId(), portletId, actionId);
 
 		if (hasPermission != null) {
 			return hasPermission.booleanValue();
 		}
 
-		long folderId = dlFolder.getFolderId();
-
-		if (PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
-			long originalFolderId = folderId;
+		if (actionId.equals(ActionKeys.VIEW) &&
+			PropsValues.PERMISSIONS_VIEW_DYNAMIC_INHERITANCE) {
 
 			try {
-				while (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-					dlFolder = DLFolderLocalServiceUtil.getFolder(folderId);
+				long dlFolderId = dlFolder.getFolderId();
 
-					if (!permissionChecker.hasOwnerPermission(
-							dlFolder.getCompanyId(), DLFolder.class.getName(),
-							folderId, dlFolder.getUserId(), ActionKeys.VIEW) &&
-						!permissionChecker.hasPermission(
-							dlFolder.getGroupId(), DLFolder.class.getName(),
-							folderId, ActionKeys.VIEW)) {
+				while (dlFolderId !=
+							DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+
+					dlFolder = DLFolderLocalServiceUtil.getFolder(dlFolderId);
+
+					if (!_hasPermission(
+							permissionChecker, dlFolder, actionId)) {
 
 						return false;
 					}
 
-					folderId = dlFolder.getParentFolderId();
+					dlFolderId = dlFolder.getParentFolderId();
 				}
 			}
 			catch (NoSuchFolderException nsfe) {
@@ -108,42 +121,16 @@ public class DLFolderPermission {
 				}
 			}
 
-			if (actionId.equals(ActionKeys.VIEW)) {
-				return true;
-			}
-
-			folderId = originalFolderId;
+			return DLPermission.contains(
+				permissionChecker, dlFolder.getGroupId(), actionId);
 		}
 
-		try {
-			while (folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
-				dlFolder = DLFolderLocalServiceUtil.getFolder(folderId);
-
-				if (permissionChecker.hasOwnerPermission(
-						dlFolder.getCompanyId(), DLFolder.class.getName(),
-						folderId, dlFolder.getUserId(), actionId) ||
-					permissionChecker.hasPermission(
-						dlFolder.getGroupId(), DLFolder.class.getName(),
-						folderId, actionId)) {
-
-					return true;
-				}
-
-				folderId = dlFolder.getParentFolderId();
-			}
-		}
-		catch (NoSuchFolderException nsfe) {
-			if (!dlFolder.isInTrash()) {
-				throw nsfe;
-			}
-		}
-
-		return false;
+		return _hasPermission(permissionChecker, dlFolder, actionId);
 	}
 
 	public static boolean contains(
 			PermissionChecker permissionChecker, Folder folder, String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return folder.containsPermission(permissionChecker, actionId);
 	}
@@ -151,7 +138,7 @@ public class DLFolderPermission {
 	public static boolean contains(
 			PermissionChecker permissionChecker, long groupId, long folderId,
 			String actionId)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (folderId == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
 
@@ -167,11 +154,36 @@ public class DLFolderPermission {
 
 			return DLPermission.contains(permissionChecker, groupId, actionId);
 		}
-		else {
-			Folder folder = DLAppLocalServiceUtil.getFolder(folderId);
 
-			return folder.containsPermission(permissionChecker, actionId);
+		Folder folder = DLAppLocalServiceUtil.getFolder(folderId);
+
+		return folder.containsPermission(permissionChecker, actionId);
+	}
+
+	@Override
+	public void checkBaseModel(
+			PermissionChecker permissionChecker, long groupId, long primaryKey,
+			String actionId)
+		throws PortalException {
+
+		check(permissionChecker, groupId, primaryKey, actionId);
+	}
+
+	private static boolean _hasPermission(
+		PermissionChecker permissionChecker, DLFolder dlFolder,
+		String actionId) {
+
+		if (permissionChecker.hasOwnerPermission(
+				dlFolder.getCompanyId(), DLFolder.class.getName(),
+				dlFolder.getFolderId(), dlFolder.getUserId(), actionId) ||
+			permissionChecker.hasPermission(
+				dlFolder.getGroupId(), DLFolder.class.getName(),
+				dlFolder.getFolderId(), actionId)) {
+
+			return true;
 		}
+
+		return false;
 	}
 
 }

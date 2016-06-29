@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,8 @@ package com.liferay.taglib.ui;
 import com.liferay.taglib.util.IncludeTag;
 
 import java.util.Map;
+
+import javax.portlet.PortletURL;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,6 +40,14 @@ public class AppViewDisplayStyleTag extends IncludeTag {
 		_displayStyles = displayStyles;
 	}
 
+	public void setDisplayStyleURL(PortletURL displayStyleURL) {
+		_displayStyleURL = displayStyleURL;
+	}
+
+	public void setEventName(String eventName) {
+		_eventName = eventName;
+	}
+
 	public void setRequestParams(Map<String, String> requestParams) {
 		_requestParams = requestParams;
 	}
@@ -46,6 +56,8 @@ public class AppViewDisplayStyleTag extends IncludeTag {
 	protected void cleanUp() {
 		_displayStyle = null;
 		_displayStyles = null;
+		_displayStyleURL = null;
+		_eventName = null;
 		_requestParams = null;
 	}
 
@@ -66,6 +78,11 @@ public class AppViewDisplayStyleTag extends IncludeTag {
 		request.setAttribute(
 			"liferay-ui:app-view-display-style:displayStyles", _displayStyles);
 		request.setAttribute(
+			"liferay-ui:app-view-display-style:displayStyleURL",
+			_displayStyleURL);
+		request.setAttribute(
+			"liferay-ui:app-view-display-style:eventName", _eventName);
+		request.setAttribute(
 			"liferay-ui:app-view-display-style:requestParams", _requestParams);
 	}
 
@@ -76,6 +93,8 @@ public class AppViewDisplayStyleTag extends IncludeTag {
 
 	private String _displayStyle;
 	private String[] _displayStyles;
+	private PortletURL _displayStyleURL;
+	private String _eventName;
 	private Map<String, String> _requestParams;
 
 }

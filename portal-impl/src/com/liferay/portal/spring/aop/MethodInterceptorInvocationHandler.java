@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,8 +67,8 @@ public class MethodInterceptorInvocationHandler implements InvocationHandler {
 		return serviceBeanMethodInvocation.proceed();
 	}
 
-	private List<MethodInterceptor> _methodInterceptors;
-	private Object _target;
-	private Class<?> _targetClass;
+	private final List<MethodInterceptor> _methodInterceptors;
+	private final Object _target;
+	private final Class<?> _targetClass;
 
 }

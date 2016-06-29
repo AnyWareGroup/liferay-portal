@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -177,13 +177,11 @@ public class FastDateFormatFactoryImpl implements FastDateFormatFactory {
 		return sb.toString();
 	}
 
-	private Map<String, Format> _dateFormats =
-		new ConcurrentHashMap<String, Format>();
-	private Map<String, Format> _dateTimeFormats =
-		new ConcurrentHashMap<String, Format>();
-	private Map<String, Format> _simpleDateFormats =
-		new ConcurrentHashMap<String, Format>();
-	private Map<String, Format> _timeFormats =
-		new ConcurrentHashMap<String, Format>();
+	private final Map<String, Format> _dateFormats = new ConcurrentHashMap<>();
+	private final Map<String, Format> _dateTimeFormats =
+		new ConcurrentHashMap<>();
+	private final Map<String, Format> _simpleDateFormats =
+		new ConcurrentHashMap<>();
+	private final Map<String, Format> _timeFormats = new ConcurrentHashMap<>();
 
 }

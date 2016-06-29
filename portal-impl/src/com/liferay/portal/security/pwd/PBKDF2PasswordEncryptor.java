@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,17 @@
 
 package com.liferay.portal.security.pwd;
 
-import com.liferay.portal.PwdEncryptorException;
+import com.liferay.portal.kernel.exception.PwdEncryptorException;
+import com.liferay.portal.kernel.io.BigEndianCodec;
+import com.liferay.portal.kernel.security.SecureRandomUtil;
+import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
+import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.CharPool;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.nio.ByteBuffer;
-
-import java.security.SecureRandom;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -99,10 +101,10 @@ public class PBKDF2PasswordEncryptor
 
 	private static final int _SALT_BYTES_LENGTH = 8;
 
-	private static Pattern _pattern = Pattern.compile(
+	private static final Pattern _pattern = Pattern.compile(
 		"^.*/?([0-9]+)?/([0-9]+)$");
 
-	private class PBKDF2EncryptionConfiguration {
+	private static class PBKDF2EncryptionConfiguration {
 
 		public void configure(String algorithm, String encryptedPassword)
 			throws PwdEncryptorException {
@@ -117,9 +119,8 @@ public class PBKDF2PasswordEncryptor
 					_rounds = GetterUtil.getInteger(matcher.group(2), _ROUNDS);
 				}
 
-				SecureRandom random = new SecureRandom();
-
-				random.nextBytes(_saltBytes);
+				BigEndianCodec.putLong(
+					_saltBytes, 0, SecureRandomUtil.nextLong());
 			}
 			else {
 				byte[] bytes = new byte[16];
@@ -161,7 +162,7 @@ public class PBKDF2PasswordEncryptor
 
 		private int _keySize = _KEY_SIZE;
 		private int _rounds = _ROUNDS;
-		private byte[] _saltBytes = new byte[_SALT_BYTES_LENGTH];
+		private final byte[] _saltBytes = new byte[_SALT_BYTES_LENGTH];
 
 	}
 

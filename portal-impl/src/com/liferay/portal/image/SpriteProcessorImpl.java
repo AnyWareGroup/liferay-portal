@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,14 +22,12 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.servlet.ServletContextUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.SortedProperties;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.URLUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.util.PropertyComparator;
 
 import java.awt.Point;
 import java.awt.Transparency;
@@ -42,7 +40,6 @@ import java.awt.image.RenderedImage;
 import java.awt.image.SampleModel;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import java.net.URL;
@@ -50,6 +47,7 @@ import java.net.URLConnection;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 
@@ -64,8 +62,6 @@ import javax.media.jai.operator.MosaicDescriptor;
 import javax.media.jai.operator.TranslateDescriptor;
 
 import javax.servlet.ServletContext;
-
-import org.geotools.image.ImageWorker;
 
 /**
  * @author Brian Wing Shun Chan
@@ -85,7 +81,7 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 			return null;
 		}
 
-		Collections.sort(imageURLs, new PropertyComparator("path"));
+		Collections.sort(imageURLs, _urlPathComparator);
 
 		File spriteRootDir = null;
 
@@ -99,14 +95,14 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 			spriteRootDir = new File(spriteRootDirName);
 		}
 
-		spriteRootDir.mkdirs();
+		FileUtil.mkdirs(spriteRootDir);
 
 		File spritePropertiesFile = new File(
 			spriteRootDir, spritePropertiesFileName);
 
 		File spritePropertiesParentFile = spritePropertiesFile.getParentFile();
 
-		spritePropertiesParentFile.mkdirs();
+		FileUtil.mkdirs(spritePropertiesParentFile);
 
 		boolean build = false;
 
@@ -115,14 +111,8 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 		if (spritePropertiesFile.exists()) {
 			lastModified = spritePropertiesFile.lastModified();
 
-			URLConnection urlConnection = null;
-
 			for (URL imageURL : imageURLs) {
-				urlConnection = imageURL.openConnection();
-
-				if ((urlConnection != null) &&
-					(urlConnection.getLastModified() > lastModified)) {
-
+				if (URLUtil.getLastModifiedTime(imageURL) > lastModified) {
 					build = true;
 
 					break;
@@ -144,7 +134,7 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 			}
 		}
 
-		List<RenderedImage> renderedImages = new ArrayList<RenderedImage>();
+		List<RenderedImage> renderedImages = new ArrayList<>();
 
 		Properties spriteProperties = new SortedProperties();
 
@@ -187,8 +177,7 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 						key = key.substring(rootPath.length());
 					}
 
-					String contextPath = ContextPathUtil.getContextPath(
-						servletContext);
+					String contextPath = servletContext.getContextPath();
 
 					key = contextPath.concat(key);
 
@@ -226,34 +215,11 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 
 			File spriteFile = new File(spriteRootDir, spriteFileName);
 
-			spriteFile.mkdirs();
+			File spriteDir = spriteFile.getParentFile();
+
+			FileUtil.mkdirs(spriteDir);
 
 			ImageIO.write(renderedImage, "png", spriteFile);
-
-			if (lastModified > 0) {
-				spriteFile.setLastModified(lastModified);
-			}
-
-			ImageWorker imageWorker = new ImageWorker(renderedImage);
-
-			imageWorker.forceIndexColorModelForGIF(true);
-
-			// GIF
-
-			renderedImage = imageWorker.getPlanarImage();
-
-			spriteFile = new File(
-				spriteRootDir,
-				StringUtil.replace(spriteFileName, ".png", ".gif"));
-
-			FileOutputStream fos = new FileOutputStream(spriteFile);
-
-			try {
-				ImageToolUtil.encodeGIF(renderedImage, fos);
-			}
-			finally {
-				fos.close();
-			}
 
 			if (lastModified > 0) {
 				spriteFile.setLastModified(lastModified);
@@ -300,11 +266,38 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 			renderedImage = LookupDescriptor.create(
 				renderedImage, lookupTableJAI, null);
 		}
-		else if (sampleModel.getNumBands() == 2) {
-			List<Byte> bytesList = new ArrayList<Byte>(
+		else if (sampleModel.getNumBands() == 1) {
+			List<Byte> bytesList = new ArrayList<>(
 				height * width * _NUM_OF_BANDS);
 
-			List<Byte> tempBytesList = new ArrayList<Byte>(_NUM_OF_BANDS);
+			for (int i = 0; i < dataBuffer.getSize(); i++) {
+				byte elem = (byte)dataBuffer.getElem(i);
+
+				if (elem == -1) {
+					bytesList.add((byte)0);
+				}
+				else {
+					bytesList.add((byte)255);
+				}
+
+				bytesList.add(elem);
+				bytesList.add(elem);
+				bytesList.add(elem);
+			}
+
+			byte[] data = ArrayUtil.toArray(
+				bytesList.toArray(new Byte[bytesList.size()]));
+
+			DataBuffer newDataBuffer = new DataBufferByte(data, data.length);
+
+			renderedImage = createRenderedImage(
+				renderedImage, height, width, newDataBuffer);
+		}
+		else if (sampleModel.getNumBands() == 2) {
+			List<Byte> bytesList = new ArrayList<>(
+				height * width * _NUM_OF_BANDS);
+
+			List<Byte> tempBytesList = new ArrayList<>(_NUM_OF_BANDS);
 
 			for (int i = 0; i < dataBuffer.getSize(); i++) {
 				int mod = (i + 1) % 2;
@@ -336,10 +329,10 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 				renderedImage, height, width, newDataBuffer);
 		}
 		else if (colorModel.getTransparency() != Transparency.TRANSLUCENT) {
-			List<Byte> bytesList = new ArrayList<Byte>(
+			List<Byte> bytesList = new ArrayList<>(
 				height * width * _NUM_OF_BANDS);
 
-			List<Byte> tempBytesList = new ArrayList<Byte>(_NUM_OF_BANDS);
+			List<Byte> tempBytesList = new ArrayList<>(_NUM_OF_BANDS);
 
 			for (int i = 0; i < dataBuffer.getSize(); i++) {
 				int mod = (i + 1) % 3;
@@ -429,6 +422,20 @@ public class SpriteProcessorImpl implements SpriteProcessor {
 
 	private static final int _NUM_OF_BANDS = 4;
 
-	private static Log _log = LogFactoryUtil.getLog(SpriteProcessorImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		SpriteProcessorImpl.class);
+
+	private static final Comparator<URL> _urlPathComparator =
+		new Comparator<URL>() {
+
+			@Override
+			public int compare(URL url1, URL url2) {
+				String path1 = url1.getPath();
+				String path2 = url2.getPath();
+
+				return path1.compareToIgnoreCase(path2);
+			}
+
+		};
 
 }

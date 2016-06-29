@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,10 +16,11 @@ package com.liferay.portal.increment;
 
 import com.liferay.portal.kernel.concurrent.BatchablePipe;
 import com.liferay.portal.kernel.increment.Increment;
+import com.liferay.portal.kernel.messaging.proxy.ProxyModeThreadLocal;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.NamedThreadFactory;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.io.Serializable;
 
@@ -27,8 +28,8 @@ import java.lang.reflect.Method;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.DiscardPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -54,7 +55,7 @@ public class BufferedIncrementProcessor {
 
 		StringBundler sb = new StringBundler(parameterTypes.length * 2 + 5);
 
-		sb.append("BufferedIncreament-");
+		sb.append("BufferedIncrement-");
 
 		Class<?> clazz = method.getDeclaringClass();
 
@@ -87,15 +88,21 @@ public class BufferedIncrementProcessor {
 	@SuppressWarnings("rawtypes")
 	public void process(BufferedIncreasableEntry bufferedIncreasableEntry) {
 		if (_batchablePipe.put(bufferedIncreasableEntry)) {
-			_executorService.execute(
-				new BufferedIncrementRunnable(
-					_bufferedIncrementConfiguration, _batchablePipe,
-						_queueLengthTracker));
+			Runnable runnable = new BufferedIncrementRunnable(
+				_bufferedIncrementConfiguration, _batchablePipe,
+				_queueLengthTracker, Thread.currentThread());
+
+			if (ProxyModeThreadLocal.isForceSync()) {
+				runnable.run();
+			}
+			else {
+				_executorService.execute(runnable);
+			}
 		}
 	}
 
 	private final BatchablePipe<Serializable, Increment<?>> _batchablePipe =
-		new BatchablePipe<Serializable, Increment<?>>();
+		new BatchablePipe<>();
 	private final BufferedIncrementConfiguration
 		_bufferedIncrementConfiguration;
 	private final ExecutorService _executorService;

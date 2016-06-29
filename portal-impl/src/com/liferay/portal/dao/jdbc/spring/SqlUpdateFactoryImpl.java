@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.dao.jdbc.spring;
 
+import com.liferay.portal.kernel.dao.jdbc.ParamSetter;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdate;
 import com.liferay.portal.kernel.dao.jdbc.SqlUpdateFactory;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
@@ -28,9 +29,9 @@ public class SqlUpdateFactoryImpl implements SqlUpdateFactory {
 
 	@Override
 	public SqlUpdate getSqlUpdate(
-		DataSource dataSource, String sql, int[] types) {
+		DataSource dataSource, String sql, ParamSetter... paramSetters) {
 
-		return new SqlUpdateImpl(dataSource, sql, types);
+		return new SqlUpdateImpl(dataSource, sql, paramSetters);
 	}
 
 }

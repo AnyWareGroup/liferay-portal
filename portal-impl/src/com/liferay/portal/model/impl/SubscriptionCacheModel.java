@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.Subscription;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.Subscription;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,14 +37,56 @@ import java.util.Date;
  * @see Subscription
  * @generated
  */
+@ProviderType
 public class SubscriptionCacheModel implements CacheModel<Subscription>,
-	Externalizable {
+	Externalizable, MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof SubscriptionCacheModel)) {
+			return false;
+		}
+
+		SubscriptionCacheModel subscriptionCacheModel = (SubscriptionCacheModel)obj;
+
+		if ((subscriptionId == subscriptionCacheModel.subscriptionId) &&
+				(mvccVersion == subscriptionCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, subscriptionId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(23);
 
-		sb.append("{subscriptionId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", subscriptionId=");
 		sb.append(subscriptionId);
+		sb.append(", groupId=");
+		sb.append(groupId);
 		sb.append(", companyId=");
 		sb.append(companyId);
 		sb.append(", userId=");
@@ -66,7 +112,9 @@ public class SubscriptionCacheModel implements CacheModel<Subscription>,
 	public Subscription toEntityModel() {
 		SubscriptionImpl subscriptionImpl = new SubscriptionImpl();
 
+		subscriptionImpl.setMvccVersion(mvccVersion);
 		subscriptionImpl.setSubscriptionId(subscriptionId);
+		subscriptionImpl.setGroupId(groupId);
 		subscriptionImpl.setCompanyId(companyId);
 		subscriptionImpl.setUserId(userId);
 
@@ -108,13 +156,21 @@ public class SubscriptionCacheModel implements CacheModel<Subscription>,
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		subscriptionId = objectInput.readLong();
+
+		groupId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+
 		classNameId = objectInput.readLong();
+
 		classPK = objectInput.readLong();
 		frequency = objectInput.readUTF();
 	}
@@ -122,8 +178,14 @@ public class SubscriptionCacheModel implements CacheModel<Subscription>,
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(subscriptionId);
+
+		objectOutput.writeLong(groupId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
 
 		if (userName == null) {
@@ -135,7 +197,9 @@ public class SubscriptionCacheModel implements CacheModel<Subscription>,
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeLong(classNameId);
+
 		objectOutput.writeLong(classPK);
 
 		if (frequency == null) {
@@ -146,7 +210,9 @@ public class SubscriptionCacheModel implements CacheModel<Subscription>,
 		}
 	}
 
+	public long mvccVersion;
 	public long subscriptionId;
+	public long groupId;
 	public long companyId;
 	public long userId;
 	public String userName;

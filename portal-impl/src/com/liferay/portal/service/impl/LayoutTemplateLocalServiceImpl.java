@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,6 +18,9 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.io.DummyWriter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.LayoutTemplate;
+import com.liferay.portal.kernel.model.LayoutTemplateConstants;
+import com.liferay.portal.kernel.model.PluginSetting;
 import com.liferay.portal.kernel.plugin.PluginPackage;
 import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
@@ -27,17 +30,13 @@ import com.liferay.portal.kernel.template.TemplateResourceLoaderUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.layoutconfiguration.util.velocity.InitColumnProcessor;
-import com.liferay.portal.model.LayoutTemplate;
-import com.liferay.portal.model.LayoutTemplateConstants;
-import com.liferay.portal.model.PluginSetting;
 import com.liferay.portal.model.impl.LayoutTemplateImpl;
 import com.liferay.portal.service.base.LayoutTemplateLocalServiceBaseImpl;
 import com.liferay.portal.util.PropsValues;
@@ -47,6 +46,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,8 +64,7 @@ public class LayoutTemplateLocalServiceImpl
 
 	@Override
 	public String getContent(
-			String layoutTemplateId, boolean standard, String themeId)
-		throws SystemException {
+		String layoutTemplateId, boolean standard, String themeId) {
 
 		LayoutTemplate layoutTemplate = getLayoutTemplate(
 			layoutTemplateId, standard, themeId);
@@ -93,13 +92,12 @@ public class LayoutTemplateLocalServiceImpl
 		if (PropsValues.LAYOUT_TEMPLATE_CACHE_ENABLED) {
 			return layoutTemplate.getContent();
 		}
-		else {
-			try {
-				return layoutTemplate.getUncachedContent();
-			}
-			catch (IOException ioe) {
-				throw new SystemException(ioe);
-			}
+
+		try {
+			return layoutTemplate.getUncachedContent();
+		}
+		catch (IOException ioe) {
+			throw new SystemException(ioe);
 		}
 	}
 
@@ -148,9 +146,8 @@ public class LayoutTemplateLocalServiceImpl
 
 	@Override
 	public List<LayoutTemplate> getLayoutTemplates() {
-		List<LayoutTemplate> customLayoutTemplates =
-			new ArrayList<LayoutTemplate>(
-				_portalCustom.size() + _warCustom.size());
+		List<LayoutTemplate> customLayoutTemplates = new ArrayList<>(
+			_portalCustom.size() + _warCustom.size());
 
 		customLayoutTemplates.addAll(ListUtil.fromMapValues(_portalCustom));
 		customLayoutTemplates.addAll(ListUtil.fromMapValues(_warCustom));
@@ -218,48 +215,7 @@ public class LayoutTemplateLocalServiceImpl
 	}
 
 	@Override
-	public String getWapContent(
-			String layoutTemplateId, boolean standard, String themeId)
-		throws SystemException {
-
-		LayoutTemplate layoutTemplate = getLayoutTemplate(
-			layoutTemplateId, standard, themeId);
-
-		if (layoutTemplate == null) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Layout template " + layoutTemplateId + " does not exist");
-			}
-
-			layoutTemplate = getLayoutTemplate(
-				PropsValues.DEFAULT_LAYOUT_TEMPLATE_ID, standard, themeId);
-
-			if (layoutTemplate == null) {
-				_log.error(
-					"Layout template " + layoutTemplateId +
-						" and default layout template " +
-							PropsValues.DEFAULT_LAYOUT_TEMPLATE_ID +
-								" do not exist");
-
-				return StringPool.BLANK;
-			}
-		}
-
-		if (PropsValues.LAYOUT_TEMPLATE_CACHE_ENABLED) {
-			return layoutTemplate.getWapContent();
-		}
-		else {
-			try {
-				return layoutTemplate.getUncachedWapContent();
-			}
-			catch (IOException ioe) {
-				throw new SystemException(ioe);
-			}
-		}
-	}
-
-	@Override
-	public List<ObjectValuePair<String, Boolean>> init(
+	public List<LayoutTemplate> init(
 		ServletContext servletContext, String[] xmls,
 		PluginPackage pluginPackage) {
 
@@ -267,67 +223,57 @@ public class LayoutTemplateLocalServiceImpl
 	}
 
 	@Override
-	public List<ObjectValuePair<String, Boolean>> init(
+	public List<LayoutTemplate> init(
 		String servletContextName, ServletContext servletContext, String[] xmls,
 		PluginPackage pluginPackage) {
 
-		List<ObjectValuePair<String, Boolean>> layoutTemplateIdOVPs =
-			new ArrayList<ObjectValuePair<String, Boolean>>();
+		Set<LayoutTemplate> layoutTemplates = new LinkedHashSet<>();
 
 		try {
-			for (int i = 0; i < xmls.length; i++) {
-				Set<ObjectValuePair<String, Boolean>> curLayoutTemplateIdOVPs =
+			for (String xml : xmls) {
+				layoutTemplates.addAll(
 					_readLayoutTemplates(
-						servletContextName, servletContext, xmls[i],
-						pluginPackage);
-
-				for (ObjectValuePair<String, Boolean> layoutTemplateIdOVP :
-						curLayoutTemplateIdOVPs) {
-
-					if (!layoutTemplateIdOVPs.contains(layoutTemplateIdOVP)) {
-						layoutTemplateIdOVPs.add(layoutTemplateIdOVP);
-					}
-				}
+						servletContextName, servletContext, xml,
+						pluginPackage));
 			}
 		}
 		catch (Exception e) {
 			_log.error(e, e);
 		}
 
-		return layoutTemplateIdOVPs;
+		return new ArrayList<>(layoutTemplates);
 	}
 
 	@Override
 	public void readLayoutTemplate(
 		String servletContextName, ServletContext servletContext,
-		Set<ObjectValuePair<String, Boolean>> layoutTemplateIdOVPs,
-		Element element, boolean standard, String themeId,
-		PluginPackage pluginPackage) {
+		Set<LayoutTemplate> layoutTemplates, Element element, boolean standard,
+		String themeId, PluginPackage pluginPackage) {
 
-		Map<String, LayoutTemplate> layoutTemplates = null;
+		Map<String, LayoutTemplate> installedLayoutTemplates = null;
 
 		if (themeId != null) {
 			if (standard) {
-				layoutTemplates = _getThemesStandard(themeId);
+				installedLayoutTemplates = _getThemesStandard(themeId);
 			}
 			else {
-				layoutTemplates = _getThemesCustom(themeId);
+				installedLayoutTemplates = _getThemesCustom(themeId);
 			}
 		}
 		else if (servletContextName != null) {
 			if (standard) {
-				layoutTemplates = _warStandard;
+				installedLayoutTemplates = _warStandard;
 			}
 			else {
-				layoutTemplates = _warCustom;
+				installedLayoutTemplates = _warCustom;
 			}
 		}
 		else {
 			if (standard) {
-				layoutTemplates = _portalStandard;
+				installedLayoutTemplates = _portalStandard;
 			}
 			else {
-				layoutTemplates = _portalCustom;
+				installedLayoutTemplates = _portalCustom;
 			}
 		}
 
@@ -338,21 +284,14 @@ public class LayoutTemplateLocalServiceImpl
 			String layoutTemplateId = layoutTemplateElement.attributeValue(
 				"id");
 
-			if (layoutTemplateIdOVPs != null) {
-				ObjectValuePair<String, Boolean> layoutTemplateIdOVP =
-					new ObjectValuePair<String, Boolean>(
-						layoutTemplateId, standard);
-
-				layoutTemplateIdOVPs.add(layoutTemplateIdOVP);
-			}
-
-			LayoutTemplate layoutTemplateModel = layoutTemplates.get(
+			LayoutTemplate layoutTemplateModel = installedLayoutTemplates.get(
 				layoutTemplateId);
 
 			if (layoutTemplateModel == null) {
 				layoutTemplateModel = new LayoutTemplateImpl(layoutTemplateId);
 
-				layoutTemplates.put(layoutTemplateId, layoutTemplateModel);
+				installedLayoutTemplates.put(
+					layoutTemplateId, layoutTemplateModel);
 			}
 
 			PluginSetting pluginSetting =
@@ -367,18 +306,18 @@ public class LayoutTemplateLocalServiceImpl
 
 			layoutTemplateModel.setStandard(standard);
 			layoutTemplateModel.setThemeId(themeId);
-			layoutTemplateModel.setName(
-				GetterUtil.getString(
-					layoutTemplateElement.attributeValue("name"),
-					layoutTemplateModel.getName()));
+
+			String templateName = GetterUtil.getString(
+				layoutTemplateElement.attributeValue("name"));
+
+			if (Validator.isNotNull(templateName)) {
+				layoutTemplateModel.setName(templateName);
+			}
+
 			layoutTemplateModel.setTemplatePath(
 				GetterUtil.getString(
 					layoutTemplateElement.elementText("template-path"),
 					layoutTemplateModel.getTemplatePath()));
-			layoutTemplateModel.setWapTemplatePath(
-				GetterUtil.getString(
-					layoutTemplateElement.elementText("wap-template-path"),
-					layoutTemplateModel.getWapTemplatePath()));
 			layoutTemplateModel.setThumbnailPath(
 				GetterUtil.getString(
 					layoutTemplateElement.elementText("thumbnail-path"),
@@ -424,36 +363,6 @@ public class LayoutTemplateLocalServiceImpl
 					_getColumns(velocityTemplateId, content));
 			}
 
-			if (Validator.isNull(layoutTemplateModel.getWapTemplatePath())) {
-				_log.error(
-					"The element wap-template-path is not defined for " +
-						layoutTemplateId);
-			}
-			else {
-				String wapContent = null;
-
-				try {
-					wapContent = HttpUtil.URLtoString(
-						servletContext.getResource(
-							layoutTemplateModel.getWapTemplatePath()));
-				}
-				catch (Exception e) {
-					_log.error(
-						"Unable to get content at WAP template path " +
-							layoutTemplateModel.getWapTemplatePath() + ": " +
-								e.getMessage());
-				}
-
-				if (Validator.isNull(wapContent)) {
-					_log.error(
-						"No content found at WAP template path " +
-							layoutTemplateModel.getWapTemplatePath());
-				}
-				else {
-					layoutTemplateModel.setWapContent(wapContent);
-				}
-			}
-
 			Element rolesElement = layoutTemplateElement.element("roles");
 
 			if (rolesElement != null) {
@@ -466,6 +375,10 @@ public class LayoutTemplateLocalServiceImpl
 			}
 
 			layoutTemplateModel.setDefaultPluginSetting(pluginSetting);
+
+			if (layoutTemplates != null) {
+				layoutTemplates.add(layoutTemplateModel);
+			}
 		}
 	}
 
@@ -578,7 +491,7 @@ public class LayoutTemplateLocalServiceImpl
 		catch (Exception e) {
 			_log.error(e);
 
-			return new ArrayList<String>();
+			return new ArrayList<>();
 		}
 	}
 
@@ -588,7 +501,7 @@ public class LayoutTemplateLocalServiceImpl
 		Map<String, LayoutTemplate> layoutTemplates = _themes.get(key);
 
 		if (layoutTemplates == null) {
-			layoutTemplates = new LinkedHashMap<String, LayoutTemplate>();
+			layoutTemplates = new LinkedHashMap<>();
 
 			_themes.put(key, layoutTemplates);
 		}
@@ -602,7 +515,7 @@ public class LayoutTemplateLocalServiceImpl
 		Map<String, LayoutTemplate> layoutTemplates = _themes.get(key);
 
 		if (layoutTemplates == null) {
-			layoutTemplates = new LinkedHashMap<String, LayoutTemplate>();
+			layoutTemplates = new LinkedHashMap<>();
 
 			_themes.put(key, layoutTemplates);
 		}
@@ -610,19 +523,18 @@ public class LayoutTemplateLocalServiceImpl
 		return layoutTemplates;
 	}
 
-	private Set<ObjectValuePair<String, Boolean>> _readLayoutTemplates(
+	private Set<LayoutTemplate> _readLayoutTemplates(
 			String servletContextName, ServletContext servletContext,
 			String xml, PluginPackage pluginPackage)
 		throws Exception {
 
-		Set<ObjectValuePair<String, Boolean>> layoutTemplateIdOVPs =
-			new HashSet<ObjectValuePair<String, Boolean>>();
+		Set<LayoutTemplate> layoutTemplates = new HashSet<>();
 
 		if (xml == null) {
-			return layoutTemplateIdOVPs;
+			return layoutTemplates;
 		}
 
-		Document document = SAXReaderUtil.read(xml, true);
+		Document document = UnsecureSAXReaderUtil.read(xml, true);
 
 		Element rootElement = document.getRootElement();
 
@@ -630,7 +542,7 @@ public class LayoutTemplateLocalServiceImpl
 
 		if (standardElement != null) {
 			readLayoutTemplate(
-				servletContextName, servletContext, layoutTemplateIdOVPs,
+				servletContextName, servletContext, layoutTemplates,
 				standardElement, true, null, pluginPackage);
 		}
 
@@ -638,27 +550,25 @@ public class LayoutTemplateLocalServiceImpl
 
 		if (customElement != null) {
 			readLayoutTemplate(
-				servletContextName, servletContext, layoutTemplateIdOVPs,
+				servletContextName, servletContext, layoutTemplates,
 				customElement, false, null, pluginPackage);
 		}
 
-		return layoutTemplateIdOVPs;
+		return layoutTemplates;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		LayoutTemplateLocalServiceImpl.class);
 
-	private static Map<String, LayoutTemplate> _portalCustom =
-		new LinkedHashMap<String, LayoutTemplate>();
-	private static Map<String, LayoutTemplate> _portalStandard =
-		new LinkedHashMap<String, LayoutTemplate>();
-
-	private static Map<String, Map<String, LayoutTemplate>> _themes =
-		new LinkedHashMap<String, Map<String, LayoutTemplate>>();
-
-	private static Map<String, LayoutTemplate> _warCustom =
-		new LinkedHashMap<String, LayoutTemplate>();
-	private static Map<String, LayoutTemplate> _warStandard =
-		new LinkedHashMap<String, LayoutTemplate>();
+	private static final Map<String, LayoutTemplate> _portalCustom =
+		new LinkedHashMap<>();
+	private static final Map<String, LayoutTemplate> _portalStandard =
+		new LinkedHashMap<>();
+	private static final Map<String, Map<String, LayoutTemplate>> _themes =
+		new LinkedHashMap<>();
+	private static final Map<String, LayoutTemplate> _warCustom =
+		new LinkedHashMap<>();
+	private static final Map<String, LayoutTemplate> _warStandard =
+		new LinkedHashMap<>();
 
 }

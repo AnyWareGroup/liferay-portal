@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -139,12 +139,12 @@ public class ModuleId implements Serializable {
 		_type = type;
 	}
 
-	private static Map<String, ModuleId> _moduleIds =
-		new ConcurrentHashMap<String, ModuleId>();
+	private static final Map<String, ModuleId> _moduleIds =
+		new ConcurrentHashMap<>();
 
-	private String _artifactId;
-	private String _groupId;
-	private Version _pluginVersion;
-	private String _type;
+	private final String _artifactId;
+	private final String _groupId;
+	private final Version _pluginVersion;
+	private final String _type;
 
 }

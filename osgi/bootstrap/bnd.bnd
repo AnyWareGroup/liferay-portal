@@ -1,4 +1,0 @@
-Import-Package:\
-	*
-Include-Resource: classes
-Private-Package: com.liferay.osgi.bootstrap.*

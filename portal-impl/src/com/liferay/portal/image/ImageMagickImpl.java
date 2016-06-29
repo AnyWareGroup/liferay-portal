@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,17 +19,18 @@ import com.liferay.portal.kernel.image.ImageMagick;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.NamedThreadFactory;
 import com.liferay.portal.kernel.util.OSDetector;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.PrefsPropsUtil;
 import com.liferay.portal.util.PropsUtil;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
@@ -84,7 +85,7 @@ public class ImageMagickImpl implements ImageMagick {
 
 	@Override
 	public String getGlobalSearchPath() throws Exception {
-		PortletPreferences preferences = PrefsPropsUtil.getPreferences();
+		PortletPreferences preferences = PrefsPropsUtil.getPreferences(true);
 
 		String globalSearchPath = preferences.getValue(
 			PropsKeys.IMAGEMAGICK_GLOBAL_SEARCH_PATH, null);
@@ -162,10 +163,12 @@ public class ImageMagickImpl implements ImageMagick {
 			enabled = PrefsPropsUtil.getBoolean(PropsKeys.IMAGEMAGICK_ENABLED);
 		}
 		catch (Exception e) {
-			_log.warn(e, e);
+			if (_log.isWarnEnabled()) {
+				_log.warn(e, e);
+			}
 		}
 
-		if (!enabled && !_warned) {
+		if (!enabled && !_warned && _log.isWarnEnabled()) {
 			StringBundler sb = new StringBundler(7);
 
 			sb.append("Liferay is not configured to use ImageMagick and ");
@@ -199,21 +202,23 @@ public class ImageMagickImpl implements ImageMagick {
 	}
 
 	protected LinkedList<String> getResourceLimits() {
-		LinkedList<String> resourceLimits = new LinkedList<String>();
+		LinkedList<String> resourceLimits = new LinkedList<>();
 
 		if (_resourceLimitsProperties == null) {
 			return resourceLimits;
 		}
 
-		for (Object key : _resourceLimitsProperties.keySet()) {
-			String value = (String)_resourceLimitsProperties.get(key);
+		for (Map.Entry<Object, Object> entry :
+				_resourceLimitsProperties.entrySet()) {
+
+			String value = (String)entry.getValue();
 
 			if (Validator.isNull(value)) {
 				continue;
 			}
 
 			resourceLimits.add("-limit");
-			resourceLimits.add((String)key);
+			resourceLimits.add((String)entry.getKey());
 			resourceLimits.add(value);
 		}
 
@@ -239,9 +244,10 @@ public class ImageMagickImpl implements ImageMagick {
 		return _processExecutor;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(ImageMagickImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		ImageMagickImpl.class);
 
-	private static ImageMagickImpl _instance = new ImageMagickImpl();
+	private static final ImageMagickImpl _instance = new ImageMagickImpl();
 
 	private String _globalSearchPath;
 	private volatile ProcessExecutor _processExecutor;

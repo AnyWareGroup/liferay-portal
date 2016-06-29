@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,6 +15,7 @@
 package com.liferay.portal.security.auth;
 
 import com.liferay.portal.kernel.concurrent.ConcurrentHashSet;
+import com.liferay.portal.kernel.security.auth.AuthenticatedUserUUIDStore;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 
 import java.util.Set;
@@ -41,6 +42,6 @@ public class DefaultAuthenticatedUserUUIDStoreImpl
 		return _userUUIDStore.remove(userUUID);
 	}
 
-	private Set<String> _userUUIDStore = new ConcurrentHashSet<String>();
+	private final Set<String> _userUUIDStore = new ConcurrentHashSet<>();
 
 }

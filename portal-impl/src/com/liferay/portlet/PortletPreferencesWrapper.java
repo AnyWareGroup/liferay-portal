@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,18 +14,13 @@
 
 package com.liferay.portlet;
 
-import com.liferay.portal.util.PropsValues;
-
-import java.io.IOException;
 import java.io.Serializable;
 
 import java.util.Enumeration;
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
-import javax.portlet.PortletRequest;
 import javax.portlet.ReadOnlyException;
-import javax.portlet.ValidatorException;
 
 /**
  * @author Brian Wing Shun Chan
@@ -33,11 +28,8 @@ import javax.portlet.ValidatorException;
 public class PortletPreferencesWrapper
 	implements PortletPreferences, Serializable {
 
-	public PortletPreferencesWrapper(
-		PortletPreferences portletPreferences, String lifecycle) {
-
+	public PortletPreferencesWrapper(PortletPreferences portletPreferences) {
 		_portletPreferences = portletPreferences;
-		_lifecycle = lifecycle;
 	}
 
 	@Override
@@ -75,13 +67,6 @@ public class PortletPreferencesWrapper
 
 	public PortletPreferencesImpl getPortletPreferencesImpl() {
 		return (PortletPreferencesImpl)_portletPreferences;
-	}
-
-	/**
-	 * @deprecated As of 6.1.0, replaced by {@link #getPortletPreferencesImpl}
-	 */
-	public PortletPreferencesImpl getPreferencesImpl() {
-		return getPortletPreferencesImpl();
 	}
 
 	@Override
@@ -122,28 +107,14 @@ public class PortletPreferencesWrapper
 	}
 
 	@Override
-	public void store() throws IOException, ValidatorException {
-		if (PropsValues.TCK_URL) {
+	public void store() {
 
-			// Be strict to pass the TCK
+		// PLT.17.1, clv
 
-			if (_lifecycle.equals(PortletRequest.ACTION_PHASE)) {
-				_portletPreferences.store();
-			}
-			else {
-				throw new IllegalStateException(
-					"Preferences cannot be stored inside a render call");
-			}
-		}
-		else {
-
-			// Relax so that poorly written portlets can still work
-
-			_portletPreferences.store();
-		}
+		throw new IllegalStateException(
+			"Preferences cannot be stored inside a render call");
 	}
 
-	private String _lifecycle;
-	private PortletPreferences _portletPreferences;
+	private final PortletPreferences _portletPreferences;
 
 }

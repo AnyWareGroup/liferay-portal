@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.Address;
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.Address;
-import com.liferay.portal.model.CacheModel;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,12 +37,53 @@ import java.util.Date;
  * @see Address
  * @generated
  */
-public class AddressCacheModel implements CacheModel<Address>, Externalizable {
+@ProviderType
+public class AddressCacheModel implements CacheModel<Address>, Externalizable,
+	MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof AddressCacheModel)) {
+			return false;
+		}
+
+		AddressCacheModel addressCacheModel = (AddressCacheModel)obj;
+
+		if ((addressId == addressCacheModel.addressId) &&
+				(mvccVersion == addressCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, addressId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(39);
+		StringBundler sb = new StringBundler(41);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", addressId=");
 		sb.append(addressId);
@@ -84,6 +129,8 @@ public class AddressCacheModel implements CacheModel<Address>, Externalizable {
 	@Override
 	public Address toEntityModel() {
 		AddressImpl addressImpl = new AddressImpl();
+
+		addressImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			addressImpl.setUuid(StringPool.BLANK);
@@ -168,30 +215,43 @@ public class AddressCacheModel implements CacheModel<Address>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
+
 		addressId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+
 		classNameId = objectInput.readLong();
+
 		classPK = objectInput.readLong();
 		street1 = objectInput.readUTF();
 		street2 = objectInput.readUTF();
 		street3 = objectInput.readUTF();
 		city = objectInput.readUTF();
 		zip = objectInput.readUTF();
+
 		regionId = objectInput.readLong();
+
 		countryId = objectInput.readLong();
-		typeId = objectInput.readInt();
+
+		typeId = objectInput.readLong();
+
 		mailing = objectInput.readBoolean();
+
 		primary = objectInput.readBoolean();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -200,7 +260,9 @@ public class AddressCacheModel implements CacheModel<Address>, Externalizable {
 		}
 
 		objectOutput.writeLong(addressId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
 
 		if (userName == null) {
@@ -212,7 +274,9 @@ public class AddressCacheModel implements CacheModel<Address>, Externalizable {
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeLong(classNameId);
+
 		objectOutput.writeLong(classPK);
 
 		if (street1 == null) {
@@ -251,12 +315,17 @@ public class AddressCacheModel implements CacheModel<Address>, Externalizable {
 		}
 
 		objectOutput.writeLong(regionId);
+
 		objectOutput.writeLong(countryId);
-		objectOutput.writeInt(typeId);
+
+		objectOutput.writeLong(typeId);
+
 		objectOutput.writeBoolean(mailing);
+
 		objectOutput.writeBoolean(primary);
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long addressId;
 	public long companyId;
@@ -273,7 +342,7 @@ public class AddressCacheModel implements CacheModel<Address>, Externalizable {
 	public String zip;
 	public long regionId;
 	public long countryId;
-	public int typeId;
+	public long typeId;
 	public boolean mailing;
 	public boolean primary;
 }

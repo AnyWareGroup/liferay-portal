@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,19 +14,27 @@
 
 package com.liferay.portal.verify;
 
+import com.liferay.portal.kernel.concurrent.ThrowableAwareRunnable;
+import com.liferay.portal.kernel.concurrent.ThrowableAwareRunnablesExecutorUtil;
 import com.liferay.portal.kernel.dao.db.BaseDBProcess;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.exception.BulkException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.ReleaseConstants;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
+import com.liferay.portal.kernel.util.ClassUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.model.ReleaseConstants;
-import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.util.PropsValues;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,9 +42,9 @@ import java.util.regex.Pattern;
 /**
  * This abstract class should be extended for startup processes that verify the
  * integrity of the database. They can be added as part of
- * <code>com.liferay.portal.verify.VerifyProcessSuite</code> or be executed
- * independently by being set in the portal.properties file. Each of these
- * processes should not cause any problems if run multiple times.
+ * <code>VerifyProcessSuite</code> or be executed independently by being set in
+ * the portal.properties file. Each of these processes should not cause any
+ * problems if run multiple times.
  *
  * @author Alexander Chow
  * @author Hugo Huijser
@@ -50,15 +58,29 @@ public abstract class VerifyProcess extends BaseDBProcess {
 	public static final int ONCE = 1;
 
 	public void verify() throws VerifyException {
-		try {
-			if (_log.isInfoEnabled()) {
-				_log.info("Verifying " + getClass().getName());
-			}
+		long start = System.currentTimeMillis();
+
+		if (_log.isInfoEnabled()) {
+			_log.info("Verifying " + ClassUtil.getClassName(this));
+		}
+
+		try (Connection con = DataAccess.getUpgradeOptimizedConnection()) {
+			connection = con;
 
 			doVerify();
 		}
 		catch (Exception e) {
 			throw new VerifyException(e);
+		}
+		finally {
+			connection = null;
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Completed verification process " +
+						ClassUtil.getClassName(this) + " in " +
+							(System.currentTimeMillis() - start) + "ms");
+			}
 		}
 	}
 
@@ -69,33 +91,62 @@ public abstract class VerifyProcess extends BaseDBProcess {
 	protected void doVerify() throws Exception {
 	}
 
+	protected void doVerify(
+			Collection<? extends ThrowableAwareRunnable>
+				throwableAwareRunnables)
+		throws Exception {
+
+		if ((throwableAwareRunnables.size() <
+				PropsValues.VERIFY_PROCESS_CONCURRENCY_THRESHOLD) &&
+			!isForceConcurrent(throwableAwareRunnables)) {
+
+			for (ThrowableAwareRunnable throwableAwareRunnable :
+					throwableAwareRunnables) {
+
+				throwableAwareRunnable.run();
+			}
+
+			List<Throwable> throwables = new ArrayList<>();
+
+			for (ThrowableAwareRunnable throwableAwareRunnable :
+					throwableAwareRunnables) {
+
+				if (throwableAwareRunnable.hasException()) {
+					throwables.add(throwableAwareRunnable.getThrowable());
+				}
+			}
+
+			if (!throwables.isEmpty()) {
+				Class<?> clazz = getClass();
+
+				throw new BulkException(
+					"Verification error: " + clazz.getName(), throwables);
+			}
+		}
+		else {
+			ThrowableAwareRunnablesExecutorUtil.execute(
+				throwableAwareRunnables);
+		}
+	}
+
 	/**
 	 * @return the portal build number before {@link
 	 *         com.liferay.portal.tools.DBUpgrader} has a chance to update it to
-	 *         the value in {@link ReleaseInfo#getBuildNumber}
+	 *         the value in {@link
+	 *         com.liferay.portal.kernel.util.ReleaseInfo#getBuildNumber}
 	 */
 	protected int getBuildNumber() throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"select buildNumber from Release_ where servletContextName " +
-					"= ?");
+					"= ?")) {
 
 			ps.setString(1, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
 
-			rs = ps.executeQuery();
+			try (ResultSet rs = ps.executeQuery()) {
+				rs.next();
 
-			rs.next();
-
-			return rs.getInt(1);
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
+				return rs.getInt(1);
+			}
 		}
 	}
 
@@ -104,22 +155,20 @@ public abstract class VerifyProcess extends BaseDBProcess {
 			return _portalTableNames;
 		}
 
-		Pattern pattern = Pattern.compile("create table (\\S*) \\(");
-
 		ClassLoader classLoader = ClassLoaderUtil.getContextClassLoader();
 
 		String sql = StringUtil.read(
 			classLoader,
 			"com/liferay/portal/tools/sql/dependencies/portal-tables.sql");
 
-		Matcher matcher = pattern.matcher(sql);
+		Matcher matcher = _createTablePattern.matcher(sql);
 
-		Set<String> tableNames = new HashSet<String>();
+		Set<String> tableNames = new HashSet<>();
 
 		while (matcher.find()) {
 			String match = matcher.group(1);
 
-			tableNames.add(match.toLowerCase());
+			tableNames.add(StringUtil.toLowerCase(match));
 		}
 
 		_portalTableNames = tableNames;
@@ -127,14 +176,22 @@ public abstract class VerifyProcess extends BaseDBProcess {
 		return tableNames;
 	}
 
+	protected boolean isForceConcurrent(
+		Collection<? extends ThrowableAwareRunnable> throwableAwareRunnables) {
+
+		return false;
+	}
+
 	protected boolean isPortalTableName(String tableName) throws Exception {
 		Set<String> portalTableNames = getPortalTableNames();
 
-		return portalTableNames.contains(tableName.toLowerCase());
+		return portalTableNames.contains(StringUtil.toLowerCase(tableName));
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(VerifyProcess.class);
+	private static final Log _log = LogFactoryUtil.getLog(VerifyProcess.class);
 
+	private final Pattern _createTablePattern = Pattern.compile(
+		"create table (\\S*) \\(");
 	private Set<String> _portalTableNames;
 
 }

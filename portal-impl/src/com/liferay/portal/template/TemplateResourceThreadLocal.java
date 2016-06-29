@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -41,7 +41,7 @@ public class TemplateResourceThreadLocal {
 		templateResources.put(templateType, templateResource);
 	}
 
-	private static ThreadLocal<Map<String, TemplateResource>>
+	private static final ThreadLocal<Map<String, TemplateResource>>
 		_templateResources =
 			new InitialThreadLocal<Map<String, TemplateResource>>(
 				TemplateResourceThreadLocal.class.getName() +

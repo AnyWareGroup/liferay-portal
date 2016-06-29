@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.Role;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,12 +37,53 @@ import java.util.Date;
  * @see Role
  * @generated
  */
-public class RoleCacheModel implements CacheModel<Role>, Externalizable {
+@ProviderType
+public class RoleCacheModel implements CacheModel<Role>, Externalizable,
+	MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof RoleCacheModel)) {
+			return false;
+		}
+
+		RoleCacheModel roleCacheModel = (RoleCacheModel)obj;
+
+		if ((roleId == roleCacheModel.roleId) &&
+				(mvccVersion == roleCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, roleId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(29);
+		StringBundler sb = new StringBundler(31);
 
-		sb.append("{uuid=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", uuid=");
 		sb.append(uuid);
 		sb.append(", roleId=");
 		sb.append(roleId);
@@ -74,6 +119,8 @@ public class RoleCacheModel implements CacheModel<Role>, Externalizable {
 	@Override
 	public Role toEntityModel() {
 		RoleImpl roleImpl = new RoleImpl();
+
+		roleImpl.setMvccVersion(mvccVersion);
 
 		if (uuid == null) {
 			roleImpl.setUuid(StringPool.BLANK);
@@ -147,18 +194,25 @@ public class RoleCacheModel implements CacheModel<Role>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
 		uuid = objectInput.readUTF();
+
 		roleId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+
 		classNameId = objectInput.readLong();
+
 		classPK = objectInput.readLong();
 		name = objectInput.readUTF();
 		title = objectInput.readUTF();
 		description = objectInput.readUTF();
+
 		type = objectInput.readInt();
 		subtype = objectInput.readUTF();
 	}
@@ -166,6 +220,8 @@ public class RoleCacheModel implements CacheModel<Role>, Externalizable {
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		if (uuid == null) {
 			objectOutput.writeUTF(StringPool.BLANK);
 		}
@@ -174,7 +230,9 @@ public class RoleCacheModel implements CacheModel<Role>, Externalizable {
 		}
 
 		objectOutput.writeLong(roleId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
 
 		if (userName == null) {
@@ -186,7 +244,9 @@ public class RoleCacheModel implements CacheModel<Role>, Externalizable {
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeLong(classNameId);
+
 		objectOutput.writeLong(classPK);
 
 		if (name == null) {
@@ -220,6 +280,7 @@ public class RoleCacheModel implements CacheModel<Role>, Externalizable {
 		}
 	}
 
+	public long mvccVersion;
 	public String uuid;
 	public long roleId;
 	public long companyId;

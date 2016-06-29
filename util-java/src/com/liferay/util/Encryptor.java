@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,6 +24,7 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.ServerDetector;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 
 import java.security.Key;
@@ -36,10 +37,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Shuyang Zhou
+ * @see com.liferay.petra.encryptor.Encryptor
  */
 public class Encryptor {
 
@@ -48,8 +51,9 @@ public class Encryptor {
 	public static final String IBM_PROVIDER_CLASS =
 		"com.ibm.crypto.provider.IBMJCE";
 
-	public static final String KEY_ALGORITHM = GetterUtil.getString(
-		PropsUtil.get(PropsKeys.COMPANY_ENCRYPTION_ALGORITHM)).toUpperCase();
+	public static final String KEY_ALGORITHM = StringUtil.toUpperCase(
+		GetterUtil.getString(
+			PropsUtil.get(PropsKeys.COMPANY_ENCRYPTION_ALGORITHM)));
 
 	public static final int KEY_SIZE = GetterUtil.getInteger(
 		PropsUtil.get(PropsKeys.COMPANY_ENCRYPTION_KEY_SIZE));
@@ -112,6 +116,12 @@ public class Encryptor {
 		catch (Exception e) {
 			throw new EncryptorException(e);
 		}
+	}
+
+	public static Key deserializeKey(String base64String) {
+		byte[] bytes = Base64.decode(base64String);
+
+		return new SecretKeySpec(bytes, Encryptor.KEY_ALGORITHM);
 	}
 
 	public static String digest(String text) {
@@ -242,11 +252,15 @@ public class Encryptor {
 		return (Provider)providerClass.newInstance();
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(Encryptor.class);
+	public static String serializeKey(Key key) {
+		return Base64.encode(key.getEncoded());
+	}
 
-	private static Map<String, Cipher> _decryptCipherMap =
-		new ConcurrentHashMap<String, Cipher>(1, 1f, 1);
-	private static Map<String, Cipher> _encryptCipherMap =
-		new ConcurrentHashMap<String, Cipher>(1, 1f, 1);
+	private static final Log _log = LogFactoryUtil.getLog(Encryptor.class);
+
+	private static final Map<String, Cipher> _decryptCipherMap =
+		new ConcurrentHashMap<>(1, 1f, 1);
+	private static final Map<String, Cipher> _encryptCipherMap =
+		new ConcurrentHashMap<>(1, 1f, 1);
 
 }

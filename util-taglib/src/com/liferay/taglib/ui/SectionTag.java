@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,6 +17,8 @@ package com.liferay.taglib.ui;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.taglib.util.IncludeTag;
+
+import java.util.Map;
 
 import javax.portlet.PortletResponse;
 
@@ -61,20 +63,21 @@ public class SectionTag extends IncludeTag {
 
 			_tabsTag.incrementSection();
 
-			request.setAttribute("liferay-ui:section:param", sectionParam);
+			request.setAttribute("liferay-ui:section:data", _data);
 			request.setAttribute("liferay-ui:section:name", sectionName);
+			request.setAttribute("liferay-ui:section:param", sectionParam);
+			request.setAttribute("liferay-ui:section:scroll", sectionScroll);
 			request.setAttribute(
 				"liferay-ui:section:selected", _sectionSelected);
-			request.setAttribute("liferay-ui:section:scroll", sectionScroll);
 
-			pageContext.setAttribute("sectionSelected", _sectionSelected);
-			pageContext.setAttribute("sectionParam", sectionParam);
 			pageContext.setAttribute("sectionName", sectionName);
-			pageContext.setAttribute("sectionScroll", sectionScroll);
+			pageContext.setAttribute("sectionParam", sectionParam);
 			pageContext.setAttribute(
 				"sectionRedirectParams", sectionRedirectParams);
+			pageContext.setAttribute("sectionScroll", sectionScroll);
+			pageContext.setAttribute("sectionSelected", _sectionSelected);
 
-			include(getStartPage());
+			include(getStartPage(), true);
 
 			if (!_tabsTag.isRefresh() || _sectionSelected.booleanValue()) {
 				return EVAL_BODY_INCLUDE;
@@ -86,6 +89,17 @@ public class SectionTag extends IncludeTag {
 		catch (Exception e) {
 			throw new JspException(e);
 		}
+	}
+
+	public void setData(Map<String, Object> data) {
+		_data = data;
+	}
+
+	@Override
+	protected void cleanUp() {
+		_data = null;
+		_sectionSelected = Boolean.FALSE;
+		_tabsTag = null;
 	}
 
 	@Override
@@ -112,7 +126,8 @@ public class SectionTag extends IncludeTag {
 	private static final String _START_PAGE =
 		"/html/taglib/ui/section/start.jsp";
 
+	private Map<String, Object> _data;
 	private Boolean _sectionSelected = Boolean.FALSE;
-	private TabsTag _tabsTag = null;
+	private TabsTag _tabsTag;
 
 }

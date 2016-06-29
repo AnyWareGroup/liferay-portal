@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -32,9 +32,6 @@ import java.util.Set;
  * @author Alexander Chow
  */
 public class WebDAVPropsImpl extends WebDAVPropsBaseImpl {
-
-	public WebDAVPropsImpl() {
-	}
 
 	@Override
 	public void addProp(String name, String prefix, String uri)
@@ -76,7 +73,7 @@ public class WebDAVPropsImpl extends WebDAVPropsBaseImpl {
 
 	@Override
 	public Set<QName> getPropsSet() throws Exception {
-		Set<QName> propsSet = new HashSet<QName>();
+		Set<QName> propsSet = new HashSet<>();
 
 		Document doc = _getPropsDocument();
 
@@ -159,6 +156,6 @@ public class WebDAVPropsImpl extends WebDAVPropsBaseImpl {
 
 	private static final String _PROPS = "<properties />";
 
-	private Document _document = null;
+	private Document _document;
 
 }

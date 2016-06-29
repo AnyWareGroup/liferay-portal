@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,13 @@
 
 package com.liferay.portlet.documentlibrary.model.impl;
 
-import com.liferay.portal.kernel.util.StringBundler;
-import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
+import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.portlet.documentlibrary.model.DLFileRank;
+import com.liferay.document.library.kernel.model.DLFileRank;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.util.HashUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -34,15 +36,38 @@ import java.util.Date;
  * @see DLFileRank
  * @generated
  */
+@ProviderType
 public class DLFileRankCacheModel implements CacheModel<DLFileRank>,
 	Externalizable {
 	@Override
-	public String toString() {
-		StringBundler sb = new StringBundler(21);
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
 
-		sb.append("{uuid=");
-		sb.append(uuid);
-		sb.append(", fileRankId=");
+		if (!(obj instanceof DLFileRankCacheModel)) {
+			return false;
+		}
+
+		DLFileRankCacheModel dlFileRankCacheModel = (DLFileRankCacheModel)obj;
+
+		if (fileRankId == dlFileRankCacheModel.fileRankId) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return HashUtil.hash(0, fileRankId);
+	}
+
+	@Override
+	public String toString() {
+		StringBundler sb = new StringBundler(15);
+
+		sb.append("{fileRankId=");
 		sb.append(fileRankId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -50,12 +75,8 @@ public class DLFileRankCacheModel implements CacheModel<DLFileRank>,
 		sb.append(companyId);
 		sb.append(", userId=");
 		sb.append(userId);
-		sb.append(", userName=");
-		sb.append(userName);
 		sb.append(", createDate=");
 		sb.append(createDate);
-		sb.append(", modifiedDate=");
-		sb.append(modifiedDate);
 		sb.append(", fileEntryId=");
 		sb.append(fileEntryId);
 		sb.append(", active=");
@@ -69,37 +90,16 @@ public class DLFileRankCacheModel implements CacheModel<DLFileRank>,
 	public DLFileRank toEntityModel() {
 		DLFileRankImpl dlFileRankImpl = new DLFileRankImpl();
 
-		if (uuid == null) {
-			dlFileRankImpl.setUuid(StringPool.BLANK);
-		}
-		else {
-			dlFileRankImpl.setUuid(uuid);
-		}
-
 		dlFileRankImpl.setFileRankId(fileRankId);
 		dlFileRankImpl.setGroupId(groupId);
 		dlFileRankImpl.setCompanyId(companyId);
 		dlFileRankImpl.setUserId(userId);
-
-		if (userName == null) {
-			dlFileRankImpl.setUserName(StringPool.BLANK);
-		}
-		else {
-			dlFileRankImpl.setUserName(userName);
-		}
 
 		if (createDate == Long.MIN_VALUE) {
 			dlFileRankImpl.setCreateDate(null);
 		}
 		else {
 			dlFileRankImpl.setCreateDate(new Date(createDate));
-		}
-
-		if (modifiedDate == Long.MIN_VALUE) {
-			dlFileRankImpl.setModifiedDate(null);
-		}
-		else {
-			dlFileRankImpl.setModifiedDate(new Date(modifiedDate));
 		}
 
 		dlFileRankImpl.setFileEntryId(fileEntryId);
@@ -112,54 +112,42 @@ public class DLFileRankCacheModel implements CacheModel<DLFileRank>,
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
-		uuid = objectInput.readUTF();
 		fileRankId = objectInput.readLong();
+
 		groupId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
-		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
-		modifiedDate = objectInput.readLong();
+
 		fileEntryId = objectInput.readLong();
+
 		active = objectInput.readBoolean();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
-		if (uuid == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(uuid);
-		}
-
 		objectOutput.writeLong(fileRankId);
+
 		objectOutput.writeLong(groupId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
-
-		if (userName == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(userName);
-		}
-
 		objectOutput.writeLong(createDate);
-		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeLong(fileEntryId);
+
 		objectOutput.writeBoolean(active);
 	}
 
-	public String uuid;
 	public long fileRankId;
 	public long groupId;
 	public long companyId;
 	public long userId;
-	public String userName;
 	public long createDate;
-	public long modifiedDate;
 	public long fileEntryId;
 	public boolean active;
 }

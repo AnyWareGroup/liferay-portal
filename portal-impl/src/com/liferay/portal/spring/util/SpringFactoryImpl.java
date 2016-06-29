@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,10 +19,10 @@ import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.spring.util.FactoryBean;
 import com.liferay.portal.kernel.spring.util.SpringFactory;
 import com.liferay.portal.kernel.spring.util.SpringFactoryException;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -46,8 +46,8 @@ public class SpringFactoryImpl implements SpringFactory {
 		try {
 			return doNewBean(className, properties);
 		}
-		catch (SpringFactoryException se) {
-			throw se;
+		catch (SpringFactoryException sfe) {
+			throw sfe;
 		}
 		catch (Exception e) {
 			throw new SpringFactoryException(e);
@@ -55,7 +55,7 @@ public class SpringFactoryImpl implements SpringFactory {
 	}
 
 	public void setBeanDefinitions(Map<String, String> beanDefinitions) {
-		_beanDefinitions = new HashMap<String, Set<String>>();
+		_beanDefinitions = new HashMap<>();
 
 		for (Map.Entry<String, String> entry : beanDefinitions.entrySet()) {
 			String className = entry.getKey();
@@ -79,28 +79,32 @@ public class SpringFactoryImpl implements SpringFactory {
 		Object bean = InstanceFactory.newInstance(
 			ClassLoaderUtil.getPortalClassLoader(), className);
 
+		FactoryBean<Object> factoryBean = null;
+
 		if (bean instanceof FactoryBean) {
-			FactoryBean<Object> factoryBean = (FactoryBean<Object>)bean;
+			factoryBean = (FactoryBean<Object>)bean;
 
 			bean = factoryBean.create();
 		}
 
-		if (properties == null) {
-			return bean;
+		if (properties != null) {
+			for (Map.Entry<String, Object> entry : properties.entrySet()) {
+				String name = entry.getKey();
+
+				if (!allowedProperties.contains(name)) {
+					throw new SpringFactoryException(
+						"Undefined property " + name + " for class " +
+							className);
+				}
+
+				Object value = entry.getValue();
+
+				BeanPropertiesUtil.setProperty(bean, name, value);
+			}
 		}
 
-		for (Map.Entry<String, Object> entry : properties.entrySet()) {
-			String name = entry.getKey();
-
-			if (!allowedProperties.contains(name)) {
-				throw new SpringFactoryException(
-					"Undefined property " + name + " for class " +
-						className);
-			}
-
-			Object value = entry.getValue();
-
-			BeanPropertiesUtil.setProperty(bean, name, value);
+		if (factoryBean != null) {
+			bean = factoryBean.postProcessing(bean);
 		}
 
 		return bean;

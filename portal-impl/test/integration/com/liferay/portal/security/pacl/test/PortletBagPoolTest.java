@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,41 +15,26 @@
 package com.liferay.portal.security.pacl.test;
 
 import com.liferay.portal.kernel.portlet.PortletBagPool;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.security.pacl.PACLExecutionTestListener;
-import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
+import com.liferay.portal.test.rule.PACLTestRule;
 import com.liferay.portlet.PortletBagImpl;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Raymond Augé
  */
-@ExecutionTestListeners(listeners = {PACLExecutionTestListener.class})
-@RunWith(PACLIntegrationJUnitTestRunner.class)
 public class PortletBagPoolTest {
+
+	@ClassRule
+	@Rule
+	public static final PACLTestRule paclTestRule = new PACLTestRule();
 
 	@Test
 	public void test1() throws Exception {
-		try {
-			PortletBagPool.get("1_WAR_flashportlet");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
-	}
-
-	@Test
-	public void test10() throws Exception {
-		try {
-			PortletBagPool.reset();
-
-			Assert.fail();
-		}
-		catch (SecurityException se) {
-		}
+		PortletBagPool.get("1_WAR_pacl_testportlet");
 	}
 
 	@Test
@@ -65,27 +50,17 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test3() throws Exception {
-		try {
-			PortletBagPool.get("flash-portlet");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
+		PortletBagPool.get("pacl-test-portlet");
 	}
 
 	@Test
 	public void test4() throws Exception {
-		try {
-			PortletBagPool.put(
-				"1_WAR_flashportlet",
-				new PortletBagImpl(
-					null, null, null, null, null, null, null, null, null, null,
-					null, null, null, null, null, null, null, null, null, null,
-					null, null, null, null, null, null, null));
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
+		PortletBagPool.put(
+			"1_WAR_pacl_testportlet",
+			new PortletBagImpl(
+				null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null));
 	}
 
 	@Test
@@ -96,7 +71,8 @@ public class PortletBagPoolTest {
 				new PortletBagImpl(
 					null, null, null, null, null, null, null, null, null, null,
 					null, null, null, null, null, null, null, null, null, null,
-					null, null, null, null, null, null, null));
+					null, null, null, null, null, null, null, null, null,
+					null));
 
 			Assert.fail();
 		}
@@ -106,27 +82,17 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test6() throws Exception {
-		try {
-			PortletBagPool.put(
-				"flash-portlet",
-				new PortletBagImpl(
-					null, null, null, null, null, null, null, null, null, null,
-					null, null, null, null, null, null, null, null, null, null,
-					null, null, null, null, null, null, null));
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
+		PortletBagPool.put(
+			"pacl-test-portlet",
+			new PortletBagImpl(
+				null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null,
+				null, null, null, null, null, null, null, null, null, null));
 	}
 
 	@Test
 	public void test7() throws Exception {
-		try {
-			PortletBagPool.remove("1_WAR_flashportlet");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
+		PortletBagPool.remove("1_WAR_pacl_testportlet");
 	}
 
 	@Test
@@ -142,11 +108,17 @@ public class PortletBagPoolTest {
 
 	@Test
 	public void test9() throws Exception {
+		PortletBagPool.remove("pacl-test-portlet");
+	}
+
+	@Test
+	public void test10() throws Exception {
 		try {
-			PortletBagPool.remove("flash-portlet");
+			PortletBagPool.reset();
+
+			Assert.fail();
 		}
 		catch (SecurityException se) {
-			Assert.fail();
 		}
 	}
 

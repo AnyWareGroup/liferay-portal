@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,7 +15,7 @@
 package com.liferay.portal.struts;
 
 import com.liferay.portal.kernel.struts.BaseStrutsAction;
-import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -65,8 +65,8 @@ public class StrutsActionAdapter extends BaseStrutsAction {
 		}
 	}
 
-	private Action _action;
-	private ActionForm _actionForm;
-	private ActionMapping _actionMapping;
+	private final Action _action;
+	private final ActionForm _actionForm;
+	private final ActionMapping _actionMapping;
 
 }

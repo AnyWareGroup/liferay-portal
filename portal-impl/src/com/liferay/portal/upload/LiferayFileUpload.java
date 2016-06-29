@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,10 +15,8 @@
 package com.liferay.portal.upload;
 
 import com.liferay.portal.kernel.util.ProgressTracker;
-import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -29,9 +27,11 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 /**
- * @author Brian Myunghun Kim
- * @author Brian Wing Shun Chan
+ * @author     Brian Myunghun Kim
+ * @author     Brian Wing Shun Chan
+ * @deprecated As of 7.0.0, with no direct replacement
  */
+@Deprecated
 public class LiferayFileUpload extends ServletFileUpload {
 
 	public static final String FILE_NAME =
@@ -48,35 +48,14 @@ public class LiferayFileUpload extends ServletFileUpload {
 	}
 
 	@Override
-	public List<LiferayFileItem> parseRequest(HttpServletRequest request)
+	public List<FileItem> parseRequest(HttpServletRequest request)
 		throws FileUploadException {
 
-		_session.removeAttribute(LiferayFileUpload.FILE_NAME);
 		_session.removeAttribute(LiferayFileUpload.PERCENT);
 
 		return super.parseRequest(request);
 	}
 
-	/**
-	 * @deprecated As of 6.1.0
-	 */
-	@Override
-	@SuppressWarnings("rawtypes")
-	protected FileItem createItem(Map headers, boolean formField)
-		throws FileUploadException {
-
-		LiferayFileItem item = (LiferayFileItem)super.createItem(
-			headers, formField);
-
-		String fileName = item.getFileName();
-
-		if (Validator.isNotNull(fileName)) {
-			_session.setAttribute(LiferayFileUpload.FILE_NAME, fileName);
-		}
-
-		return item;
-	}
-
-	private HttpSession _session;
+	private final HttpSession _session;
 
 }

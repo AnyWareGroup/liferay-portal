@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -30,8 +30,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class DirectRequestDispatcher implements RequestDispatcher {
 
-	public DirectRequestDispatcher(Servlet servlet, String queryString) {
+	public DirectRequestDispatcher(
+		Servlet servlet, String path, String queryString) {
+
 		_servlet = servlet;
+		_path = path;
 		_queryString = queryString;
 	}
 
@@ -51,13 +54,18 @@ public class DirectRequestDispatcher implements RequestDispatcher {
 			ServletRequest servletRequest, ServletResponse servletResponse)
 		throws IOException, ServletException {
 
+		servletRequest.setAttribute(RequestDispatcher.INCLUDE_PATH_INFO, null);
+		servletRequest.setAttribute(
+			RequestDispatcher.INCLUDE_SERVLET_PATH, _path);
+
 		servletRequest = DynamicServletRequest.addQueryString(
 			(HttpServletRequest)servletRequest, _queryString);
 
 		_servlet.service(servletRequest, servletResponse);
 	}
 
-	private String _queryString;
-	private Servlet _servlet;
+	private final String _path;
+	private final String _queryString;
+	private final Servlet _servlet;
 
 }

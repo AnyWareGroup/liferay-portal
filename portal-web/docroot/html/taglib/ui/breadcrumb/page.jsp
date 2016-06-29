@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,48 +16,21 @@
 
 <%@ include file="/html/taglib/ui/breadcrumb/init.jsp" %>
 
-<%
-StringBundler sb = new StringBundler();
+<div id="<portlet:namespace />breadcrumbs-defaultScreen">
+	<h1 class="hide-accessible"><liferay-ui:message key="breadcrumbs" /></h1>
 
-if (showGuestGroup) {
-	_buildGuestGroupBreadcrumb(themeDisplay, sb);
-}
+	<c:if test="<%= !breadcrumbEntries.isEmpty() %>">
 
-if (showParentGroups) {
-	_buildParentGroupsBreadcrumb(selLayout.getLayoutSet(), portletURL, themeDisplay, sb);
-}
+		<%
+		String renderedDDMTemplate = StringPool.BLANK;
 
-if (showLayout) {
-	_buildLayoutBreadcrumb(selLayout, selLayoutParam, true, portletURL, themeDisplay, sb);
-}
+		DDMTemplate portletDisplayDDMTemplate = PortletDisplayTemplateManagerUtil.getDDMTemplate(displayStyleGroupId, PortalUtil.getClassNameId(BreadcrumbEntry.class), displayStyle, true);
 
-if (showPortletBreadcrumb) {
-	_buildPortletBreadcrumb(request, showCurrentGroup, showCurrentPortlet, themeDisplay, sb);
-}
+		if (portletDisplayDDMTemplate != null) {
+			renderedDDMTemplate = PortletDisplayTemplateManagerUtil.renderDDMTemplate(request, response, portletDisplayDDMTemplate.getTemplateId(), breadcrumbEntries, new HashMap<String, Object>());
+		}
+		%>
 
-String breadcrumbString = sb.toString();
-
-if (Validator.isNotNull(breadcrumbString)) {
-	String keyString = "<li";
-
-	int keyLength = keyString.length();
-
-	int x = breadcrumbString.indexOf(keyString);
-	int y = breadcrumbString.lastIndexOf(keyString);
-
-	int xIndex = x + keyLength;
-	int yIndex = y + keyLength;
-
-	if (x == y) {
-		breadcrumbString = StringUtil.insert(breadcrumbString, " class=\"active only\"", xIndex);
-	}
-	else {
-		breadcrumbString = StringUtil.insert(breadcrumbString, " class=\"active last\"", yIndex);
-		breadcrumbString = StringUtil.insert(breadcrumbString, " class=\"first\"", xIndex);
-	}
-}
-%>
-
-<ul class="breadcrumb">
-	<%= breadcrumbString %>
-</ul>
+		<%= renderedDDMTemplate %>
+	</c:if>
+</div>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -25,7 +25,10 @@ public class JavaMethodComparator implements Comparator<JavaMethod> {
 
 	@Override
 	public int compare(JavaMethod method1, JavaMethod method2) {
-		return method1.getName().compareTo(method2.getName());
+		String name1 = method1.getName();
+		String name2 = method2.getName();
+
+		return name1.compareTo(name2);
 	}
 
 }

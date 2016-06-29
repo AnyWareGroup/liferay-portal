@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.Ticket;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.Ticket;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,12 +37,53 @@ import java.util.Date;
  * @see Ticket
  * @generated
  */
-public class TicketCacheModel implements CacheModel<Ticket>, Externalizable {
+@ProviderType
+public class TicketCacheModel implements CacheModel<Ticket>, Externalizable,
+	MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof TicketCacheModel)) {
+			return false;
+		}
+
+		TicketCacheModel ticketCacheModel = (TicketCacheModel)obj;
+
+		if ((ticketId == ticketCacheModel.ticketId) &&
+				(mvccVersion == ticketCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, ticketId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(19);
+		StringBundler sb = new StringBundler(21);
 
-		sb.append("{ticketId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", ticketId=");
 		sb.append(ticketId);
 		sb.append(", companyId=");
 		sb.append(companyId);
@@ -65,6 +110,7 @@ public class TicketCacheModel implements CacheModel<Ticket>, Externalizable {
 	public Ticket toEntityModel() {
 		TicketImpl ticketImpl = new TicketImpl();
 
+		ticketImpl.setMvccVersion(mvccVersion);
 		ticketImpl.setTicketId(ticketId);
 		ticketImpl.setCompanyId(companyId);
 
@@ -108,12 +154,18 @@ public class TicketCacheModel implements CacheModel<Ticket>, Externalizable {
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		ticketId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
 		createDate = objectInput.readLong();
+
 		classNameId = objectInput.readLong();
+
 		classPK = objectInput.readLong();
 		key = objectInput.readUTF();
+
 		type = objectInput.readInt();
 		extraInfo = objectInput.readUTF();
 		expirationDate = objectInput.readLong();
@@ -122,10 +174,15 @@ public class TicketCacheModel implements CacheModel<Ticket>, Externalizable {
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(ticketId);
+
 		objectOutput.writeLong(companyId);
 		objectOutput.writeLong(createDate);
+
 		objectOutput.writeLong(classNameId);
+
 		objectOutput.writeLong(classPK);
 
 		if (key == null) {
@@ -147,6 +204,7 @@ public class TicketCacheModel implements CacheModel<Ticket>, Externalizable {
 		objectOutput.writeLong(expirationDate);
 	}
 
+	public long mvccVersion;
 	public long ticketId;
 	public long companyId;
 	public long createDate;

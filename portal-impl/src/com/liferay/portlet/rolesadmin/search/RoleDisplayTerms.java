@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,9 +15,9 @@
 package com.liferay.portlet.rolesadmin.search;
 
 import com.liferay.portal.kernel.dao.search.DisplayTerms;
+import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.RoleConstants;
 
 import javax.portlet.PortletRequest;
 
@@ -70,6 +70,10 @@ public class RoleDisplayTerms extends DisplayTerms {
 		else {
 			return StringPool.BLANK;
 		}
+	}
+
+	public void setType(int type) {
+		this.type = type;
 	}
 
 	protected String description;

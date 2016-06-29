@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,6 @@ import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.servlet.DirectRequestDispatcherFactory;
 import com.liferay.portal.kernel.servlet.DirectServletRegistryUtil;
 import com.liferay.portal.kernel.util.CharPool;
-import com.liferay.portal.kernel.util.ContextPathUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
 
@@ -62,6 +61,13 @@ public class DirectRequestDispatcherFactoryImpl
 		return getRequestDispatcher(servletContext, path);
 	}
 
+	public interface PACL {
+
+		public RequestDispatcher getRequestDispatcher(
+			ServletContext servletContext, RequestDispatcher requestDispatcher);
+
+	}
+
 	protected RequestDispatcher doGetRequestDispatcher(
 		ServletContext servletContext, String path) {
 
@@ -78,7 +84,7 @@ public class DirectRequestDispatcherFactoryImpl
 				"Path " + path + " is not relative to context root");
 		}
 
-		String contextPath = ContextPathUtil.getContextPath(servletContext);
+		String contextPath = servletContext.getContextPath();
 
 		String fullPath = contextPath.concat(path);
 		String queryString = null;
@@ -111,16 +117,16 @@ public class DirectRequestDispatcherFactoryImpl
 			}
 
 			requestDispatcher = new DirectRequestDispatcher(
-				servlet, queryString);
+				servlet, path, queryString);
 		}
 
 		return _pacl.getRequestDispatcher(servletContext, requestDispatcher);
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		DirectRequestDispatcherFactoryImpl.class);
 
-	private static PACL _pacl = new NoPACL();
+	private static final PACL _pacl = new NoPACL();
 
 	private static class NoPACL implements PACL {
 
@@ -131,13 +137,6 @@ public class DirectRequestDispatcherFactoryImpl
 
 			return requestDispatcher;
 		}
-
-	}
-
-	public static interface PACL {
-
-		public RequestDispatcher getRequestDispatcher(
-			ServletContext servletContext, RequestDispatcher requestDispatcher);
 
 	}
 

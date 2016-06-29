@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -147,10 +147,10 @@ public class JasperVersionDetector {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		JasperVersionDetector.class);
 
-	private static JasperVersionDetector _instance =
+	private static final JasperVersionDetector _instance =
 		new JasperVersionDetector();
 
 	private String _jasperVersion = StringPool.BLANK;

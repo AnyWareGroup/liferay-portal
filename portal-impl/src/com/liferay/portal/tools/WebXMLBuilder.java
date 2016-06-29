@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,9 +20,8 @@ import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
-import com.liferay.portal.kernel.xml.SAXReaderUtil;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.servlet.filters.absoluteredirects.AbsoluteRedirectsFilter;
-import com.liferay.portal.util.InitUtil;
 import com.liferay.portal.xml.DocumentImpl;
 import com.liferay.util.xml.XMLMerger;
 import com.liferay.util.xml.descriptor.WebXML23Descriptor;
@@ -39,7 +38,7 @@ import java.io.IOException;
 public class WebXMLBuilder {
 
 	public static void main(String[] args) {
-		InitUtil.initWithSpring();
+		ToolDependencies.wireBasic();
 
 		if (args.length == 3) {
 			new WebXMLBuilder(args[0], args[1], args[2]);
@@ -54,7 +53,7 @@ public class WebXMLBuilder {
 
 		webXML = HtmlUtil.stripComments(webXML);
 
-		Document document = SAXReaderUtil.read(webXML);
+		Document document = UnsecureSAXReaderUtil.read(webXML);
 
 		Element rootElement = document.getRootElement();
 
@@ -153,21 +152,20 @@ public class WebXMLBuilder {
 
 			return x;
 		}
-		else {
-			x = content.lastIndexOf("<filter-name", x);
-			x = content.indexOf(">", x) + 1;
 
-			int y = content.indexOf("</filter-name>", x);
+		x = content.lastIndexOf("<filter-name", x);
+		x = content.indexOf(">", x) + 1;
 
-			String filterName = content.substring(x, y);
+		int y = content.indexOf("</filter-name>", x);
 
-			x = content.lastIndexOf(filterName);
+		String filterName = content.substring(x, y);
 
-			y = content.indexOf("</filter-mapping>", x);
-			y = content.indexOf(">", y) + 1;
+		x = content.lastIndexOf(filterName);
 
-			return y;
-		}
+		y = content.indexOf("</filter-mapping>", x);
+		y = content.indexOf(">", y) + 1;
+
+		return y;
 	}
 
 }

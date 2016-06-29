@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,13 +14,18 @@
 
 package com.liferay.portal.bean;
 
-import com.liferay.portal.kernel.memory.EqualityWeakReference;
+import com.liferay.portal.kernel.memory.FinalizeManager;
 import com.liferay.portal.kernel.process.ClassPathUtil;
-import com.liferay.portal.kernel.test.CodeCoverageAssertor;
-import com.liferay.portal.test.AdviseWith;
-import com.liferay.portal.test.AspectJMockingNewClassLoaderJUnitTestRunner;
+import com.liferay.portal.kernel.test.GCUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.CodeCoverageAssertor;
+import com.liferay.portal.kernel.test.rule.NewEnv;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.test.aspects.ReflectionUtilAdvice;
+import com.liferay.portal.test.rule.AdviseWith;
+import com.liferay.portal.test.rule.AspectJNewEnvTestRule;
 
-import java.lang.ref.Reference;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -32,32 +37,32 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Shuyang Zhou
  */
-@RunWith(AspectJMockingNewClassLoaderJUnitTestRunner.class)
 public class ConstantsBeanFactoryImplTest {
 
 	@ClassRule
-	public static CodeCoverageAssertor codeCoverageAssertor =
-		new CodeCoverageAssertor();
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			CodeCoverageAssertor.INSTANCE, AspectJNewEnvTestRule.INSTANCE);
 
 	@AdviseWith(adviceClasses = {ReflectionUtilAdvice.class})
+	@NewEnv(type = NewEnv.Type.CLASSLOADER)
 	@Test
-	public void testCreateConstantsBean() {
+	public void testCreateConstantsBean() throws ClassNotFoundException {
 
 		// Exception on create
 
-		ReflectionUtilAdvice.setThrowException(true);
+		Throwable throwable = new Throwable();
+
+		ReflectionUtilAdvice.setDeclaredMethodThrowable(throwable);
 
 		try {
 			ConstantsBeanFactoryImpl.createConstantsBean(Constants.class);
@@ -65,15 +70,12 @@ public class ConstantsBeanFactoryImplTest {
 			Assert.fail();
 		}
 		catch (RuntimeException re) {
-			Throwable throwable = re.getCause();
-
-			Assert.assertEquals(Exception.class, throwable.getClass());
-			Assert.assertEquals("Forced Exception", throwable.getMessage());
+			Assert.assertSame(throwable, re.getCause());
 		}
 
 		// Normal create
 
-		ReflectionUtilAdvice.setThrowException(false);
+		ReflectionUtilAdvice.setDeclaredMethodThrowable(null);
 
 		Object constantsBean = ConstantsBeanFactoryImpl.createConstantsBean(
 			Constants.class);
@@ -243,6 +245,9 @@ public class ConstantsBeanFactoryImplTest {
 
 	@Test
 	public void testToConstantsBean() throws Exception {
+		System.setProperty(
+			FinalizeManager.class.getName() + ".thread.enabled",
+			StringPool.FALSE);
 
 		// First create
 
@@ -272,7 +277,7 @@ public class ConstantsBeanFactoryImplTest {
 
 		Assert.assertSame(classLoader1, constantsBeanClass1.getClassLoader());
 
-		Map<EqualityWeakReference<Class<?>>, Reference<?>> constantsBeans =
+		Map<Class<?>, ?> constantsBeans =
 			ConstantsBeanFactoryImpl.constantsBeans;
 
 		Assert.assertEquals(1, constantsBeans.size());
@@ -305,30 +310,33 @@ public class ConstantsBeanFactoryImplTest {
 			constantsBeanImpl.getConstantsBean(constantsClass2));
 		Assert.assertEquals(2, constantsBeans.size());
 
-		// Weak reference release
+		// Weak reference release key
 
 		classLoader1 = null;
 		constantsClass1 = null;
 		constantsBean1 = null;
 		constantsBeanClass1 = null;
 
-		long startTime = System.currentTimeMillis();
+		GCUtil.gc(true);
 
-		while ((System.currentTimeMillis() - startTime) < 1000) {
-			System.gc();
+		ReflectionTestUtil.invoke(
+			FinalizeManager.class, "_pollingCleanup", new Class<?>[0]);
 
-			Thread.sleep(1);
-
-			Assert.assertSame(
-				constantsBean2,
-				constantsBeanImpl.getConstantsBean(constantsClass2));
-
-			if (constantsBeans.size() == 1) {
-				break;
-			}
-		}
-
+		Assert.assertSame(
+			constantsBean2,
+			constantsBeanImpl.getConstantsBean(constantsClass2));
 		Assert.assertEquals(1, constantsBeans.size());
+
+		// Weak reference release value
+
+		constantsBean2 = null;
+
+		GCUtil.gc(true);
+
+		ReflectionTestUtil.invoke(
+			FinalizeManager.class, "_pollingCleanup", new Class<?>[0]);
+
+		Assert.assertTrue(constantsBeans.isEmpty());
 	}
 
 	public static class Constants {
@@ -354,31 +362,6 @@ public class ConstantsBeanFactoryImplTest {
 		public Object NON_STATIC_VALUE = new Object();
 
 		protected static Object NON_PUBLIC_VALUE = new Object();
-
-	}
-
-	@Aspect
-	public static class ReflectionUtilAdvice {
-
-		public static void setThrowException(boolean throwException) {
-			_throwException = throwException;
-		}
-
-		@Around(
-			"execution(public static java.lang.reflect.Method " +
-				"com.liferay.portal.kernel.util.ReflectionUtil." +
-					"getDeclaredMethod(Class, String, Class...))")
-		public Object getDeclaredMethod(ProceedingJoinPoint proceedingJoinPoint)
-			throws Throwable {
-
-			if (_throwException) {
-				throw new Exception("Forced Exception");
-			}
-
-			return proceedingJoinPoint.proceed();
-		}
-
-		private static boolean _throwException;
 
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,6 @@ package com.liferay.portal.upgrade.v6_2_0;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.upgrade.v6_2_0.util.LayoutRevisionTable;
 
-import java.sql.SQLException;
-
 /**
  * @author Harrison Schueler
  */
@@ -26,16 +24,8 @@ public class UpgradeLayoutRevision extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try {
-			runSQL("alter_column_type LayoutRevision css TEXT null");
-		}
-		catch (SQLException sqle) {
-			upgradeTable(
-				LayoutRevisionTable.TABLE_NAME,
-				LayoutRevisionTable.TABLE_COLUMNS,
-				LayoutRevisionTable.TABLE_SQL_CREATE,
-				LayoutRevisionTable.TABLE_SQL_ADD_INDEXES);
-		}
+		alter(
+			LayoutRevisionTable.class, new AlterColumnType("css", "TEXT null"));
 	}
 
 }

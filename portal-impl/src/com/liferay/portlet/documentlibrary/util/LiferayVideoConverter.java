@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -57,10 +57,12 @@ public class LiferayVideoConverter extends LiferayConverter {
 
 		_height = GetterUtil.getInteger(
 			videoProperties.getProperty(
-				PropsKeys.DL_FILE_ENTRY_PREVIEW_VIDEO_HEIGHT), _height);
+				PropsKeys.DL_FILE_ENTRY_PREVIEW_VIDEO_HEIGHT),
+			_height);
 		_width = GetterUtil.getInteger(
 			videoProperties.getProperty(
-				PropsKeys.DL_FILE_ENTRY_PREVIEW_VIDEO_WIDTH), _width);
+				PropsKeys.DL_FILE_ENTRY_PREVIEW_VIDEO_WIDTH),
+			_width);
 
 		initVideoBitRate(videoProperties);
 		initVideoFrameRate(videoProperties);
@@ -72,11 +74,11 @@ public class LiferayVideoConverter extends LiferayConverter {
 			doConvert();
 		}
 		finally {
-			if (_inputIContainer.isOpened()) {
+			if ((_inputIContainer != null) && _inputIContainer.isOpened()) {
 				_inputIContainer.close();
 			}
 
-			if (_outputIContainer.isOpened()) {
+			if ((_outputIContainer != null) && _outputIContainer.isOpened()) {
 				_outputIContainer.close();
 			}
 		}
@@ -393,6 +395,10 @@ public class LiferayVideoConverter extends LiferayConverter {
 				"Unable to determine height for " + _inputURL);
 		}
 
+		if (_height == 0) {
+			_height = inputIStreamCoder.getHeight();
+		}
+
 		outputIStreamCoder.setHeight(_height);
 
 		outputIStreamCoder.setPixelType(Type.YUV420P);
@@ -403,6 +409,10 @@ public class LiferayVideoConverter extends LiferayConverter {
 		if (inputIStreamCoder.getWidth() <= 0) {
 			throw new RuntimeException(
 				"Unable to determine width for " + _inputURL);
+		}
+
+		if (_width == 0) {
+			_width = inputIStreamCoder.getWidth();
 		}
 
 		outputIStreamCoder.setWidth(_width);
@@ -428,18 +438,18 @@ public class LiferayVideoConverter extends LiferayConverter {
 
 	private static final int _VIDEO_BIT_RATE_MAX = 1200000;
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		LiferayVideoConverter.class);
 
-	private Properties _ffpresetProperties;
-	private int _height = 240;
+	private final Properties _ffpresetProperties;
+	private int _height;
 	private IContainer _inputIContainer;
-	private String _inputURL;
+	private final String _inputURL;
 	private IContainer _outputIContainer;
-	private String _outputURL;
+	private final String _outputURL;
 	private int _videoBitRate;
-	private String _videoContainer;
+	private final String _videoContainer;
 	private IRational _videoFrameRate;
-	private int _width = 320;
+	private int _width;
 
 }

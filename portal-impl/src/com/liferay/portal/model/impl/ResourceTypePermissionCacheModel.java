@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.model.ResourceTypePermission;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.ResourceTypePermission;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -31,13 +35,53 @@ import java.io.ObjectOutput;
  * @see ResourceTypePermission
  * @generated
  */
+@ProviderType
 public class ResourceTypePermissionCacheModel implements CacheModel<ResourceTypePermission>,
-	Externalizable {
+	Externalizable, MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof ResourceTypePermissionCacheModel)) {
+			return false;
+		}
+
+		ResourceTypePermissionCacheModel resourceTypePermissionCacheModel = (ResourceTypePermissionCacheModel)obj;
+
+		if ((resourceTypePermissionId == resourceTypePermissionCacheModel.resourceTypePermissionId) &&
+				(mvccVersion == resourceTypePermissionCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, resourceTypePermissionId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(13);
+		StringBundler sb = new StringBundler(15);
 
-		sb.append("{resourceTypePermissionId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", resourceTypePermissionId=");
 		sb.append(resourceTypePermissionId);
 		sb.append(", companyId=");
 		sb.append(companyId);
@@ -58,6 +102,7 @@ public class ResourceTypePermissionCacheModel implements CacheModel<ResourceType
 	public ResourceTypePermission toEntityModel() {
 		ResourceTypePermissionImpl resourceTypePermissionImpl = new ResourceTypePermissionImpl();
 
+		resourceTypePermissionImpl.setMvccVersion(mvccVersion);
 		resourceTypePermissionImpl.setResourceTypePermissionId(resourceTypePermissionId);
 		resourceTypePermissionImpl.setCompanyId(companyId);
 		resourceTypePermissionImpl.setGroupId(groupId);
@@ -79,19 +124,29 @@ public class ResourceTypePermissionCacheModel implements CacheModel<ResourceType
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		resourceTypePermissionId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		groupId = objectInput.readLong();
 		name = objectInput.readUTF();
+
 		roleId = objectInput.readLong();
+
 		actionIds = objectInput.readLong();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(resourceTypePermissionId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(groupId);
 
 		if (name == null) {
@@ -102,9 +157,11 @@ public class ResourceTypePermissionCacheModel implements CacheModel<ResourceType
 		}
 
 		objectOutput.writeLong(roleId);
+
 		objectOutput.writeLong(actionIds);
 	}
 
+	public long mvccVersion;
 	public long resourceTypePermissionId;
 	public long companyId;
 	public long groupId;

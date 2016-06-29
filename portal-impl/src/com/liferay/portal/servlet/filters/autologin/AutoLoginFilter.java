@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,25 +14,31 @@
 
 package com.liferay.portal.servlet.filters.autologin;
 
-import com.liferay.portal.NoSuchUserException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.session.AuthenticatedSessionManagerUtil;
+import com.liferay.portal.kernel.security.auto.login.AutoLogin;
+import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.servlet.ProtectedServletRequest;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.InstancePool;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.StackTraceUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.User;
-import com.liferay.portal.security.auth.AutoLogin;
-import com.liferay.portal.security.pwd.PasswordEncryptorUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.servlet.filters.BasePortalFilter;
-import com.liferay.portal.util.Portal;
 import com.liferay.portal.util.PortalInstances;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.ServiceReference;
+import com.liferay.registry.ServiceTracker;
+import com.liferay.registry.ServiceTrackerCustomizer;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -44,25 +50,18 @@ import javax.servlet.http.HttpSession;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Peter Fellwock
  * @author Raymond Augé
  */
 public class AutoLoginFilter extends BasePortalFilter {
 
-	public static void registerAutoLogin(AutoLogin autoLogin) {
-		_autoLogins.add(autoLogin);
-	}
-
-	public static void unregisterAutoLogin(AutoLogin autoLogin) {
-		_autoLogins.remove(autoLogin);
-	}
-
 	public AutoLoginFilter() {
-		for (String autoLoginClassName : PropsValues.AUTO_LOGIN_HOOKS) {
-			AutoLogin autoLogin = (AutoLogin)InstancePool.get(
-				autoLoginClassName);
+		Registry registry = RegistryUtil.getRegistry();
 
-			_autoLogins.add(autoLogin);
-		}
+		_serviceTracker = registry.trackServices(
+			AutoLogin.class, new AutoLoginServiceTrackerCustomizer());
+
+		_serviceTracker.open();
 	}
 
 	protected String getLoginRemoteUser(
@@ -82,22 +81,25 @@ public class AutoLoginFilter extends BasePortalFilter {
 			return null;
 		}
 
-		try {
-			long userId = GetterUtil.getLong(jUsername);
+		long userId = GetterUtil.getLong(jUsername);
 
-			if (userId > 0) {
-				User user = UserLocalServiceUtil.getUserById(userId);
-
-				if (user.isLockout()) {
-					return null;
-				}
-			}
-			else {
-				return null;
-			}
-		}
-		catch (NoSuchUserException nsue) {
+		if (userId <= 0) {
 			return null;
+		}
+
+		User user = UserLocalServiceUtil.fetchUserById(userId);
+
+		if ((user == null) || user.isLockout()) {
+			return null;
+		}
+
+		if (!PropsValues.AUTH_SIMULTANEOUS_LOGINS) {
+			AuthenticatedSessionManagerUtil.signOutSimultaneousLogins(userId);
+		}
+
+		if (PropsValues.SESSION_ENABLE_PHISHING_PROTECTION) {
+			session = AuthenticatedSessionManagerUtil.renewSession(
+				request, session);
 		}
 
 		session.setAttribute("j_username", jUsername);
@@ -110,7 +112,8 @@ public class AutoLoginFilter extends BasePortalFilter {
 		}
 		else {
 			session.setAttribute(
-				"j_password", PasswordEncryptorUtil.encrypt(jPassword));
+				"j_password",
+				PasswordEncryptorUtil.encrypt(jPassword, user.getPassword()));
 
 			if (PropsValues.SESSION_STORE_PASSWORD) {
 				session.setAttribute(WebKeys.USER_PASSWORD, jPassword);
@@ -120,8 +123,25 @@ public class AutoLoginFilter extends BasePortalFilter {
 		session.setAttribute("j_remoteuser", jUsername);
 
 		if (PropsValues.PORTAL_JAAS_ENABLE) {
-			response.sendRedirect(
-				PortalUtil.getPathMain() + "/portal/touch_protected");
+			String redirect = PortalUtil.getPathMain().concat(
+				"/portal/protected");
+
+			if (PropsValues.AUTH_FORWARD_BY_LAST_PATH) {
+				String autoLoginRedirect = (String)request.getAttribute(
+					AutoLogin.AUTO_LOGIN_REDIRECT_AND_CONTINUE);
+
+				redirect = redirect.concat("?redirect=");
+
+				if (Validator.isNotNull(autoLoginRedirect)) {
+					redirect = redirect.concat(autoLoginRedirect);
+				}
+				else {
+					redirect = redirect.concat(
+						PortalUtil.getCurrentCompleteURL(request));
+				}
+			}
+
+			response.sendRedirect(redirect);
 		}
 
 		return jUsername;
@@ -143,14 +163,15 @@ public class AutoLoginFilter extends BasePortalFilter {
 			}
 
 			processFilter(
-				AutoLoginFilter.class, request, response, filterChain);
+				AutoLoginFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
 
 		String contextPath = PortalUtil.getPathContext();
 
-		String path = request.getRequestURI().toLowerCase();
+		String path = StringUtil.toLowerCase(request.getRequestURI());
 
 		if (!contextPath.equals(StringPool.SLASH) &&
 			path.contains(contextPath)) {
@@ -164,19 +185,14 @@ public class AutoLoginFilter extends BasePortalFilter {
 			}
 
 			processFilter(
-				AutoLoginFilter.class, request, response, filterChain);
+				AutoLoginFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
 
 		String remoteUser = request.getRemoteUser();
 		String jUserName = (String)session.getAttribute("j_username");
-
-		// PLACEHOLDER 01
-		// PLACEHOLDER 02
-		// PLACEHOLDER 03
-		// PLACEHOLDER 04
-		// PLACEHOLDER 05
 
 		if (!PropsValues.AUTH_LOGIN_DISABLED &&
 			(remoteUser == null) && (jUserName == null)) {
@@ -221,7 +237,7 @@ public class AutoLoginFilter extends BasePortalFilter {
 					}
 				}
 				catch (Exception e) {
-					StringBundler sb = new StringBundler(4);
+					StringBundler sb = new StringBundler(6);
 
 					sb.append("Current URL ");
 
@@ -231,6 +247,11 @@ public class AutoLoginFilter extends BasePortalFilter {
 
 					sb.append(" generates exception: ");
 					sb.append(e.getMessage());
+
+					if (_log.isInfoEnabled()) {
+						sb.append(" stack: ");
+						sb.append(StackTraceUtil.getStackTrace(e));
+					}
 
 					if (currentURL.endsWith(_PATH_CHAT_LATEST)) {
 						if (_log.isWarnEnabled()) {
@@ -244,14 +265,56 @@ public class AutoLoginFilter extends BasePortalFilter {
 			}
 		}
 
-		processFilter(AutoLoginFilter.class, request, response, filterChain);
+		processFilter(
+			AutoLoginFilter.class.getName(), request, response, filterChain);
 	}
 
 	private static final String _PATH_CHAT_LATEST = "/-/chat/latest";
 
-	private static Log _log = LogFactoryUtil.getLog(AutoLoginFilter.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		AutoLoginFilter.class);
 
-	private static List<AutoLogin> _autoLogins =
-		new CopyOnWriteArrayList<AutoLogin>();
+	private static final List<AutoLogin> _autoLogins =
+		new CopyOnWriteArrayList<>();
+
+	private final ServiceTracker<?, AutoLogin> _serviceTracker;
+
+	private static class AutoLoginServiceTrackerCustomizer
+		implements ServiceTrackerCustomizer<AutoLogin, AutoLogin> {
+
+		@Override
+		public AutoLogin addingService(
+			ServiceReference<AutoLogin> serviceReference) {
+
+			Registry registry = RegistryUtil.getRegistry();
+
+			AutoLogin autoLogin = registry.getService(serviceReference);
+
+			if (autoLogin == null) {
+				return null;
+			}
+
+			_autoLogins.add(autoLogin);
+
+			return autoLogin;
+		}
+
+		@Override
+		public void modifiedService(
+			ServiceReference<AutoLogin> serviceReference, AutoLogin autoLogin) {
+		}
+
+		@Override
+		public void removedService(
+			ServiceReference<AutoLogin> serviceReference, AutoLogin autoLogin) {
+
+			Registry registry = RegistryUtil.getRegistry();
+
+			registry.ungetService(serviceReference);
+
+			_autoLogins.remove(autoLogin);
+		}
+
+	}
 
 }

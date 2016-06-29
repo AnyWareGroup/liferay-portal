@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,22 +14,27 @@
 
 package com.liferay.portlet.documentlibrary.model.impl;
 
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFileEntryType;
+import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLFileEntryTypeLocalServiceUtil;
+import com.liferay.document.library.kernel.service.DLFolderLocalServiceUtil;
+import com.liferay.document.library.kernel.util.DLUtil;
+import com.liferay.dynamic.data.mapping.kernel.DDMStructure;
+import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.security.auth.PrincipalThreadLocal;
-import com.liferay.portlet.documentlibrary.model.DLFileEntry;
-import com.liferay.portlet.documentlibrary.model.DLFolder;
-import com.liferay.portlet.documentlibrary.service.DLFileEntryLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.service.DLFolderLocalServiceUtil;
-import com.liferay.portlet.documentlibrary.util.DLUtil;
-import com.liferay.portlet.expando.model.ExpandoBridge;
-import com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+
+import java.util.List;
 
 /**
  * @author Jorge Ferrer
@@ -37,16 +42,38 @@ import java.io.InputStream;
  */
 public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 
-	public DLFileVersionImpl() {
+	@Override
+	public String buildTreePath() throws PortalException {
+		if (getFolderId() == DLFolderConstants.DEFAULT_PARENT_FOLDER_ID) {
+			return StringPool.SLASH;
+		}
+
+		DLFolder dlFolder = getFolder();
+
+		return dlFolder.buildTreePath();
 	}
 
 	@Override
 	public InputStream getContentStream(boolean incrementCounter)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return DLFileEntryLocalServiceUtil.getFileAsStream(
-			PrincipalThreadLocal.getUserId(), getFileEntryId(), getVersion(),
-			incrementCounter);
+			getFileEntryId(), getVersion(), incrementCounter);
+	}
+
+	@Override
+	public List<DDMStructure> getDDMStructures() throws PortalException {
+		DLFileEntryType dlFileEntryType =
+			DLFileEntryTypeLocalServiceUtil.getFileEntryType(
+				getFileEntryTypeId());
+
+		return dlFileEntryType.getDDMStructures();
+	}
+
+	@Override
+	public DLFileEntryType getDLFileEntryType() throws PortalException {
+		return DLFileEntryTypeLocalServiceUtil.getFileEntryType(
+			getFileEntryTypeId());
 	}
 
 	@Override
@@ -86,55 +113,22 @@ public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 	}
 
 	@Override
-	public DLFileEntry getFileEntry() throws PortalException, SystemException {
+	public DLFileEntry getFileEntry() throws PortalException {
 		return DLFileEntryLocalServiceUtil.getFileEntry(getFileEntryId());
 	}
 
 	@Override
-	public DLFolder getFolder() {
-		DLFolder dlFolder = null;
-
-		if (getFolderId() > 0) {
-			try {
-				dlFolder = DLFolderLocalServiceUtil.getFolder(getFolderId());
-			}
-			catch (Exception e) {
-				dlFolder = new DLFolderImpl();
-
-				_log.error(e, e);
-			}
-		}
-		else {
-			dlFolder = new DLFolderImpl();
+	public DLFolder getFolder() throws PortalException {
+		if (getFolderId() <= 0) {
+			return new DLFolderImpl();
 		}
 
-		return dlFolder;
+		return DLFolderLocalServiceUtil.getFolder(getFolderId());
 	}
 
 	@Override
 	public String getIcon() {
 		return DLUtil.getFileIcon(getExtension());
-	}
-
-	@Override
-	public DLFolder getTrashContainer() {
-		DLFolder dlFolder = getFolder();
-
-		if (dlFolder.isInTrash()) {
-			return dlFolder;
-		}
-
-		return dlFolder.getTrashContainer();
-	}
-
-	@Override
-	public boolean isInTrashContainer() {
-		if (getTrashContainer() != null) {
-			return true;
-		}
-		else {
-			return false;
-		}
 	}
 
 	@Override
@@ -153,7 +147,8 @@ public class DLFileVersionImpl extends DLFileVersionBaseImpl {
 		super.setExtraSettings(_extraSettingsProperties.toString());
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(DLFileVersionImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		DLFileVersionImpl.class);
 
 	private transient ExpandoBridge _expandoBridge;
 	private UnicodeProperties _extraSettingsProperties;

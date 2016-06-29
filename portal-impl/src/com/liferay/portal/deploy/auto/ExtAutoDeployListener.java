@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,55 +14,40 @@
 
 package com.liferay.portal.deploy.auto;
 
-import com.liferay.portal.kernel.deploy.auto.AutoDeployException;
+import com.liferay.portal.kernel.deploy.auto.AutoDeployer;
 import com.liferay.portal.kernel.deploy.auto.BaseAutoDeployListener;
-import com.liferay.portal.kernel.deploy.auto.context.AutoDeploymentContext;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.io.File;
 
 /**
- * @author Brian Wing Shun Chan
+ * @author     Brian Wing Shun Chan
+ * @deprecated As of 6.2.0, with no direct replacement
  */
+@Deprecated
 public class ExtAutoDeployListener extends BaseAutoDeployListener {
 
-	public ExtAutoDeployListener() {
-		_autoDeployer = new ThreadSafeAutoDeployer(new ExtAutoDeployer());
+	@Override
+	protected AutoDeployer buildAutoDeployer() {
+		return new ThreadSafeAutoDeployer(new ExtAutoDeployer());
 	}
 
 	@Override
-	public void deploy(AutoDeploymentContext autoDeploymentContext)
-		throws AutoDeployException {
-
-		File file = autoDeploymentContext.getFile();
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("Invoking deploy for " + file.getPath());
-		}
-
-		if (!isExtPlugin(file)) {
-			return;
-		}
-
-		if (_log.isInfoEnabled()) {
-			_log.info(
-				"Copying extension environment plugin for " + file.getPath());
-		}
-
-		int code = _autoDeployer.autoDeploy(autoDeploymentContext);
-
-		if ((code == AutoDeployer.CODE_DEFAULT) && _log.isInfoEnabled()) {
-			_log.info(
-				"Extension environment for " + file.getPath() +
-					" copied successfully. Deployment will start in a few " +
-						"seconds.");
-		}
+	protected String getPluginPathInfoMessage(File file) {
+		return "Copying extension environment plugin for " + file.getPath();
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
-		ExtAutoDeployListener.class);
+	@Override
+	protected String getSuccessMessage(File file) {
+		return "Extension environment for " + file.getPath() +
+			" copied successfully";
+	}
 
-	private AutoDeployer _autoDeployer;
+	@Override
+	protected boolean isDeployable(File file) {
+		PluginAutoDeployListenerHelper pluginAutoDeployListenerHelper =
+			new PluginAutoDeployListenerHelper(file);
+
+		return pluginAutoDeployListenerHelper.isExtPlugin();
+	}
 
 }

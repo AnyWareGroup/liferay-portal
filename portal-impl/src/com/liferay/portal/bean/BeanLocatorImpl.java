@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,20 +22,19 @@ import com.liferay.portal.kernel.security.pacl.DoPrivileged;
 import com.liferay.portal.kernel.security.pacl.permission.PortalRuntimePermission;
 import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
-import com.liferay.portal.service.ResourceService;
-import com.liferay.portal.service.persistence.ResourcePersistence;
+import com.liferay.portal.security.lang.DoPrivilegedBean;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * @author Brian Wing Shun Chan
  * @author Miguel Pastor
  */
 @DoPrivileged
-@SuppressWarnings("deprecation")
 public class BeanLocatorImpl implements BeanLocator {
 
 	public static final String VELOCITY_SUFFIX = ".velocity";
@@ -45,6 +44,18 @@ public class BeanLocatorImpl implements BeanLocator {
 
 		_classLoader = classLoader;
 		_applicationContext = applicationContext;
+	}
+
+	@Override
+	public void destroy() {
+		if (_applicationContext instanceof AbstractApplicationContext) {
+			AbstractApplicationContext abstractApplicationContext =
+				(AbstractApplicationContext)_applicationContext;
+
+			abstractApplicationContext.destroy();
+		}
+
+		_applicationContext = null;
 	}
 
 	public ApplicationContext getApplicationContext() {
@@ -97,33 +108,18 @@ public class BeanLocatorImpl implements BeanLocator {
 			throw se;
 		}
 		catch (Exception e) {
-			Object bean = _deprecatedBeans.get(name);
-
-			if (bean != null) {
-				return bean;
-			}
-
-			if (name.equals(ResourcePersistence.class.getName())) {
-				bean = new ResourcePersistence() {};
-
-				_deprecatedBeans.put(name, bean);
-
-				return bean;
-			}
-			else if (name.equals(ResourceService.class.getName())) {
-				bean = new ResourceService() {};
-
-				_deprecatedBeans.put(name, bean);
-
-				return bean;
-			}
-
 			throw new BeanLocatorException(e);
 		}
 	}
 
 	public void setPACLServletContextName(String paclServletContextName) {
 		_paclServletContextName = paclServletContextName;
+	}
+
+	public interface PACL {
+
+		public Object getBean(Object bean, ClassLoader classLoader);
+
 	}
 
 	/**
@@ -175,20 +171,25 @@ public class BeanLocatorImpl implements BeanLocator {
 			return bean;
 		}
 
+		if (bean instanceof DoPrivilegedBean) {
+			PortalRuntimePermission.checkGetBeanProperty(bean.getClass());
+
+			return bean;
+		}
+
 		return _pacl.getBean(bean, _classLoader);
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(BeanLocatorImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		BeanLocatorImpl.class);
 
-	private static PACL _pacl = new NoPACL();
+	private static final PACL _pacl = new NoPACL();
 
 	private ApplicationContext _applicationContext;
-	private ClassLoader _classLoader;
-	private Map<String, Object> _deprecatedBeans =
-		new ConcurrentHashMap<String, Object>();
+	private final ClassLoader _classLoader;
 	private String _paclServletContextName;
-	private Map<String, Object> _velocityBeans =
-		new ConcurrentHashMap<String, Object>();
+	private final Map<String, Object> _velocityBeans =
+		new ConcurrentHashMap<>();
 
 	private static class NoPACL implements PACL {
 
@@ -196,12 +197,6 @@ public class BeanLocatorImpl implements BeanLocator {
 		public Object getBean(Object bean, ClassLoader classLoader) {
 			return bean;
 		}
-
-	}
-
-	public static interface PACL {
-
-		public Object getBean(Object bean, ClassLoader classLoader);
 
 	}
 

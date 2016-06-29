@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -37,11 +37,25 @@ public class DoPrivilegedUtil {
 		return _pacl.wrap(t);
 	}
 
-	public static <T> T wrap(T t, boolean checkActive) {
-		return _pacl.wrap(t, checkActive);
+	public static <T> T wrapWhenActive(T t) {
+		return _pacl.wrapWhenActive(t);
 	}
 
-	private static PACL _pacl = new NoPACL();
+	public interface PACL {
+
+		public <T> T wrap(PrivilegedAction<T> privilegedAction);
+
+		public <T> T wrap(
+				PrivilegedExceptionAction<T> privilegedExceptionAction)
+			throws Exception;
+
+		public <T> T wrap(T t);
+
+		public <T> T wrapWhenActive(T t);
+
+	}
+
+	private static final PACL _pacl = new NoPACL();
 
 	private static class NoPACL implements PACL {
 
@@ -64,23 +78,9 @@ public class DoPrivilegedUtil {
 		}
 
 		@Override
-		public <T> T wrap(T t, boolean checkActive) {
+		public <T> T wrapWhenActive(T t) {
 			return t;
 		}
-
-	}
-
-	public static interface PACL {
-
-		public <T> T wrap(PrivilegedAction<T> privilegedAction);
-
-		public <T> T wrap(
-				PrivilegedExceptionAction<T> privilegedExceptionAction)
-			throws Exception;
-
-		public <T> T wrap(T t);
-
-		public <T> T wrap(T t, boolean checkActive);
 
 	}
 

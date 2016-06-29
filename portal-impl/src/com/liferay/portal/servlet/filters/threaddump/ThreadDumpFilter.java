@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -56,8 +56,8 @@ public class ThreadDumpFilter
 
 	private static final int _MAX_THREAD_DUMPERS = 5;
 
-	private static ScheduledExecutorService _scheduledExecutorService =
+	private static final ScheduledExecutorService _scheduledExecutorService =
 		Executors.newScheduledThreadPool(_MAX_THREAD_DUMPERS);
-	private static ThreadDumper _threadDumper = new ThreadDumper();
+	private static final ThreadDumper _threadDumper = new ThreadDumper();
 
 }

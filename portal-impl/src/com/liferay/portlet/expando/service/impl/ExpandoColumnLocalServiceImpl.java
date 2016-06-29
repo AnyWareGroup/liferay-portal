@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,19 +14,18 @@
 
 package com.liferay.portlet.expando.service.impl;
 
+import com.liferay.expando.kernel.exception.ColumnNameException;
+import com.liferay.expando.kernel.exception.ColumnTypeException;
+import com.liferay.expando.kernel.exception.DuplicateColumnNameException;
+import com.liferay.expando.kernel.model.ExpandoColumn;
+import com.liferay.expando.kernel.model.ExpandoColumnConstants;
+import com.liferay.expando.kernel.model.ExpandoTable;
+import com.liferay.expando.kernel.model.ExpandoTableConstants;
+import com.liferay.expando.kernel.model.ExpandoValue;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.expando.ColumnNameException;
-import com.liferay.portlet.expando.ColumnTypeException;
-import com.liferay.portlet.expando.DuplicateColumnNameException;
-import com.liferay.portlet.expando.model.ExpandoColumn;
-import com.liferay.portlet.expando.model.ExpandoColumnConstants;
-import com.liferay.portlet.expando.model.ExpandoTable;
-import com.liferay.portlet.expando.model.ExpandoTableConstants;
-import com.liferay.portlet.expando.model.ExpandoValue;
 import com.liferay.portlet.expando.model.impl.ExpandoValueImpl;
 import com.liferay.portlet.expando.service.base.ExpandoColumnLocalServiceBaseImpl;
 
@@ -46,7 +45,7 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public ExpandoColumn addColumn(long tableId, String name, int type)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return addColumn(tableId, name, type, null);
 	}
@@ -54,7 +53,7 @@ public class ExpandoColumnLocalServiceImpl
 	@Override
 	public ExpandoColumn addColumn(
 			long tableId, String name, int type, Object defaultData)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		// Column
 
@@ -84,7 +83,7 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public void deleteColumn(ExpandoColumn column) throws SystemException {
+	public void deleteColumn(ExpandoColumn column) {
 
 		// Column
 
@@ -96,9 +95,7 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public void deleteColumn(long columnId)
-		throws PortalException, SystemException {
-
+	public void deleteColumn(long columnId) throws PortalException {
 		ExpandoColumn column = expandoColumnPersistence.findByPrimaryKey(
 			columnId);
 
@@ -108,7 +105,7 @@ public class ExpandoColumnLocalServiceImpl
 	@Override
 	public void deleteColumn(
 			long companyId, long classNameId, String tableName, String name)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoTable table = expandoTableLocalService.getTable(
 			companyId, classNameId, tableName);
@@ -117,7 +114,7 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public void deleteColumn(long tableId, String name) throws SystemException {
+	public void deleteColumn(long tableId, String name) {
 		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
@@ -129,15 +126,15 @@ public class ExpandoColumnLocalServiceImpl
 	@Override
 	public void deleteColumn(
 			long companyId, String className, String tableName, String name)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		deleteColumn(companyId, classNameId, tableName, name);
 	}
 
 	@Override
-	public void deleteColumns(long tableId) throws SystemException {
+	public void deleteColumns(long tableId) {
 		List<ExpandoColumn> columns = expandoColumnPersistence.findByTableId(
 			tableId);
 
@@ -149,7 +146,7 @@ public class ExpandoColumnLocalServiceImpl
 	@Override
 	public void deleteColumns(
 			long companyId, long classNameId, String tableName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoTable table = expandoTableLocalService.getTable(
 			companyId, classNameId, tableName);
@@ -160,24 +157,21 @@ public class ExpandoColumnLocalServiceImpl
 	@Override
 	public void deleteColumns(
 			long companyId, String className, String tableName)
-		throws PortalException, SystemException {
+		throws PortalException {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		deleteColumns(companyId, classNameId, tableName);
 	}
 
 	@Override
-	public ExpandoColumn getColumn(long columnId)
-		throws PortalException, SystemException {
-
+	public ExpandoColumn getColumn(long columnId) throws PortalException {
 		return expandoColumnPersistence.findByPrimaryKey(columnId);
 	}
 
 	@Override
 	public ExpandoColumn getColumn(
-			long companyId, long classNameId, String tableName, String name)
-		throws SystemException {
+		long companyId, long classNameId, String tableName, String name) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -190,31 +184,27 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public ExpandoColumn getColumn(long tableId, String name)
-		throws SystemException {
-
+	public ExpandoColumn getColumn(long tableId, String name) {
 		return expandoColumnPersistence.fetchByT_N(tableId, name);
 	}
 
 	@Override
 	public ExpandoColumn getColumn(
-			long companyId, String className, String tableName, String name)
-		throws SystemException {
+		long companyId, String className, String tableName, String name) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumn(companyId, classNameId, tableName, name);
 	}
 
 	@Override
-	public List<ExpandoColumn> getColumns(long tableId) throws SystemException {
+	public List<ExpandoColumn> getColumns(long tableId) {
 		return expandoColumnPersistence.findByTableId(tableId);
 	}
 
 	@Override
 	public List<ExpandoColumn> getColumns(
-			long tableId, Collection<String> names)
-		throws SystemException {
+		long tableId, Collection<String> names) {
 
 		return expandoColumnPersistence.findByT_N(
 			tableId, names.toArray(new String[names.size()]));
@@ -222,8 +212,7 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public List<ExpandoColumn> getColumns(
-			long companyId, long classNameId, String tableName)
-		throws SystemException {
+		long companyId, long classNameId, String tableName) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -237,9 +226,8 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public List<ExpandoColumn> getColumns(
-			long companyId, long classNameId, String tableName,
-			Collection<String> names)
-		throws SystemException {
+		long companyId, long classNameId, String tableName,
+		Collection<String> names) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -254,34 +242,31 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public List<ExpandoColumn> getColumns(
-			long companyId, String className, String tableName)
-		throws SystemException {
+		long companyId, String className, String tableName) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumns(companyId, classNameId, tableName);
 	}
 
 	@Override
 	public List<ExpandoColumn> getColumns(
-			long companyId, String className, String tableName,
-			Collection<String> columnNames)
-		throws SystemException {
+		long companyId, String className, String tableName,
+		Collection<String> columnNames) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumns(companyId, classNameId, tableName, columnNames);
 	}
 
 	@Override
-	public int getColumnsCount(long tableId) throws SystemException {
+	public int getColumnsCount(long tableId) {
 		return expandoColumnPersistence.countByTableId(tableId);
 	}
 
 	@Override
 	public int getColumnsCount(
-			long companyId, long classNameId, String tableName)
-		throws SystemException {
+		long companyId, long classNameId, String tableName) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, tableName);
@@ -295,18 +280,16 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public int getColumnsCount(
-			long companyId, String className, String tableName)
-		throws SystemException {
+		long companyId, String className, String tableName) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumnsCount(companyId, classNameId, tableName);
 	}
 
 	@Override
 	public ExpandoColumn getDefaultTableColumn(
-			long companyId, long classNameId, String name)
-		throws SystemException {
+		long companyId, long classNameId, String name) {
 
 		return getColumn(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME,
@@ -315,10 +298,9 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public ExpandoColumn getDefaultTableColumn(
-			long companyId, String className, String name)
-		throws SystemException {
+		long companyId, String className, String name) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumn(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME,
@@ -327,8 +309,7 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public List<ExpandoColumn> getDefaultTableColumns(
-			long companyId, long classNameId)
-		throws SystemException {
+		long companyId, long classNameId) {
 
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
@@ -342,19 +323,16 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public List<ExpandoColumn> getDefaultTableColumns(
-			long companyId, String className)
-		throws SystemException {
+		long companyId, String className) {
 
-		long classNameId = PortalUtil.getClassNameId(className);
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumns(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
 	}
 
 	@Override
-	public int getDefaultTableColumnsCount(long companyId, long classNameId)
-		throws SystemException {
-
+	public int getDefaultTableColumnsCount(long companyId, long classNameId) {
 		ExpandoTable table = expandoTablePersistence.fetchByC_C_N(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
 
@@ -366,10 +344,8 @@ public class ExpandoColumnLocalServiceImpl
 	}
 
 	@Override
-	public int getDefaultTableColumnsCount(long companyId, String className)
-		throws SystemException {
-
-		long classNameId = PortalUtil.getClassNameId(className);
+	public int getDefaultTableColumnsCount(long companyId, String className) {
+		long classNameId = classNameLocalService.getClassNameId(className);
 
 		return getColumnsCount(
 			companyId, classNameId, ExpandoTableConstants.DEFAULT_TABLE_NAME);
@@ -377,7 +353,7 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public ExpandoColumn updateColumn(long columnId, String name, int type)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		return expandoColumnLocalService.updateColumn(
 			columnId, name, type, null);
@@ -386,7 +362,7 @@ public class ExpandoColumnLocalServiceImpl
 	@Override
 	public ExpandoColumn updateColumn(
 			long columnId, String name, int type, Object defaultData)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoColumn column = expandoColumnPersistence.findByPrimaryKey(
 			columnId);
@@ -405,7 +381,7 @@ public class ExpandoColumnLocalServiceImpl
 
 	@Override
 	public ExpandoColumn updateTypeSettings(long columnId, String typeSettings)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		ExpandoColumn column = expandoColumnPersistence.findByPrimaryKey(
 			columnId);
@@ -420,19 +396,27 @@ public class ExpandoColumnLocalServiceImpl
 	protected ExpandoValue validate(
 			long columnId, long tableId, String name, int type,
 			Object defaultData)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (Validator.isNull(name)) {
-			throw new ColumnNameException();
+			throw new ColumnNameException("Name is null");
 		}
 
 		ExpandoColumn column = expandoColumnPersistence.fetchByT_N(
 			tableId, name);
 
-		if (column != null) {
-			if (column.getColumnId() != columnId) {
-				throw new DuplicateColumnNameException();
-			}
+		if ((column != null) && (column.getColumnId() != columnId)) {
+			StringBundler sb = new StringBundler(7);
+
+			sb.append("{tableId=");
+			sb.append(tableId);
+			sb.append(", columnId=");
+			sb.append(columnId);
+			sb.append(", name=");
+			sb.append(name);
+			sb.append("}");
+
+			throw new DuplicateColumnNameException(sb.toString());
 		}
 
 		if ((type != ExpandoColumnConstants.BOOLEAN) &&
@@ -456,7 +440,7 @@ public class ExpandoColumnLocalServiceImpl
 			(type != ExpandoColumnConstants.STRING_ARRAY_LOCALIZED) &&
 			(type != ExpandoColumnConstants.STRING_LOCALIZED)) {
 
-			throw new ColumnTypeException();
+			throw new ColumnTypeException("Invalid type " + type);
 		}
 
 		ExpandoValue value = new ExpandoValueImpl();

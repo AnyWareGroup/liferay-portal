@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,16 +14,18 @@
 
 package com.liferay.portlet.announcements.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.announcements.kernel.service.AnnouncementsFlagServiceUtil;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-
-import com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil;
 
 import java.rmi.RemoteException;
 
 /**
  * Provides the SOAP utility for the
- * {@link com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil} service utility. The
+ * {@link AnnouncementsFlagServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
@@ -31,10 +33,10 @@ import java.rmi.RemoteException;
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
  * if the method in the service utility returns a {@link java.util.List}, that
- * is translated to an array of {@link com.liferay.portlet.announcements.model.AnnouncementsFlagSoap}.
+ * is translated to an array of {@link com.liferay.announcements.kernel.model.AnnouncementsFlagSoap}.
  * If the method in the service utility returns a
- * {@link com.liferay.portlet.announcements.model.AnnouncementsFlag}, that is translated to a
- * {@link com.liferay.portlet.announcements.model.AnnouncementsFlagSoap}. Methods that SOAP cannot
+ * {@link com.liferay.announcements.kernel.model.AnnouncementsFlag}, that is translated to a
+ * {@link com.liferay.announcements.kernel.model.AnnouncementsFlagSoap}. Methods that SOAP cannot
  * safely wire are skipped.
  * </p>
  *
@@ -55,12 +57,13 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       AnnouncementsFlagServiceHttp
- * @see       com.liferay.portlet.announcements.model.AnnouncementsFlagSoap
- * @see       com.liferay.portlet.announcements.service.AnnouncementsFlagServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see AnnouncementsFlagServiceHttp
+ * @see com.liferay.announcements.kernel.model.AnnouncementsFlagSoap
+ * @see AnnouncementsFlagServiceUtil
  * @generated
  */
+@ProviderType
 public class AnnouncementsFlagServiceSoap {
 	public static void addFlag(long entryId, int value)
 		throws RemoteException {
@@ -85,13 +88,13 @@ public class AnnouncementsFlagServiceSoap {
 		}
 	}
 
-	public static com.liferay.portlet.announcements.model.AnnouncementsFlagSoap getFlag(
+	public static com.liferay.announcements.kernel.model.AnnouncementsFlagSoap getFlag(
 		long entryId, int value) throws RemoteException {
 		try {
-			com.liferay.portlet.announcements.model.AnnouncementsFlag returnValue =
+			com.liferay.announcements.kernel.model.AnnouncementsFlag returnValue =
 				AnnouncementsFlagServiceUtil.getFlag(entryId, value);
 
-			return com.liferay.portlet.announcements.model.AnnouncementsFlagSoap.toSoapModel(returnValue);
+			return com.liferay.announcements.kernel.model.AnnouncementsFlagSoap.toSoapModel(returnValue);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

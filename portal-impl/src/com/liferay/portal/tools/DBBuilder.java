@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,12 +15,18 @@
 package com.liferay.portal.tools;
 
 import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.util.InitUtil;
 
 import java.io.IOException;
+
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import java.util.Map;
 
@@ -28,98 +34,98 @@ import java.util.Map;
  * @author Brian Wing Shun Chan
  * @author Charles May
  * @author Alexander Chow
+ * @author Raymond Augé
  */
 public class DBBuilder {
 
-	public static void main(String[] args) {
-		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
+	public static void main(String[] args) throws Exception {
+		ToolDependencies.wireBasic();
 
-		InitUtil.initWithSpring(true);
+		Map<String, String> arguments = ArgumentsUtil.parseArguments(args);
 
 		String databaseName = arguments.get("db.database.name");
 
 		String databaseTypesString = arguments.get("db.database.types");
 
-		String[] databaseTypes = null;
+		DBType[] dbTypes = DBType.values();
 
-		if (databaseTypesString == null) {
-			databaseTypes = DB.TYPE_ALL;
-		}
-		else {
-			databaseTypes = StringUtil.split(databaseTypesString);
+		if (databaseTypesString != null) {
+			String[] databaseTypeValues = StringUtil.split(databaseTypesString);
+
+			dbTypes = new DBType[databaseTypeValues.length];
+
+			for (int i = 0; i < dbTypes.length; i++) {
+				dbTypes[i] = DBType.valueOf(
+					StringUtil.toUpperCase(databaseTypeValues[i]));
+			}
 		}
 
 		String sqlDir = arguments.get("db.sql.dir");
 
-		new DBBuilder(databaseName, databaseTypes, sqlDir);
-
-		System.exit(0);
-	}
-
-	public DBBuilder(
-		String databaseName, String[] databaseTypes, String sqlDir) {
-
 		try {
-			_databaseName = databaseName;
-			_databaseTypes = databaseTypes;
-
-			if (!sqlDir.endsWith("/WEB-INF/sql")) {
-				_buildSQLFile(sqlDir, "portal");
-				_buildSQLFile(sqlDir, "portal-minimal");
-				_buildSQLFile(sqlDir, "portal-tables");
-			}
-			else {
-				_buildSQLFile(sqlDir, "tables");
-			}
-
-			_buildSQLFile(sqlDir, "indexes");
-			_buildSQLFile(sqlDir, "sequences");
-			_buildSQLFile(sqlDir, "update-5.0.1-5.1.0");
-			_buildSQLFile(sqlDir, "update-5.1.1-5.1.2");
-			_buildSQLFile(sqlDir, "update-5.1.2-5.2.0");
-			_buildSQLFile(sqlDir, "update-5.2.0-5.2.1");
-			_buildSQLFile(sqlDir, "update-5.2.2-5.2.3");
-			_buildSQLFile(sqlDir, "update-5.2.3-6.0.0");
-			_buildSQLFile(sqlDir, "update-5.2.5-6.0.0");
-			_buildSQLFile(sqlDir, "update-5.2.7-6.0.0");
-			_buildSQLFile(sqlDir, "update-5.2.8-6.0.5");
-			_buildSQLFile(sqlDir, "update-6.0.0-6.0.1");
-			_buildSQLFile(sqlDir, "update-6.0.1-6.0.2");
-			_buildSQLFile(sqlDir, "update-6.0.2-6.0.3");
-			_buildSQLFile(sqlDir, "update-6.0.4-6.0.5");
-			_buildSQLFile(sqlDir, "update-6.0.5-6.0.6");
-			_buildSQLFile(sqlDir, "update-6.0.6-6.1.0");
-			_buildSQLFile(sqlDir, "update-6.0.12-6.1.0");
-			_buildSQLFile(sqlDir, "update-6.1.0-6.1.1");
-			_buildSQLFile(sqlDir, "update-6.1.1-6.2.0");
-
-			_buildCreateFile(sqlDir);
+			new DBBuilder(databaseName, dbTypes, sqlDir);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
+			ArgumentsUtil.processMainException(arguments, e);
 		}
+	}
+
+	public DBBuilder(String databaseName, DBType[] dbTypes, String sqlDir)
+		throws Exception {
+
+		_databaseName = databaseName;
+		_dbTypes = dbTypes;
+
+		if (!sqlDir.endsWith("/META-INF/sql") &&
+			!sqlDir.endsWith("/WEB-INF/sql")) {
+
+			_buildSQLFile(sqlDir, "portal");
+			_buildSQLFile(sqlDir, "portal-tables");
+		}
+		else {
+			_buildSQLFile(sqlDir, "tables");
+		}
+
+		_buildSQLFile(sqlDir, "indexes");
+		_buildSQLFile(sqlDir, "sequences");
+		_buildSQLFile(sqlDir, "update-5.0.1-5.1.0");
+		_buildSQLFile(sqlDir, "update-5.1.1-5.1.2");
+		_buildSQLFile(sqlDir, "update-5.1.2-5.2.0");
+		_buildSQLFile(sqlDir, "update-5.2.0-5.2.1");
+		_buildSQLFile(sqlDir, "update-5.2.2-5.2.3");
+		_buildSQLFile(sqlDir, "update-5.2.3-6.0.0");
+		_buildSQLFile(sqlDir, "update-5.2.5-6.0.0");
+		_buildSQLFile(sqlDir, "update-5.2.7-6.0.0");
+		_buildSQLFile(sqlDir, "update-5.2.8-6.0.5");
+		_buildSQLFile(sqlDir, "update-6.0.0-6.0.1");
+		_buildSQLFile(sqlDir, "update-6.0.1-6.0.2");
+		_buildSQLFile(sqlDir, "update-6.0.2-6.0.3");
+		_buildSQLFile(sqlDir, "update-6.0.4-6.0.5");
+		_buildSQLFile(sqlDir, "update-6.0.5-6.0.6");
+		_buildSQLFile(sqlDir, "update-6.0.6-6.1.0");
+		_buildSQLFile(sqlDir, "update-6.0.12-6.1.0");
+		_buildSQLFile(sqlDir, "update-6.1.0-6.1.1");
+		_buildSQLFiles(sqlDir, "update-6.1.1-6.2.0*");
+		_buildSQLFiles(sqlDir, "update-6.2.0-7.0.0*");
+		_buildSQLFiles(sqlDir, "update-7.0.0-7.0.1*");
+
+		_buildCreateFile(sqlDir);
 	}
 
 	private void _buildCreateFile(String sqlDir) throws IOException {
-		for (int i = 0; i < _databaseTypes.length; i++) {
-			String databaseType = _databaseTypes[i];
-
-			if (databaseType.equals(DB.TYPE_HYPERSONIC) ||
-				databaseType.equals(DB.TYPE_INTERBASE) ||
-				databaseType.equals(DB.TYPE_JDATASTORE) ||
-				databaseType.equals(DB.TYPE_SAP)) {
-
+		for (DBType dbType : _dbTypes) {
+			if (dbType == DBType.HYPERSONIC) {
 				continue;
 			}
 
-			DB db = DBFactoryUtil.getDB(_databaseTypes[i]);
+			DB db = DBManagerUtil.getDB(dbType, null);
 
 			if (db != null) {
 				if (!sqlDir.endsWith("/WEB-INF/sql")) {
 					db.buildCreateFile(sqlDir, _databaseName);
 				}
 				else {
-					db.buildCreateFile(sqlDir, _databaseName, DB.POPULATED);
+					db.buildCreateFile(sqlDir, _databaseName, DB.DEFAULT);
 				}
 			}
 		}
@@ -132,8 +138,31 @@ public class DBBuilder {
 			return;
 		}
 
-		for (int i = 0; i < _databaseTypes.length; i++) {
-			DB db = DBFactoryUtil.getDB(_databaseTypes[i]);
+		_generateSQLFile(sqlDir, fileName);
+	}
+
+	private void _buildSQLFiles(String sqlDir, String regex)
+		throws IOException {
+
+		try (DirectoryStream<Path> paths = Files.newDirectoryStream(
+				Paths.get(sqlDir), regex)) {
+
+			for (Path path : paths) {
+				Path fileNamePath = path.getFileName();
+
+				String fileName = fileNamePath.toString();
+
+				_generateSQLFile(
+					sqlDir, fileName.replace(".sql", StringPool.BLANK));
+			}
+		}
+	}
+
+	private void _generateSQLFile(String sqlDir, String fileName)
+		throws IOException {
+
+		for (DBType dbType : _dbTypes) {
+			DB db = DBManagerUtil.getDB(dbType, null);
 
 			if (db != null) {
 				db.buildSQLFile(sqlDir, fileName);
@@ -141,7 +170,7 @@ public class DBBuilder {
 		}
 	}
 
-	private String _databaseName;
-	private String[] _databaseTypes;
+	private final String _databaseName;
+	private final DBType[] _dbTypes;
 
 }

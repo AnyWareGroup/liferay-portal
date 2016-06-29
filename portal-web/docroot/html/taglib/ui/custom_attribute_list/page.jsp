@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,7 @@
  */
 --%>
 
-<%@ include file="/html/taglib/init.jsp" %>
-
-<%@ page import="com.liferay.portlet.expando.model.ExpandoBridge" %>
-<%@ page import="com.liferay.portlet.expando.util.ExpandoBridgeFactoryUtil" %>
+<%@ include file="/html/taglib/ui/custom_attribute_list/init.jsp" %>
 
 <%
 String className = (String)request.getAttribute("liferay-ui:custom-attribute-list:className");
@@ -28,7 +25,7 @@ boolean label = GetterUtil.getBoolean((String)request.getAttribute("liferay-ui:c
 
 ExpandoBridge expandoBridge = ExpandoBridgeFactoryUtil.getExpandoBridge(company.getCompanyId(), className, classPK);
 
-String modelResourceName = ResourceActionsUtil.getModelResource(pageContext, className);
+String modelResourceName = ResourceActionsUtil.getModelResource(request, className);
 
 List<String> attributeNames = ListUtil.remove(Collections.list(expandoBridge.getAttributeNames()), ListUtil.fromString(ignoreAttributeNames, StringPool.COMMA));
 %>
@@ -54,7 +51,9 @@ List<String> attributeNames = ListUtil.remove(Collections.list(expandoBridge.get
 	<c:if test="<%= attributeNames.isEmpty() %>">
 		<span class="field">
 			<span class="field-content">
-				<label><%= LanguageUtil.format(pageContext, "no-custom-fields-are-defined-for-x", modelResourceName) %></label>
+				<label>
+					<liferay-ui:message arguments="<%= modelResourceName %>" key="no-custom-fields-are-defined-for-x" translateArguments="<%= false %>" />
+				</label>
 			</span>
 		</span>
 	</c:if>

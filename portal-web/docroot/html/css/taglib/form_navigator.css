@@ -1,9 +1,0 @@
-.taglib-form-navigator {
-	.modified-notice {
-		display: none;
-	}
-
-	.section-modified .modified-notice {
-		display: inline-block;
-	}
-}

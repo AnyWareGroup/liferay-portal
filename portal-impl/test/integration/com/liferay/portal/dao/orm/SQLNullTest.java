@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,21 +16,23 @@ package com.liferay.portal.dao.orm;
 
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.orm.QueryPos;
 import com.liferay.portal.kernel.dao.orm.SQLQuery;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.TransactionalTestRule;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.service.persistence.PersistenceExecutionTestListener;
-import com.liferay.portal.test.LiferayPersistenceIntegrationJUnitTestRunner;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * This test shows the SQL <code>Null</code> comparison differences across all
@@ -62,10 +64,13 @@ import org.junit.runner.RunWith;
  * 		<th>
  * 			Sybase
  * 		</th>
+ * 		<th>
+ * 			Hypersonic
+ * 		</th>
  * 	</tr>
  *
  * 	<tr>
- * 		<td colspan="5" align="center">
+ * 		<td colspan="6" align="center">
  * 			<code>''</code> comparison with <code>NULL</code>
  * 		</td>
  * 	</tr>
@@ -86,6 +91,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>FALSE</code><sup>*</sup>
  * 		</td>
+ * 	<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -103,6 +111,9 @@ import org.junit.runner.RunWith;
  * 		</td>
  * 		<td>
  * 			<code>TRUE</code><sup>*</sup>
+ * 		</td>
+ * 	<td>
+ * 			<code>NULL</code><sup>*</sup>
  * 		</td>
  * 	</tr>
  *
@@ -122,6 +133,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>FALSE</code><sup>*</sup>
  * 		</td>
+ * 		<td>
+ * 			<code>FALSE</code>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -139,6 +153,9 @@ import org.junit.runner.RunWith;
  * 		</td>
  * 		<td>
  * 			<code>TRUE</code><sup>*</sup>
+ * 		</td>
+ * 		<td>
+ * 			<code>TRUE</code>
  * 		</td>
  * 	</tr>
  *
@@ -158,6 +175,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>FALSE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -176,10 +196,13 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>TRUE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
- * 		<td colspan="5" align="center">
+ * 		<td colspan="6" align="center">
  * 			<code>NULL</code> comparison with <code>NULL</code>
  * 		</td>
  * 	</tr>
@@ -200,6 +223,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>TRUE</code><sup>*</sup>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -217,6 +243,9 @@ import org.junit.runner.RunWith;
  * 		</td>
  * 		<td>
  * 			<code>FALSE</code><sup>*</sup>
+ * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
  * 		</td>
  * 	</tr>
  *
@@ -236,6 +265,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>TRUE</code><sup>*</sup>
  * 		</td>
+ * 		<td>
+ * 			<code>TRUE</code>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -253,6 +285,9 @@ import org.junit.runner.RunWith;
  * 		</td>
  * 		<td>
  * 			<code>FALSE</code><sup>*</sup>
+ * 		</td>
+ * 		<td>
+ * 			<code>FALSE</code>
  * 		</td>
  * 	</tr>
  *
@@ -272,6 +307,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 		<code>FALSE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -290,10 +328,13 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>TRUE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
- * 		<td colspan="5" align="center">
+ * 		<td colspan="6" align="center">
  * 			<code>0</code> comparison with <code>NULL</code>
  * 		</td>
  * 	</tr>
@@ -314,6 +355,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>FALSE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -332,11 +376,17 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>TRUE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
  * 		<td>
  * 			<code>0</code> IS <code>NULL</code>
+ * 		</td>
+ * 		<td>
+ * 			<code>FALSE</code>
  * 		</td>
  * 		<td>
  * 			<code>FALSE</code>
@@ -368,6 +418,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>TRUE</code>
  * 		</td>
+ * 		<td>
+ * 			<code>TRUE</code>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -386,6 +439,9 @@ import org.junit.runner.RunWith;
  * 		<td>
  * 			<code>FALSE</code><sup>*</sup>
  * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
+ * 		</td>
  * 	</tr>
  *
  * 	<tr>
@@ -403,6 +459,9 @@ import org.junit.runner.RunWith;
  * 		</td>
  * 		<td>
  * 			<code>TRUE</code><sup>*</sup>
+ * 		</td>
+ * 		<td>
+ * 			<code>NULL</code><sup>*</sup>
  * 		</td>
  * 	</tr>
  *
@@ -436,9 +495,13 @@ import org.junit.runner.RunWith;
  *
  * @author Shuyang Zhou
  */
-@ExecutionTestListeners(listeners = {PersistenceExecutionTestListener.class})
-@RunWith(LiferayPersistenceIntegrationJUnitTestRunner.class)
 public class SQLNullTest {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(), TransactionalTestRule.INSTANCE);
 
 	@Test
 	public void testBlankStringEqualsNull() {
@@ -447,11 +510,14 @@ public class SQLNullTest {
 		if (isSybase()) {
 			sql = transformSybaseSQL(sql);
 		}
+		else if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
 
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -462,7 +528,7 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -477,7 +543,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -493,7 +559,7 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -508,7 +574,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -524,16 +590,22 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
 	@Test
 	public void testBlankStringLikeNull() {
+		String sql = _SQL_LIKE_NULL;
+
+		if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
+
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -544,7 +616,7 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -555,11 +627,14 @@ public class SQLNullTest {
 		if (isSybase()) {
 			sql = transformSybaseSQL(sql);
 		}
+		else if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
 
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -575,16 +650,22 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
 	@Test
 	public void testBlankStringNotLikeNull() {
+		String sql = _SQL_NOT_LIKE_NULL;
+
+		if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
+
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_NOT_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -600,7 +681,7 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -611,11 +692,14 @@ public class SQLNullTest {
 		if (isSybase()) {
 			sql = transformSybaseSQL(sql);
 		}
+		else if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
 
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -631,7 +715,7 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -646,7 +730,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -657,7 +741,7 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -672,7 +756,7 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -683,16 +767,22 @@ public class SQLNullTest {
 			Assert.assertFalse(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
 	@Test
 	public void testNullLikeNull() {
+		String sql = _SQL_LIKE_NULL;
+
+		if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
+
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -703,7 +793,7 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -714,11 +804,14 @@ public class SQLNullTest {
 		if (isSybase()) {
 			sql = transformSybaseSQL(sql);
 		}
+		else if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
 
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -729,16 +822,22 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
 	@Test
 	public void testNullNotLikeNull() {
+		String sql = _SQL_NOT_LIKE_NULL;
+
+		if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
+
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_NOT_LIKE_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -754,16 +853,22 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
 	@Test
 	public void testZeroEqualsNull() {
+		String sql = _SQL_EQUALS_NULL;
+
+		if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
+
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_EQUALS_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -774,7 +879,7 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -783,7 +888,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_IS_NOT_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_IS_NOT_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -794,7 +900,7 @@ public class SQLNullTest {
 			Assert.assertFalse(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -803,7 +909,8 @@ public class SQLNullTest {
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_IS_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(
+				_SQL_IS_NULL);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -814,7 +921,7 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -828,11 +935,14 @@ public class SQLNullTest {
 		else if (isSybase()) {
 			sql = transformSybaseSQL(sql);
 		}
+		else if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
 
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -843,16 +953,22 @@ public class SQLNullTest {
 			Assert.assertTrue(list.isEmpty());
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
 	@Test
 	public void testZeroNotEqualsNull() {
+		String sql = _SQL_NOT_EQUALS_NULL;
+
+		if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
+
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(_SQL_NOT_EQUALS_NULL);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -868,7 +984,7 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
@@ -882,11 +998,14 @@ public class SQLNullTest {
 		else if (isSybase()) {
 			sql = transformSybaseSQL(sql);
 		}
+		else if (isHypersonic()) {
+			sql = transformHypersonicSQL(sql);
+		}
 
 		Session session = _sessionFactory.openSession();
 
 		try {
-			SQLQuery sqlQuery = session.createSQLQuery(sql);
+			SQLQuery sqlQuery = session.createSynchronizedSQLQuery(sql);
 
 			QueryPos qPos = QueryPos.getInstance(sqlQuery);
 
@@ -902,26 +1021,38 @@ public class SQLNullTest {
 			}
 		}
 		finally {
-			session.close();
+			_sessionFactory.closeSession(session);
 		}
 	}
 
-	protected boolean isDBType(String dBType) {
-		DB db = DBFactoryUtil.getDB();
+	protected boolean isDBType(DBType dbType) {
+		DB db = DBManagerUtil.getDB();
 
-		return dBType.equals(db.getType());
+		if (dbType == db.getDBType()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isHypersonic() {
+		return isDBType(DBType.HYPERSONIC);
 	}
 
 	protected boolean isOracle() {
-		return isDBType(DB.TYPE_ORACLE);
+		return isDBType(DBType.ORACLE);
 	}
 
 	protected boolean isPostgreSQL() {
-		return isDBType(DB.TYPE_POSTGRESQL);
+		return isDBType(DBType.POSTGRESQL);
 	}
 
 	protected boolean isSybase() {
-		return isDBType(DB.TYPE_SYBASE);
+		return isDBType(DBType.SYBASE);
+	}
+
+	protected String transformHypersonicSQL(String sql) {
+		return sql.replace("NULL", "CAST_TEXT(NULL)");
 	}
 
 	protected String transformPostgreSQL(String sql) {
@@ -933,24 +1064,24 @@ public class SQLNullTest {
 	}
 
 	private static final String _SQL_EQUALS_NULL =
-		"SELECT DISTINCT 1 FROM ClassName_ WHERE ? = NULL";
+		"SELECT DISTINCT 1 FROM Counter WHERE ? = NULL";
 
 	private static final String _SQL_IS_NOT_NULL =
-		"SELECT DISTINCT 1 FROM ClassName_ WHERE ? IS NOT NULL";
+		"SELECT DISTINCT 1 FROM Counter WHERE ? IS NOT NULL";
 
 	private static final String _SQL_IS_NULL =
-		"SELECT DISTINCT 1 FROM ClassName_ WHERE ? IS NULL";
+		"SELECT DISTINCT 1 FROM Counter WHERE ? IS NULL";
 
 	private static final String _SQL_LIKE_NULL =
-		"SELECT DISTINCT 1 FROM ClassName_ WHERE ? LIKE NULL";
+		"SELECT DISTINCT 1 FROM Counter WHERE ? LIKE NULL";
 
 	private static final String _SQL_NOT_EQUALS_NULL =
-		"SELECT DISTINCT 1 FROM ClassName_ WHERE ? != NULL";
+		"SELECT DISTINCT 1 FROM Counter WHERE ? != NULL";
 
 	private static final String _SQL_NOT_LIKE_NULL =
-		"SELECT DISTINCT 1 FROM ClassName_ WHERE ? NOT LIKE NULL";
+		"SELECT DISTINCT 1 FROM Counter WHERE ? NOT LIKE NULL";
 
-	private SessionFactory _sessionFactory =
+	private final SessionFactory _sessionFactory =
 		(SessionFactory)PortalBeanLocatorUtil.locate("liferaySessionFactory");
 
 }

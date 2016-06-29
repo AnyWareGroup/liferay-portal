@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -23,6 +23,10 @@ import javax.servlet.http.HttpServletRequest;
  */
 public class MySitesTag extends IncludeTag {
 
+	public void setClassNames(String[] classNames) {
+		_classNames = classNames;
+	}
+
 	public void setCssClass(String cssClass) {
 		_cssClass = cssClass;
 	}
@@ -33,6 +37,7 @@ public class MySitesTag extends IncludeTag {
 
 	@Override
 	protected void cleanUp() {
+		_classNames = null;
 		_cssClass = null;
 		_max = 0;
 	}
@@ -44,6 +49,7 @@ public class MySitesTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest request) {
+		request.setAttribute("liferay-ui:my_sites:classNames", _classNames);
 		request.setAttribute(
 			"liferay-ui:my_sites:cssClass", String.valueOf(_cssClass));
 		request.setAttribute("liferay-ui:my_sites:max", String.valueOf(_max));
@@ -51,6 +57,7 @@ public class MySitesTag extends IncludeTag {
 
 	private static final String _PAGE = "/html/taglib/ui/my_sites/page.jsp";
 
+	private String[] _classNames;
 	private String _cssClass;
 	private int _max;
 

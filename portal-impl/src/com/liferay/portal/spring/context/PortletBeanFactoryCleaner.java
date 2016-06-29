@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,6 +14,7 @@
 
 package com.liferay.portal.spring.context;
 
+import com.liferay.portal.kernel.exception.LoggedExceptionInInitializerError;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ReflectionUtil;
@@ -83,7 +84,7 @@ public class PortletBeanFactoryCleaner implements BeanFactoryAware {
 
 			try {
 				Map<Method, ShadowMatch> shadowMatchCache =
-					(Map<Method, ShadowMatch>)_shadowMatchCacheField.get(
+					(Map<Method, ShadowMatch>)_SHADOW_MATCH_CACHE_FIELD.get(
 						aspectJExpressionPointcut);
 
 				shadowMatchCache.clear();
@@ -127,23 +128,24 @@ public class PortletBeanFactoryCleaner implements BeanFactoryAware {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Field _SHADOW_MATCH_CACHE_FIELD;
+
+	private static final Log _log = LogFactoryUtil.getLog(
 		PortletBeanFactoryCleaner.class);
 
-	private static Set<AspectJExpressionPointcut> _aspectJExpressionPointcuts =
-		new HashSet<AspectJExpressionPointcut>();
+	private static final Set<AspectJExpressionPointcut>
+		_aspectJExpressionPointcuts = new HashSet<>();
 	private static BeanFactory _beanFactory;
-	private static Set<BeanFactoryAware> _beanFactoryAwares =
-		new HashSet<BeanFactoryAware>();
-	private static Field _shadowMatchCacheField;
+	private static final Set<BeanFactoryAware> _beanFactoryAwares =
+		new HashSet<>();
 
 	static {
 		try {
-			_shadowMatchCacheField = ReflectionUtil.getDeclaredField(
+			_SHADOW_MATCH_CACHE_FIELD = ReflectionUtil.getDeclaredField(
 				AspectJExpressionPointcut.class, "shadowMatchCache");
 		}
 		catch (Exception e) {
-			_log.error(e, e);
+			throw new LoggedExceptionInInitializerError(e);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -19,21 +19,40 @@ import com.liferay.portal.kernel.template.StringTemplateResource;
 import com.liferay.portal.kernel.template.Template;
 import com.liferay.portal.kernel.template.TemplateConstants;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.security.pacl.PACLExecutionTestListener;
-import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
+import com.liferay.portal.template.TemplateContextHelper;
+import com.liferay.portal.test.log.CaptureAppender;
+import com.liferay.portal.test.log.Log4JLoggerTestUtil;
+import com.liferay.portal.test.rule.PACLTestRule;
 
+import org.apache.log4j.Level;
+
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Raymond Augé
  */
-@ExecutionTestListeners(listeners = {PACLExecutionTestListener.class})
-@RunWith(PACLIntegrationJUnitTestRunner.class)
 public class TemplateManagerTest {
+
+	@ClassRule
+	@Rule
+	public static final PACLTestRule paclTestRule = new PACLTestRule();
+
+	@BeforeClass
+	public static void setUpClass() {
+		_captureAppender = Log4JLoggerTestUtil.configureLog4JLogger(
+			TemplateContextHelper.class.getName(), Level.OFF);
+	}
+
+	@AfterClass
+	public static void tearDownClass() {
+		_captureAppender.close();
+	}
 
 	@Test
 	public void test1() throws Exception {
@@ -51,27 +70,12 @@ public class TemplateManagerTest {
 	}
 
 	@Test
-	public void test10() throws Exception {
-		Template template = TemplateManagerUtil.getTemplate(
-			TemplateConstants.LANG_TYPE_VM,
-			new StringTemplateResource("123.vm", "#set($sum = 5 + 6)$sum"),
-			false);
-
-		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
-
-		template.processTemplate(unsyncStringWriter);
-
-		String result = unsyncStringWriter.toString();
-
-		Assert.assertEquals(11, GetterUtil.getInteger(result));
-	}
-
-	@Test
 	public void test2() throws Exception {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL,
 			new StringTemplateResource(
-				"123.ftl", "<#if httpUtil??>FAIL<#else>PASS</#if>"), false);
+				"123.ftl", "<#if httpUtil??>FAIL<#else>PASS</#if>"),
+			false);
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
@@ -87,7 +91,8 @@ public class TemplateManagerTest {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL,
 			new StringTemplateResource(
-				"123.ftl", "<#if !httpUtil??>PASS</#if>"), false);
+				"123.ftl", "<#if !httpUtil??>PASS</#if>"),
+			false);
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
@@ -103,7 +108,8 @@ public class TemplateManagerTest {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL,
 			new StringTemplateResource(
-				"123.ftl", "<#if languageUtil??>PASS</#if>"), false);
+				"123.ftl", "<#if languageUtil??>PASS</#if>"),
+			false);
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
@@ -119,7 +125,8 @@ public class TemplateManagerTest {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_FTL,
 			new StringTemplateResource(
-				"123.ftl", "<#assign sum = (5 + 6)>${sum}"), false);
+				"123.ftl", "<#assign sum = (5 + 6)>${sum}"),
+			false);
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
@@ -150,7 +157,8 @@ public class TemplateManagerTest {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_VM,
 			new StringTemplateResource(
-				"123.vm", "#if ($httpUtil) FAIL #else PASS #end"), false);
+				"123.vm", "#if ($httpUtil) FAIL #else PASS #end"),
+			false);
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
@@ -181,8 +189,8 @@ public class TemplateManagerTest {
 	public void test9() throws Exception {
 		Template template = TemplateManagerUtil.getTemplate(
 			TemplateConstants.LANG_TYPE_VM,
-			new StringTemplateResource(
-				"123.vm", "#if ($languageUtil)PASS#end"), false);
+			new StringTemplateResource("123.vm", "#if ($languageUtil)PASS#end"),
+			false);
 
 		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
 
@@ -192,5 +200,23 @@ public class TemplateManagerTest {
 
 		Assert.assertEquals("PASS", result);
 	}
+
+	@Test
+	public void test10() throws Exception {
+		Template template = TemplateManagerUtil.getTemplate(
+			TemplateConstants.LANG_TYPE_VM,
+			new StringTemplateResource("123.vm", "#set($sum = 5 + 6)$sum"),
+			false);
+
+		UnsyncStringWriter unsyncStringWriter = new UnsyncStringWriter();
+
+		template.processTemplate(unsyncStringWriter);
+
+		String result = unsyncStringWriter.toString();
+
+		Assert.assertEquals(11, GetterUtil.getInteger(result));
+	}
+
+	private static CaptureAppender _captureAppender;
 
 }

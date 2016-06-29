@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,18 +14,22 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
-import com.liferay.portal.kernel.dao.jdbc.DataAccess;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.metadata.RawMetadataProcessor;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.LoggingTimer;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.upgrade.v6_2_0.util.DDMTemplateTable;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portlet.dynamicdatamapping.model.DDMTemplate;
-import com.liferay.portlet.dynamicdatamapping.util.DDMXMLUtil;
+import com.liferay.util.xml.XMLUtil;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -40,25 +44,12 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		try {
-			runSQL("alter table DDMTemplate add classNameId LONG");
-
-			runSQL("alter table DDMTemplate add templateKey STRING");
-
-			runSQL("alter_column_name DDMTemplate structureId classPK LONG");
-		}
-		catch (SQLException sqle) {
-			upgradeTable(
-				DDMTemplateTable.TABLE_NAME, DDMTemplateTable.TABLE_COLUMNS,
-				DDMTemplateTable.TABLE_SQL_CREATE,
-				DDMTemplateTable.TABLE_SQL_ADD_INDEXES);
-		}
-
-		long classNameId = PortalUtil.getClassNameId(DDMTemplate.class);
-
-		runSQL("update DDMTemplate set classNameId = " + classNameId);
+		updateSchema();
 
 		updateStructures();
+		updateStructuresClassNameId();
+
+		updateTemplates();
 	}
 
 	protected void updateMetadataElement(
@@ -83,20 +74,35 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 		}
 	}
 
+	protected void updateSchema() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer()) {
+			alter(
+				DDMTemplateTable.class,
+				new AlterTableAddColumn("classNameId LONG"),
+				new AlterTableAddColumn("templateKey STRING"),
+				new AlterColumnName("structureId", "classPK LONG"));
+
+			long classNameId = PortalUtil.getClassNameId(
+				"com.liferay.portlet.dynamicdatamapping.model.DDMStructure");
+
+			try {
+				runSQL("update DDMTemplate set classNameId = " + classNameId);
+			}
+			catch (Exception e) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(e, e);
+				}
+			}
+		}
+	}
+
 	protected void updateStructure(
 			long structureId, String structureKey, String xsd)
 		throws Exception {
 
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement(
+		try (PreparedStatement ps = connection.prepareStatement(
 				"update DDMStructure set structureKey = ?, xsd = ? where " +
-					"structureId = ?");
+					"structureId = ?")) {
 
 			ps.setString(1, structureKey);
 			ps.setString(2, xsd);
@@ -104,39 +110,107 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 
 			ps.executeUpdate();
 		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
+		catch (SQLException sqle) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(sqle, sqle);
+			}
 		}
 	}
 
 	protected void updateStructures() throws Exception {
-		Connection con = null;
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
-		try {
-			con = DataAccess.getUpgradeOptimizedConnection();
-
-			ps = con.prepareStatement("select * from DDMStructure");
-
-			rs = ps.executeQuery();
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
+				"select structureId, structureKey, xsd from DDMStructure");
+			ResultSet rs = ps.executeQuery()) {
 
 			while (rs.next()) {
 				long structureId = rs.getLong("structureId");
 				String structureKey = rs.getString("structureKey");
 				String xsd = rs.getString("xsd");
 
+				if (Validator.isNull(structureKey)) {
+					structureKey = String.valueOf(System.currentTimeMillis());
+				}
+				else {
+					structureKey = StringUtil.toUpperCase(structureKey.trim());
+				}
+
 				updateStructure(
-					structureId, structureKey.trim().toUpperCase(),
-					updateXSD(xsd));
+					structureId, structureKey, updateXSD(xsd, structureKey));
 			}
-		}
-		finally {
-			DataAccess.cleanUp(con, ps, rs);
 		}
 	}
 
-	protected String updateXSD(String xsd) throws Exception {
+	protected void updateStructuresClassNameId() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
+				"update DDMStructure set classNameId = ? where " +
+					"classNameId = ?")) {
+
+			ps.setLong(
+				1,
+				PortalUtil.getClassNameId(
+					"com.liferay.portlet.documentlibrary.model." +
+						"DLFileEntryMetadata"));
+			ps.setLong(
+				2,
+				PortalUtil.getClassNameId(
+					"com.liferay.portlet.documentlibrary.model.DLFileEntry"));
+
+			ps.executeUpdate();
+		}
+		catch (SQLException sqle) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(sqle, sqle);
+			}
+		}
+	}
+
+	protected void updateTemplate(
+			long templateId, String templateKey, String script)
+		throws Exception {
+
+		try (PreparedStatement ps = connection.prepareStatement(
+				"update DDMTemplate set templateKey = ?, script = ? where " +
+					"templateId = ?")) {
+
+			ps.setString(1, templateKey);
+			ps.setString(2, script);
+			ps.setLong(3, templateId);
+
+			ps.executeUpdate();
+		}
+	}
+
+	protected void updateTemplates() throws Exception {
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement ps = connection.prepareStatement(
+				"select templateId, templateKey, script from DDMTemplate " +
+					"where language = 'xsd'");
+			ResultSet rs = ps.executeQuery()) {
+
+			while (rs.next()) {
+				long templateId = rs.getLong("templateId");
+				String templateKey = rs.getString("templateKey");
+				String script = rs.getString("script");
+
+				if (Validator.isNull(templateKey)) {
+					templateKey = String.valueOf(System.currentTimeMillis());
+				}
+				else {
+					templateKey = StringUtil.toUpperCase(templateKey.trim());
+				}
+
+				updateTemplate(
+					templateId, templateKey,
+					updateXSD(script, StringPool.BLANK));
+			}
+		}
+	}
+
+	protected String updateXSD(String xsd, String structureKey)
+		throws Exception {
+
 		Document document = SAXReaderUtil.read(xsd);
 
 		Element rootElement = document.getRootElement();
@@ -145,31 +219,43 @@ public class UpgradeDynamicDataMapping extends UpgradeProcess {
 			"dynamic-element");
 
 		for (Element dynamicElementElement : dynamicElementElements) {
-			updateXSDDynamicElement(dynamicElementElement);
+			updateXSDDynamicElement(dynamicElementElement, structureKey);
 		}
 
-		return DDMXMLUtil.formatXML(document);
+		return XMLUtil.formatXML(document);
 	}
 
-	protected void updateXSDDynamicElement(Element element) {
+	protected void updateXSDDynamicElement(
+		Element element, String structureKey) {
+
 		Element metadataElement = element.element("meta-data");
 
 		updateMetadataElement(
 			metadataElement,
 			new String[] {
-				"multiple", "readOnly", "repeatable", "required", "showLabel",
-				"width",
+				"multiple", "name", "readOnly", "repeatable", "required",
+				"showLabel", "type", "width"
 			},
 			new String[] {
-				"displayChildLabelAsValue", "fieldCssClass"
+				"acceptFiles", "displayChildLabelAsValue", "fieldCssClass",
+				"folder"
 			});
+
+		if (StringUtil.equalsIgnoreCase(
+				structureKey, RawMetadataProcessor.TIKA_RAW_METADATA)) {
+
+			element.addAttribute("indexType", "text");
+		}
 
 		List<Element> dynamicElementElements = element.elements(
 			"dynamic-element");
 
 		for (Element dynamicElementElement : dynamicElementElements) {
-			updateXSDDynamicElement(dynamicElementElement);
+			updateXSDDynamicElement(dynamicElementElement, structureKey);
 		}
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		UpgradeDynamicDataMapping.class);
 
 }

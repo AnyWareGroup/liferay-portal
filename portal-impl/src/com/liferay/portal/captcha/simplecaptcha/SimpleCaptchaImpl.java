@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,17 +16,17 @@ package com.liferay.portal.captcha.simplecaptcha;
 
 import com.liferay.portal.kernel.captcha.Captcha;
 import com.liferay.portal.kernel.captcha.CaptchaException;
-import com.liferay.portal.kernel.captcha.CaptchaMaxChallengesException;
 import com.liferay.portal.kernel.captcha.CaptchaTextException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.RandomUtil;
+import com.liferay.portal.kernel.upload.UploadPortletRequest;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.InstancePool;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Randomizer;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 
 import java.io.IOException;
 
@@ -67,11 +67,10 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 
 		if (!validateChallenge(request)) {
-			incrementCounter(request);
-
-			checkMaxChallenges(request);
-
 			throw new CaptchaTextException();
+		}
+		else {
+			incrementCounter(request);
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -86,11 +85,10 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 
 		if (!validateChallenge(portletRequest)) {
-			incrementCounter(portletRequest);
-
-			checkMaxChallenges(portletRequest);
-
 			throw new CaptchaTextException();
+		}
+		else {
+			incrementCounter(portletRequest);
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -104,10 +102,10 @@ public class SimpleCaptchaImpl implements Captcha {
 	}
 
 	@Override
-	public boolean isEnabled(HttpServletRequest request)
-		throws CaptchaException {
-
-		checkMaxChallenges(request);
+	public boolean isEnabled(HttpServletRequest request) {
+		if (isExceededMaxChallenges(request)) {
+			return false;
+		}
 
 		if (PropsValues.CAPTCHA_MAX_CHALLENGES >= 0) {
 			return true;
@@ -118,10 +116,10 @@ public class SimpleCaptchaImpl implements Captcha {
 	}
 
 	@Override
-	public boolean isEnabled(PortletRequest portletRequest)
-		throws CaptchaException {
-
-		checkMaxChallenges(portletRequest);
+	public boolean isEnabled(PortletRequest portletRequest) {
+		if (isExceededMaxChallenges(portletRequest)) {
+			return false;
+		}
 
 		if (PropsValues.CAPTCHA_MAX_CHALLENGES >= 0) {
 			return true;
@@ -142,7 +140,7 @@ public class SimpleCaptchaImpl implements Captcha {
 
 		session.setAttribute(WebKeys.CAPTCHA_TEXT, simpleCaptcha.getAnswer());
 
-		response.setContentType(ContentTypes.IMAGE_JPEG);
+		response.setContentType(ContentTypes.IMAGE_PNG);
 
 		CaptchaServletUtil.writeImage(
 			response.getOutputStream(), simpleCaptcha.getImage());
@@ -167,48 +165,12 @@ public class SimpleCaptchaImpl implements Captcha {
 			simpleCaptcha.getImage());
 	}
 
-	protected void checkMaxChallenges(HttpServletRequest request)
-		throws CaptchaMaxChallengesException {
-
-		if (PropsValues.CAPTCHA_MAX_CHALLENGES > 0) {
-			HttpSession session = request.getSession();
-
-			Integer count = (Integer)session.getAttribute(
-				WebKeys.CAPTCHA_COUNT);
-
-			checkMaxChallenges(count);
-		}
-	}
-
-	protected void checkMaxChallenges(Integer count)
-		throws CaptchaMaxChallengesException {
-
-		if ((count != null) && (count > PropsValues.CAPTCHA_MAX_CHALLENGES)) {
-			throw new CaptchaMaxChallengesException();
-		}
-	}
-
-	protected void checkMaxChallenges(PortletRequest portletRequest)
-		throws CaptchaMaxChallengesException {
-
-		if (PropsValues.CAPTCHA_MAX_CHALLENGES > 0) {
-			PortletSession portletSession = portletRequest.getPortletSession();
-
-			Integer count = (Integer)portletSession.getAttribute(
-				WebKeys.CAPTCHA_COUNT);
-
-			checkMaxChallenges(count);
-		}
-	}
-
 	protected BackgroundProducer getBackgroundProducer() {
 		if (_backgroundProducers.length == 1) {
 			return _backgroundProducers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_backgroundProducers.length);
+		int pos = RandomUtil.nextInt(_backgroundProducers.length);
 
 		return _backgroundProducers[pos];
 	}
@@ -218,9 +180,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _gimpyRenderers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_gimpyRenderers.length);
+		int pos = RandomUtil.nextInt(_gimpyRenderers.length);
 
 		return _gimpyRenderers[pos];
 	}
@@ -234,9 +194,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _noiseProducers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_noiseProducers.length);
+		int pos = RandomUtil.nextInt(_noiseProducers.length);
 
 		return _noiseProducers[pos];
 	}
@@ -259,9 +217,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _textProducers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_textProducers.length);
+		int pos = RandomUtil.nextInt(_textProducers.length);
 
 		return _textProducers[pos];
 	}
@@ -275,9 +231,7 @@ public class SimpleCaptchaImpl implements Captcha {
 			return _wordRenderers[0];
 		}
 
-		Randomizer randomizer = Randomizer.getInstance();
-
-		int pos = randomizer.nextInt(_wordRenderers.length);
+		int pos = RandomUtil.nextInt(_wordRenderers.length);
 
 		return _wordRenderers[pos];
 	}
@@ -298,10 +252,10 @@ public class SimpleCaptchaImpl implements Captcha {
 
 	protected Integer incrementCounter(Integer count) {
 		if (count == null) {
-			count = new Integer(1);
+			count = Integer.valueOf(1);
 		}
 		else {
-			count = new Integer(count.intValue() + 1);
+			count = Integer.valueOf(count.intValue() + 1);
 		}
 
 		return count;
@@ -341,8 +295,7 @@ public class SimpleCaptchaImpl implements Captcha {
 		String[] gimpyRendererClassNames =
 			PropsValues.CAPTCHA_ENGINE_SIMPLECAPTCHA_GIMPY_RENDERERS;
 
-		_gimpyRenderers = new GimpyRenderer[
-			gimpyRendererClassNames.length];
+		_gimpyRenderers = new GimpyRenderer[gimpyRendererClassNames.length];
 
 		for (int i = 0; i < gimpyRendererClassNames.length; i++) {
 			String gimpyRendererClassName = gimpyRendererClassNames[i];
@@ -394,12 +347,59 @@ public class SimpleCaptchaImpl implements Captcha {
 		}
 	}
 
+	protected boolean isExceededMaxChallenges(HttpServletRequest request) {
+		if (PropsValues.CAPTCHA_MAX_CHALLENGES > 0) {
+			HttpSession session = request.getSession();
+
+			Integer count = (Integer)session.getAttribute(
+				WebKeys.CAPTCHA_COUNT);
+
+			return isExceededMaxChallenges(count);
+		}
+
+		return false;
+	}
+
+	protected boolean isExceededMaxChallenges(Integer count) {
+		if ((count != null) && (count >= PropsValues.CAPTCHA_MAX_CHALLENGES)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	protected boolean isExceededMaxChallenges(PortletRequest portletRequest) {
+		if (PropsValues.CAPTCHA_MAX_CHALLENGES > 0) {
+			PortletSession portletSession = portletRequest.getPortletSession();
+
+			Integer count = (Integer)portletSession.getAttribute(
+				WebKeys.CAPTCHA_COUNT);
+
+			return isExceededMaxChallenges(count);
+		}
+
+		return false;
+	}
+
 	protected boolean validateChallenge(HttpServletRequest request)
 		throws CaptchaException {
 
 		HttpSession session = request.getSession();
 
 		String captchaText = (String)session.getAttribute(WebKeys.CAPTCHA_TEXT);
+
+		if (request instanceof UploadPortletRequest) {
+			UploadPortletRequest uploadPortletRequest =
+				(UploadPortletRequest)request;
+
+			PortletRequest portletRequest =
+				uploadPortletRequest.getPortletRequest();
+
+			PortletSession portletSession = portletRequest.getPortletSession();
+
+			captchaText = (String)portletSession.getAttribute(
+				WebKeys.CAPTCHA_TEXT);
+		}
 
 		if (captchaText == null) {
 			_log.error(
@@ -413,7 +413,21 @@ public class SimpleCaptchaImpl implements Captcha {
 			ParamUtil.getString(request, "captchaText"));
 
 		if (valid) {
-			session.removeAttribute(WebKeys.CAPTCHA_TEXT);
+			if (request instanceof UploadPortletRequest) {
+				UploadPortletRequest uploadPortletRequest =
+					(UploadPortletRequest)request;
+
+				PortletRequest portletRequest =
+					uploadPortletRequest.getPortletRequest();
+
+				PortletSession portletSession =
+					portletRequest.getPortletSession();
+
+				portletSession.removeAttribute(WebKeys.CAPTCHA_TEXT);
+			}
+			else {
+				session.removeAttribute(WebKeys.CAPTCHA_TEXT);
+			}
 		}
 
 		return valid;
@@ -448,7 +462,8 @@ public class SimpleCaptchaImpl implements Captcha {
 	private static final String _TAGLIB_PATH =
 		"/html/taglib/ui/captcha/simplecaptcha.jsp";
 
-	private static Log _log = LogFactoryUtil.getLog(SimpleCaptchaImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		SimpleCaptchaImpl.class);
 
 	private BackgroundProducer[] _backgroundProducers;
 	private GimpyRenderer[] _gimpyRenderers;

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,17 @@
 
 package com.liferay.portal.service.http;
 
+import aQute.bnd.annotation.ProviderType;
+
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.service.ContactServiceUtil;
+import com.liferay.portal.kernel.service.ContactServiceUtil;
 
 import java.rmi.RemoteException;
 
 /**
  * Provides the SOAP utility for the
- * {@link com.liferay.portal.service.ContactServiceUtil} service utility. The
+ * {@link ContactServiceUtil} service utility. The
  * static methods of this class calls the same methods of the service utility.
  * However, the signatures are different because it is difficult for SOAP to
  * support certain types.
@@ -30,10 +32,10 @@ import java.rmi.RemoteException;
  * <p>
  * ServiceBuilder follows certain rules in translating the methods. For example,
  * if the method in the service utility returns a {@link java.util.List}, that
- * is translated to an array of {@link com.liferay.portal.model.ContactSoap}.
+ * is translated to an array of {@link com.liferay.portal.kernel.model.ContactSoap}.
  * If the method in the service utility returns a
- * {@link com.liferay.portal.model.Contact}, that is translated to a
- * {@link com.liferay.portal.model.ContactSoap}. Methods that SOAP cannot
+ * {@link com.liferay.portal.kernel.model.Contact}, that is translated to a
+ * {@link com.liferay.portal.kernel.model.ContactSoap}. Methods that SOAP cannot
  * safely wire are skipped.
  * </p>
  *
@@ -54,19 +56,20 @@ import java.rmi.RemoteException;
  * The SOAP utility is only generated for remote services.
  * </p>
  *
- * @author    Brian Wing Shun Chan
- * @see       ContactServiceHttp
- * @see       com.liferay.portal.model.ContactSoap
- * @see       com.liferay.portal.service.ContactServiceUtil
+ * @author Brian Wing Shun Chan
+ * @see ContactServiceHttp
+ * @see com.liferay.portal.kernel.model.ContactSoap
+ * @see ContactServiceUtil
  * @generated
  */
+@ProviderType
 public class ContactServiceSoap {
-	public static com.liferay.portal.model.ContactSoap getContact(
+	public static com.liferay.portal.kernel.model.ContactSoap getContact(
 		long contactId) throws RemoteException {
 		try {
-			com.liferay.portal.model.Contact returnValue = ContactServiceUtil.getContact(contactId);
+			com.liferay.portal.kernel.model.Contact returnValue = ContactServiceUtil.getContact(contactId);
 
-			return com.liferay.portal.model.ContactSoap.toSoapModel(returnValue);
+			return com.liferay.portal.kernel.model.ContactSoap.toSoapModel(returnValue);
 		}
 		catch (Exception e) {
 			_log.error(e, e);
@@ -75,15 +78,15 @@ public class ContactServiceSoap {
 		}
 	}
 
-	public static com.liferay.portal.model.ContactSoap[] getContacts(
+	public static com.liferay.portal.kernel.model.ContactSoap[] getContacts(
 		long classNameId, long classPK, int start, int end,
-		com.liferay.portal.kernel.util.OrderByComparator orderByComparator)
+		com.liferay.portal.kernel.util.OrderByComparator<com.liferay.portal.kernel.model.Contact> orderByComparator)
 		throws RemoteException {
 		try {
-			java.util.List<com.liferay.portal.model.Contact> returnValue = ContactServiceUtil.getContacts(classNameId,
+			java.util.List<com.liferay.portal.kernel.model.Contact> returnValue = ContactServiceUtil.getContacts(classNameId,
 					classPK, start, end, orderByComparator);
 
-			return com.liferay.portal.model.ContactSoap.toSoapModels(returnValue);
+			return com.liferay.portal.kernel.model.ContactSoap.toSoapModels(returnValue);
 		}
 		catch (Exception e) {
 			_log.error(e, e);

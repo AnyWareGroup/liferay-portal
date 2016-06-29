@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,12 +14,14 @@
 
 package com.liferay.mail.util;
 
-import com.liferay.mail.model.Filter;
+import com.liferay.mail.kernel.model.Filter;
+import com.liferay.mail.kernel.util.Hook;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.process.ProcessUtil;
 import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -47,7 +49,7 @@ public class SendmailHook implements Hook {
 
 				File file = new File(home + "/" + userId + "/.forward");
 
-				if (emailAddresses.size() > 0) {
+				if (!emailAddresses.isEmpty()) {
 					StringBundler sb = new StringBundler(
 						emailAddresses.size() * 2);
 
@@ -143,7 +145,7 @@ public class SendmailHook implements Hook {
 
 		File file = new File(home + "/" + userId + "/.procmailrc");
 
-		if ((blocked == null) || (blocked.size() == 0)) {
+		if (ListUtil.isEmpty(blocked)) {
 			file.delete();
 
 			return;
@@ -185,30 +187,28 @@ public class SendmailHook implements Hook {
 			String virtusertable = PropsUtil.get(
 				PropsKeys.MAIL_HOOK_SENDMAIL_VIRTUSERTABLE);
 
-			FileReader fileReader = new FileReader(virtusertable);
-			UnsyncBufferedReader unsyncBufferedReader =
-				new UnsyncBufferedReader(fileReader);
-
 			StringBundler sb = new StringBundler();
 
-			for (String s = unsyncBufferedReader.readLine(); s != null;
+			try (FileReader fileReader = new FileReader(virtusertable);
+				UnsyncBufferedReader unsyncBufferedReader =
+					new UnsyncBufferedReader(fileReader)) {
+
+				for (String s = unsyncBufferedReader.readLine(); s != null;
 					s = unsyncBufferedReader.readLine()) {
 
-				if (!s.endsWith(" " + userId)) {
-					sb.append(s);
+					if (!s.endsWith(" " + userId)) {
+						sb.append(s);
+						sb.append('\n');
+					}
+				}
+
+				if ((emailAddress != null) && !emailAddress.equals("")) {
+					sb.append(emailAddress);
+					sb.append(" ");
+					sb.append(userId);
 					sb.append('\n');
 				}
 			}
-
-			if ((emailAddress != null) && !emailAddress.equals("")) {
-				sb.append(emailAddress);
-				sb.append(" ");
-				sb.append(userId);
-				sb.append('\n');
-			}
-
-			unsyncBufferedReader.close();
-			fileReader.close();
 
 			FileUtil.write(virtusertable, sb.toString());
 
@@ -254,6 +254,6 @@ public class SendmailHook implements Hook {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(SendmailHook.class);
+	private static final Log _log = LogFactoryUtil.getLog(SendmailHook.class);
 
 }

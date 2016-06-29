@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,21 +14,23 @@
 
 package com.liferay.portal.template;
 
-import com.liferay.portal.deploy.sandbox.SandboxHandler;
-import com.liferay.portal.kernel.cache.CacheListener;
-import com.liferay.portal.kernel.cache.CacheListenerScope;
-import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
+import com.liferay.portal.kernel.cache.MultiVMPool;
 import com.liferay.portal.kernel.cache.PortalCache;
+import com.liferay.portal.kernel.cache.PortalCacheListener;
+import com.liferay.portal.kernel.cache.PortalCacheListenerScope;
+import com.liferay.portal.kernel.cache.SingleVMPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
-import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.template.ClassLoaderTemplateResource;
 import com.liferay.portal.kernel.template.TemplateException;
 import com.liferay.portal.kernel.template.TemplateResource;
 import com.liferay.portal.kernel.template.TemplateResourceLoader;
-import com.liferay.portal.kernel.util.InstanceFactory;
+import com.liferay.portal.kernel.template.URLTemplateResource;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.registry.collections.ServiceTrackerCollections;
+import com.liferay.registry.collections.ServiceTrackerList;
 
 import java.io.IOException;
 import java.io.ObjectInput;
@@ -45,66 +47,77 @@ import java.util.Set;
 public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 
 	public DefaultTemplateResourceLoader(
-		String name, String[] templateResourceParserClassNames,
-		long modificationCheckInterval) {
+		String name, long modificationCheckInterval, MultiVMPool multiVMPool,
+		SingleVMPool singleVMPool) {
 
 		if (Validator.isNull(name)) {
 			throw new IllegalArgumentException(
 				"Template resource loader name is null");
 		}
 
-		if (templateResourceParserClassNames == null) {
-			throw new IllegalArgumentException(
-				"Template resource parser class names is null");
-		}
-
 		_name = name;
 
-		for (String templateResourceParserClassName :
-				templateResourceParserClassNames) {
-
-			try {
-				TemplateResourceParser templateResourceParser =
-					(TemplateResourceParser)InstanceFactory.newInstance(
-						templateResourceParserClassName);
-
-				_templateResourceParsers.add(templateResourceParser);
-			}
-			catch (Exception e) {
-				_log.error(e, e);
-			}
-		}
+		_templateResourceParsers = ServiceTrackerCollections.openList(
+			TemplateResourceParser.class, "(lang.type=" + _name + ")");
 
 		_modificationCheckInterval = modificationCheckInterval;
 
-		String cacheName = TemplateResourceLoader.class.getName();
+		_multiVMPool = multiVMPool;
 
-		cacheName = cacheName.concat(StringPool.PERIOD).concat(name);
+		String portalCacheName = TemplateResourceLoader.class.getName();
 
-		_portalCache = MultiVMPoolUtil.getCache(cacheName);
+		portalCacheName = portalCacheName.concat(
+			StringPool.PERIOD).concat(name);
 
-		CacheListener<String, TemplateResource> cacheListener =
-			new TemplateResourceCacheListener(name);
+		_multiVMPortalCache =
+			(PortalCache<String, TemplateResource>)_multiVMPool.getPortalCache(
+				portalCacheName);
 
-		_portalCache.registerCacheListener(
-			cacheListener, CacheListenerScope.ALL);
+		PortalCacheListener<String, TemplateResource> cacheListener =
+			new TemplateResourcePortalCacheListener(name);
+
+		_multiVMPortalCache.registerPortalCacheListener(
+			cacheListener, PortalCacheListenerScope.ALL);
+
+		_singleVMPool = singleVMPool;
+
+		_singleVMPortalCache =
+			(PortalCache<String, TemplateResource>)_singleVMPool.getPortalCache(
+				portalCacheName);
+
+		_singleVMPortalCache.registerPortalCacheListener(
+			cacheListener, PortalCacheListenerScope.ALL);
+	}
+
+	@Deprecated
+	public DefaultTemplateResourceLoader(
+		String name, String[] templateResourceParserClassNames,
+		long modificationCheckInterval, MultiVMPool multiVMPool,
+		SingleVMPool singleVMPool) {
+
+		this(name, modificationCheckInterval, multiVMPool, singleVMPool);
 	}
 
 	@Override
 	public void clearCache() {
-		_portalCache.removeAll();
+		_multiVMPortalCache.removeAll();
+		_singleVMPortalCache.removeAll();
 	}
 
 	@Override
 	public void clearCache(String templateId) {
-		_portalCache.remove(templateId);
+		_multiVMPortalCache.remove(templateId);
+		_singleVMPortalCache.remove(templateId);
 	}
 
 	@Override
 	public void destroy() {
-		_portalCache.destroy();
+		_multiVMPool.removePortalCache(
+			_multiVMPortalCache.getPortalCacheName());
+		_singleVMPool.removePortalCache(
+			_singleVMPortalCache.getPortalCacheName());
 
-		_templateResourceParsers.clear();
+		_templateResourceParsers.close();
 	}
 
 	@Override
@@ -114,6 +127,10 @@ public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 
 	@Override
 	public TemplateResource getTemplateResource(String templateId) {
+		if (_modificationCheckInterval == 0) {
+			return _loadFromParser(templateId);
+		}
+
 		TemplateResource templateResource = _loadFromCache(templateId);
 
 		if (templateResource != null) {
@@ -126,14 +143,7 @@ public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 
 		templateResource = _loadFromParser(templateId);
 
-		if (_modificationCheckInterval != 0) {
-			if (templateResource == null) {
-				_portalCache.put(templateId, new NullHolderTemplateResource());
-			}
-			else {
-				_portalCache.put(templateId, templateResource);
-			}
-		}
+		_updateCache(templateId, templateResource);
 
 		return templateResource;
 	}
@@ -149,19 +159,55 @@ public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 		return false;
 	}
 
-	private TemplateResource _loadFromCache(String templateId) {
-		if (_modificationCheckInterval == 0) {
-			return null;
+	private TemplateResource _getTemplateResource() {
+		TemplateResource templateResource =
+			TemplateResourceThreadLocal.getTemplateResource(_name);
+
+		if (templateResource instanceof CacheTemplateResource) {
+			CacheTemplateResource cacheTemplateResource =
+				(CacheTemplateResource)templateResource;
+
+			return cacheTemplateResource.getInnerTemplateResource();
 		}
 
-		Object object = _portalCache.get(templateId);
+		return templateResource;
+	}
+
+	private Set<TemplateResourceParser> _getTemplateResourceParsers() {
+		TemplateResource templateResource = _getTemplateResource();
+
+		if ((templateResource != null) &&
+			(templateResource instanceof ClassLoaderTemplateResource)) {
+
+			ClassLoaderTemplateResource classLoaderTemplateResource =
+				(ClassLoaderTemplateResource)templateResource;
+
+			ClassLoaderResourceParser classLoaderResourceParser =
+				new ClassLoaderResourceParser(
+					classLoaderTemplateResource.getClassLoader());
+
+			Set<TemplateResourceParser> templateResourceParsers = new HashSet<>(
+				_templateResourceParsers);
+
+			templateResourceParsers.add(classLoaderResourceParser);
+
+			return templateResourceParsers;
+		}
+
+		return new HashSet<>(_templateResourceParsers);
+	}
+
+	private TemplateResource _loadFromCache(
+		PortalCache<String, TemplateResource> portalCache, String templateId) {
+
+		Object object = portalCache.get(templateId);
 
 		if (object == null) {
 			return null;
 		}
 
 		if (!(object instanceof TemplateResource)) {
-			_portalCache.remove(templateId);
+			portalCache.remove(templateId);
 
 			if (_log.isWarnEnabled()) {
 				_log.warn(
@@ -179,9 +225,9 @@ public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 				templateResource.getLastModified() + _modificationCheckInterval;
 
 			if (System.currentTimeMillis() > expireTime) {
-				_portalCache.remove(templateId);
+				portalCache.remove(templateId);
 
-				templateResource = null;
+				templateResource = _nullHolderTemplateResource;
 
 				if (_log.isDebugEnabled()) {
 					_log.debug(
@@ -193,20 +239,48 @@ public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 		return templateResource;
 	}
 
+	private TemplateResource _loadFromCache(String templateId) {
+		TemplateResource templateResource = _loadFromCache(
+			_singleVMPortalCache, templateId);
+
+		if (templateResource != null) {
+			if (templateResource == _nullHolderTemplateResource) {
+				return null;
+			}
+
+			return templateResource;
+		}
+
+		templateResource = _loadFromCache(_multiVMPortalCache, templateId);
+
+		if ((templateResource == null) ||
+			(templateResource == _nullHolderTemplateResource)) {
+
+			return null;
+		}
+
+		return templateResource;
+	}
+
 	private TemplateResource _loadFromParser(String templateId) {
+		Set<TemplateResourceParser> templateResourceParsers =
+			_getTemplateResourceParsers();
+
 		for (TemplateResourceParser templateResourceParser :
-				_templateResourceParsers) {
+				templateResourceParsers) {
 
 			try {
+				if (!templateResourceParser.isTemplateResourceValid(
+						templateId, getName())) {
+
+					continue;
+				}
+
 				TemplateResource templateResource =
 					templateResourceParser.getTemplateResource(templateId);
 
 				if (templateResource != null) {
-					if ((_modificationCheckInterval != 0) &&
-						(!_name.equals(TemplateConstants.LANG_TYPE_VM) ||
-						 !templateId.contains(
-							 SandboxHandler.SANDBOX_MARKER))) {
-
+					if (_modificationCheckInterval != 0) {
 						templateResource = new CacheTemplateResource(
 							templateResource);
 					}
@@ -215,24 +289,57 @@ public class DefaultTemplateResourceLoader implements TemplateResourceLoader {
 				}
 			}
 			catch (TemplateException te) {
-				_log.warn(
-					"Unable to parse template " + templateId + " with parser " +
-						templateResourceParser,
-					te);
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Unable to parse template " + templateId +
+							" with parser " + templateResourceParser,
+						te);
+				}
 			}
 		}
 
 		return null;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private void _updateCache(
+		String templateId, TemplateResource templateResource) {
+
+		if (templateResource == null) {
+			_singleVMPortalCache.put(
+				templateId, new NullHolderTemplateResource());
+
+			return;
+		}
+
+		CacheTemplateResource cacheTemplateResource =
+			(CacheTemplateResource)templateResource;
+
+		TemplateResource innerTemplateResource =
+			cacheTemplateResource.getInnerTemplateResource();
+
+		if (innerTemplateResource instanceof URLTemplateResource) {
+			_singleVMPortalCache.put(templateId, templateResource);
+
+			return;
+		}
+
+		_multiVMPortalCache.put(templateId, templateResource);
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
 		DefaultTemplateResourceLoader.class);
 
+	private static final NullHolderTemplateResource
+		_nullHolderTemplateResource = new NullHolderTemplateResource();
+
 	private long _modificationCheckInterval;
-	private String _name;
-	private PortalCache<String, TemplateResource> _portalCache;
-	private Set<TemplateResourceParser> _templateResourceParsers =
-		new HashSet<TemplateResourceParser>();
+	private final MultiVMPool _multiVMPool;
+	private final PortalCache<String, TemplateResource> _multiVMPortalCache;
+	private final String _name;
+	private final SingleVMPool _singleVMPool;
+	private final PortalCache<String, TemplateResource> _singleVMPortalCache;
+	private final ServiceTrackerList<TemplateResourceParser>
+		_templateResourceParsers;
 
 	private static class NullHolderTemplateResource
 		implements TemplateResource {

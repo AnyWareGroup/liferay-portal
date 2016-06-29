@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -18,40 +18,26 @@
 
 <%
 String url = (String)request.getAttribute("liferay-ui:captcha:url");
-
-boolean captchaEnabled = false;
-
-try {
-	if (portletRequest != null) {
-		captchaEnabled = CaptchaUtil.isEnabled(portletRequest);
-	}
-	else {
-		captchaEnabled = CaptchaUtil.isEnabled(request);
-	}
-}
-catch (CaptchaMaxChallengesException cmce) {
-	captchaEnabled = true;
-}
 %>
 
 <c:if test="<%= captchaEnabled %>">
 	<div class="taglib-captcha">
-		<img alt="<liferay-ui:message key="text-to-identify" />" class="captcha" id="<portlet:namespace />captcha" src="<%= url %>" />
+		<img alt="<liferay-ui:message escapeAttribute="<%= true %>" key="text-to-identify" />" class="captcha" id="<portlet:namespace />captcha" src="<%= HttpUtil.addParameter(url, "t", String.valueOf(System.currentTimeMillis())) %>" />
 
-		<liferay-ui:icon cssClass="refresh" id="refreshCaptcha" image="../portlet/refresh" label="<%= false %>" localizeMessage="<%= true %>" message="refresh-captcha" url="javascript:;" />
+		<liferay-ui:icon cssClass="refresh" iconCssClass="icon-refresh" id="refreshCaptcha" label="<%= false %>" localizeMessage="<%= true %>" message="refresh-captcha" url="javascript:;" />
 
 		<aui:input label="text-verification" name="captchaText" size="10" type="text" value="">
 			<aui:validator name="required" />
 		</aui:input>
 	</div>
 
-	<aui:script use="aui-base">
-		A.one('#<portlet:namespace />refreshCaptcha').on(
+	<aui:script sandbox="<%= true %>">
+		$('#<portlet:namespace />refreshCaptcha').on(
 			'click',
 			function() {
-				var url = Liferay.Util.addParams('t=' + A.Lang.now(), '<%= url %>');
+				var url = Liferay.Util.addParams('t=' + $.now(), '<%= url %>');
 
-				A.one('#<portlet:namespace />captcha').attr('src', url);
+				$('#<portlet:namespace />captcha').attr('src', url);
 			}
 		);
 	</aui:script>

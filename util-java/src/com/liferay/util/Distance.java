@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -31,9 +31,10 @@ public class Distance {
 
 		double miles =
 			3963.4 *
-			Math.acos(
-				(Math.sin(lat1) * Math.sin(lat2)) +
-				(Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon1 - lon2)));
+				Math.acos(
+					(Math.sin(lat1) * Math.sin(lat2)) +
+						(Math.cos(lat1) * Math.cos(lat2) *
+							Math.cos(lon1 - lon2)));
 
 		return miles;
 	}

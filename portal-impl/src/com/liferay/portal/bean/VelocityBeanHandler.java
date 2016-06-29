@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,7 @@
 
 package com.liferay.portal.bean;
 
-import com.liferay.portal.util.ClassLoaderUtil;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -28,10 +28,6 @@ public class VelocityBeanHandler implements InvocationHandler {
 	public VelocityBeanHandler(Object bean, ClassLoader classLoader) {
 		_bean = bean;
 		_classLoader = classLoader;
-	}
-
-	public ClassLoader getClassLoader() {
-		return _classLoader;
 	}
 
 	@Override
@@ -62,7 +58,7 @@ public class VelocityBeanHandler implements InvocationHandler {
 		}
 	}
 
-	private Object _bean;
-	private ClassLoader _classLoader;
+	private final Object _bean;
+	private final ClassLoader _classLoader;
 
 }

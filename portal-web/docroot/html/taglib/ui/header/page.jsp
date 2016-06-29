@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,27 +17,25 @@
 <%@ include file="/html/taglib/ui/header/init.jsp" %>
 
 <%
-if (Validator.isNotNull(backLabel)) {
-	if (!backLabel.startsWith("&laquo; ")) {
-		backLabel = "&laquo; ".concat(LanguageUtil.format(pageContext, "back-to-x", HtmlUtil.escape(backLabel)));
-	}
-}
-else {
-	backLabel = "&laquo; ".concat(LanguageUtil.get(pageContext, "back"));
+if (Validator.isNull(backLabel)) {
+	backLabel = LanguageUtil.get(resourceBundle, "back");
 }
 
-if (Validator.isNotNull(backURL) && !backURL.equals("javascript:history.go(-1);")) {
-	backURL = HtmlUtil.escapeHREF(PortalUtil.escapeRedirect(backURL));
-}
-
-String headerTitle = (localizeTitle) ? LanguageUtil.get(pageContext, title) : title;
+String headerTitle = (localizeTitle) ? LanguageUtil.get(resourceBundle, title) : title;
 %>
 
 <div class="taglib-header <%= cssClass %>">
 	<c:if test="<%= showBackURL && Validator.isNotNull(backURL) %>">
-		<span class="header-back-to">
-			<a href="<%= backURL %>" id="<%= namespace %>TabsBack"><%= backLabel %></a>
-		</span>
+		<liferay-ui:icon
+			cssClass="header-back-to"
+			icon="angle-left"
+			id="TabsBack"
+			label="<%= false %>"
+			markupView="lexicon"
+			message="<%= escapeXml ? HtmlUtil.escape(backLabel) : backLabel %>"
+			method="get"
+			url="<%= backURL %>"
+		/>
 	</c:if>
 
 	<h3 class="header-title">

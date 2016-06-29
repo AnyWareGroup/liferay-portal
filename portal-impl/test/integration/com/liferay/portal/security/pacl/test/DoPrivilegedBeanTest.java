@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,27 +14,28 @@
 
 package com.liferay.portal.security.pacl.test;
 
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
+import com.liferay.expando.kernel.model.ExpandoBridge;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
-import com.liferay.portal.security.pacl.PACLExecutionTestListener;
-import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
-import com.liferay.portal.util.TestPropsValues;
-import com.liferay.portlet.expando.model.ExpandoBridge;
+import com.liferay.portal.test.rule.PACLTestRule;
 import com.liferay.portlet.expando.model.impl.ExpandoBridgeImpl;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Raymond Augé
  */
-@ExecutionTestListeners(listeners = {PACLExecutionTestListener.class})
-@RunWith(PACLIntegrationJUnitTestRunner.class)
 public class DoPrivilegedBeanTest {
 
+	@ClassRule
+	@Rule
+	public static final PACLTestRule paclTestRule = new PACLTestRule();
+
 	@Test
-	public void equalsTest() throws Exception {
+	public void testEquals() throws Exception {
 		String className = "TEST_CLASS_NAME";
 
 		ExpandoBridge expandoBridge1 = DoPrivilegedUtil.wrap(

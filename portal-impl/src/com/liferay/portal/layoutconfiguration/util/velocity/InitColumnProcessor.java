@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,7 @@ import java.util.List;
 public class InitColumnProcessor {
 
 	public InitColumnProcessor() {
-		_columns = new ArrayList<String>();
+		_columns = new ArrayList<>();
 	}
 
 	public List<String> getColumns() {
@@ -39,6 +39,6 @@ public class InitColumnProcessor {
 		_columns.add(columnId);
 	}
 
-	private List<String> _columns;
+	private final List<String> _columns;
 
 }

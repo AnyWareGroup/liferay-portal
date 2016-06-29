@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,24 +16,21 @@ package com.liferay.portal.module.framework;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
 import com.liferay.portal.kernel.util.MethodKey;
 import com.liferay.portal.kernel.util.ReflectionUtil;
-import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.ServiceLoader;
 import com.liferay.portal.security.lang.DoPrivilegedUtil;
-import com.liferay.portal.util.ClassLoaderUtil;
 import com.liferay.portal.util.FileImpl;
-import com.liferay.portal.util.PropsValues;
-
-import java.io.File;
 
 import java.lang.reflect.Method;
 
 import java.net.URL;
-import java.net.URLConnection;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,26 +45,21 @@ public class ModuleFrameworkAdapterHelper {
 		}
 
 		try {
-			File coreDir = new File(
-				PropsValues.LIFERAY_WEB_PORTAL_CONTEXT_TEMPDIR, "osgi");
+			if (FileUtil.getFile() == null) {
+				FileUtil fileUtil = new FileUtil();
 
-			_initDir(
-				"com/liferay/portal/deploy/dependencies/osgi/core",
-				coreDir.getAbsolutePath());
-			_initDir(
-				"com/liferay/portal/deploy/dependencies/osgi/portal",
-				PropsValues.MODULE_FRAMEWORK_PORTAL_DIR);
-
-			File[] files = coreDir.listFiles();
-
-			URL[] urls = new URL[files.length];
-
-			for (int i = 0; i < urls.length; i++) {
-				urls[i] = new URL("file", null, files[i].getAbsolutePath());
+				fileUtil.setFile(DoPrivilegedUtil.wrap(new FileImpl()));
 			}
 
+			List<ClassPathResolver> classPathResolvers = ServiceLoader.load(
+				ClassPathResolver.class);
+
+			ClassPathResolver classPathResolver = classPathResolvers.get(0);
+
+			URL[] classPathURLs = classPathResolver.getClassPathURLs();
+
 			_classLoader = new ModuleFrameworkClassLoader(
-				urls, ClassLoaderUtil.getPortalClassLoader());
+				classPathURLs, ClassLoaderUtil.getPortalClassLoader());
 
 			return _classLoader;
 		}
@@ -132,50 +124,12 @@ public class ModuleFrameworkAdapterHelper {
 		return method;
 	}
 
-	private static void _initDir(String sourcePath, String destinationPath)
-		throws Exception {
-
-		if (FileUtil.getFile() == null) {
-			FileUtil fileUtil = new FileUtil();
-
-			fileUtil.setFile(DoPrivilegedUtil.wrap(new FileImpl()));
-		}
-
-		if (!FileUtil.exists(destinationPath)) {
-			FileUtil.mkdirs(destinationPath);
-		}
-
-		ClassLoader classLoader = ClassLoaderUtil.getPortalClassLoader();
-
-		URL url = classLoader.getResource(sourcePath + "/jars.txt");
-
-		URLConnection urlConnection = url.openConnection();
-
-		String[] jarFileNames = StringUtil.split(
-			StringUtil.read(urlConnection.getInputStream()));
-
-		for (String jarFileName : jarFileNames) {
-			File distinationFile = new File(destinationPath, jarFileName);
-
-			if (distinationFile.lastModified() <
-					urlConnection.getLastModified()) {
-
-				byte[] bytes = FileUtil.getBytes(
-					classLoader.getResourceAsStream(
-						sourcePath + "/" + jarFileName));
-
-				FileUtil.write(distinationFile, bytes);
-			}
-		}
-	}
-
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		ModuleFrameworkAdapterHelper.class);
 
 	private static ClassLoader _classLoader;
-	private static Map<MethodKey, Method> _methods =
-		new HashMap<MethodKey, Method>();
+	private static final Map<MethodKey, Method> _methods = new HashMap<>();
 
-	private Object _adaptedObject;
+	private final Object _adaptedObject;
 
 }

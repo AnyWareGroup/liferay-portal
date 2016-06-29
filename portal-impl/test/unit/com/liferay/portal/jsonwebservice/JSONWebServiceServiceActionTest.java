@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,17 +14,22 @@
 
 package com.liferay.portal.jsonwebservice;
 
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceAction;
+import com.liferay.portal.kernel.jsonwebservice.JSONWebServiceActionsManagerUtil;
 import com.liferay.portal.kernel.servlet.HttpMethods;
+import com.liferay.portal.kernel.upload.FileItem;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.upload.UploadServletRequestImpl;
 import com.liferay.portal.util.PortalImpl;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsImpl;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.struts.action.ActionMapping;
 import org.apache.struts.action.DynaActionForm;
@@ -42,7 +47,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.mock.web.MockServletContext;
 
 /**
  * @author Igor Spasic
@@ -55,7 +59,7 @@ public class JSONWebServiceServiceActionTest
 	extends BaseJSONWebServiceTestCase {
 
 	@BeforeClass
-	public static void init() throws Exception {
+	public static void setUpClass() throws Exception {
 		initPortalServices();
 
 		Class<?> clazz = JSONWebServiceServiceAction.class;
@@ -68,19 +72,22 @@ public class JSONWebServiceServiceActionTest
 
 		PropsUtil.setProps(new PropsImpl());
 
-		ServletContext servletContext = new MockServletContext();
-
-		_jsonWebServiceServiceAction = new JSONWebServiceServiceAction(
-			servletContext, null);
+		_jsonWebServiceServiceAction = new JSONWebServiceServiceAction();
 	}
 
 	@AfterClass
-	public static void tearDown() throws Exception {
+	public static void tearDownClass() throws Exception {
 		PortalClassLoaderUtil.setClassLoader(null);
 	}
 
 	@Before
 	public void setUp() {
+		JSONWebServiceActionsManagerUtil jsonWebServiceActionsManagerUtil =
+			new JSONWebServiceActionsManagerUtil();
+
+		jsonWebServiceActionsManagerUtil.setJSONWebServiceActionsManager(
+			new JSONWebServiceActionsManagerImpl());
+
 		spy(PortalUtil.class);
 
 		when(
@@ -94,9 +101,9 @@ public class JSONWebServiceServiceActionTest
 	public void testInvokerNullCall() throws Exception {
 		registerActionClass(FooService.class);
 
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		Map<String, Object> map = new LinkedHashMap<>();
 
-		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		Map<String, Object> params = new LinkedHashMap<>();
 
 		map.put("/foo/null-return", params);
 
@@ -118,9 +125,9 @@ public class JSONWebServiceServiceActionTest
 	public void testInvokerSimpleCall() throws Exception {
 		registerActionClass(FooService.class);
 
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		Map<String, Object> map = new LinkedHashMap<>();
 
-		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		Map<String, Object> params = new LinkedHashMap<>();
 
 		map.put("/foo/hello-world", params);
 
@@ -142,38 +149,60 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	@Test
+	public void testMultipartRequest() throws Exception {
+		registerActionClass(FooService.class);
+
+		Map<String, FileItem[]> fileParams = new HashMap<>();
+
+		fileParams.put("fileName", null);
+
+		HttpServletRequest httpServletRequest = new UploadServletRequestImpl(
+			createHttpRequest("/foo/add-file"), fileParams, null) {
+
+			@Override
+			public String getFileName(String name) {
+				return "test";
+			}
+
+		};
+
+		JSONWebServiceAction jsonWebServiceAction = lookupJSONWebServiceAction(
+			httpServletRequest);
+
+		Assert.assertNotNull(jsonWebServiceAction);
+	}
+
+	@Test
 	public void testServletContextInvoker1() throws Exception {
-		testServletContextInvoker("/somectx", true, "/foo/hello-world");
+		testServletContextInvoker("somectx", true, "/foo/hello-world");
 	}
 
 	@Test
 	public void testServletContextInvoker2() throws Exception {
-		testServletContextInvoker(
-			"/somectx", false, "/somectx.foo/hello-world");
+		testServletContextInvoker("somectx", false, "/somectx.foo/hello-world");
 	}
 
 	@Test
 	public void testServletContextRequestParams1() throws Exception {
-		testServletContextRequestParams("/somectx", true, "/foo/hello-world");
+		testServletContextRequestParams("somectx", true, "/foo/hello-world");
 	}
 
 	@Test
 	public void testServletContextRequestParams2() throws Exception {
 		testServletContextRequestParams(
-			"/somectx", false, "/somectx.foo/hello-world");
+			"somectx", false, "/somectx.foo/hello-world");
 	}
 
 	@Test
 	public void testServletContextURL1() throws Exception {
 		testServletContextURL(
-			"/somectx", true,
-			"/foo/hello-world/user-id/173/world-name/Jupiter");
+			"somectx", true, "/foo/hello-world/user-id/173/world-name/Jupiter");
 	}
 
 	@Test
 	public void testServletContextURL2() throws Exception {
 		testServletContextURL(
-			"/somectx", false,
+			"somectx", false,
 			"/somectx.foo/hello-world/user-id/173/world-name/Jupiter");
 	}
 
@@ -191,14 +220,14 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	protected void testServletContextInvoker(
-			String ctx, boolean setContextPath, String query)
+			String contextName, boolean setContextPath, String query)
 		throws Exception {
 
-		registerActionClass(FooService.class, ctx);
+		registerActionClass(FooService.class, contextName);
 
-		Map<String, Object> map = new LinkedHashMap<String, Object>();
+		Map<String, Object> map = new LinkedHashMap<>();
 
-		Map<String, Object> params = new LinkedHashMap<String, Object>();
+		Map<String, Object> params = new LinkedHashMap<>();
 
 		map.put(query, params);
 
@@ -211,7 +240,7 @@ public class JSONWebServiceServiceActionTest
 			createInvokerHttpServletRequest(json);
 
 		if (setContextPath) {
-			mockHttpServletRequest.setContextPath(ctx);
+			setServletContext(mockHttpServletRequest, contextName);
 		}
 
 		MockHttpServletResponse mockHttpServletResponse =
@@ -225,10 +254,10 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	protected void testServletContextRequestParams(
-			String ctx, boolean setContextPath, String request)
+			String contextName, boolean setContextPath, String request)
 		throws Exception {
 
-		registerActionClass(FooService.class, ctx);
+		registerActionClass(FooService.class, contextName);
 
 		MockHttpServletRequest mockHttpServletRequest = createHttpRequest(
 			request);
@@ -239,7 +268,7 @@ public class JSONWebServiceServiceActionTest
 		mockHttpServletRequest.setMethod(HttpMethods.GET);
 
 		if (setContextPath) {
-			mockHttpServletRequest.setContextPath(ctx);
+			setServletContext(mockHttpServletRequest, contextName);
 		}
 
 		MockHttpServletResponse mockHttpServletResponse =
@@ -253,10 +282,10 @@ public class JSONWebServiceServiceActionTest
 	}
 
 	protected void testServletContextURL(
-			String ctx, boolean setContextPath, String request)
+			String contextName, boolean setContextPath, String request)
 		throws Exception {
 
-		registerActionClass(FooService.class, ctx);
+		registerActionClass(FooService.class, contextName);
 
 		MockHttpServletRequest mockHttpServletRequest = createHttpRequest(
 			request);
@@ -264,7 +293,7 @@ public class JSONWebServiceServiceActionTest
 		mockHttpServletRequest.setMethod(HttpMethods.GET);
 
 		if (setContextPath) {
-			mockHttpServletRequest.setContextPath(ctx);
+			setServletContext(mockHttpServletRequest, contextName);
 		}
 
 		MockHttpServletResponse mockHttpServletResponse =

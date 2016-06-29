@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,46 +14,49 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.OldServiceComponentException;
 import com.liferay.portal.kernel.cache.CacheRegistryUtil;
 import com.liferay.portal.kernel.dao.db.DB;
-import com.liferay.portal.kernel.dao.db.DBFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.EntityCacheUtil;
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
+import com.liferay.portal.kernel.dao.db.DBContext;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.dao.db.DBProcessContext;
+import com.liferay.portal.kernel.exception.OldServiceComponentException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.ModelHintsUtil;
+import com.liferay.portal.kernel.model.ServiceComponent;
+import com.liferay.portal.kernel.service.configuration.ServiceComponentConfiguration;
+import com.liferay.portal.kernel.upgrade.UpgradeStep;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTable;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTableFactoryUtil;
 import com.liferay.portal.kernel.upgrade.util.UpgradeTableListener;
-import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.InstanceFactory;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.DocumentException;
 import com.liferay.portal.kernel.xml.Element;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
-import com.liferay.portal.model.ModelHintsUtil;
-import com.liferay.portal.model.ServiceComponent;
+import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
 import com.liferay.portal.service.base.ServiceComponentLocalServiceBaseImpl;
-import com.liferay.portal.tools.servicebuilder.Entity;
+import com.liferay.portal.util.PropsValues;
+import com.liferay.registry.Filter;
+import com.liferay.registry.Registry;
+import com.liferay.registry.RegistryUtil;
+import com.liferay.registry.collections.ServiceTrackerCollections;
+import com.liferay.registry.collections.ServiceTrackerList;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.OutputStream;
 
 import java.lang.reflect.Field;
 
-import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
-import java.security.ProtectionDomain;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.servlet.ServletContext;
 
 /**
  * @author Brian Wing Shun Chan
@@ -61,29 +64,51 @@ import javax.servlet.ServletContext;
 public class ServiceComponentLocalServiceImpl
 	extends ServiceComponentLocalServiceBaseImpl {
 
+	public ServiceComponentLocalServiceImpl() {
+		Registry registry = RegistryUtil.getRegistry();
+
+		Filter filter = registry.getFilter(
+			"(&(objectClass=" + UpgradeStep.class.getName() +
+				")(upgrade.from.schema.version=0.0.0)(upgrade.initial." +
+					"database.creation=true))");
+
+		_serviceTrackerList = ServiceTrackerCollections.openList(
+			UpgradeStep.class, filter);
+	}
+
+	@Override
+	public void destroy() {
+		super.destroy();
+
+		_serviceTrackerList.close();
+	}
+
 	@Override
 	public void destroyServiceComponent(
-			ServletContext servletContext, ClassLoader classLoader)
-		throws SystemException {
+		ServiceComponentConfiguration serviceComponentConfiguration,
+		ClassLoader classLoader) {
 
-		try {
-			clearCacheRegistry(servletContext);
-		}
-		catch (Exception e) {
-			throw new SystemException(e);
+		if (PropsValues.CACHE_CLEAR_ON_PLUGIN_UNDEPLOY) {
+			CacheRegistryUtil.clear();
 		}
 	}
 
 	@Override
+	public List<ServiceComponent> getLatestServiceComponents() {
+		return serviceComponentFinder.findByMaxBuildNumber();
+	}
+
+	@Override
 	public ServiceComponent initServiceComponent(
-			ServletContext servletContext, ClassLoader classLoader,
-			String buildNamespace, long buildNumber, long buildDate,
-			boolean buildAutoUpgrade)
-		throws PortalException, SystemException {
+			ServiceComponentConfiguration serviceComponentConfiguration,
+			ClassLoader classLoader, String buildNamespace, long buildNumber,
+			long buildDate, boolean buildAutoUpgrade)
+		throws PortalException {
 
 		try {
 			ModelHintsUtil.read(
-				classLoader, "META-INF/portlet-model-hints.xml");
+				classLoader,
+				serviceComponentConfiguration.getModelHintsInputStream());
 		}
 		catch (Exception e) {
 			throw new SystemException(e);
@@ -91,7 +116,8 @@ public class ServiceComponentLocalServiceImpl
 
 		try {
 			ModelHintsUtil.read(
-				classLoader, "META-INF/portlet-model-hints-ext.xml");
+				classLoader,
+				serviceComponentConfiguration.getModelHintsExtInputStream());
 		}
 		catch (Exception e) {
 			throw new SystemException(e);
@@ -147,23 +173,23 @@ public class ServiceComponentLocalServiceImpl
 
 			Element tablesSQLElement = dataElement.addElement("tables-sql");
 
-			String tablesSQL = HttpUtil.URLtoString(
-				servletContext.getResource("/WEB-INF/sql/tables.sql"));
+			String tablesSQL = StringUtil.read(
+				serviceComponentConfiguration.getSQLTablesInputStream());
 
 			tablesSQLElement.addCDATA(tablesSQL);
 
 			Element sequencesSQLElement = dataElement.addElement(
 				"sequences-sql");
 
-			String sequencesSQL = HttpUtil.URLtoString(
-				servletContext.getResource("/WEB-INF/sql/sequences.sql"));
+			String sequencesSQL = StringUtil.read(
+				serviceComponentConfiguration.getSQLSequencesInputStream());
 
 			sequencesSQLElement.addCDATA(sequencesSQL);
 
 			Element indexesSQLElement = dataElement.addElement("indexes-sql");
 
-			String indexesSQL = HttpUtil.URLtoString(
-				servletContext.getResource("/WEB-INF/sql/indexes.sql"));
+			String indexesSQL = StringUtil.read(
+				serviceComponentConfiguration.getSQLIndexesInputStream());
 
 			indexesSQLElement.addCDATA(indexesSQL);
 
@@ -195,45 +221,30 @@ public class ServiceComponentLocalServiceImpl
 			final String indexesSQL)
 		throws Exception {
 
-		ProtectionDomain protectionDomain = new ProtectionDomain(
-			null, null, classLoader, null);
-
-		AccessControlContext accessControlContext = new AccessControlContext(
-			new ProtectionDomain[] {protectionDomain});
-
-		AccessController.doPrivileged(
-			new PrivilegedExceptionAction<Void>() {
-
-				@Override
-				public Void run() throws Exception {
-					doUpgradeDB(
-						classLoader, buildNamespace, buildNumber,
-						buildAutoUpgrade, previousServiceComponent, tablesSQL,
-						sequencesSQL, indexesSQL);
-
-					return null;
-				}
-
-			},
-			accessControlContext
-		);
+		_pacl.doUpgradeDB(
+			new DoUpgradeDBPrivilegedExceptionAction(
+				classLoader, buildNamespace, buildNumber, buildAutoUpgrade,
+				previousServiceComponent, tablesSQL, sequencesSQL, indexesSQL));
 	}
 
 	@Override
-	public void verifyDB() throws SystemException {
-		List<ServiceComponent> serviceComponents =
-			serviceComponentPersistence.findAll();
-
-		for (ServiceComponent serviceComponent : serviceComponents) {
-			String buildNamespace = serviceComponent.getBuildNamespace();
-			String tablesSQL = serviceComponent.getTablesSQL();
-			String sequencesSQL = serviceComponent.getSequencesSQL();
-			String indexesSQL = serviceComponent.getIndexesSQL();
-
+	public void verifyDB() {
+		for (UpgradeStep upgradeStep : _serviceTrackerList) {
 			try {
-				serviceComponentLocalService.upgradeDB(
-					null, buildNamespace, 0, false, null, tablesSQL,
-					sequencesSQL, indexesSQL);
+				upgradeStep.upgrade(
+					new DBProcessContext() {
+
+						@Override
+						public DBContext getDBContext() {
+							return new DBContext();
+						}
+
+						@Override
+						public OutputStream getOutputStream() {
+							return null;
+						}
+
+					});
 			}
 			catch (Exception e) {
 				_log.error(e, e);
@@ -241,32 +252,56 @@ public class ServiceComponentLocalServiceImpl
 		}
 	}
 
-	protected void clearCacheRegistry(ServletContext servletContext)
-		throws DocumentException {
+	public class DoUpgradeDBPrivilegedExceptionAction
+		implements PrivilegedExceptionAction<Void> {
 
-		InputStream inputStream = servletContext.getResourceAsStream(
-			"/WEB-INF/classes/META-INF/portlet-hbm.xml");
+		public DoUpgradeDBPrivilegedExceptionAction(
+			ClassLoader classLoader, String buildNamespace, long buildNumber,
+			boolean buildAutoUpgrade, ServiceComponent previousServiceComponent,
+			String tablesSQL, String sequencesSQL, String indexesSQL) {
 
-		if (inputStream == null) {
-			return;
+			_classLoader = classLoader;
+			_buildNamespace = buildNamespace;
+			_buildNumber = buildNumber;
+			_buildAutoUpgrade = buildAutoUpgrade;
+			_previousServiceComponent = previousServiceComponent;
+			_tablesSQL = tablesSQL;
+			_sequencesSQL = sequencesSQL;
+			_indexesSQL = indexesSQL;
 		}
 
-		Document document = SAXReaderUtil.read(inputStream);
-
-		Element rootElement = document.getRootElement();
-
-		List<Element> classElements = rootElement.elements("class");
-
-		for (Element classElement : classElements) {
-			String name = classElement.attributeValue("name");
-
-			CacheRegistryUtil.unregister(name);
+		public ClassLoader getClassLoader() {
+			return _classLoader;
 		}
 
-		CacheRegistryUtil.clear();
+		@Override
+		public Void run() throws Exception {
+			doUpgradeDB(
+				_classLoader, _buildNamespace, _buildNumber, _buildAutoUpgrade,
+				_previousServiceComponent, _tablesSQL, _sequencesSQL,
+				_indexesSQL);
 
-		EntityCacheUtil.clearCache();
-		FinderCacheUtil.clearCache();
+			return null;
+		}
+
+		private final boolean _buildAutoUpgrade;
+		private final String _buildNamespace;
+		private final long _buildNumber;
+		private final ClassLoader _classLoader;
+		private final String _indexesSQL;
+		private final ServiceComponent _previousServiceComponent;
+		private final String _sequencesSQL;
+		private final String _tablesSQL;
+
+	}
+
+	public interface PACL {
+
+		public void doUpgradeDB(
+				DoUpgradeDBPrivilegedExceptionAction
+					doUpgradeDBPrivilegedExceptionAction)
+			throws Exception;
+
 	}
 
 	protected void doUpgradeDB(
@@ -275,7 +310,7 @@ public class ServiceComponentLocalServiceImpl
 			String tablesSQL, String sequencesSQL, String indexesSQL)
 		throws Exception {
 
-		DB db = DBFactoryUtil.getDB();
+		DB db = DBManagerUtil.getDB();
 
 		if (previousServiceComponent == null) {
 			if (_log.isInfoEnabled()) {
@@ -300,7 +335,7 @@ public class ServiceComponentLocalServiceImpl
 
 				db.runSQLTemplateString(tablesSQL, true, false);
 
-				upgradeModels(classLoader, previousServiceComponent);
+				upgradeModels(classLoader, previousServiceComponent, tablesSQL);
 			}
 
 			if (!sequencesSQL.equals(
@@ -313,7 +348,9 @@ public class ServiceComponentLocalServiceImpl
 				db.runSQLTemplateString(sequencesSQL, true, false);
 			}
 
-			if (!indexesSQL.equals(previousServiceComponent.getIndexesSQL())) {
+			if (!indexesSQL.equals(previousServiceComponent.getIndexesSQL()) ||
+				!tablesSQL.equals(previousServiceComponent.getTablesSQL())) {
+
 				if (_log.isInfoEnabled()) {
 					_log.info("Upgrading database with indexes.sql");
 				}
@@ -323,21 +360,21 @@ public class ServiceComponentLocalServiceImpl
 		}
 	}
 
-	protected List<String> getModels(ClassLoader classLoader)
+	protected List<String> getModelNames(ClassLoader classLoader)
 		throws DocumentException, IOException {
 
-		List<String> models = new ArrayList<String>();
+		List<String> modelNames = new ArrayList<>();
 
 		String xml = StringUtil.read(
 			classLoader, "META-INF/portlet-model-hints.xml");
 
-		models.addAll(getModels(xml));
+		modelNames.addAll(getModelNames(xml));
 
 		try {
 			xml = StringUtil.read(
 				classLoader, "META-INF/portlet-model-hints-ext.xml");
 
-			models.addAll(getModels(xml));
+			modelNames.addAll(getModelNames(xml));
 		}
 		catch (Exception e) {
 			if (_log.isInfoEnabled()) {
@@ -347,13 +384,13 @@ public class ServiceComponentLocalServiceImpl
 			}
 		}
 
-		return models;
+		return modelNames;
 	}
 
-	protected List<String> getModels(String xml) throws DocumentException {
-		List<String> models = new ArrayList<String>();
+	protected List<String> getModelNames(String xml) throws DocumentException {
+		List<String> modelNames = new ArrayList<>();
 
-		Document document = SAXReaderUtil.read(xml);
+		Document document = UnsecureSAXReaderUtil.read(xml);
 
 		Element rootElement = document.getRootElement();
 
@@ -362,10 +399,32 @@ public class ServiceComponentLocalServiceImpl
 		for (Element modelElement : modelElements) {
 			String name = modelElement.attributeValue("name");
 
-			models.add(name);
+			modelNames.add(name);
 		}
 
-		return models;
+		return modelNames;
+	}
+
+	protected List<String> getModifiedTableNames(
+		String previousTablesSQL, String tablesSQL) {
+
+		List<String> modifiedTableNames = new ArrayList<>();
+
+		List<String> previousTablesSQLParts = ListUtil.toList(
+			StringUtil.split(previousTablesSQL, StringPool.SEMICOLON));
+		List<String> tablesSQLParts = ListUtil.toList(
+			StringUtil.split(tablesSQL, StringPool.SEMICOLON));
+
+		tablesSQLParts.removeAll(previousTablesSQLParts);
+
+		for (String tablesSQLPart : tablesSQLParts) {
+			int x = tablesSQLPart.indexOf("create table ");
+			int y = tablesSQLPart.indexOf(" (");
+
+			modifiedTableNames.add(tablesSQLPart.substring(x + 13, y));
+		}
+
+		return modifiedTableNames;
 	}
 
 	protected UpgradeTableListener getUpgradeTableListener(
@@ -401,19 +460,17 @@ public class ServiceComponentLocalServiceImpl
 		}
 	}
 
-	protected void removeOldServiceComponents(String buildNamespace)
-		throws SystemException {
-
+	protected void removeOldServiceComponents(String buildNamespace) {
 		int serviceComponentsCount =
 			serviceComponentPersistence.countByBuildNamespace(buildNamespace);
 
-		if (serviceComponentsCount < _MAX_SERVICE_COMPONENTS) {
+		if (serviceComponentsCount < _SERVICE_COMPONENTS_MAX) {
 			return;
 		}
 
 		List<ServiceComponent> serviceComponents =
 			serviceComponentPersistence.findByBuildNamespace(
-				buildNamespace, _MAX_SERVICE_COMPONENTS,
+				buildNamespace, _SERVICE_COMPONENTS_MAX,
 				serviceComponentsCount);
 
 		for (int i = 0; i < serviceComponents.size(); i++) {
@@ -424,39 +481,52 @@ public class ServiceComponentLocalServiceImpl
 	}
 
 	protected void upgradeModels(
-			ClassLoader classLoader, ServiceComponent previousServiceComponent)
+			ClassLoader classLoader, ServiceComponent previousServiceComponent,
+			String tablesSQL)
 		throws Exception {
 
-		List<String> models = getModels(classLoader);
+		List<String> modifiedTableNames = getModifiedTableNames(
+			previousServiceComponent.getTablesSQL(), tablesSQL);
 
-		for (String name : models) {
-			int pos = name.lastIndexOf(".model.");
+		List<String> modelNames = getModelNames(classLoader);
 
-			name =
-				name.substring(0, pos) + ".model.impl." +
-					name.substring(pos + 7) + "ModelImpl";
+		for (String modelName : modelNames) {
+			int pos = modelName.lastIndexOf(".model.");
 
-			Class<?> modelClass = Class.forName(name, true, classLoader);
+			Class<?> modelClass = Class.forName(
+				modelName.substring(0, pos) + ".model.impl." +
+					modelName.substring(pos + 7) + "ModelImpl",
+				true, classLoader);
 
-			Field tableNameField = modelClass.getField("TABLE_NAME");
-			Field tableColumnsField = modelClass.getField("TABLE_COLUMNS");
-			Field tableSQLCreateField = modelClass.getField("TABLE_SQL_CREATE");
 			Field dataSourceField = modelClass.getField("DATA_SOURCE");
 
-			String tableName = (String)tableNameField.get(null);
-			Object[][] tableColumns = (Object[][])tableColumnsField.get(null);
-			String tableSQLCreate = (String)tableSQLCreateField.get(null);
 			String dataSource = (String)dataSourceField.get(null);
 
-			if (!dataSource.equals(Entity.DEFAULT_DATA_SOURCE)) {
+			if (!dataSource.equals(_DATA_SOURCE_DEFAULT)) {
 				continue;
 			}
+
+			Field tableNameField = modelClass.getField("TABLE_NAME");
+
+			String tableName = (String)tableNameField.get(null);
+
+			if (!modifiedTableNames.contains(tableName)) {
+				continue;
+			}
+
+			Field tableColumnsField = modelClass.getField("TABLE_COLUMNS");
+
+			Object[][] tableColumns = (Object[][])tableColumnsField.get(null);
 
 			UpgradeTable upgradeTable = UpgradeTableFactoryUtil.getUpgradeTable(
 				tableName, tableColumns);
 
 			UpgradeTableListener upgradeTableListener = getUpgradeTableListener(
 				classLoader, modelClass);
+
+			Field tableSQLCreateField = modelClass.getField("TABLE_SQL_CREATE");
+
+			String tableSQLCreate = (String)tableSQLCreateField.get(null);
 
 			upgradeTable.setCreateSQL(tableSQLCreate);
 
@@ -474,9 +544,28 @@ public class ServiceComponentLocalServiceImpl
 		}
 	}
 
-	private static final int _MAX_SERVICE_COMPONENTS = 10;
+	private static final String _DATA_SOURCE_DEFAULT = "liferayDataSource";
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final int _SERVICE_COMPONENTS_MAX = 10;
+
+	private static final Log _log = LogFactoryUtil.getLog(
 		ServiceComponentLocalServiceImpl.class);
+
+	private static final PACL _pacl = new NoPACL();
+
+	private final ServiceTrackerList<UpgradeStep> _serviceTrackerList;
+
+	private static class NoPACL implements PACL {
+
+		@Override
+		public void doUpgradeDB(
+				DoUpgradeDBPrivilegedExceptionAction
+					doUpgradeDBPrivilegedExceptionAction)
+			throws Exception {
+
+			doUpgradeDBPrivilegedExceptionAction.run();
+		}
+
+	}
 
 }

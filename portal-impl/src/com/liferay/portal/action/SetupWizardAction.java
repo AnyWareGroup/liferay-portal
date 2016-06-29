@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,19 +16,19 @@ package com.liferay.portal.action;
 
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.servlet.SessionErrors;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.security.auth.PrincipalException;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.setup.SetupWizardUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortalUtil;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
 
 import java.sql.SQLException;
 
@@ -48,8 +48,8 @@ public class SetupWizardAction extends Action {
 
 	@Override
 	public ActionForward execute(
-			ActionMapping mapping, ActionForm form, HttpServletRequest request,
-			HttpServletResponse response)
+			ActionMapping actionMapping, ActionForm actionForm,
+			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
 		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
@@ -63,12 +63,12 @@ public class SetupWizardAction extends Action {
 
 		try {
 			if (Validator.isNull(cmd)) {
-				return mapping.findForward("portal.setup_wizard");
+				return actionMapping.findForward("portal.setup_wizard");
 			}
 			else if (cmd.equals(Constants.TRANSLATE)) {
 				SetupWizardUtil.updateLanguage(request, response);
 
-				return mapping.findForward("portal.setup_wizard");
+				return actionMapping.findForward("portal.setup_wizard");
 			}
 			else if (cmd.equals(Constants.TEST)) {
 				testDatabase(request, response);
@@ -77,6 +77,10 @@ public class SetupWizardAction extends Action {
 			}
 			else if (cmd.equals(Constants.UPDATE)) {
 				SetupWizardUtil.updateSetup(request, response);
+
+				if (ParamUtil.getBoolean(request, "defaultDatabase")) {
+					PropsValues.SETUP_WIZARD_ENABLED = false;
+				}
 			}
 
 			response.sendRedirect(
@@ -88,13 +92,12 @@ public class SetupWizardAction extends Action {
 			if (e instanceof PrincipalException) {
 				SessionErrors.add(request, e.getClass());
 
-				return mapping.findForward("portal.setup_wizard");
+				return actionMapping.findForward("portal.setup_wizard");
 			}
-			else {
-				PortalUtil.sendError(e, request, response);
 
-				return null;
-			}
+			PortalUtil.sendError(e, request, response);
+
+			return null;
 		}
 	}
 
@@ -123,7 +126,7 @@ public class SetupWizardAction extends Action {
 
 			putMessage(
 				request, jsonObject,
-				"database-connection-was-established-sucessfully");
+				"database-connection-was-established-successfully");
 		}
 		catch (ClassNotFoundException cnfe) {
 			putMessage(

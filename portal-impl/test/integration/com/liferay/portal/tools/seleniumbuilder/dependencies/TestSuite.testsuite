@@ -1,5 +1,0 @@
-<definition>
-	<execute test-case="CPBlogsAcceptance" />
-
-	<execute test-suite="EndUserCollaborationAcceptance" />
-</definition>

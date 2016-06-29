@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -29,6 +29,8 @@ import javax.servlet.ServletContext;
 public class DynamicFilterConfig implements FilterConfig {
 
 	public DynamicFilterConfig(FilterConfig filterConfig) {
+		this(null, null);
+
 		Enumeration<String> enu = filterConfig.getInitParameterNames();
 
 		while (enu.hasMoreElements()) {
@@ -69,9 +71,8 @@ public class DynamicFilterConfig implements FilterConfig {
 		return _servletContext;
 	}
 
-	private String _filterName;
-	private Map<String, String> _parameters =
-		new LinkedHashMap<String, String>();
-	private ServletContext _servletContext;
+	private final String _filterName;
+	private final Map<String, String> _parameters = new LinkedHashMap<>();
+	private final ServletContext _servletContext;
 
 }

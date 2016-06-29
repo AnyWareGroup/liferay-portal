@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -63,8 +63,8 @@ public class BufferedIncrementConfiguration {
 		if (threadpoolMaxSize < 1) {
 			if (_log.isWarnEnabled()) {
 				_log.warn(
-					PropsKeys.BUFFERED_INCREMENT_THREADPOOL_MAX_SIZE +
-						"[" + configuration + "]=" + threadpoolMaxSize +
+					PropsKeys.BUFFERED_INCREMENT_THREADPOOL_MAX_SIZE + "[" +
+						configuration + "]=" + threadpoolMaxSize +
 							". Auto reset to 1.");
 			}
 
@@ -123,7 +123,7 @@ public class BufferedIncrementConfiguration {
 		return _standbyEnabled;
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		BufferedIncrementConfiguration.class);
 
 	private final boolean _enabled;

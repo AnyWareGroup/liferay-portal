@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
-<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 6.2.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_6_2_0.dtd">
+<!DOCTYPE service-builder PUBLIC "-//Liferay//DTD Service Builder 7.0.0//EN" "http://www.liferay.com/dtd/liferay-service-builder_7_0_0.dtd">
 
-<service-builder package-path="com.liferay.portlet.social">
+<service-builder api-package-path="com.liferay.social.kernel" auto-import-default-references="false" package-path="com.liferay.portlet.social">
 	<namespace>Social</namespace>
-	<entity name="SocialActivity" local-service="true" remote-service="false">
+	<entity dynamic-update-enabled="true" local-service="true" name="SocialActivity" remote-service="true">
 
 		<!-- PK fields -->
 
-		<column name="activityId" type="long" primary="true" />
+		<column name="activityId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -25,6 +25,8 @@
 		<column name="mirrorActivityId" type="long" />
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
+		<column name="parentClassNameId" type="long" />
+		<column name="parentClassPK" type="long" />
 		<column name="type" type="int" />
 		<column name="extraData" type="String" />
 		<column name="receiverUserId" type="long" />
@@ -92,15 +94,22 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portal" entity="Group" />
-		<reference package-path="com.liferay.portal" entity="Layout" />
-		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
+		<reference entity="ClassName" package-path="com.liferay.portal" />
+		<reference entity="Group" package-path="com.liferay.portal" />
+		<reference entity="Layout" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
+		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
+		<reference entity="SocialActivityCounter" package-path="com.liferay.portlet.social" />
+		<reference entity="SocialActivityInterpreter" package-path="com.liferay.portlet.social" />
+		<reference entity="SocialActivityLimit" package-path="com.liferay.portlet.social" />
+		<reference entity="SocialActivitySet" package-path="com.liferay.portlet.social" />
+		<reference entity="SocialActivitySetting" package-path="com.liferay.portlet.social" />
 	</entity>
-	<entity name="SocialActivityAchievement" local-service="true" remote-service="false">
+	<entity local-service="true" name="SocialActivityAchievement" remote-service="false">
 
 		<!-- PK fields -->
 
-		<column name="activityAchievementId" type="long" primary="true" />
+		<column name="activityAchievementId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -147,13 +156,15 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference entity="Group" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
+		<reference entity="SocialActivityCounter" package-path="com.liferay.portlet.social" />
 	</entity>
-	<entity name="SocialActivityCounter" local-service="true" remote-service="false">
+	<entity local-service="true" name="SocialActivityCounter" remote-service="false">
 
 		<!-- PK fields -->
 
-		<column name="activityCounterId" type="long" primary="true" />
+		<column name="activityCounterId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -178,6 +189,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
 		<finder name="C_C" return-type="Collection">
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
@@ -207,16 +221,25 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portal" entity="Group" />
-		<reference package-path="com.liferay.portal" entity="Lock" />
-		<reference package-path="com.liferay.portlet.asset" entity="AssetEntry" />
+		<reference entity="ClassName" package-path="com.liferay.portal" />
+		<reference entity="Group" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
+		<reference entity="AssetEntry" package-path="com.liferay.portlet.asset" />
+		<reference entity="SocialActivityLimit" package-path="com.liferay.portlet.social" />
+		<reference entity="SocialActivitySetting" package-path="com.liferay.portlet.social" />
 	</entity>
-	<entity name="SocialActivityInterpreter" local-service="true" remote-service="false" tx-manager="none" />
-	<entity name="SocialActivityLimit" local-service="true" remote-service="false">
+	<entity local-service="true" name="SocialActivityInterpreter" remote-service="false" tx-manager="none">
+
+		<!-- References -->
+
+		<reference entity="SocialActivity" package-path="com.liferay.portlet.social" />
+		<reference entity="SocialActivitySet" package-path="com.liferay.portlet.social" />
+	</entity>
+	<entity local-service="true" name="SocialActivityLimit" remote-service="false">
 
 		<!-- PK fields -->
 
-		<column name="activityLimitId" type="long" primary="true" />
+		<column name="activityLimitId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -237,6 +260,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="GroupId" return-type="Collection">
+			<finder-column name="groupId" />
+		</finder>
 		<finder name="UserId" return-type="Collection">
 			<finder-column name="userId" />
 		</finder>
@@ -255,13 +281,14 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference entity="Group" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
-	<entity name="SocialActivitySet" local-service="true" remote-service="false">
+	<entity local-service="true" name="SocialActivitySet" remote-service="false">
 
 		<!-- PK fields -->
 
-		<column name="activitySetId" type="long" primary="true" />
+		<column name="activitySetId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -279,6 +306,7 @@
 		<column name="classNameId" type="long" />
 		<column name="classPK" type="long" />
 		<column name="type" type="int" />
+		<column name="extraData" type="String" />
 		<column name="activityCount" type="int" />
 
 		<!-- Order -->
@@ -292,6 +320,9 @@
 		<finder name="GroupId" return-type="Collection">
 			<finder-column name="groupId" />
 		</finder>
+		<finder name="UserId" return-type="Collection">
+			<finder-column name="userId" />
+		</finder>
 		<finder name="G_U_T" return-type="Collection">
 			<finder-column name="groupId" />
 			<finder-column name="userId" />
@@ -302,18 +333,28 @@
 			<finder-column name="classPK" />
 			<finder-column name="type" />
 		</finder>
+		<finder name="G_U_C_T" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="userId" />
+			<finder-column name="classNameId" />
+			<finder-column name="type" />
+		</finder>
 		<finder name="U_C_C_T" return-type="Collection">
 			<finder-column name="userId" />
 			<finder-column name="classNameId" />
 			<finder-column name="classPK" />
 			<finder-column name="type" />
 		</finder>
+
+		<!-- References -->
+
+		<reference entity="SocialActivity" package-path="com.liferay.portlet.social" />
 	</entity>
-	<entity name="SocialActivitySetting" local-service="true" remote-service="true">
+	<entity local-service="true" name="SocialActivitySetting" remote-service="true">
 
 		<!-- PK fields -->
 
-		<column name="activitySettingId" type="long" primary="true" />
+		<column name="activitySettingId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -357,13 +398,14 @@
 
 		<!-- References -->
 
-		<reference package-path="com.liferay.portal" entity="Group" />
+		<reference entity="ClassName" package-path="com.liferay.portal" />
+		<reference entity="Group" package-path="com.liferay.portal" />
 	</entity>
-	<entity name="SocialRelation" uuid="true" local-service="true" remote-service="false">
+	<entity local-service="true" name="SocialRelation" remote-service="false" uuid="true">
 
 		<!-- PK fields -->
 
-		<column name="relationId" type="long" primary="true" />
+		<column name="relationId" primary="true" type="long" />
 
 		<!-- Audit fields -->
 
@@ -411,12 +453,17 @@
 			<finder-column name="userId2" />
 			<finder-column name="type" />
 		</finder>
+
+		<!-- References -->
+
+		<reference entity="ClassName" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
 	</entity>
-	<entity name="SocialRequest" uuid="true" local-service="true" remote-service="true">
+	<entity local-service="true" name="SocialRequest" remote-service="true" uuid="true">
 
 		<!-- PK fields -->
 
-		<column name="requestId" type="long" primary="true" />
+		<column name="requestId" primary="true" type="long" />
 
 		<!-- Group instance -->
 
@@ -459,6 +506,10 @@
 			<finder-column name="userId" />
 			<finder-column name="status" />
 		</finder>
+		<finder name="C_C" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+		</finder>
 		<finder name="R_S" return-type="Collection">
 			<finder-column name="receiverUserId" />
 			<finder-column name="status" />
@@ -484,8 +535,14 @@
 			<finder-column name="receiverUserId" />
 			<finder-column name="status" />
 		</finder>
+
+		<!-- References -->
+
+		<reference entity="ClassName" package-path="com.liferay.portal" />
+		<reference entity="User" package-path="com.liferay.portal" />
+		<reference entity="SocialRequestInterpreter" package-path="com.liferay.portlet.social" />
 	</entity>
-	<entity name="SocialRequestInterpreter" local-service="true" remote-service="false" tx-manager="none" />
+	<entity local-service="true" name="SocialRequestInterpreter" remote-service="false" tx-manager="none" />
 	<exceptions>
 		<exception>RelationUserId</exception>
 		<exception>RequestUserId</exception>

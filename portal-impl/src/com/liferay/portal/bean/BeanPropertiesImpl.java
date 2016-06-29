@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,15 +16,20 @@ package com.liferay.portal.bean;
 
 import com.liferay.portal.kernel.bean.BeanProperties;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
+import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.pacl.DoPrivileged;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.model.User;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.WebKeys;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.WebKeys;
+
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -84,6 +89,38 @@ public class BeanPropertiesImpl implements BeanProperties {
 		}
 		catch (Exception e) {
 			_log.error(e, e);
+		}
+	}
+
+	@Override
+	public <T> T deepCopyProperties(Object source) throws Exception {
+		ObjectInputStream objectInputStream = null;
+		ObjectOutputStream objectOutputStream = null;
+
+		try {
+			UnsyncByteArrayOutputStream unsyncByteArrayOutputStream =
+				new UnsyncByteArrayOutputStream();
+
+			objectOutputStream = new ObjectOutputStream(
+				unsyncByteArrayOutputStream);
+
+			objectOutputStream.writeObject(source);
+
+			objectOutputStream.flush();
+
+			UnsyncByteArrayInputStream unsyncByteArrayInputStream =
+				new UnsyncByteArrayInputStream(
+					unsyncByteArrayOutputStream.toByteArray());
+
+			objectInputStream = new ObjectInputStream(
+				unsyncByteArrayInputStream);
+
+			return (T)objectInputStream.readObject();
+		}
+		finally {
+			objectInputStream.close();
+
+			objectOutputStream.close();
 		}
 	}
 
@@ -607,6 +644,11 @@ public class BeanPropertiesImpl implements BeanProperties {
 		}
 	}
 
+	@Override
+	public void setPropertySilent(Object bean, String param, Object value) {
+		BeanUtil.setPropertyForcedSilent(bean, param, value);
+	}
+
 	protected Date getDate(String param, HttpServletRequest request) {
 		int month = ParamUtil.getInteger(request, param + "Month");
 		int day = ParamUtil.getInteger(request, param + "Day");
@@ -638,6 +680,7 @@ public class BeanPropertiesImpl implements BeanProperties {
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(BeanPropertiesImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		BeanPropertiesImpl.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -16,6 +16,7 @@ package com.liferay.portal.resiliency.spi.agent;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.nio.intraband.RegistrationReference;
 import com.liferay.portal.kernel.resiliency.PortalResiliencyException;
 import com.liferay.portal.kernel.resiliency.spi.SPI;
@@ -32,6 +33,7 @@ import com.liferay.portal.util.PropsValues;
 
 import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -65,7 +67,7 @@ public class HttpClientSPIAgent implements SPIAgent {
 		socketAddress = new InetSocketAddress(
 			InetAddressUtil.getLoopbackInetAddress(),
 			spiConfiguration.getConnectorPort());
-		socketBlockingQueue = new ArrayBlockingQueue<Socket>(
+		socketBlockingQueue = new ArrayBlockingQueue<>(
 			PropsValues.PORTAL_RESILIENCY_SPI_AGENT_CLIENT_POOL_MAX_SIZE);
 
 		String httpServletRequestContentString =
@@ -137,8 +139,13 @@ public class HttpClientSPIAgent implements SPIAgent {
 				new ReadOnlyServletResponse(response));
 
 		request.setAttribute(WebKeys.SPI_AGENT_ORIGINAL_RESPONSE, response);
+
+		Portlet portlet = (Portlet)request.getAttribute(
+			WebKeys.SPI_AGENT_PORTLET);
+
 		request.setAttribute(
-			WebKeys.SPI_AGENT_RESPONSE, new SPIAgentResponse());
+			WebKeys.SPI_AGENT_RESPONSE,
+			new SPIAgentResponse(portlet.getContextName()));
 
 		return spiAgentHttpServletResponse;
 	}
@@ -199,7 +206,18 @@ public class HttpClientSPIAgent implements SPIAgent {
 			Exception exception)
 		throws IOException {
 
+		SPIAgentRequest spiAgentRequest = (SPIAgentRequest)request.getAttribute(
+			WebKeys.SPI_AGENT_REQUEST);
+
 		request.removeAttribute(WebKeys.SPI_AGENT_REQUEST);
+
+		File requestBodyFile = spiAgentRequest.requestBodyFile;
+
+		if (requestBodyFile != null) {
+			if (!requestBodyFile.delete()) {
+				requestBodyFile.deleteOnExit();
+			}
+		}
 
 		SPIAgentResponse spiAgentResponse =
 			(SPIAgentResponse)request.getAttribute(WebKeys.SPI_AGENT_RESPONSE);
@@ -277,12 +295,12 @@ public class HttpClientSPIAgent implements SPIAgent {
 
 			String headerName = headerKeyValuePair[0].trim();
 
-			headerName = headerName.toLowerCase();
+			headerName = StringUtil.toLowerCase(headerName);
 
 			if (headerName.equals("connection")) {
 				String headerValue = headerKeyValuePair[1].trim();
 
-				headerValue = headerValue.toLowerCase();
+				headerValue = StringUtil.toLowerCase(headerValue);
 
 				if (headerValue.equals("close")) {
 					forceCloseSocket = true;
@@ -323,6 +341,7 @@ public class HttpClientSPIAgent implements SPIAgent {
 	protected final SocketAddress socketAddress;
 	protected final BlockingQueue<Socket> socketBlockingQueue;
 
-	private static Log _log = LogFactoryUtil.getLog(HttpClientSPIAgent.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		HttpClientSPIAgent.class);
 
 }

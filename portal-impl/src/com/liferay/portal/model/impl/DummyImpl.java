@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,9 @@
 
 package com.liferay.portal.model.impl;
 
+import com.liferay.portal.kernel.model.Dummy;
+import com.liferay.portal.kernel.model.impl.BaseModelImpl;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.Dummy;
 
 import java.io.Serializable;
 
@@ -23,9 +24,6 @@ import java.io.Serializable;
  * @author Brian Wing Shun Chan
  */
 public class DummyImpl extends BaseModelImpl<Dummy> implements Dummy {
-
-	public DummyImpl() {
-	}
 
 	@Override
 	public Object clone() {
@@ -50,6 +48,16 @@ public class DummyImpl extends BaseModelImpl<Dummy> implements Dummy {
 	@Override
 	public Serializable getPrimaryKeyObj() {
 		return StringPool.BLANK;
+	}
+
+	@Override
+	public boolean isEntityCacheEnabled() {
+		return false;
+	}
+
+	@Override
+	public boolean isFinderCacheEnabled() {
+		return false;
 	}
 
 	@Override

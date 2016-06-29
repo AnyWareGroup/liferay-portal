@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,7 +20,7 @@
 Integer height = (Integer)request.getAttribute("liferay-ui:progress:height");
 String id = (String)request.getAttribute("liferay-ui:progress:id");
 String message = (String)request.getAttribute("liferay-ui:progress:message");
-String sessionKey = GetterUtil.getString(request.getAttribute("liferay-ui:progress:sessionKey"), LiferayFileUpload.PERCENT);
+String sessionKey = GetterUtil.getString(request.getAttribute("liferay-ui:progress:sessionKey"), ProgressTracker.PERCENT);
 %>
 
 <div id="<%= id %>Bar"></div>
@@ -35,7 +35,7 @@ String sessionKey = GetterUtil.getString(request.getAttribute("liferay-ui:progre
 			</c:if>
 
 			id: '<%= id %>',
-			label: '<%= UnicodeLanguageUtil.get(pageContext, message) %>',
+			label: '<%= UnicodeLanguageUtil.get(resourceBundle, message) %>',
 			sessionKey: '<%= HtmlUtil.escapeJS(sessionKey) %>'
 		}
 	);

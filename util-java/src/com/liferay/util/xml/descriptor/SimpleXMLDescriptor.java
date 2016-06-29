@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -43,8 +43,8 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 
 		for (int i = 0; i < elIds.length; i++) {
 			if (name1.equals(elIds[i].getElementName())) {
-				if (_compareAttribute(
-						el1, el2, elIds[i].getIdentifierName()) == 0) {
+				if (_compareAttribute(el1, el2, elIds[i].getIdentifierName()) ==
+						0) {
 
 					return true;
 				}
@@ -58,8 +58,8 @@ public abstract class SimpleXMLDescriptor implements XMLDescriptor {
 
 		for (int i = 0; i < elIds.length; i++) {
 			if (name1.equals(elIds[i].getElementName())) {
-				if (_compareChildText(
-						el1, el2, elIds[i].getIdentifierName()) == 0) {
+				if (_compareChildText(el1, el2, elIds[i].getIdentifierName()) ==
+						0) {
 
 					return true;
 				}

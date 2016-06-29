@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,10 @@
 
 package com.liferay.util;
 
+import com.liferay.portal.kernel.io.ProtectedObjectInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.portal.kernel.io.unsync.UnsyncByteArrayOutputStream;
-import com.liferay.portal.kernel.util.ClassLoaderObjectInputStream;
+import com.liferay.portal.kernel.util.ProtectedClassLoaderObjectInputStream;
 import com.liferay.portal.kernel.util.StreamUtil;
 
 import java.io.IOException;
@@ -30,14 +31,16 @@ import java.io.ObjectOutputStream;
 public class SerializableUtil {
 
 	public static Object clone(Object object) {
-		return deserialize(serialize(object));
+		Class<?> clazz = object.getClass();
+
+		return deserialize(serialize(object), clazz.getClassLoader());
 	}
 
 	public static Object deserialize(byte[] bytes) {
 		ObjectInputStream objectInputStream = null;
 
 		try {
-			objectInputStream = new ObjectInputStream(
+			objectInputStream = new ProtectedObjectInputStream(
 				new UnsyncByteArrayInputStream(bytes));
 
 			return objectInputStream.readObject();
@@ -57,7 +60,7 @@ public class SerializableUtil {
 		ObjectInputStream objectInputStream = null;
 
 		try {
-			objectInputStream = new ClassLoaderObjectInputStream(
+			objectInputStream = new ProtectedClassLoaderObjectInputStream(
 				new UnsyncByteArrayInputStream(bytes), classLoader);
 
 			return objectInputStream.readObject();

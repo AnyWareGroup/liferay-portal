@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,20 +14,34 @@
 
 package com.liferay.portal.security.membershippolicy;
 
+import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserGroupRole;
+import com.liferay.portal.kernel.security.membershippolicy.MembershipPolicyException;
+import com.liferay.portal.kernel.service.GroupServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserServiceUtil;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.User;
-import com.liferay.portal.model.UserGroupRole;
-import com.liferay.portal.security.membershippolicy.util.MembershipPolicyTestUtil;
-import com.liferay.portal.service.GroupServiceUtil;
-import com.liferay.portal.service.ServiceTestUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.service.UserServiceUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.security.membershippolicy.util.test.MembershipPolicyTestUtil;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 /**
@@ -35,6 +49,20 @@ import org.junit.Test;
  */
 public class SiteMembershipPolicyMembershipsTest
 	extends BaseSiteMembershipPolicyTestCase {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
+
+	@After
+	@Override
+	public void tearDown() throws Exception {
+		super.tearDown();
+
+		ExpandoTableLocalServiceUtil.deleteTables(
+			TestPropsValues.getCompanyId(), Group.class.getName());
+	}
 
 	@Test(expected = MembershipPolicyException.class)
 	public void testAddUserToForbiddenGroups() throws Exception {
@@ -63,7 +91,7 @@ public class SiteMembershipPolicyMembershipsTest
 
 		UserServiceUtil.addGroupUsers(
 			forbiddenGroupIds[0], addUsers(),
-			ServiceTestUtil.getServiceContext());
+			ServiceContextTestUtil.getServiceContext());
 	}
 
 	@Test
@@ -75,7 +103,7 @@ public class SiteMembershipPolicyMembershipsTest
 
 		UserServiceUtil.addGroupUsers(
 			requiredGroupIds[0], addUsers(),
-			ServiceTestUtil.getServiceContext());
+			ServiceContextTestUtil.getServiceContext());
 
 		Assert.assertEquals(
 			initialGroupUsersCount + 2,
@@ -129,7 +157,7 @@ public class SiteMembershipPolicyMembershipsTest
 
 		UserServiceUtil.addGroupUsers(
 			requiredGroupIds[0], addUsers(),
-			ServiceTestUtil.getServiceContext());
+			ServiceContextTestUtil.getServiceContext());
 
 		Assert.assertTrue(isPropagateMembership());
 	}
@@ -225,7 +253,7 @@ public class SiteMembershipPolicyMembershipsTest
 
 		UserServiceUtil.unsetGroupUsers(
 			standardGroupIds[0], new long[] {user.getUserId()},
-			ServiceTestUtil.getServiceContext());
+			ServiceContextTestUtil.getServiceContext());
 
 		Assert.assertEquals(
 			initialUserGroupCount - 1,
@@ -242,7 +270,7 @@ public class SiteMembershipPolicyMembershipsTest
 
 		UserServiceUtil.unsetGroupUsers(
 			requiredGroupIds[0], new long[] {user.getUserId()},
-			ServiceTestUtil.getServiceContext());
+			ServiceContextTestUtil.getServiceContext());
 	}
 
 	@Test
@@ -256,11 +284,16 @@ public class SiteMembershipPolicyMembershipsTest
 	public void testVerifyWhenUpdatingGroup() throws Exception {
 		Group group = MembershipPolicyTestUtil.addGroup();
 
+		Map<Locale, String> nameMap = new HashMap<>();
+
+		nameMap.put(LocaleUtil.getDefault(), RandomTestUtil.randomString());
+
 		GroupServiceUtil.updateGroup(
-			group.getGroupId(), group.getParentGroupId(),
-			ServiceTestUtil.randomString(), group.getDescription(),
-			group.getType(), group.getFriendlyURL(), group.isActive(),
-			ServiceTestUtil.getServiceContext());
+			group.getGroupId(), group.getParentGroupId(), nameMap,
+			group.getDescriptionMap(), group.getType(),
+			group.isManualMembership(), group.getMembershipRestriction(),
+			group.getFriendlyURL(), group.isInheritContent(), group.isActive(),
+			ServiceContextTestUtil.getServiceContext());
 
 		Assert.assertTrue(isVerify());
 	}
@@ -269,9 +302,11 @@ public class SiteMembershipPolicyMembershipsTest
 	public void testVerifyWhenUpdatingGroupTypeSettings() throws Exception {
 		Group group = MembershipPolicyTestUtil.addGroup();
 
-		String typeSettings = ServiceTestUtil.randomString(50);
+		UnicodeProperties unicodeProperties =
+			RandomTestUtil.randomUnicodeProperties(10, 2, 2);
 
-		GroupServiceUtil.updateGroup(group.getGroupId(), typeSettings);
+		GroupServiceUtil.updateGroup(
+			group.getGroupId(), unicodeProperties.toString());
 
 		Assert.assertTrue(isVerify());
 	}

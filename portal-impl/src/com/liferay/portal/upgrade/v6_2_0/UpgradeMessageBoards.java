@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,11 +14,12 @@
 
 package com.liferay.portal.upgrade.v6_2_0;
 
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.upgrade.BaseUpgradePortletPreferences;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.RSSUtil;
+import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
-import com.liferay.util.RSSUtil;
 
 import javax.portlet.PortletPreferences;
 
@@ -61,7 +62,38 @@ public class UpgradeMessageBoards extends BaseUpgradePortletPreferences {
 
 		portletPreferences.reset("rssFormat");
 
+		portletPreferences = upgradeSubscriptionSubject(
+			"emailMessageAddedSubject", "emailMessageAddedSubjectPrefix",
+			portletPreferences);
+
+		portletPreferences = upgradeSubscriptionSubject(
+			"emailMessageUpdatedSubject", "emailMessageUpdatedSubjectPrefix",
+			portletPreferences);
+
 		return PortletPreferencesFactoryUtil.toXML(portletPreferences);
+	}
+
+	protected PortletPreferences upgradeSubscriptionSubject(
+			String subjectName, String subjectPrefixName,
+			PortletPreferences portletPreferences)
+		throws Exception {
+
+		String subjectPrefix = GetterUtil.getString(
+			portletPreferences.getValue(subjectPrefixName, StringPool.BLANK));
+
+		if (Validator.isNotNull(subjectPrefix)) {
+			String subject = subjectPrefix;
+
+			if (!subjectPrefix.contains("[$MESSAGE_SUBJECT$]")) {
+				subject = subject.concat(" [$MESSAGE_SUBJECT$]");
+			}
+
+			portletPreferences.setValue(subjectName, subject);
+		}
+
+		portletPreferences.reset(subjectPrefixName);
+
+		return portletPreferences;
 	}
 
 }

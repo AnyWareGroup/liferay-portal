@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -67,12 +67,13 @@ public class SocialBookmarksTag extends IncludeTag {
 	protected void setAttributes(HttpServletRequest request) {
 		request.setAttribute(
 			"liferay-ui:social-bookmark:contentId", _contentId);
-		request.setAttribute(
-			"liferay-ui:social-bookmark:displayStyle", _displayStyle);
 		request.setAttribute("liferay-ui:social-bookmark:target", _target);
 		request.setAttribute("liferay-ui:social-bookmark:title", _title);
 		request.setAttribute("liferay-ui:social-bookmark:types", _types);
 		request.setAttribute("liferay-ui:social-bookmark:url", _url);
+
+		request.setAttribute(
+			"liferay-ui:social-bookmarks:displayStyle", _displayStyle);
 	}
 
 	private static final String _PAGE =

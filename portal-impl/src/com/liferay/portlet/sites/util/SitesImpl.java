@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,88 +14,103 @@
 
 package com.liferay.portlet.sites.util;
 
-import com.liferay.portal.RequiredLayoutException;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationConstants;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactory;
+import com.liferay.exportimport.kernel.lar.ExportImportHelperUtil;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
+import com.liferay.exportimport.kernel.lar.UserIdStrategy;
+import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
+import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil;
+import com.liferay.exportimport.kernel.service.ExportImportLocalServiceUtil;
+import com.liferay.exportimport.kernel.service.ExportImportServiceUtil;
+import com.liferay.exportimport.kernel.staging.MergeLayoutPrototypesThreadLocal;
 import com.liferay.portal.events.EventsProcessorUtil;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTask;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskManagerUtil;
+import com.liferay.portal.kernel.backgroundtask.BackgroundTaskThreadLocal;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.exception.RequiredLayoutException;
 import com.liferay.portal.kernel.language.LanguageUtil;
-import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
-import com.liferay.portal.kernel.lar.UserIdStrategy;
+import com.liferay.portal.kernel.lock.Lock;
+import com.liferay.portal.kernel.lock.LockManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutConstants;
+import com.liferay.portal.kernel.model.LayoutPrototype;
+import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.model.LayoutType;
+import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.PortletConstants;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.model.impl.VirtualLayout;
+import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.GroupServiceUtil;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutPrototypeLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutSetServiceUtil;
+import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
+import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalServiceUtil;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
+import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
+import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
+import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.service.persistence.LayoutSetUtil;
+import com.liferay.portal.kernel.service.persistence.LayoutUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.ParamUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.StringBundler;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.GroupConstants;
-import com.liferay.portal.model.Layout;
-import com.liferay.portal.model.LayoutConstants;
-import com.liferay.portal.model.LayoutPrototype;
-import com.liferay.portal.model.LayoutSet;
-import com.liferay.portal.model.LayoutSetPrototype;
-import com.liferay.portal.model.LayoutTypePortlet;
-import com.liferay.portal.model.Lock;
-import com.liferay.portal.model.Organization;
-import com.liferay.portal.model.OrganizationConstants;
-import com.liferay.portal.model.PortletConstants;
-import com.liferay.portal.model.ResourceConstants;
-import com.liferay.portal.model.Role;
-import com.liferay.portal.model.RoleConstants;
-import com.liferay.portal.model.User;
-import com.liferay.portal.model.UserGroup;
-import com.liferay.portal.model.impl.VirtualLayout;
-import com.liferay.portal.security.auth.PrincipalException;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.security.permission.PermissionThreadLocal;
-import com.liferay.portal.security.permission.ResourceActionsUtil;
-import com.liferay.portal.service.GroupLocalServiceUtil;
-import com.liferay.portal.service.GroupServiceUtil;
-import com.liferay.portal.service.LayoutLocalServiceUtil;
-import com.liferay.portal.service.LayoutPrototypeLocalServiceUtil;
-import com.liferay.portal.service.LayoutServiceUtil;
-import com.liferay.portal.service.LayoutSetLocalServiceUtil;
-import com.liferay.portal.service.LayoutSetPrototypeLocalServiceUtil;
-import com.liferay.portal.service.LayoutSetServiceUtil;
-import com.liferay.portal.service.LockLocalServiceUtil;
-import com.liferay.portal.service.OrganizationLocalServiceUtil;
-import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
-import com.liferay.portal.service.ResourcePermissionLocalServiceUtil;
-import com.liferay.portal.service.RoleLocalServiceUtil;
-import com.liferay.portal.service.ServiceContext;
-import com.liferay.portal.service.ServiceContextFactory;
-import com.liferay.portal.service.ServiceContextThreadLocal;
-import com.liferay.portal.service.UserGroupLocalServiceUtil;
-import com.liferay.portal.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.service.impl.LayoutLocalServiceVirtualLayoutsAdvice;
-import com.liferay.portal.service.permission.GroupPermissionUtil;
-import com.liferay.portal.service.permission.LayoutPermissionUtil;
-import com.liferay.portal.service.permission.PortalPermissionUtil;
-import com.liferay.portal.service.permission.PortletPermissionUtil;
-import com.liferay.portal.service.persistence.LayoutSetUtil;
-import com.liferay.portal.service.persistence.LayoutUtil;
-import com.liferay.portal.theme.PortletDisplay;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.LayoutSettings;
-import com.liferay.portal.util.PortalUtil;
-import com.liferay.portal.util.PortletKeys;
 import com.liferay.portal.util.PropsValues;
-import com.liferay.portal.util.WebKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portlet.PortletPreferencesImpl;
+import com.liferay.sites.kernel.util.Sites;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -105,9 +120,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.portlet.ActionRequest;
-import javax.portlet.ActionResponse;
 import javax.portlet.PortletPreferences;
+import javax.portlet.PortletRequest;
+import javax.portlet.PortletResponse;
 import javax.portlet.PortletURL;
 import javax.portlet.RenderRequest;
 import javax.portlet.RenderResponse;
@@ -123,14 +138,33 @@ import javax.servlet.http.HttpServletResponse;
 public class SitesImpl implements Sites {
 
 	@Override
+	public void addMergeFailFriendlyURLLayout(Layout layout)
+		throws PortalException {
+
+		LayoutSet layoutSet = layout.getLayoutSet();
+
+		layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+			layoutSet.getGroupId(), layoutSet.isPrivateLayout());
+
+		UnicodeProperties settingsProperties =
+			layoutSet.getSettingsProperties();
+
+		String mergeFailFriendlyURLLayouts = settingsProperties.getProperty(
+			MERGE_FAIL_FRIENDLY_URL_LAYOUTS, StringPool.BLANK);
+
+		mergeFailFriendlyURLLayouts = StringUtil.add(
+			mergeFailFriendlyURLLayouts, layout.getUuid());
+
+		settingsProperties.setProperty(
+			MERGE_FAIL_FRIENDLY_URL_LAYOUTS, mergeFailFriendlyURLLayouts);
+
+		LayoutSetLocalServiceUtil.updateLayoutSet(layoutSet);
+	}
+
+	@Override
 	public void addPortletBreadcrumbEntries(
-			Group group, HttpServletRequest request,
-			RenderResponse renderResponse)
+			Group group, HttpServletRequest request, PortletURL portletURL)
 		throws Exception {
-
-		PortletURL portletURL = renderResponse.createRenderURL();
-
-		portletURL.setParameter("struts_action", "/sites_admin/view");
 
 		List<Group> ancestorGroups = group.getAncestors();
 
@@ -157,23 +191,27 @@ public class SitesImpl implements Sites {
 
 	@Override
 	public void addPortletBreadcrumbEntries(
+			Group group, HttpServletRequest request,
+			RenderResponse renderResponse)
+		throws Exception {
+
+		PortletURL portletURL = renderResponse.createRenderURL();
+
+		addPortletBreadcrumbEntries(group, request, portletURL);
+	}
+
+	@Override
+	public void addPortletBreadcrumbEntries(
 			Group group, String pagesName, PortletURL redirectURL,
 			HttpServletRequest request, RenderResponse renderResponse)
 		throws Exception {
 
-		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
-			com.liferay.portal.kernel.util.WebKeys.THEME_DISPLAY);
-
-		PortletDisplay portletDisplay = themeDisplay.getPortletDisplay();
-
-		String portletName = portletDisplay.getPortletName();
-
-		if ((renderResponse == null) ||
-			portletName.equals(PortletKeys.GROUP_PAGES) ||
-			portletName.equals(PortletKeys.MY_PAGES)) {
-
+		if (renderResponse == null) {
 			return;
 		}
+
+		ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+			WebKeys.THEME_DISPLAY);
 
 		Group unescapedGroup = group.toUnescapedModel();
 
@@ -205,6 +243,13 @@ public class SitesImpl implements Sites {
 			boolean linkEnabled)
 		throws Exception {
 
+		Locale siteDefaultLocale = LocaleThreadLocal.getSiteDefaultLocale();
+
+		LayoutTypePortlet targetLayoutType =
+			(LayoutTypePortlet)targetLayout.getLayoutType();
+
+		List<String> targetLayoutPortletIds = targetLayoutType.getPortletIds();
+
 		Layout layoutPrototypeLayout = layoutPrototype.getLayout();
 
 		ServiceContext serviceContext =
@@ -214,14 +259,24 @@ public class SitesImpl implements Sites {
 		serviceContext.setAttribute(
 			"layoutPrototypeUuid", layoutPrototype.getUuid());
 
-		targetLayout = LayoutLocalServiceUtil.updateLayout(
-			targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
-			targetLayout.getLayoutId(), targetLayout.getParentLayoutId(),
-			targetLayout.getNameMap(), targetLayout.getTitleMap(),
-			targetLayout.getDescriptionMap(), targetLayout.getKeywordsMap(),
-			targetLayout.getRobotsMap(), layoutPrototypeLayout.getType(),
-			targetLayout.getHidden(), targetLayout.getFriendlyURLMap(),
-			targetLayout.getIconImage(), null, serviceContext);
+		try {
+			Locale targetSiteDefaultLocale = PortalUtil.getSiteDefaultLocale(
+				targetLayout.getGroupId());
+
+			LocaleThreadLocal.setSiteDefaultLocale(targetSiteDefaultLocale);
+
+			targetLayout = LayoutLocalServiceUtil.updateLayout(
+				targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
+				targetLayout.getLayoutId(), targetLayout.getParentLayoutId(),
+				targetLayout.getNameMap(), targetLayout.getTitleMap(),
+				targetLayout.getDescriptionMap(), targetLayout.getKeywordsMap(),
+				targetLayout.getRobotsMap(), layoutPrototypeLayout.getType(),
+				targetLayout.getHidden(), targetLayout.getFriendlyURLMap(),
+				targetLayout.getIconImage(), null, serviceContext);
+		}
+		finally {
+			LocaleThreadLocal.setSiteDefaultLocale(siteDefaultLocale);
+		}
 
 		targetLayout = LayoutLocalServiceUtil.updateLayout(
 			targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
@@ -233,6 +288,9 @@ public class SitesImpl implements Sites {
 		copyPortletSetups(layoutPrototypeLayout, targetLayout);
 
 		copyLookAndFeel(targetLayout, layoutPrototypeLayout);
+
+		deleteUnreferencedPortlets(
+			targetLayoutPortletIds, targetLayout, layoutPrototypeLayout);
 
 		targetLayout = LayoutLocalServiceUtil.getLayout(targetLayout.getPlid());
 
@@ -259,6 +317,8 @@ public class SitesImpl implements Sites {
 			ServiceContext serviceContext)
 		throws Exception {
 
+		User user = UserLocalServiceUtil.getUser(userId);
+
 		Map<String, String[]> parameterMap = getLayoutSetPrototypeParameters(
 			serviceContext);
 
@@ -266,14 +326,40 @@ public class SitesImpl implements Sites {
 			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
 			new String[] {Boolean.FALSE.toString()});
 
-		File file = LayoutLocalServiceUtil.exportLayoutsAsFile(
-			sourceLayout.getGroupId(), sourceLayout.isPrivateLayout(),
-			new long[] {sourceLayout.getLayoutId()}, parameterMap, null, null);
+		Map<String, Serializable> exportLayoutSettingsMap =
+			ExportImportConfigurationSettingsMapFactory.
+				buildExportLayoutSettingsMap(
+					user, sourceLayout.getGroupId(),
+					sourceLayout.isPrivateLayout(),
+					new long[] {sourceLayout.getLayoutId()}, parameterMap);
+
+		ExportImportConfiguration exportConfiguration =
+			ExportImportConfigurationLocalServiceUtil.
+				addDraftExportImportConfiguration(
+					user.getUserId(),
+					ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT,
+					exportLayoutSettingsMap);
+
+		File file = ExportImportLocalServiceUtil.exportLayoutsAsFile(
+			exportConfiguration);
 
 		try {
-			LayoutLocalServiceUtil.importLayouts(
-				userId, targetLayout.getGroupId(),
-				targetLayout.isPrivateLayout(), parameterMap, file);
+			Map<String, Serializable> importLayoutSettingsMap =
+				ExportImportConfigurationSettingsMapFactory.
+					buildImportLayoutSettingsMap(
+						userId, targetLayout.getGroupId(),
+						targetLayout.isPrivateLayout(), null, parameterMap,
+						user.getLocale(), user.getTimeZone());
+
+			ExportImportConfiguration importConfiguration =
+				ExportImportConfigurationLocalServiceUtil.
+					addDraftExportImportConfiguration(
+						userId,
+						ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
+						importLayoutSettingsMap);
+
+			ExportImportLocalServiceUtil.importLayouts(
+				importConfiguration, file);
 		}
 		finally {
 			file.delete();
@@ -287,21 +373,16 @@ public class SitesImpl implements Sites {
 		LayoutLocalServiceUtil.updateLookAndFeel(
 			targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
 			targetLayout.getLayoutId(), sourceLayout.getThemeId(),
-			sourceLayout.getColorSchemeId(), sourceLayout.getCss(), false);
-
-		LayoutLocalServiceUtil.updateLookAndFeel(
-			targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
-			targetLayout.getLayoutId(), sourceLayout.getWapThemeId(),
-			sourceLayout.getWapColorSchemeId(), sourceLayout.getCss(), true);
+			sourceLayout.getColorSchemeId(), sourceLayout.getCss());
 	}
 
 	@Override
 	public void copyPortletPermissions(Layout targetLayout, Layout sourceLayout)
 		throws Exception {
 
-		long companyId = targetLayout.getCompanyId();
-
-		List<Role> roles = RoleLocalServiceUtil.getRoles(companyId);
+		List<Role> roles = RoleLocalServiceUtil.getGroupRelatedRoles(
+			targetLayout.getGroupId());
+		Group targetGroup = targetLayout.getGroup();
 
 		LayoutTypePortlet sourceLayoutTypePortlet =
 			(LayoutTypePortlet)sourceLayout.getLayoutType();
@@ -325,7 +406,8 @@ public class SitesImpl implements Sites {
 				String roleName = role.getName();
 
 				if (roleName.equals(RoleConstants.ADMINISTRATOR) ||
-					(targetLayout.isPrivateLayout() &&
+					(!targetGroup.isLayoutSetPrototype() &&
+					 targetLayout.isPrivateLayout() &&
 					 roleName.equals(RoleConstants.GUEST))) {
 
 					continue;
@@ -334,13 +416,14 @@ public class SitesImpl implements Sites {
 				List<String> actions =
 					ResourcePermissionLocalServiceUtil.
 						getAvailableResourcePermissionActionIds(
-							companyId, resourceName,
+							targetLayout.getCompanyId(), resourceName,
 							ResourceConstants.SCOPE_INDIVIDUAL,
 							sourceResourcePrimKey, role.getRoleId(), actionIds);
 
 				ResourcePermissionLocalServiceUtil.setResourcePermissions(
-					companyId, resourceName, ResourceConstants.SCOPE_INDIVIDUAL,
-					targetResourcePrimKey, role.getRoleId(),
+					targetLayout.getCompanyId(), resourceName,
+					ResourceConstants.SCOPE_INDIVIDUAL, targetResourcePrimKey,
+					role.getRoleId(),
 					actions.toArray(new String[actions.size()]));
 			}
 		}
@@ -422,19 +505,6 @@ public class SitesImpl implements Sites {
 
 	@Override
 	public Object[] deleteLayout(
-			ActionRequest actionRequest, ActionResponse actionResponse)
-		throws Exception {
-
-		HttpServletRequest request = PortalUtil.getHttpServletRequest(
-			actionRequest);
-		HttpServletResponse response = PortalUtil.getHttpServletResponse(
-			actionResponse);
-
-		return deleteLayout(request, response);
-	}
-
-	@Override
-	public Object[] deleteLayout(
 			HttpServletRequest request, HttpServletResponse response)
 		throws Exception {
 
@@ -444,7 +514,7 @@ public class SitesImpl implements Sites {
 		PermissionChecker permissionChecker =
 			themeDisplay.getPermissionChecker();
 
-		long plid = ParamUtil.getLong(request, "plid");
+		long selPlid = ParamUtil.getLong(request, "selPlid");
 
 		long groupId = ParamUtil.getLong(request, "groupId");
 		boolean privateLayout = ParamUtil.getBoolean(request, "privateLayout");
@@ -452,12 +522,12 @@ public class SitesImpl implements Sites {
 
 		Layout layout = null;
 
-		if (plid <= 0) {
+		if (selPlid <= 0) {
 			layout = LayoutLocalServiceUtil.getLayout(
 				groupId, privateLayout, layoutId);
 		}
 		else {
-			layout = LayoutLocalServiceUtil.getLayout(plid);
+			layout = LayoutLocalServiceUtil.getLayout(selPlid);
 
 			groupId = layout.getGroupId();
 			privateLayout = layout.isPrivateLayout();
@@ -465,31 +535,34 @@ public class SitesImpl implements Sites {
 		}
 
 		Group group = layout.getGroup();
-		String oldFriendlyURL = layout.getFriendlyURL();
+		String oldFriendlyURL = layout.getFriendlyURL(themeDisplay.getLocale());
 
 		if (group.isStagingGroup() &&
 			!GroupPermissionUtil.contains(
-				permissionChecker, groupId, ActionKeys.MANAGE_STAGING) &&
+				permissionChecker, group, ActionKeys.MANAGE_STAGING) &&
 			!GroupPermissionUtil.contains(
-				permissionChecker, groupId, ActionKeys.PUBLISH_STAGING)) {
+				permissionChecker, group, ActionKeys.PUBLISH_STAGING)) {
 
-			throw new PrincipalException();
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, Group.class.getName(), group.getGroupId(),
+				ActionKeys.MANAGE_STAGING, ActionKeys.PUBLISH_STAGING);
 		}
 
 		if (LayoutPermissionUtil.contains(
 				permissionChecker, layout, ActionKeys.DELETE)) {
 
-			LayoutSettings layoutSettings = LayoutSettings.getInstance(layout);
+			LayoutType layoutType = layout.getLayoutType();
 
 			EventsProcessorUtil.process(
 				PropsKeys.LAYOUT_CONFIGURATION_ACTION_DELETE,
-				layoutSettings.getConfigurationActionDelete(), request,
-				response);
+				layoutType.getConfigurationActionDelete(), request, response);
 		}
 
-		LayoutSet layoutSet = layout.getLayoutSet();
+		if (group.isGuest() && !layout.isPrivateLayout() &&
+			layout.isRootLayout() &&
+			(LayoutLocalServiceUtil.getLayoutsCount(
+				group, false, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID) == 1)) {
 
-		if (group.isGuest() && (layoutSet.getPageCount() == 1)) {
 			throw new RequiredLayoutException(
 				RequiredLayoutException.AT_LEAST_ONE);
 		}
@@ -500,19 +573,22 @@ public class SitesImpl implements Sites {
 		LayoutServiceUtil.deleteLayout(
 			groupId, privateLayout, layoutId, serviceContext);
 
-		long newPlid = layout.getParentPlid();
+		return new Object[] {
+			group, oldFriendlyURL, LayoutConstants.DEFAULT_PLID
+		};
+	}
 
-		if (newPlid <= 0) {
-			Layout firstLayout = LayoutLocalServiceUtil.fetchFirstLayout(
-				layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
-				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+	@Override
+	public Object[] deleteLayout(
+			PortletRequest portletRequest, PortletResponse portletResponse)
+		throws Exception {
 
-			if (firstLayout != null) {
-				newPlid = firstLayout.getPlid();
-			}
-		}
+		HttpServletRequest request = PortalUtil.getHttpServletRequest(
+			portletRequest);
+		HttpServletResponse response = PortalUtil.getHttpServletResponse(
+			portletResponse);
 
-		return new Object[] {group, oldFriendlyURL, newPlid};
+		return deleteLayout(request, response);
 	}
 
 	@Override
@@ -532,24 +608,59 @@ public class SitesImpl implements Sites {
 	public File exportLayoutSetPrototype(
 			LayoutSetPrototype layoutSetPrototype,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
+
+		User user = UserLocalServiceUtil.fetchUser(serviceContext.getUserId());
+
+		if (user == null) {
+			BackgroundTask backgroundTask =
+				BackgroundTaskManagerUtil.fetchBackgroundTask(
+					BackgroundTaskThreadLocal.getBackgroundTaskId());
+
+			if (backgroundTask != null) {
+				user = UserLocalServiceUtil.getUser(backgroundTask.getUserId());
+			}
+		}
+
+		if (user == null) {
+			user = UserLocalServiceUtil.getUser(
+				GetterUtil.getLong(PrincipalThreadLocal.getName()));
+		}
 
 		LayoutSet layoutSet = layoutSetPrototype.getLayoutSet();
+
+		List<Layout> layoutSetPrototypeLayouts =
+			LayoutLocalServiceUtil.getLayouts(
+				layoutSet.getGroupId(), layoutSet.isPrivateLayout());
 
 		Map<String, String[]> parameterMap = getLayoutSetPrototypeParameters(
 			serviceContext);
 
-		return LayoutLocalServiceUtil.exportLayoutsAsFile(
-			layoutSet.getGroupId(), layoutSet.isPrivateLayout(), null,
-			parameterMap, null, null);
+		Map<String, Serializable> exportLayoutSettingsMap =
+			ExportImportConfigurationSettingsMapFactory.
+				buildExportLayoutSettingsMap(
+					user, layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
+					ExportImportHelperUtil.getLayoutIds(
+						layoutSetPrototypeLayouts),
+					parameterMap);
+
+		ExportImportConfiguration exportImportConfiguration =
+			ExportImportConfigurationLocalServiceUtil.
+				addDraftExportImportConfiguration(
+					user.getUserId(),
+					ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT,
+					exportLayoutSettingsMap);
+
+		return ExportImportLocalServiceUtil.exportLayoutsAsFile(
+			exportImportConfiguration);
 	}
 
 	@Override
-	public Long[] filterGroups(List<Group> groups, String[] names) {
-		List<Long> groupIds = new ArrayList<Long>();
+	public Long[] filterGroups(List<Group> groups, String[] groupKeys) {
+		List<Long> groupIds = new ArrayList<>();
 
 		for (Group group : groups) {
-			if (!ArrayUtil.contains(names, group.getName())) {
+			if (!ArrayUtil.contains(groupKeys, group.getGroupKey())) {
 				groupIds.add(group.getGroupId());
 			}
 		}
@@ -572,11 +683,9 @@ public class SitesImpl implements Sites {
 						layoutSet.getLayoutSetPrototypeUuid(),
 						layout.getCompanyId());
 
-			Group group = layoutSetPrototype.getGroup();
-
 			return LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
-				layout.getSourcePrototypeLayoutUuid(), group.getGroupId(),
-				true);
+				layout.getSourcePrototypeLayoutUuid(),
+				layoutSetPrototype.getGroupId(), true);
 		}
 		catch (Exception e) {
 			_log.error(
@@ -590,12 +699,8 @@ public class SitesImpl implements Sites {
 	public Map<String, String[]> getLayoutSetPrototypeParameters(
 		ServiceContext serviceContext) {
 
-		Map<String, String[]> parameterMap =
-			new LinkedHashMap<String, String[]>();
+		Map<String, String[]> parameterMap = new LinkedHashMap<>();
 
-		parameterMap.put(
-			PortletDataHandlerKeys.CATEGORIES,
-			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.DATA_STRATEGY,
 			new String[] {PortletDataHandlerKeys.DATA_STRATEGY_MIRROR});
@@ -607,6 +712,9 @@ public class SitesImpl implements Sites {
 			new String[] {Boolean.FALSE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.LAYOUT_SET_PROTOTYPE_LINK_ENABLED,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
+			PortletDataHandlerKeys.LAYOUT_SET_PROTOTYPE_SETTINGS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.LAYOUT_SET_SETTINGS,
@@ -627,20 +735,20 @@ public class SitesImpl implements Sites {
 			PortletDataHandlerKeys.PERMISSIONS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA_ALL,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_SETUP,
+			PortletDataHandlerKeys.PORTLET_SETUP_ALL,
 			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_USER_PREFERENCES,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
-			PortletDataHandlerKeys.THEME,
-			new String[] {Boolean.FALSE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.THEME_REFERENCE,
 			new String[] {Boolean.TRUE.toString()});
@@ -658,13 +766,10 @@ public class SitesImpl implements Sites {
 	 * @param  layoutPrototype the page template being checked for failed merge
 	 *         attempts
 	 * @return the number of failed merge attempts for the layout prototype
-	 * @throws PortalException if no page was associated with the layout
-	 *         prototype or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int getMergeFailCount(LayoutPrototype layoutPrototype)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if ((layoutPrototype == null) ||
 			(layoutPrototype.getLayoutPrototypeId() == 0)) {
@@ -688,13 +793,10 @@ public class SitesImpl implements Sites {
 	 * @param  layoutSetPrototype the site template being checked for failed
 	 *         merge attempts
 	 * @return the number of failed merge attempts for the layout set prototype
-	 * @throws PortalException if no site was associated with the layout set
-	 *         prototype or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public int getMergeFailCount(LayoutSetPrototype layoutSetPrototype)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if ((layoutSetPrototype == null) ||
 			(layoutSetPrototype.getLayoutSetPrototypeId() == 0)) {
@@ -713,10 +815,64 @@ public class SitesImpl implements Sites {
 	}
 
 	@Override
+	public List<Layout> getMergeFailFriendlyURLLayouts(LayoutSet layoutSet)
+		throws PortalException {
+
+		if (layoutSet == null) {
+			return Collections.emptyList();
+		}
+
+		UnicodeProperties settingsProperties =
+			layoutSet.getSettingsProperties();
+
+		String uuids = settingsProperties.getProperty(
+			MERGE_FAIL_FRIENDLY_URL_LAYOUTS);
+
+		if (Validator.isNotNull(uuids)) {
+			List<Layout> layouts = new ArrayList<>();
+
+			for (String uuid : StringUtil.split(uuids)) {
+				Layout layout =
+					LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+						uuid, layoutSet.getGroupId(),
+						layoutSet.isPrivateLayout());
+
+				layouts.add(layout);
+			}
+
+			return layouts;
+		}
+
+		return Collections.emptyList();
+	}
+
+	@Override
+	public List<String> getOrganizationNames(Group group, User user)
+		throws Exception {
+
+		List<Organization> organizations =
+			OrganizationLocalServiceUtil.getGroupUserOrganizations(
+				group.getGroupId(), user.getUserId());
+
+		return ListUtil.toList(organizations, Organization.NAME_ACCESSOR);
+	}
+
+	@Override
+	public List<String> getUserGroupNames(Group group, User user)
+		throws Exception {
+
+		List<UserGroup> userGroups =
+			UserGroupLocalServiceUtil.getGroupUserUserGroups(
+				group.getGroupId(), user.getUserId());
+
+		return ListUtil.toList(userGroups, UserGroup.NAME_ACCESSOR);
+	}
+
+	@Override
 	public void importLayoutSetPrototype(
 			LayoutSetPrototype layoutSetPrototype, InputStream inputStream,
 			ServiceContext serviceContext)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutSet layoutSet = layoutSetPrototype.getLayoutSet();
 
@@ -726,15 +882,43 @@ public class SitesImpl implements Sites {
 		setLayoutSetPrototypeLinkEnabledParameter(
 			parameterMap, layoutSet, serviceContext);
 
-		LayoutServiceUtil.importLayouts(
-			layoutSet.getGroupId(), layoutSet.isPrivateLayout(), parameterMap,
-			inputStream);
+		User user = UserLocalServiceUtil.fetchUser(serviceContext.getUserId());
+
+		if (user == null) {
+			BackgroundTask backgroundTask =
+				BackgroundTaskManagerUtil.fetchBackgroundTask(
+					BackgroundTaskThreadLocal.getBackgroundTaskId());
+
+			if (backgroundTask != null) {
+				user = UserLocalServiceUtil.getUser(backgroundTask.getUserId());
+			}
+		}
+
+		if (user == null) {
+			user = UserLocalServiceUtil.getUser(
+				GetterUtil.getLong(PrincipalThreadLocal.getName()));
+		}
+
+		Map<String, Serializable> importLayoutSettingsMap =
+			ExportImportConfigurationSettingsMapFactory.
+				buildImportLayoutSettingsMap(
+					user.getUserId(), layoutSet.getGroupId(),
+					layoutSet.isPrivateLayout(), null, parameterMap,
+					user.getLocale(), user.getTimeZone());
+
+		ExportImportConfiguration exportImportConfiguration =
+			ExportImportConfigurationLocalServiceUtil.
+				addDraftExportImportConfiguration(
+					user.getUserId(),
+					ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
+					importLayoutSettingsMap);
+
+		ExportImportServiceUtil.importLayouts(
+			exportImportConfiguration, inputStream);
 	}
 
 	@Override
-	public boolean isContentSharingWithChildrenEnabled(Group group)
-		throws SystemException {
-
+	public boolean isContentSharingWithChildrenEnabled(Group group) {
 		UnicodeProperties typeSettingsProperties =
 			group.getParentLiveGroupTypeSettingsProperties();
 
@@ -751,15 +935,29 @@ public class SitesImpl implements Sites {
 		int groupContentSharingEnabled = GetterUtil.getInteger(
 			typeSettingsProperties.getProperty(
 				"contentSharingWithChildrenEnabled"),
-				CONTENT_SHARING_WITH_CHILDREN_DEFAULT_VALUE);
+			CONTENT_SHARING_WITH_CHILDREN_DEFAULT_VALUE);
 
 		if ((groupContentSharingEnabled ==
 				CONTENT_SHARING_WITH_CHILDREN_ENABLED) ||
 			((companyContentSharingEnabled ==
 				CONTENT_SHARING_WITH_CHILDREN_ENABLED_BY_DEFAULT) &&
 			 (groupContentSharingEnabled ==
-				CONTENT_SHARING_WITH_CHILDREN_DEFAULT_VALUE))) {
+				 CONTENT_SHARING_WITH_CHILDREN_DEFAULT_VALUE))) {
 
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public boolean isFirstLayout(
+		long groupId, boolean privateLayout, long layoutId) {
+
+		Layout firstLayout = LayoutLocalServiceUtil.fetchFirstLayout(
+			groupId, privateLayout, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID);
+
+		if ((firstLayout != null) && (firstLayout.getLayoutId() == layoutId)) {
 			return true;
 		}
 
@@ -813,6 +1011,10 @@ public class SitesImpl implements Sites {
 		long lastMergeTime = GetterUtil.getLong(
 			layout.getTypeSettingsProperty(LAST_MERGE_TIME));
 
+		if (lastMergeTime == 0) {
+			return false;
+		}
+
 		Date existingLayoutModifiedDate = layout.getModifiedDate();
 
 		if ((existingLayoutModifiedDate != null) &&
@@ -836,13 +1038,10 @@ public class SitesImpl implements Sites {
 	 *         merge into
 	 * @return <code>true</code> if the linked site template can be merged into
 	 *         the layout set; <code>false</code> otherwise
-	 * @throws PortalException if no site template was associated with the
-	 *         layout set or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
 	 */
 	@Override
 	public boolean isLayoutSetMergeable(Group group, LayoutSet layoutSet)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!layoutSet.isLayoutSetPrototypeLinkActive() ||
 			group.isLayoutPrototype() || group.isLayoutSetPrototype()) {
@@ -980,52 +1179,35 @@ public class SitesImpl implements Sites {
 	}
 
 	@Override
-	public boolean isOrganizationUser(
-			long companyId, Group group, User user,
-			List<String> organizationNames)
-		throws Exception {
-
-		boolean organizationUser = false;
-
-		LinkedHashMap<String, Object> organizationParams =
-			new LinkedHashMap<String, Object>();
-
-		organizationParams.put(
-			"groupOrganization", new Long(group.getGroupId()));
-		organizationParams.put(
-			"organizationsGroups", new Long(group.getGroupId()));
-
-		List<Organization> organizationsGroups =
-			OrganizationLocalServiceUtil.search(
-				companyId, OrganizationConstants.ANY_PARENT_ORGANIZATION_ID,
-				null, null, null, null, organizationParams, QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
-
-		for (Organization organization : organizationsGroups) {
-			for (long userOrganizationId : user.getOrganizationIds()) {
-				if (userOrganizationId == organization.getOrganizationId()) {
-					organizationNames.add(organization.getName());
-
-					organizationUser = true;
-				}
-			}
+	public boolean isUserGroupLayout(Layout layout) throws PortalException {
+		if (!(layout instanceof VirtualLayout)) {
+			return false;
 		}
 
-		return organizationUser;
+		VirtualLayout virtualLayout = (VirtualLayout)layout;
+
+		Layout sourceLayout = virtualLayout.getSourceLayout();
+
+		Group sourceGroup = sourceLayout.getGroup();
+
+		if (sourceGroup.isUserGroup()) {
+			return true;
+		}
+
+		return false;
 	}
 
 	@Override
 	public boolean isUserGroupLayoutSetViewable(
 			PermissionChecker permissionChecker, Group userGroupGroup)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		if (!userGroupGroup.isUserGroup()) {
 			return false;
 		}
 
 		if (GroupPermissionUtil.contains(
-				permissionChecker, userGroupGroup.getGroupId(),
-				ActionKeys.VIEW)) {
+				permissionChecker, userGroupGroup, ActionKeys.VIEW)) {
 
 			return true;
 		}
@@ -1041,35 +1223,6 @@ public class SitesImpl implements Sites {
 		else {
 			return false;
 		}
-	}
-
-	@Override
-	public boolean isUserGroupUser(
-			long companyId, Group group, User user, List<String> userGroupNames)
-		throws Exception {
-
-		boolean userGroupUser = false;
-
-		LinkedHashMap<String, Object> userGroupParams =
-			new LinkedHashMap<String, Object>();
-
-		userGroupParams.put("userGroupsGroups", new Long(group.getGroupId()));
-
-		List<UserGroup> userGroupsGroups = UserGroupLocalServiceUtil.search(
-			companyId, null, userGroupParams, QueryUtil.ALL_POS,
-			QueryUtil.ALL_POS, (OrderByComparator)null);
-
-		for (UserGroup userGroup : userGroupsGroups) {
-			for (long userGroupId : user.getUserGroupIds()) {
-				if (userGroupId == userGroup.getUserGroupId()) {
-					userGroupNames.add(userGroup.getName());
-
-					userGroupUser = true;
-				}
-			}
-		}
-
-		return userGroupUser;
 	}
 
 	@Override
@@ -1095,26 +1248,17 @@ public class SitesImpl implements Sites {
 					layout.getCompanyId(), layoutSetPrototypeId);
 
 			Layout sourcePrototypeLayout =
-				LayoutLocalServiceUtil.getLayoutByUuidAndGroupId(
+				LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
 					sourcePrototypeLayoutUuid,
 					layoutSetPrototypeGroup.getGroupId(), true);
 
-			doMergeLayoutPrototypeLayout(
-				layoutSetPrototypeGroup, sourcePrototypeLayout);
+			if (sourcePrototypeLayout != null) {
+				doMergeLayoutPrototypeLayout(
+					layoutSetPrototypeGroup, sourcePrototypeLayout);
+			}
 		}
 
 		doMergeLayoutPrototypeLayout(group, layout);
-	}
-
-	/**
-	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #mergeLayoutPrototypeLayout(Group, Layout)}
-	 */
-	@Override
-	public void mergeLayoutProtypeLayout(Group group, Layout layout)
-		throws Exception {
-
-		mergeLayoutPrototypeLayout(group, layout);
 	}
 
 	@Override
@@ -1149,9 +1293,9 @@ public class SitesImpl implements Sites {
 		String owner = PortalUUIDUtil.generate();
 
 		try {
-			Lock lock = LockLocalServiceUtil.lock(
+			Lock lock = LockManagerUtil.lock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layoutSet.getLayoutSetId()), owner, false);
+				String.valueOf(layoutSet.getLayoutSetId()), owner);
 
 			// Double deep check
 
@@ -1163,10 +1307,10 @@ public class SitesImpl implements Sites {
 
 					// Acquire lock if the lock is older than the lock max time
 
-					lock = LockLocalServiceUtil.lock(
+					lock = LockManagerUtil.lock(
 						LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
 						String.valueOf(layoutSet.getLayoutSetId()),
-						lock.getOwner(), owner, false);
+						lock.getOwner(), owner);
 
 					// Check if acquiring the lock succeeded or if another
 					// process has the lock
@@ -1185,6 +1329,8 @@ public class SitesImpl implements Sites {
 		}
 
 		try {
+			MergeLayoutPrototypesThreadLocal.setInProgress(true);
+
 			boolean importData = true;
 
 			long lastResetTime = GetterUtil.getLong(
@@ -1196,6 +1342,11 @@ public class SitesImpl implements Sites {
 
 			Map<String, String[]> parameterMap =
 				getLayoutSetPrototypesParameters(importData);
+
+			layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+				layoutSet.getLayoutSetId());
+
+			removeMergeFailFriendlyURLLayouts(layoutSet);
 
 			importLayoutSetPrototype(
 				layoutSetPrototype, layoutSet.getGroupId(),
@@ -1212,37 +1363,32 @@ public class SitesImpl implements Sites {
 			LayoutSetUtil.updateImpl(layoutSetPrototypeLayoutSet);
 		}
 		finally {
-			LockLocalServiceUtil.unlock(
+			MergeLayoutPrototypesThreadLocal.setInProgress(false);
+
+			LockManagerUtil.unlock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layoutSet.getLayoutSetId()), owner, false);
+				String.valueOf(layoutSet.getLayoutSetId()), owner);
 		}
 	}
 
-	/**
-	 * @deprecated As of 6.2.0, replaced by {@link
-	 *             #mergeLayoutSetPrototypeLayouts(Group, LayoutSet)}
-	 */
 	@Override
-	public void mergeLayoutSetProtypeLayouts(Group group, LayoutSet layoutSet)
-		throws Exception {
+	public void removeMergeFailFriendlyURLLayouts(LayoutSet layoutSet) {
+		UnicodeProperties settingsProperties =
+			layoutSet.getSettingsProperties();
 
-		mergeLayoutSetPrototypeLayouts(group, layoutSet);
+		settingsProperties.remove(MERGE_FAIL_FRIENDLY_URL_LAYOUTS);
+
+		LayoutSetLocalServiceUtil.updateLayoutSet(layoutSet);
 	}
 
 	/**
 	 * Checks the permissions necessary for resetting the layout. If sufficient,
 	 * the layout is reset by calling {@link #doResetPrototype(Layout)}.
 	 *
-	 * @param  layout the page being checked for sufficient permissions
-	 * @throws PortalException if no site was associated with the layout, if the
-	 *         user did not have permission to update the layout or the layout's
-	 *         site, or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param layout the page being checked for sufficient permissions
 	 */
 	@Override
-	public void resetPrototype(Layout layout)
-		throws PortalException, SystemException {
-
+	public void resetPrototype(Layout layout) throws PortalException {
 		checkResetPrototypePermissions(layout.getGroup(), layout);
 
 		doResetPrototype(layout);
@@ -1253,15 +1399,10 @@ public class SitesImpl implements Sites {
 	 * sufficient, the layout set is reset by calling {@link
 	 * #doResetPrototype(LayoutSet)}.
 	 *
-	 * @param  layoutSet the site being checked for sufficient permissions
-	 * @throws PortalException if the user did not have permission to update the
-	 *         site or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param layoutSet the site being checked for sufficient permissions
 	 */
 	@Override
-	public void resetPrototype(LayoutSet layoutSet)
-		throws PortalException, SystemException {
-
+	public void resetPrototype(LayoutSet layoutSet) throws PortalException {
 		checkResetPrototypePermissions(layoutSet.getGroup(), null);
 
 		doResetPrototype(layoutSet);
@@ -1271,17 +1412,13 @@ public class SitesImpl implements Sites {
 	 * Sets the number of failed merge attempts for the layout prototype to a
 	 * new value.
 	 *
-	 * @param  layoutPrototype the page template of the counter being updated
-	 * @param  newMergeFailCount the new value of the counter
-	 * @throws PortalException if no page was associated with the layout
-	 *         prototype, if the user did not have permission to update the
-	 *         page, or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param layoutPrototype the page template of the counter being updated
+	 * @param newMergeFailCount the new value of the counter
 	 */
 	@Override
 	public void setMergeFailCount(
 			LayoutPrototype layoutPrototype, int newMergeFailCount)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		Layout layoutPrototypeLayout = layoutPrototype.getLayout();
 
@@ -1307,17 +1444,13 @@ public class SitesImpl implements Sites {
 	 * Sets the number of failed merge attempts for the layout set prototype to
 	 * a new value.
 	 *
-	 * @param  layoutSetPrototype the site template of the counter being updated
-	 * @param  newMergeFailCount the new value of the counter
-	 * @throws PortalException if no site was associated with the layout set
-	 *         prototype, if the user did not have permission to update the
-	 *         layout set prototype, or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param layoutSetPrototype the site template of the counter being updated
+	 * @param newMergeFailCount the new value of the counter
 	 */
 	@Override
 	public void setMergeFailCount(
 			LayoutSetPrototype layoutSetPrototype, int newMergeFailCount)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		LayoutSet layoutSetPrototypeLayoutSet =
 			layoutSetPrototype.getLayoutSet();
@@ -1363,13 +1496,13 @@ public class SitesImpl implements Sites {
 			GroupLocalServiceUtil.addGroup(
 				userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
 				Layout.class.getName(), targetLayout.getPlid(),
-				GroupConstants.DEFAULT_LIVE_GROUP_ID,
-				targetLayout.getName(languageId), null, 0, null, false, true,
-				null);
+				GroupConstants.DEFAULT_LIVE_GROUP_ID, targetLayout.getNameMap(),
+				null, 0, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
+				null, false, true, null);
 		}
 
 		String portletTitle = PortalUtil.getPortletTitle(
-			sourcePortletId, languageId);
+			PortletConstants.getRootPortletId(sourcePortletId), languageId);
 
 		String newPortletTitle = PortalUtil.getNewPortletTitle(
 			portletTitle, String.valueOf(sourceLayout.getLayoutId()),
@@ -1408,16 +1541,13 @@ public class SitesImpl implements Sites {
 	 * Checks the permissions necessary for resetting the layout or site. If the
 	 * permissions are not sufficient, a {@link PortalException} is thrown.
 	 *
-	 * @param  group the site being checked for sufficient permissions
-	 * @param  layout the page being checked for sufficient permissions
-	 *         (optionally <code>null</code>). If <code>null</code>, the
-	 *         permissions are only checked for resetting the site.
-	 * @throws PortalException if the user did not have permission to update the
-	 *         layout or site, or if a portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param group the site being checked for sufficient permissions
+	 * @param layout the page being checked for sufficient permissions
+	 *        (optionally <code>null</code>). If <code>null</code>, the
+	 *        permissions are only checked for resetting the site.
 	 */
 	protected void checkResetPrototypePermissions(Group group, Layout layout)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		PermissionChecker permissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
@@ -1426,19 +1556,43 @@ public class SitesImpl implements Sites {
 			!LayoutPermissionUtil.contains(
 				permissionChecker, layout, ActionKeys.UPDATE)) {
 
-			throw new PrincipalException();
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, layout.getName(), layout.getLayoutId(),
+				ActionKeys.UPDATE);
 		}
 		else if (!group.isUser() &&
 				 !GroupPermissionUtil.contains(
-					permissionChecker, group, ActionKeys.UPDATE)) {
+					 permissionChecker, group, ActionKeys.UPDATE)) {
 
-			throw new PrincipalException();
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, group.getName(), group.getGroupId(),
+				ActionKeys.UPDATE);
 		}
 		else if (group.isUser() &&
 				 (permissionChecker.getUserId() != group.getClassPK())) {
 
 			throw new PrincipalException();
 		}
+	}
+
+	protected void deleteUnreferencedPortlets(
+			List<String> targetLayoutPortletIds, Layout targetLayout,
+			Layout sourceLayout)
+		throws Exception {
+
+		LayoutTypePortlet sourceLayoutType =
+			(LayoutTypePortlet)sourceLayout.getLayoutType();
+
+		List<String> unreferencedPortletIds = new ArrayList<>(
+			targetLayoutPortletIds);
+
+		unreferencedPortletIds.removeAll(sourceLayoutType.getPortletIds());
+
+		PortletLocalServiceUtil.deletePortlets(
+			targetLayout.getCompanyId(),
+			unreferencedPortletIds.toArray(
+				new String[unreferencedPortletIds.size()]),
+			targetLayout.getPlid());
 	}
 
 	protected void doMergeLayoutPrototypeLayout(Group group, Layout layout)
@@ -1494,9 +1648,9 @@ public class SitesImpl implements Sites {
 		String owner = PortalUUIDUtil.generate();
 
 		try {
-			Lock lock = LockLocalServiceUtil.lock(
+			Lock lock = LockManagerUtil.lock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layout.getPlid()), owner, false);
+				String.valueOf(layout.getPlid()), owner);
 
 			if (!owner.equals(lock.getOwner())) {
 				Date createDate = lock.getCreateDate();
@@ -1506,10 +1660,10 @@ public class SitesImpl implements Sites {
 
 					// Acquire lock if the lock is older than the lock max time
 
-					lock = LockLocalServiceUtil.lock(
+					lock = LockManagerUtil.lock(
 						LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
 						String.valueOf(layout.getPlid()), lock.getOwner(),
-						owner, false);
+						owner);
 
 					// Check if acquiring the lock succeeded or if another
 					// process has the lock
@@ -1528,6 +1682,8 @@ public class SitesImpl implements Sites {
 		}
 
 		try {
+			MergeLayoutPrototypesThreadLocal.setInProgress(true);
+
 			applyLayoutPrototype(layoutPrototype, layout, true);
 		}
 		catch (Exception e) {
@@ -1541,9 +1697,11 @@ public class SitesImpl implements Sites {
 			LayoutUtil.updateImpl(layoutPrototypeLayout);
 		}
 		finally {
-			LockLocalServiceUtil.unlock(
+			MergeLayoutPrototypesThreadLocal.setInProgress(false);
+
+			LockManagerUtil.unlock(
 				LayoutLocalServiceVirtualLayoutsAdvice.class.getName(),
-				String.valueOf(layout.getPlid()), owner, false);
+				String.valueOf(layout.getPlid()), owner);
 		}
 	}
 
@@ -1558,14 +1716,9 @@ public class SitesImpl implements Sites {
 	 * accessed.
 	 * </p>
 	 *
-	 * @param  layout the page having its timestamp reset
-	 * @throws PortalException if no site was associated with the layout or if a
-	 *         portal exception occurred
-	 * @throws SystemException if a system exception occurred
+	 * @param layout the page having its timestamp reset
 	 */
-	protected void doResetPrototype(Layout layout)
-		throws PortalException, SystemException {
-
+	protected void doResetPrototype(Layout layout) throws PortalException {
 		layout.setModifiedDate(null);
 
 		LayoutLocalServiceUtil.updateLayout(layout);
@@ -1583,12 +1736,9 @@ public class SitesImpl implements Sites {
 	 * its linked layout set when it is first accessed.
 	 * </p>
 	 *
-	 * @param  layoutSet the site having its timestamp reset
-	 * @throws SystemException if a system exception occurred
+	 * @param layoutSet the site having its timestamp reset
 	 */
-	protected void doResetPrototype(LayoutSet layoutSet)
-		throws SystemException {
-
+	protected void doResetPrototype(LayoutSet layoutSet) {
 		UnicodeProperties settingsProperties =
 			layoutSet.getSettingsProperties();
 
@@ -1603,12 +1753,8 @@ public class SitesImpl implements Sites {
 	protected Map<String, String[]> getLayoutSetPrototypesParameters(
 		boolean importData) {
 
-		Map<String, String[]> parameterMap =
-			new LinkedHashMap<String, String[]>();
+		Map<String, String[]> parameterMap = new LinkedHashMap<>();
 
-		parameterMap.put(
-			PortletDataHandlerKeys.CATEGORIES,
-			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.DELETE_MISSING_LAYOUTS,
 			new String[] {Boolean.FALSE.toString()});
@@ -1625,29 +1771,26 @@ public class SitesImpl implements Sites {
 			PortletDataHandlerKeys.LAYOUT_SET_PROTOTYPE_LINK_ENABLED,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
+			PortletDataHandlerKeys.LAYOUT_SET_PROTOTYPE_SETTINGS,
+			new String[] {Boolean.TRUE.toString()});
+		parameterMap.put(
 			PortletDataHandlerKeys.LAYOUTS_IMPORT_MODE,
 			new String[] {
 				PortletDataHandlerKeys.
 					LAYOUTS_IMPORT_MODE_CREATED_FROM_PROTOTYPE
 			});
 		parameterMap.put(
-			PortletDataHandlerKeys.LOGO,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.PERMISSIONS,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS,
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
-			PortletDataHandlerKeys.PORTLET_SETUP,
+			PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_SETUP_ALL,
 			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
-			PortletDataHandlerKeys.THEME,
-			new String[] {Boolean.FALSE.toString()});
 		parameterMap.put(
 			PortletDataHandlerKeys.THEME_REFERENCE,
 			new String[] {Boolean.TRUE.toString()});
@@ -1663,6 +1806,9 @@ public class SitesImpl implements Sites {
 				PortletDataHandlerKeys.DATA_STRATEGY,
 				new String[] {PortletDataHandlerKeys.DATA_STRATEGY_MIRROR});
 			parameterMap.put(
+				PortletDataHandlerKeys.LOGO,
+				new String[] {Boolean.TRUE.toString()});
+			parameterMap.put(
 				PortletDataHandlerKeys.PORTLET_DATA,
 				new String[] {Boolean.TRUE.toString()});
 			parameterMap.put(
@@ -1670,6 +1816,17 @@ public class SitesImpl implements Sites {
 				new String[] {Boolean.TRUE.toString()});
 		}
 		else {
+			if (PropsValues.LAYOUT_SET_PROTOTYPE_PROPAGATE_LOGO) {
+				parameterMap.put(
+					PortletDataHandlerKeys.LOGO,
+					new String[] {Boolean.TRUE.toString()});
+			}
+			else {
+				parameterMap.put(
+					PortletDataHandlerKeys.LOGO,
+					new String[] {Boolean.FALSE.toString()});
+			}
+
 			parameterMap.put(
 				PortletDataHandlerKeys.PORTLET_DATA,
 				new String[] {Boolean.FALSE.toString()});
@@ -1685,7 +1842,7 @@ public class SitesImpl implements Sites {
 			LayoutSetPrototype layoutSetPrototype, long groupId,
 			boolean privateLayout, Map<String, String[]> parameterMap,
 			boolean importData)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		File file = null;
 
@@ -1702,7 +1859,7 @@ public class SitesImpl implements Sites {
 
 		File cacheFile = new File(sb.toString());
 
-		if (cacheFile.exists()) {
+		if (cacheFile.exists() && !importData) {
 			Date modifiedDate = layoutSetPrototype.getModifiedDate();
 
 			if (cacheFile.lastModified() >= modifiedDate.getTime()) {
@@ -1716,23 +1873,54 @@ public class SitesImpl implements Sites {
 			}
 		}
 
+		User user = UserLocalServiceUtil.getDefaultUser(
+			layoutSetPrototype.getCompanyId());
+
 		boolean newFile = false;
 
 		if (file == null) {
-			Group layoutSetPrototypeGroup = layoutSetPrototype.getGroup();
+			List<Layout> layoutSetPrototypeLayouts =
+				LayoutLocalServiceUtil.getLayouts(
+					layoutSetPrototype.getGroupId(), true);
 
-			file = LayoutLocalServiceUtil.exportLayoutsAsFile(
-				layoutSetPrototypeGroup.getGroupId(), true, null, parameterMap,
-				null, null);
+			Map<String, Serializable> exportLayoutSettingsMap =
+				ExportImportConfigurationSettingsMapFactory.
+					buildExportLayoutSettingsMap(
+						user, layoutSetPrototype.getGroupId(), true,
+						ExportImportHelperUtil.getLayoutIds(
+							layoutSetPrototypeLayouts),
+						parameterMap);
+
+			ExportImportConfiguration exportImportConfiguration =
+				ExportImportConfigurationLocalServiceUtil.
+					addDraftExportImportConfiguration(
+						user.getUserId(),
+						ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT,
+						exportLayoutSettingsMap);
+
+			file = ExportImportLocalServiceUtil.exportLayoutsAsFile(
+				exportImportConfiguration);
 
 			newFile = true;
 		}
 
-		long userId = UserLocalServiceUtil.getDefaultUserId(
-			layoutSetPrototype.getCompanyId());
+		Map<String, Serializable> importLayoutSettingsMap =
+			ExportImportConfigurationSettingsMapFactory.
+				buildImportLayoutSettingsMap(
+					user.getUserId(), groupId, privateLayout, null,
+					parameterMap, user.getLocale(), user.getTimeZone());
 
-		LayoutLocalServiceUtil.importLayouts(
-			userId, groupId, privateLayout, parameterMap, file);
+		ExportImportConfiguration exportImportConfiguration =
+			ExportImportConfigurationLocalServiceUtil.
+				addExportImportConfiguration(
+					user.getUserId(), groupId, StringPool.BLANK,
+					StringPool.BLANK,
+					ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
+					importLayoutSettingsMap, WorkflowConstants.STATUS_DRAFT,
+					new ServiceContext());
+
+		ExportImportLocalServiceUtil.importLayouts(
+			exportImportConfiguration, file);
 
 		if (newFile) {
 			try {
@@ -1834,12 +2022,21 @@ public class SitesImpl implements Sites {
 			layoutSetPrototypeUuid);
 
 		LayoutLocalServiceUtil.updatePriorities(groupId, privateLayout);
+
+		// Force propagation from site template to site. See LPS-48206.
+
+		Group group = GroupLocalServiceUtil.getGroup(groupId);
+
+		LayoutSet layoutSet = LayoutSetLocalServiceUtil.getLayoutSet(
+			groupId, privateLayout);
+
+		mergeLayoutSetPrototypeLayouts(group, layoutSet);
 	}
 
 	private static final String _TEMP_DIR =
 		SystemProperties.get(SystemProperties.TMP_DIR) +
 			"/liferay/layout_set_prototype/";
 
-	private Log _log = LogFactoryUtil.getLog(SitesImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(SitesImpl.class);
 
 }

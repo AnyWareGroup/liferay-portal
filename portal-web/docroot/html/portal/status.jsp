@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -53,8 +53,8 @@ if (Validator.isNotNull(exception)) {
 %>
 
 <c:choose>
-	<c:when test="<%= SessionErrors.contains(request, PrincipalException.class.getName()) %>">
-		<h3 class="alert alert-error">
+	<c:when test="<%= SessionErrors.contains(request, PrincipalException.getNestedClasses()) %>">
+		<h3 class="alert alert-danger">
 			<liferay-ui:message key="forbidden" />
 		</h3>
 
@@ -62,10 +62,10 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 	</c:when>
 	<c:when test="<%= SessionErrors.contains(request, PortalException.class.getName()) || SessionErrors.contains(request, SystemException.class.getName()) %>">
-		<h3 class="alert alert-error">
+		<h3 class="alert alert-danger">
 			<liferay-ui:message key="internal-server-error" />
 		</h3>
 
@@ -73,10 +73,10 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 	</c:when>
 	<c:when test="<%= SessionErrors.contains(request, TransformException.class.getName()) %>">
-		<h3 class="alert alert-error">
+		<h3 class="alert alert-danger">
 			<liferay-ui:message key="internal-server-error" />
 		</h3>
 
@@ -84,7 +84,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 
 		<br /><br />
 
@@ -93,22 +93,22 @@ if (Validator.isNotNull(exception)) {
 		%>
 
 		<div>
-			<%= StringUtil.replace(te.getMessage(), new String[] {"<", "\n"}, new String[] {"&lt;", "<br />\n"}) %>
+			<%= StringUtil.replace(te.getMessage(), new char[] {'<', '\n'}, new String[] {"&lt;", "<br />\n"}) %>
 		</div>
 	</c:when>
 	<c:when test="<%= noSuchResourceException %>">
-		<h3 class="alert alert-error">
+		<h3 class="alert alert-danger">
 			<liferay-ui:message key="not-found" />
 		</h3>
 
-		<liferay-ui:message key="the-requested-resource-was-not-found" />
+		<liferay-ui:message key="the-requested-resource-could-not-be-found" />
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 	</c:when>
 	<c:otherwise>
-		<h3 class="alert alert-error">
+		<h3 class="alert alert-danger">
 			<liferay-ui:message key="internal-server-error" />
 		</h3>
 
@@ -116,7 +116,7 @@ if (Validator.isNotNull(exception)) {
 
 		<br /><br />
 
-		<code><%= HtmlUtil.escape(url) %></code>
+		<code class="lfr-url-error"><%= HtmlUtil.escape(url) %></code>
 
 		<%
 		for (String key : SessionErrors.keySet(request)) {
@@ -125,7 +125,11 @@ if (Validator.isNotNull(exception)) {
 			if (value instanceof Exception) {
 				Exception e = (Exception)value;
 
-				_log.error(e, e);
+				_log.error(e.getMessage());
+
+				if (_log.isDebugEnabled()) {
+					_log.debug(e, e);
+				}
 			}
 		}
 		%>
@@ -138,5 +142,5 @@ if (Validator.isNotNull(exception)) {
 <a href="javascript:history.go(-1);">&laquo; <liferay-ui:message key="back" /></a>
 
 <%!
-private static Log _log = LogFactoryUtil.getLog("portal-web.docroot.html.portal.status_jsp");
+private static Log _log = LogFactoryUtil.getLog("portal_web.docroot.html.portal.status_jsp");
 %>

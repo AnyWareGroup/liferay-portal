@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +27,8 @@ public class PortalExecutorManagerUtilAdvice {
 
 	@Around(
 		"execution(* com.liferay.portal.kernel.executor." +
-			"PortalExecutorManagerUtil.getPortalExecutor(String))")
+			"PortalExecutorManagerUtil.getPortalExecutor(..))"
+	)
 	public ThreadPoolExecutor getPortalExecutor() {
 		return new ThreadPoolExecutor(0, 1) {
 
@@ -37,6 +38,13 @@ public class PortalExecutorManagerUtilAdvice {
 			}
 
 		};
+	}
+
+	@Around(
+		"execution(private com.liferay.portal.kernel.executor." +
+			"PortalExecutorManagerUtil.new())"
+	)
+	public void PortalExecutorManagerUtil() {
 	}
 
 }

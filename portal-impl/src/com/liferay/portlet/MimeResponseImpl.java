@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -21,17 +21,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 
-import java.util.Enumeration;
 import java.util.Locale;
 
 import javax.portlet.CacheControl;
 import javax.portlet.MimeResponse;
 import javax.portlet.PortletRequest;
+import javax.portlet.WindowState;
 
 import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Brian Wing Shun Chan
+ * @author Shuyang Zhou
  */
 public abstract class MimeResponseImpl
 	extends PortletResponseImpl implements MimeResponse {
@@ -72,7 +73,8 @@ public abstract class MimeResponseImpl
 	public OutputStream getPortletOutputStream() throws IOException {
 		if (_calledGetWriter) {
 			throw new IllegalStateException(
-				"Cannot obtain OutputStream because Writer is already in use");
+				"Unable to obtain OutputStream because Writer is already in " +
+					"use");
 		}
 
 		if (_contentType == null) {
@@ -114,7 +116,7 @@ public abstract class MimeResponseImpl
 
 	@Override
 	public boolean isCommitted() {
-		return false;
+		return _response.isCommitted();
 	}
 
 	@Override
@@ -143,34 +145,19 @@ public abstract class MimeResponseImpl
 	@Override
 	public void setContentType(String contentType) {
 		if (Validator.isNull(contentType)) {
-			throw new IllegalArgumentException("Content type cannot be null");
+			throw new IllegalArgumentException("Content type is null");
 		}
 
-		Enumeration<String> enu = _portletRequestImpl.getResponseContentTypes();
+		String lifecycle = getLifecycle();
+		WindowState windowState = _portletRequestImpl.getWindowState();
 
-		boolean valid = false;
+		if (!contentType.startsWith(
+				_portletRequestImpl.getResponseContentType()) &&
+			!lifecycle.equals(PortletRequest.RESOURCE_PHASE) &&
+			!windowState.equals(LiferayWindowState.EXCLUSIVE)) {
 
-		if (getLifecycle().equals(PortletRequest.RESOURCE_PHASE) ||
-			_portletRequestImpl.getWindowState().equals(
-				LiferayWindowState.EXCLUSIVE)) {
-
-			valid = true;
-		}
-		else {
-			while (enu.hasMoreElements()) {
-				String resContentType = enu.nextElement();
-
-				if (contentType.startsWith(resContentType)) {
-					valid = true;
-
-					break;
-				}
-			}
-		}
-
-		if (!valid) {
 			throw new IllegalArgumentException(
-				contentType + " is not a supported mime type");
+				contentType + " is an unsupported content type");
 		}
 
 		_contentType = contentType;

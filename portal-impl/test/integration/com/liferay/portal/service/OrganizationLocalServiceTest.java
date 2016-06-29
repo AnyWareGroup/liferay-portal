@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,44 +14,43 @@
 
 package com.liferay.portal.service;
 
-import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.model.Group;
-import com.liferay.portal.model.GroupConstants;
-import com.liferay.portal.model.Organization;
-import com.liferay.portal.model.OrganizationConstants;
-import com.liferay.portal.model.User;
-import com.liferay.portal.test.EnvironmentExecutionTestListener;
-import com.liferay.portal.test.LiferayIntegrationJUnitTestRunner;
-import com.liferay.portal.test.TransactionalExecutionTestListener;
-import com.liferay.portal.util.OrganizationTestUtil;
-import com.liferay.portal.util.TestPropsValues;
+import com.liferay.asset.kernel.model.AssetEntry;
+import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.ListTypeConstants;
+import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.OrganizationConstants;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Jorge Ferrer
  * @author Sergio González
  */
-@ExecutionTestListeners(
-	listeners = {
-		EnvironmentExecutionTestListener.class,
-		TransactionalExecutionTestListener.class
-	})
-@RunWith(LiferayIntegrationJUnitTestRunner.class)
-@Transactional
 public class OrganizationLocalServiceTest {
 
-	@Before
-	public void setUp() throws Exception {
-		FinderCacheUtil.clearCache();
-	}
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
 
 	@Test
 	public void testAddOrganization() throws Exception {
@@ -62,6 +61,8 @@ public class OrganizationLocalServiceTest {
 				user.getUserId(),
 				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
 				"Organization", false);
+
+		_organizations.add(organization);
 
 		List<Organization> organizations = user.getOrganizations(true);
 
@@ -83,6 +84,9 @@ public class OrganizationLocalServiceTest {
 		Organization organizationB = OrganizationTestUtil.addOrganization(
 			organizationA.getOrganizationId(), "Organization B", false);
 
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
 		Assert.assertEquals(
 			organizationA.getOrganizationId(),
 			organizationB.getParentOrganizationId());
@@ -102,7 +106,10 @@ public class OrganizationLocalServiceTest {
 			"Organization A", true);
 
 		Organization organizationB = OrganizationTestUtil.addOrganization(
-				organizationA.getOrganizationId(), "Organization B", false);
+			organizationA.getOrganizationId(), "Organization B", false);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationA.getOrganizationId(),
@@ -123,7 +130,10 @@ public class OrganizationLocalServiceTest {
 			"Organization A", false);
 
 		Organization organizationB = OrganizationTestUtil.addOrganization(
-				organizationA.getOrganizationId(), "Organization B", true);
+			organizationA.getOrganizationId(), "Organization B", true);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationA.getOrganizationId(),
@@ -144,7 +154,10 @@ public class OrganizationLocalServiceTest {
 			"Organization A", true);
 
 		Organization organizationB = OrganizationTestUtil.addOrganization(
-				organizationA.getOrganizationId(), "Organization B", true);
+			organizationA.getOrganizationId(), "Organization B", true);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationA.getOrganizationId(),
@@ -154,6 +167,187 @@ public class OrganizationLocalServiceTest {
 
 		Assert.assertEquals(
 			organizationA.getGroupId(), groupB.getParentGroupId());
+	}
+
+	@Test
+	public void testAddSiteToOrganizationWithChildOrganizationWithoutSite()
+		throws Exception {
+
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationB = OrganizationTestUtil.addOrganization(
+			organizationA.getOrganizationId(), "Organization B", false);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
+		organizationA = OrganizationTestUtil.addSite(organizationA);
+
+		Group groupB = organizationB.getGroup();
+
+		Assert.assertEquals(
+			GroupConstants.DEFAULT_PARENT_GROUP_ID, groupB.getParentGroupId());
+	}
+
+	@Test
+	public void testAddSiteToOrganizationWithChildOrganizationWithSite()
+		throws Exception {
+
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationB = OrganizationTestUtil.addOrganization(
+			organizationA.getOrganizationId(), "Organization B", true);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
+		organizationA = OrganizationTestUtil.addSite(organizationA);
+
+		Group groupA = organizationA.getGroup();
+		Group groupB = organizationB.getGroup();
+
+		Assert.assertEquals(groupA.getGroupId(), groupB.getParentGroupId());
+	}
+
+	@Test
+	public void testAddSiteToOrganizationWithParentOrganizationWithoutSite()
+		throws Exception {
+
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationB = OrganizationTestUtil.addOrganization(
+			organizationA.getOrganizationId(), "Organization B", false);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
+		organizationB = OrganizationTestUtil.addSite(organizationB);
+
+		Group groupB = organizationB.getGroup();
+
+		Assert.assertEquals(
+			GroupConstants.DEFAULT_PARENT_GROUP_ID, groupB.getParentGroupId());
+	}
+
+	@Test
+	public void testAddSiteToOrganizationWithParentOrganizationWithSite()
+		throws Exception {
+
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", true);
+
+		Organization organizationB = OrganizationTestUtil.addOrganization(
+			organizationA.getOrganizationId(), "Organization B", false);
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
+		organizationB = OrganizationTestUtil.addSite(organizationB);
+
+		Group groupA = organizationA.getGroup();
+		Group groupB = organizationB.getGroup();
+
+		Assert.assertEquals(groupA.getGroupId(), groupB.getParentGroupId());
+	}
+
+	@Test
+	public void testGetNoAssetOrganizations() throws Exception {
+		for (Organization organization :
+				OrganizationLocalServiceUtil.getNoAssetOrganizations()) {
+
+			OrganizationLocalServiceUtil.deleteOrganization(organization);
+		}
+
+		Organization organizationA =
+			OrganizationLocalServiceUtil.addOrganization(
+				TestPropsValues.getUserId(),
+				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+				RandomTestUtil.randomString(),
+				OrganizationConstants.TYPE_ORGANIZATION, 0, 0,
+				ListTypeConstants.ORGANIZATION_STATUS_DEFAULT, StringPool.BLANK,
+				false, new ServiceContext());
+
+		Organization organizationB =
+			OrganizationLocalServiceUtil.addOrganization(
+				TestPropsValues.getUserId(),
+				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID, "Test2",
+				OrganizationConstants.TYPE_ORGANIZATION, 0, 0,
+				ListTypeConstants.ORGANIZATION_STATUS_DEFAULT, StringPool.BLANK,
+				false, new ServiceContext());
+
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
+
+		AssetEntry assetEntry = AssetEntryLocalServiceUtil.fetchEntry(
+			Organization.class.getName(), organizationB.getOrganizationId());
+
+		Assert.assertNotNull(assetEntry);
+
+		AssetEntryLocalServiceUtil.deleteAssetEntry(assetEntry);
+
+		List<Organization> organizations =
+			OrganizationLocalServiceUtil.getNoAssetOrganizations();
+
+		Assert.assertEquals(1, organizations.size());
+		Assert.assertEquals(organizationB, organizations.get(0));
+	}
+
+	@Test
+	public void testHasUserOrganization1() throws Exception {
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationB = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization B", false);
+
+		_organizations.add(organizationA);
+		_organizations.add(organizationB);
+
+		UserLocalServiceUtil.addOrganizationUser(
+			organizationA.getOrganizationId(), TestPropsValues.getUserId());
+
+		Assert.assertTrue(
+			OrganizationLocalServiceUtil.hasUserOrganization(
+				TestPropsValues.getUserId(), organizationA.getOrganizationId(),
+				false, false));
+		Assert.assertFalse(
+			OrganizationLocalServiceUtil.hasUserOrganization(
+				TestPropsValues.getUserId(), organizationB.getOrganizationId(),
+				false, false));
+	}
+
+	@Test
+	public void testHasUserOrganization2() throws Exception {
+		Organization organizationA = OrganizationTestUtil.addOrganization(
+			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+			"Organization A", false);
+
+		Organization organizationAA = OrganizationTestUtil.addOrganization(
+			organizationA.getOrganizationId(), "Organization AA", false);
+
+		_organizations.add(organizationAA);
+		_organizations.add(organizationA);
+
+		UserLocalServiceUtil.addOrganizationUser(
+			organizationAA.getOrganizationId(), TestPropsValues.getUserId());
+
+		Assert.assertTrue(
+			OrganizationLocalServiceUtil.hasUserOrganization(
+				TestPropsValues.getUserId(), organizationA.getOrganizationId(),
+				true, false));
+		Assert.assertTrue(
+			OrganizationLocalServiceUtil.hasUserOrganization(
+				TestPropsValues.getUserId(), organizationA.getOrganizationId(),
+				true, true));
 	}
 
 	@Test
@@ -176,7 +370,11 @@ public class OrganizationLocalServiceTest {
 			organizationB.getOrganizationId(), organizationAA.getName(),
 			organizationAA.getType(), organizationAA.getRegionId(),
 			organizationAA.getCountryId(), organizationAA.getStatusId(),
-			organizationAA.getComments(), true, null);
+			organizationAA.getComments(), false, null, true, null);
+
+		_organizations.add(organizationAA);
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationB.getOrganizationId(),
@@ -197,7 +395,7 @@ public class OrganizationLocalServiceTest {
 			"Organization A", false);
 
 		Organization organizationAA = OrganizationTestUtil.addOrganization(
-				organizationA.getOrganizationId(), "Organization AA", true);
+			organizationA.getOrganizationId(), "Organization AA", true);
 
 		Organization organizationB = OrganizationTestUtil.addOrganization(
 			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
@@ -208,7 +406,11 @@ public class OrganizationLocalServiceTest {
 			organizationB.getOrganizationId(), organizationAA.getName(),
 			organizationAA.getType(), organizationAA.getRegionId(),
 			organizationAA.getCountryId(), organizationAA.getStatusId(),
-			organizationAA.getComments(), true, null);
+			organizationAA.getComments(), false, null, true, null);
+
+		_organizations.add(organizationAA);
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationB.getOrganizationId(),
@@ -229,7 +431,7 @@ public class OrganizationLocalServiceTest {
 			"Organization A", true);
 
 		Organization organizationAA = OrganizationTestUtil.addOrganization(
-				organizationA.getOrganizationId(), "Organization AA", true);
+			organizationA.getOrganizationId(), "Organization AA", true);
 
 		Organization organizationB = OrganizationTestUtil.addOrganization(
 			OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
@@ -240,7 +442,11 @@ public class OrganizationLocalServiceTest {
 			organizationB.getOrganizationId(), organizationAA.getName(),
 			organizationAA.getType(), organizationAA.getRegionId(),
 			organizationAA.getCountryId(), organizationAA.getStatusId(),
-			organizationAA.getComments(), true, null);
+			organizationAA.getComments(), false, null, true, null);
+
+		_organizations.add(organizationAA);
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationB.getOrganizationId(),
@@ -272,7 +478,11 @@ public class OrganizationLocalServiceTest {
 			organizationB.getOrganizationId(), organizationAA.getName(),
 			organizationAA.getType(), organizationAA.getRegionId(),
 			organizationAA.getCountryId(), organizationAA.getStatusId(),
-			organizationAA.getComments(), true, null);
+			organizationAA.getComments(), false, null, true, null);
+
+		_organizations.add(organizationAA);
+		_organizations.add(organizationB);
+		_organizations.add(organizationA);
 
 		Assert.assertEquals(
 			organizationB.getOrganizationId(),
@@ -283,5 +493,8 @@ public class OrganizationLocalServiceTest {
 		Assert.assertEquals(
 			organizationB.getGroupId(), groupAA.getParentGroupId());
 	}
+
+	@DeleteAfterTestRun
+	private final List<Organization> _organizations = new ArrayList<>();
 
 }

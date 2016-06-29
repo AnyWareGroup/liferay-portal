@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -62,7 +62,7 @@ public class WAIAutoDeployer extends PortletAutoDeployer {
 			portletName = pluginPackage.getName();
 		}
 
-		Map<String, String> filterMap = new HashMap<String, String>();
+		Map<String, String> filterMap = new HashMap<>();
 
 		filterMap.put("portlet_name", displayName);
 		filterMap.put("portlet_title", portletName);
@@ -142,12 +142,10 @@ public class WAIAutoDeployer extends PortletAutoDeployer {
 		}
 	}
 
-	private static final String[] _INIT_PARAM_DEFAULT_VALUES = new String[] {
-		"500"
-	};
+	private static final String[] _INIT_PARAM_DEFAULT_VALUES =
+		new String[] {"500"};
 
-	private static final String[] _INIT_PARAM_NAMES = new String[] {
-		"wai.connector.iframe.height.default"
-	};
+	private static final String[] _INIT_PARAM_NAMES =
+		new String[] {"wai.connector.iframe.height.default"};
 
 }

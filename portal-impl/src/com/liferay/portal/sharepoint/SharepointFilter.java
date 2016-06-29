@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -86,7 +86,8 @@ public class SharepointFilter extends SecureFilter {
 
 		if (!isSharepointRequest(request.getRequestURI())) {
 			processFilter(
-				SharepointFilter.class, request, response, filterChain);
+				SharepointFilter.class.getName(), request, response,
+				filterChain);
 
 			return;
 		}
@@ -142,9 +143,8 @@ public class SharepointFilter extends SecureFilter {
 		response.setHeader("Connection", "close");
 	}
 
-	private static final String[] _PREFIXES =
-		new String[] {
-			"/_vti_inf.html", "/_vti_bin", "/sharepoint", "/history",
-			"/resources"};
+	private static final String[] _PREFIXES = new String[] {
+		"/_vti_inf.html", "/_vti_bin", "/sharepoint", "/history", "/resources"
+	};
 
 }

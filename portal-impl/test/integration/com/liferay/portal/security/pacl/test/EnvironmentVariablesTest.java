@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,80 +14,35 @@
 
 package com.liferay.portal.security.pacl.test;
 
-import com.liferay.portal.kernel.test.ExecutionTestListeners;
-import com.liferay.portal.security.pacl.PACLExecutionTestListener;
-import com.liferay.portal.security.pacl.PACLIntegrationJUnitTestRunner;
+import com.liferay.portal.test.rule.PACLTestRule;
 
 import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 /**
  * @author Raymond Augé
  */
-@ExecutionTestListeners(listeners = {PACLExecutionTestListener.class})
-@RunWith(PACLIntegrationJUnitTestRunner.class)
 public class EnvironmentVariablesTest {
+
+	@ClassRule
+	@Rule
+	public static final PACLTestRule paclTestRule = new PACLTestRule();
 
 	@Test
 	public void test1() throws Exception {
-		try {
-			System.getenv("java.home");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
+		System.getenv("JAVA_HOME");
 	}
 
 	@Test
 	public void test2() throws Exception {
 		try {
-			System.getenv("java.vendor");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
-	}
-
-	@Test
-	public void test3() throws Exception {
-		try {
-			System.getenv("java.vendor.url");
+			System.getenv("PATH");
 
 			Assert.fail();
 		}
 		catch (SecurityException se) {
-		}
-	}
-
-	@Test
-	public void test4() throws Exception {
-		try {
-			System.getenv("java.vm.specification.name");
-
-			Assert.fail();
-		}
-		catch (SecurityException se) {
-		}
-	}
-
-	@Test
-	public void test5() throws Exception {
-		try {
-			System.getenv("java.vm.vendor");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
-		}
-	}
-
-	@Test
-	public void test6() throws Exception {
-		try {
-			System.getenv("java.vm.version");
-		}
-		catch (SecurityException se) {
-			Assert.fail();
 		}
 	}
 

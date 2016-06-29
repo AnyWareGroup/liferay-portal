@@ -1,6 +1,6 @@
 <%--
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,138 +17,54 @@
 <%@ include file="/html/taglib/ui/icon/init.jsp" %>
 
 <%
-if (Validator.isNotNull(src) && themeDisplay.isThemeImagesFastLoad() && !auiImage) {
-	SpriteImage spriteImage = null;
-	String spriteFileName = null;
-	String spriteFileURL = null;
-
-	String imageFileName = StringUtil.replace(src, "common/../", "");
-
-	if (imageFileName.contains(Http.PROTOCOL_DELIMITER)) {
-		URL imageURL = new URL(imageFileName);
-
-		imageFileName = imageURL.getPath();
-	}
-
-	String contextPath = theme.getContextPath();
-
-	String imagesPath = contextPath.concat(theme.getImagesPath());
-
-	if (imageFileName.startsWith(imagesPath)) {
-		spriteImage = theme.getSpriteImage(imageFileName);
-
-		if (spriteImage != null) {
-			spriteFileName = spriteImage.getSpriteFileName();
-
-			if (BrowserSnifferUtil.isIe(request) && (BrowserSnifferUtil.getMajorVersion(request) < 7)) {
-				spriteFileName = StringUtil.replace(spriteFileName, ".png", ".gif");
-			}
-
-			String cdnBaseURL = themeDisplay.getCDNBaseURL();
-
-			spriteFileURL = cdnBaseURL.concat(spriteFileName);
-		}
-	}
-
-	if (spriteImage == null) {
-		Portlet portlet = (Portlet)request.getAttribute("liferay-portlet:icon_portlet:portlet");
-
-		if (portlet == null) {
-			portlet = (Portlet)request.getAttribute(WebKeys.RENDER_PORTLET);
-		}
-
-		if (portlet != null) {
-			PortletApp portletApp = portlet.getPortletApp();
-
-			spriteImage = portletApp.getSpriteImage(imageFileName);
-
-			if (spriteImage != null) {
-				spriteFileName = spriteImage.getSpriteFileName();
-
-				if (BrowserSnifferUtil.isIe(request) && (BrowserSnifferUtil.getMajorVersion(request) < 7)) {
-					spriteFileName = StringUtil.replace(spriteFileName, ".png", ".gif");
-				}
-
-				String cdnBaseURL = themeDisplay.getCDNBaseURL();
-
-				spriteFileURL = cdnBaseURL.concat(spriteFileName);
-			}
-		}
-	}
-
-	if (spriteImage != null) {
-		String themeImagesPath = themeDisplay.getPathThemeImages();
-
-		src = themeImagesPath.concat("/spacer.png");
-
-		StringBundler sb = new StringBundler(10);
-
-		sb.append(details);
-		sb.append(" style=\"background-image: url('");
-		sb.append(spriteFileURL);
-		sb.append("'); background-position: 50% -");
-		sb.append(spriteImage.getOffset());
-		sb.append("px; background-repeat: no-repeat; height: ");
-		sb.append(spriteImage.getHeight());
-		sb.append("px; width: ");
-		sb.append(spriteImage.getWidth());
-		sb.append("px;\"");
-
-		details = sb.toString();
-	}
-}
-
-String imgClass = "icon";
-
-if (auiImage) {
-	StringBundler sb = new StringBundler(4);
-
-	sb.append(details);
-	sb.append(" style=\"background-image: url('");
-	sb.append(themeDisplay.getPathThemeImages());
-	sb.append("/aui/icon_sprite.png'); height: 16px; width: 16px;\"");
-
-	details = sb.toString();
-
-	imgClass = imgClass.concat(" icon-").concat(image.substring(_AUI_PATH.length()));
-}
-
 boolean urlIsNotNull = Validator.isNotNull(url);
 %>
 
 <liferay-util:buffer var="linkContent">
-	<c:if test="<%= Validator.isNotNull(src) %>">
-		<c:choose>
-			<c:when test="<%= urlIsNotNull %>">
-				<img class="<%= imgClass %>" src="<%= src %>" <%= details %> />
-			</c:when>
-			<c:otherwise>
-				<img class="<%= imgClass %>" id="<%= id %>" src="<%= src %>" <%= details %> />
-			</c:otherwise>
-		</c:choose>
-	</c:if>
+	<c:choose>
+		<c:when test="<%= Validator.isNotNull(icon) %>">
+			<aui:icon image="<%= icon %>" markupView="<%= markupView %>" />
+		</c:when>
+		<c:when test="<%= auiImage %>">
+			<aui:icon image="<%= image.substring(_AUI_PATH.length()) %>" />
+		</c:when>
+		<c:otherwise>
+			<c:choose>
+				<c:when test="<%= Validator.isNotNull(src) %>">
+					<c:choose>
+						<c:when test="<%= Validator.isNotNull(id) %>">
+							<img id="<%= id %>" src="<%= src %>" <%= details %> />
+						</c:when>
+						<c:otherwise>
+							<img src="<%= src %>" <%= details %> />
+						</c:otherwise>
+					</c:choose>
+				</c:when>
+				<c:otherwise>
+					<c:if test="<%= Validator.isNotNull(iconCssClass) %>">
+						<i class="<%= iconCssClass %>"></i>
+					</c:if>
+				</c:otherwise>
+			</c:choose>
+		</c:otherwise>
+	</c:choose>
 
 	<c:choose>
 		<c:when test="<%= (iconMenuIconCount != null) && ((iconMenuSingleIcon == null) || iconMenuShowWhenSingleIcon) %>">
-			<liferay-ui:message key="<%= message %>" localizeKey="<%= localizeMessage %>" />
-		</c:when>
-		<c:when test="<%= (iconListIconCount != null) && ((iconListSingleIcon == null) || iconListShowWhenSingleIcon) %>">
-			<span class="taglib-text"><liferay-ui:message key="<%= message %>" localizeKey="<%= localizeMessage %>" /></span>
+			<span class="taglib-text-icon"><liferay-ui:message key="<%= message %>" localizeKey="<%= localizeMessage %>" /></span>
 		</c:when>
 		<c:otherwise>
-			<c:if test="<%= label %>">
-				<span class="taglib-text"><liferay-ui:message key="<%= message %>" localizeKey="<%= localizeMessage %>" /></span>
-			</c:if>
+			<span class="taglib-text <%= label ? StringPool.BLANK : "hide-accessible" %>"><liferay-ui:message key="<%= message %>" localizeKey="<%= localizeMessage %>" /></span>
 		</c:otherwise>
 	</c:choose>
 </liferay-util:buffer>
 
 <c:choose>
 	<c:when test="<%= (iconListIconCount != null) && ((iconListSingleIcon == null) || iconListShowWhenSingleIcon) %>">
-		<li class="<%= cssClass %>">
+		<li class="<%= cssClass %>" role="presentation">
 			<c:choose>
 				<c:when test="<%= urlIsNotNull %>">
-					<aui:a cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" target="<%= target %>">
+					<aui:a ariaRole="menuitem" cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick="<%= onClick %>" target="<%= target %>">
 						<%= linkContent %>
 					</aui:a>
 				</c:when>
@@ -159,10 +75,10 @@ boolean urlIsNotNull = Validator.isNotNull(url);
 		</li>
 	</c:when>
 	<c:when test="<%= (iconMenuIconCount != null) && ((iconMenuSingleIcon == null) || iconMenuShowWhenSingleIcon) %>">
-		<li class="<%= cssClass %>">
+		<li class="<%= cssClass %>" role="presentation">
 			<c:choose>
 				<c:when test="<%= urlIsNotNull %>">
-					<aui:a cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick='<%= Validator.isNotNull(onClick) ? onClick : "" %>' target="<%= target %>">
+					<aui:a ariaRole="menuitem" cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick="<%= onClick %>" target="<%= target %>">
 						<%= linkContent %>
 					</aui:a>
 				</c:when>
@@ -173,10 +89,14 @@ boolean urlIsNotNull = Validator.isNotNull(url);
 		</li>
 	</c:when>
 	<c:otherwise>
-		<span class="<%= cssClass %>">
+		<span class="<%= cssClass %>"
+			<c:if test="<%= !label && Validator.isNotNull(message) %>">
+				title="<liferay-ui:message key="<%= HtmlUtil.stripHtml(message) %>" />"
+			</c:if>
+		>
 			<c:choose>
 				<c:when test="<%= urlIsNotNull %>">
-					<aui:a cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick='<%= Validator.isNotNull(onClick) ? onClick : "" %>' target="<%= target %>">
+					<aui:a ariaRole="<%= ariaRole %>" cssClass='<%= linkCssClass + " taglib-icon" %>' data="<%= data %>" href="<%= url %>" id="<%= id %>" lang="<%= lang %>" onClick="<%= onClick %>" target="<%= target %>">
 						<%= linkContent %>
 					</aui:a>
 				</c:when>
@@ -188,22 +108,43 @@ boolean urlIsNotNull = Validator.isNotNull(url);
 	</c:otherwise>
 </c:choose>
 
-<%
-boolean forcePost = method.equals("post") && (url.startsWith(Http.HTTP_WITH_SLASH) || url.startsWith(Http.HTTPS_WITH_SLASH));
-%>
-
-<c:if test="<%= Validator.isNotNull(srcHover) || forcePost %>">
+<c:if test="<%= Validator.isNotNull(srcHover) || forcePost || useDialog %>">
 	<aui:script use="liferay-icon">
 		Liferay.Icon.register(
 			{
 				forcePost: <%= forcePost %>,
-				id: '<portlet:namespace /><%= id %>'
+				id: '<portlet:namespace /><%= id %>',
 
 				<c:if test="<%= Validator.isNotNull(srcHover) %>">
-					, src: '<%= src %>',
-					srcHover: '<%= srcHover %>'
+					src: '<%= src %>',
+					srcHover: '<%= srcHover %>',
 				</c:if>
+
+				useDialog: <%= useDialog %>
 			}
 		);
 	</aui:script>
+</c:if>
+
+<c:if test="<%= toolTip %>">
+	<liferay-util:html-bottom outputKey="taglib_ui_icon_help">
+		<aui:script use="aui-tooltip">
+			var tooltip = new A.TooltipDelegate(
+				{
+					constrain: true,
+					position: 'bottom',
+					trigger: '.lfr-portal-tooltip',
+					visible: false,
+					zIndex: Liferay.zIndex.TOOLTIP
+				}
+			);
+
+			Liferay.once(
+				'screenLoad',
+				function() {
+					tooltip.destroy();
+				}
+			);
+		</aui:script>
+	</liferay-util:html-bottom>
 </c:if>

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,8 +14,8 @@
 
 package com.liferay.portal.security.pacl.test.hook.service.impl;
 
-import com.liferay.portlet.blogs.service.BlogsStatsUserLocalService;
-import com.liferay.portlet.blogs.service.BlogsStatsUserLocalServiceWrapper;
+import com.liferay.blogs.kernel.service.BlogsStatsUserLocalService;
+import com.liferay.blogs.kernel.service.BlogsStatsUserLocalServiceWrapper;
 
 /**
  * @author Brian Wing Shun Chan

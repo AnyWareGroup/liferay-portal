@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -22,12 +22,13 @@ import com.liferay.portal.configuration.easyconf.ClassLoaderComponentConfigurati
 import com.liferay.portal.kernel.configuration.Filter;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
+import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.PropertiesUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.Company;
-import com.liferay.portal.model.CompanyConstants;
-import com.liferay.portal.service.CompanyLocalServiceUtil;
 
 import java.lang.reflect.Field;
 
@@ -50,10 +51,20 @@ import org.apache.commons.configuration.MapConfiguration;
 public class ConfigurationImpl
 	implements com.liferay.portal.kernel.configuration.Configuration {
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #ConfigurationImpl(ClassLoader, String, long, String)}
+	 */
+	@Deprecated
 	public ConfigurationImpl(ClassLoader classLoader, String name) {
 		this(classLoader, name, CompanyConstants.SYSTEM);
 	}
 
+	/**
+	 * @deprecated As of 7.0.0, replaced by {@link
+	 *             #ConfigurationImpl(ClassLoader, String, long, String)}
+	 */
+	@Deprecated
 	public ConfigurationImpl(
 		ClassLoader classLoader, String name, long companyId) {
 
@@ -77,11 +88,19 @@ public class ConfigurationImpl
 		printSources(companyId, webId);
 	}
 
+	public ConfigurationImpl(
+		ClassLoader classLoader, String name, long companyId, String webId) {
+
+		_componentConfiguration = new ClassLoaderComponentConfiguration(
+			classLoader, webId, name);
+
+		printSources(companyId, webId);
+	}
+
 	@Override
 	public void addProperties(Properties properties) {
 		try {
-			ComponentProperties componentProperties =
-				_componentConfiguration.getProperties();
+			ComponentProperties componentProperties = getComponentProperties();
 
 			ClassLoaderAggregateProperties classLoaderAggregateProperties =
 				(ClassLoaderAggregateProperties)
@@ -100,6 +119,8 @@ public class ConfigurationImpl
 			MapConfiguration newConfiguration = new MapConfiguration(
 				properties);
 
+			newConfiguration.setTrimmingDisabled(true);
+
 			configurations.add(0, newConfiguration);
 
 			// Add to configList of AggregatedProperties itself
@@ -112,6 +133,8 @@ public class ConfigurationImpl
 
 			configurations.add(0, newConfiguration);
 
+			_properties = null;
+
 			clearCache();
 		}
 		catch (Exception e) {
@@ -122,6 +145,8 @@ public class ConfigurationImpl
 	@Override
 	public void clearCache() {
 		_values.clear();
+
+		_properties = null;
 	}
 
 	@Override
@@ -254,6 +279,9 @@ public class ConfigurationImpl
 
 	@Override
 	public Properties getProperties() {
+		if (_properties != null) {
+			return _properties;
+		}
 
 		// For some strange reason, componentProperties.getProperties() returns
 		// values with spaces after commas. So a property setting of "xyz=1,2,3"
@@ -263,23 +291,18 @@ public class ConfigurationImpl
 		// method fixes the weird behavior by returning properties with the
 		// correct values.
 
-		Properties properties = new Properties();
+		_properties = new Properties();
 
 		ComponentProperties componentProperties = getComponentProperties();
 
 		Properties componentPropertiesProperties =
 			componentProperties.getProperties();
 
-		for (Map.Entry<Object, Object> entry :
-				componentPropertiesProperties.entrySet()) {
-
-			String key = (String)entry.getKey();
-			String value = (String)entry.getValue();
-
-			properties.setProperty(key, value);
+		for (String key : componentPropertiesProperties.stringPropertyNames()) {
+			_properties.setProperty(key, componentProperties.getString(key));
 		}
 
-		return properties;
+		return _properties;
 	}
 
 	@Override
@@ -292,8 +315,7 @@ public class ConfigurationImpl
 	@Override
 	public void removeProperties(Properties properties) {
 		try {
-			ComponentProperties componentProperties =
-				_componentConfiguration.getProperties();
+			ComponentProperties componentProperties = getComponentProperties();
 
 			ClassLoaderAggregateProperties classLoaderAggregateProperties =
 				(ClassLoaderAggregateProperties)
@@ -323,13 +345,15 @@ public class ConfigurationImpl
 				MapConfiguration mapConfiguration =
 					(MapConfiguration)configuration;
 
-				if (mapConfiguration.getMap() == properties) {
+				if (mapConfiguration.getMap() == (Map<?, ?>)properties) {
 					itr.remove();
 
 					classLoaderAggregateProperties.removeConfiguration(
 						configuration);
 				}
 			}
+
+			_properties = null;
 
 			clearCache();
 		}
@@ -384,7 +408,7 @@ public class ConfigurationImpl
 
 		Object value = _nullValue;
 
-		if ((array != null) && (array.length > 0)) {
+		if (ArrayUtil.isNotEmpty(array)) {
 
 			// Commons Configuration parses an empty property into a String
 			// array with one String containing one space. It also leaves a
@@ -438,6 +462,10 @@ public class ConfigurationImpl
 
 			_printedSources.add(source);
 
+			if (source.startsWith("bundleresource://")) {
+				continue;
+			}
+
 			String info = "Loading " + source;
 
 			if (companyId > CompanyConstants.SYSTEM) {
@@ -453,14 +481,15 @@ public class ConfigurationImpl
 
 	private static final boolean _PRINT_DUPLICATE_CALLS_TO_GET = false;
 
-	private static Log _log = LogFactoryUtil.getLog(ConfigurationImpl.class);
+	private static final Log _log = LogFactoryUtil.getLog(
+		ConfigurationImpl.class);
 
-	private static String[] _emptyArray = new String[0];
-	private static Object _nullValue = new Object();
+	private static final String[] _emptyArray = new String[0];
+	private static final Object _nullValue = new Object();
 
-	private ComponentConfiguration _componentConfiguration;
-	private Set<String> _printedSources = new HashSet<String>();
-	private Map<String, Object> _values =
-		new ConcurrentHashMap<String, Object>();
+	private final ComponentConfiguration _componentConfiguration;
+	private final Set<String> _printedSources = new HashSet<>();
+	private Properties _properties;
+	private final Map<String, Object> _values = new ConcurrentHashMap<>();
 
 }

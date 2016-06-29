@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,26 +15,29 @@
 package com.liferay.portal.util;
 
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.model.PortletApp;
+import com.liferay.portal.kernel.model.PortletCategory;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.portlet.PortletConfigFactoryUtil;
+import com.liferay.portal.kernel.service.PortletLocalServiceUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PortletLister;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.TreeNodeView;
 import com.liferay.portal.kernel.util.TreeView;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.model.LayoutTypePortlet;
-import com.liferay.portal.model.Portlet;
-import com.liferay.portal.model.PortletApp;
-import com.liferay.portal.model.PortletCategory;
-import com.liferay.portal.model.User;
-import com.liferay.portal.service.PortletLocalServiceUtil;
-import com.liferay.portal.theme.ThemeDisplay;
-import com.liferay.portal.util.comparator.PortletCategoryComparator;
-import com.liferay.portal.util.comparator.PortletTitleComparator;
-import com.liferay.portlet.PortletConfigFactoryUtil;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.kernel.util.comparator.PortletCategoryComparator;
+import com.liferay.portal.kernel.util.comparator.PortletTitleComparator;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -50,10 +53,10 @@ import javax.servlet.ServletContext;
 public class PortletListerImpl implements PortletLister {
 
 	@Override
-	public TreeView getTreeView() throws PortalException, SystemException {
+	public TreeView getTreeView() throws PortalException {
 		_nodeId = 1;
 
-		_list = new ArrayList<TreeNodeView>();
+		_list = new ArrayList<>();
 
 		TreeNodeView rootNodeView = null;
 
@@ -119,14 +122,21 @@ public class PortletListerImpl implements PortletLister {
 		_user = user;
 	}
 
+	protected Locale getLocale() {
+		if (_themeDisplay == null) {
+			return _user.getLocale();
+		}
+
+		return _themeDisplay.getLocale();
+	}
+
 	protected void iteratePortletCategories(
 			TreeNodeView parentNodeView,
 			List<PortletCategory> portletCategories, long parentId, int depth)
-		throws PortalException, SystemException {
+		throws PortalException {
 
 		portletCategories = ListUtil.sort(
-			portletCategories,
-			new PortletCategoryComparator(_themeDisplay.getLocale()));
+			portletCategories, new PortletCategoryComparator(getLocale()));
 
 		for (int i = 0; i < portletCategories.size(); i++) {
 			PortletCategory portletCategory = portletCategories.get(i);
@@ -156,8 +166,7 @@ public class PortletListerImpl implements PortletLister {
 			}
 
 			nodeView.setName(
-				LanguageUtil.get(
-					_themeDisplay.getLocale(), portletCategory.getName()));
+				LanguageUtil.get(getLocale(), portletCategory.getName()));
 			nodeView.setObjId(portletCategory.getPath());
 			nodeView.setParentId(parentId);
 
@@ -186,11 +195,10 @@ public class PortletListerImpl implements PortletLister {
 	}
 
 	protected void iteratePortlets(
-			TreeNodeView parentNodeView, PortletCategory portletCategory,
-			Set<String> portletIds, int parentNodeId, int depth)
-		throws PortalException, SystemException {
+		TreeNodeView parentNodeView, PortletCategory portletCategory,
+		Set<String> portletIds, int parentNodeId, int depth) {
 
-		List<Portlet> portlets = new ArrayList<Portlet>();
+		List<Portlet> portlets = new ArrayList<>();
 
 		String externalPortletCategory = null;
 
@@ -208,7 +216,7 @@ public class PortletListerImpl implements PortletLister {
 				}
 				else if (!portlet.isInstanceable() &&
 						 _layoutTypePortlet.hasPortletId(
-							portlet.getPortletId())) {
+							 portlet.getPortletId())) {
 
 					portlets.add(portlet);
 				}
@@ -228,8 +236,7 @@ public class PortletListerImpl implements PortletLister {
 							portlet, _servletContext);
 
 					ResourceBundle resourceBundle =
-						portletConfig.getResourceBundle(
-							_themeDisplay.getLocale());
+						portletConfig.getResourceBundle(getLocale());
 
 					externalPortletCategory = ResourceBundleUtil.getString(
 						resourceBundle, portletCategory.getName());
@@ -238,7 +245,7 @@ public class PortletListerImpl implements PortletLister {
 		}
 
 		portlets = ListUtil.sort(
-			portlets, new PortletTitleComparator(_themeDisplay.getLocale()));
+			portlets, new PortletTitleComparator(getLocale()));
 
 		for (int i = 0; i < portlets.size(); i++) {
 			Portlet portlet = portlets.get(i);
@@ -257,7 +264,7 @@ public class PortletListerImpl implements PortletLister {
 
 			nodeView.setName(
 				PortalUtil.getPortletTitle(
-					portlet, _servletContext, _themeDisplay.getLocale()));
+					portlet, _servletContext, getLocale()));
 			nodeView.setObjId(portlet.getRootPortletId());
 			nodeView.setParentId(parentNodeId);
 

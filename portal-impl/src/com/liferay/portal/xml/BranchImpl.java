@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -142,28 +142,27 @@ public class BranchImpl extends NodeImpl implements Branch {
 		if (node == null) {
 			return null;
 		}
+
+		if (node instanceof org.dom4j.CDATA) {
+			return new CDATAImpl((org.dom4j.CDATA)node);
+		}
+		else if (node instanceof org.dom4j.Comment) {
+			return new CommentImpl((org.dom4j.Comment)node);
+		}
+		else if (node instanceof org.dom4j.Element) {
+			return new ElementImpl((org.dom4j.Element)node);
+		}
+		else if (node instanceof org.dom4j.Entity) {
+			return new EntityImpl((org.dom4j.Entity)node);
+		}
+		else if (node instanceof org.dom4j.Namespace) {
+			return new NamespaceImpl((org.dom4j.Namespace)node);
+		}
+		else if (node instanceof org.dom4j.Text) {
+			return new TextImpl((org.dom4j.Text)node);
+		}
 		else {
-			if (node instanceof org.dom4j.CDATA) {
-				return new CDATAImpl((org.dom4j.CDATA)node);
-			}
-			else if (node instanceof org.dom4j.Comment) {
-				return new CommentImpl((org.dom4j.Comment)node);
-			}
-			else if (node instanceof org.dom4j.Element) {
-				return new ElementImpl((org.dom4j.Element)node);
-			}
-			else if (node instanceof org.dom4j.Entity) {
-				return new EntityImpl((org.dom4j.Entity)node);
-			}
-			else if (node instanceof org.dom4j.Namespace) {
-				return new NamespaceImpl((org.dom4j.Namespace)node);
-			}
-			else if (node instanceof org.dom4j.Text) {
-				return new TextImpl((org.dom4j.Text)node);
-			}
-			else {
-				return new NodeImpl(node);
-			}
+			return new NodeImpl(node);
 		}
 	}
 
@@ -260,6 +259,6 @@ public class BranchImpl extends NodeImpl implements Branch {
 		return _branch.toString();
 	}
 
-	private org.dom4j.Branch _branch;
+	private final org.dom4j.Branch _branch;
 
 }

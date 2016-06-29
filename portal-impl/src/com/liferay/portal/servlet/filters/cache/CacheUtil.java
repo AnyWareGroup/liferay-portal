@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,9 +14,9 @@
 
 package com.liferay.portal.servlet.filters.cache;
 
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.cache.MultiVMPoolUtil;
 import com.liferay.portal.kernel.cache.PortalCache;
-import com.liferay.portal.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -77,7 +77,7 @@ public class CacheUtil {
 		return sb.toString();
 	}
 
-	private static PortalCache<String, CacheResponseData> _portalCache =
-		MultiVMPoolUtil.getCache(CACHE_NAME);
+	private static final PortalCache<String, CacheResponseData> _portalCache =
+		MultiVMPoolUtil.getPortalCache(CACHE_NAME);
 
 }

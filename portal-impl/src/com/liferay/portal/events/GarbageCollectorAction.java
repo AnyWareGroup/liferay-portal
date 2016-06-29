@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -35,24 +35,22 @@ public class GarbageCollectorAction extends SessionAction {
 
 		if (_log.isDebugEnabled()) {
 			_log.debug(
-				"Before:\t\t" +
-					nf.format(runtime.freeMemory()) + "\t" +
-						nf.format(runtime.totalMemory()) + "\t" +
-							nf.format(runtime.maxMemory()));
+				"Before:\t\t" + nf.format(runtime.freeMemory()) + "\t" +
+					nf.format(runtime.totalMemory()) + "\t" +
+						nf.format(runtime.maxMemory()));
 		}
 
 		System.gc();
 
 		if (_log.isDebugEnabled()) {
 			_log.debug(
-				"After:\t\t" +
-					nf.format(runtime.freeMemory()) + "\t" +
-						nf.format(runtime.totalMemory()) + "\t" +
-							nf.format(runtime.maxMemory()));
+				"After:\t\t" + nf.format(runtime.freeMemory()) + "\t" +
+					nf.format(runtime.totalMemory()) + "\t" +
+						nf.format(runtime.maxMemory()));
 		}
 	}
 
-	private static Log _log = LogFactoryUtil.getLog(
+	private static final Log _log = LogFactoryUtil.getLog(
 		GarbageCollectorAction.class);
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -24,7 +24,7 @@ import javax.servlet.jsp.JspException;
  * @author Julio Camarero
  * @generated
  */
-public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
+public abstract class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 
 	@Override
 	public int doStartTag() throws JspException {
@@ -57,6 +57,10 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 		return _iconAlign;
 	}
 
+	public java.lang.String getId() {
+		return _id;
+	}
+
 	public java.lang.String getName() {
 		return _name;
 	}
@@ -71,6 +75,14 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 
 	public java.lang.String getType() {
 		return _type;
+	}
+
+	public boolean getUseDialog() {
+		return _useDialog;
+	}
+
+	public boolean getUseNamespace() {
+		return _useNamespace;
 	}
 
 	public java.lang.String getValue() {
@@ -113,6 +125,12 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("iconAlign", iconAlign);
 	}
 
+	public void setId(java.lang.String id) {
+		_id = id;
+
+		setScopedAttribute("id", id);
+	}
+
 	public void setName(java.lang.String name) {
 		_name = name;
 
@@ -137,6 +155,18 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 		setScopedAttribute("type", type);
 	}
 
+	public void setUseDialog(boolean useDialog) {
+		_useDialog = useDialog;
+
+		setScopedAttribute("useDialog", useDialog);
+	}
+
+	public void setUseNamespace(boolean useNamespace) {
+		_useNamespace = useNamespace;
+
+		setScopedAttribute("useNamespace", useNamespace);
+	}
+
 	public void setValue(java.lang.String value) {
 		_value = value;
 
@@ -145,22 +175,27 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 
 	@Override
 	protected void cleanUp() {
+		super.cleanUp();
+
 		_cssClass = null;
 		_data = null;
 		_disabled = false;
 		_href = null;
 		_icon = null;
 		_iconAlign = "left";
+		_id = null;
 		_name = null;
 		_onClick = null;
 		_primary = null;
 		_type = "button";
+		_useDialog = false;
+		_useNamespace = true;
 		_value = null;
 	}
 
 	@Override
-	protected String getPage() {
-		return _PAGE;
+	protected String getEndPage() {
+		return _END_PAGE;
 	}
 
 	@Override
@@ -171,17 +206,20 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 		setNamespacedAttribute(request, "href", _href);
 		setNamespacedAttribute(request, "icon", _icon);
 		setNamespacedAttribute(request, "iconAlign", _iconAlign);
+		setNamespacedAttribute(request, "id", _id);
 		setNamespacedAttribute(request, "name", _name);
 		setNamespacedAttribute(request, "onClick", _onClick);
 		setNamespacedAttribute(request, "primary", _primary);
 		setNamespacedAttribute(request, "type", _type);
+		setNamespacedAttribute(request, "useDialog", _useDialog);
+		setNamespacedAttribute(request, "useNamespace", _useNamespace);
 		setNamespacedAttribute(request, "value", _value);
 	}
 
 	protected static final String _ATTRIBUTE_NAMESPACE = "aui:button:";
 
-	private static final String _PAGE =
-		"/html/taglib/aui/button/page.jsp";
+	private static final String _END_PAGE =
+		"/html/taglib/aui/button/end.jsp";
 
 	private java.lang.String _cssClass = null;
 	private java.lang.Object _data = null;
@@ -189,10 +227,13 @@ public class BaseButtonTag extends com.liferay.taglib.util.IncludeTag {
 	private java.lang.String _href = null;
 	private java.lang.String _icon = null;
 	private java.lang.String _iconAlign = "left";
+	private java.lang.String _id = null;
 	private java.lang.String _name = null;
 	private java.lang.String _onClick = null;
 	private java.lang.Object _primary = null;
 	private java.lang.String _type = "button";
+	private boolean _useDialog = false;
+	private boolean _useNamespace = true;
 	private java.lang.String _value = null;
 
 }

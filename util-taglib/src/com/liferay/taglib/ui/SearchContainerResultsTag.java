@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -26,12 +26,9 @@ import javax.servlet.jsp.tagext.TagSupport;
 
 /**
  * @author Raymond Augé
+ * @author Roberto Díaz
  */
 public class SearchContainerResultsTag<R> extends TagSupport {
-
-	public static final String DEFAULT_RESULTS_VAR = "results";
-
-	public static final String DEFAULT_TOTAL_VAR = "total";
 
 	@Override
 	public int doEndTag() throws JspException {
@@ -43,33 +40,23 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 			SearchContainer<R> searchContainer =
 				searchContainerTag.getSearchContainer();
 
-			int total = searchContainer.getTotal();
+			String totalVar = searchContainer.getTotalVar();
 
-			if (_total == 0) {
-				_total = total;
+			if (totalVar.equals(SearchContainer.DEFAULT_TOTAL_VAR)) {
+				pageContext.removeAttribute(totalVar);
 			}
 
 			if (_results == null) {
-				_results = (List<R>)pageContext.getAttribute(_resultsVar);
-				_total = (Integer)pageContext.getAttribute(_totalVar);
-			}
+				_results = searchContainer.getResults();
 
-			if (_results != null) {
-				if (_total < _results.size()) {
-					_total = _results.size();
+				if (_results.isEmpty()) {
+					_results = (List<R>)pageContext.getAttribute(_resultsVar);
 				}
 			}
 
 			searchContainer.setResults(_results);
 
-			if (total == 0) {
-				searchContainer.setTotal(_total);
-			}
-
-			searchContainerTag.setHasResults(true);
-
 			pageContext.setAttribute(_resultsVar, _results);
-			pageContext.setAttribute(_totalVar, _total);
 
 			return EVAL_PAGE;
 		}
@@ -79,9 +66,7 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		finally {
 			if (!ServerDetector.isResin()) {
 				_results = null;
-				_resultsVar = DEFAULT_RESULTS_VAR;
-				_total = 0;
-				_totalVar = DEFAULT_TOTAL_VAR;
+				_resultsVar = SearchContainer.DEFAULT_RESULTS_VAR;
 			}
 		}
 	}
@@ -98,7 +83,6 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 
 		if (_results == null) {
 			pageContext.setAttribute(_resultsVar, new ArrayList<R>());
-			pageContext.setAttribute(_totalVar, 0);
 		}
 
 		return EVAL_BODY_INCLUDE;
@@ -112,14 +96,6 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		return _resultsVar;
 	}
 
-	public int getTotal() {
-		return _total;
-	}
-
-	public String getTotalVar() {
-		return _totalVar;
-	}
-
 	public void setResults(List<R> results) {
 		_results = results;
 	}
@@ -128,17 +104,7 @@ public class SearchContainerResultsTag<R> extends TagSupport {
 		_resultsVar = resultsVar;
 	}
 
-	public void setTotal(int total) {
-		_total = total;
-	}
-
-	public void setTotalVar(String totalVar) {
-		_totalVar = totalVar;
-	}
-
 	private List<R> _results;
-	private String _resultsVar = DEFAULT_RESULTS_VAR;
-	private int _total;
-	private String _totalVar = DEFAULT_TOTAL_VAR;
+	private String _resultsVar = SearchContainer.DEFAULT_RESULTS_VAR;
 
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,15 +14,14 @@
 
 package com.liferay.portal.webdav;
 
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
-import com.liferay.portal.kernel.util.StringPool;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.webdav.WebDAVException;
 import com.liferay.portal.kernel.webdav.WebDAVRequest;
 import com.liferay.portal.kernel.webdav.WebDAVStorage;
 import com.liferay.portal.kernel.webdav.WebDAVUtil;
-import com.liferay.portal.security.permission.PermissionChecker;
-import com.liferay.portal.util.PortalUtil;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -53,6 +52,9 @@ public class WebDAVRequestImpl implements WebDAVRequest {
 			pathInfo = strippedPathInfo;
 
 			_manualCheckInRequired = true;
+		}
+		else {
+			_manualCheckInRequired = false;
 		}
 
 		_path = WebDAVUtil.stripOfficeExtension(pathInfo);
@@ -155,16 +157,16 @@ public class WebDAVRequestImpl implements WebDAVRequest {
 
 	private static final String _APPLE_DOUBLE_PREFIX = "._";
 
-	private long _companyId;
-	private long _groupId;
-	private String _lockUuid;
-	private boolean _manualCheckInRequired;
-	private String _path = StringPool.BLANK;
-	private PermissionChecker _permissionChecker;
-	private HttpServletRequest _request;
-	private HttpServletResponse _response;
-	private WebDAVStorage _storage;
-	private String _userAgent;
-	private long _userId;
+	private final long _companyId;
+	private final long _groupId;
+	private final String _lockUuid;
+	private final boolean _manualCheckInRequired;
+	private final String _path;
+	private final PermissionChecker _permissionChecker;
+	private final HttpServletRequest _request;
+	private final HttpServletResponse _response;
+	private final WebDAVStorage _storage;
+	private final String _userAgent;
+	private final long _userId;
 
 }

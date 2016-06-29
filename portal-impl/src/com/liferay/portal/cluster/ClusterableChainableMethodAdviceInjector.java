@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,7 +14,7 @@
 
 package com.liferay.portal.cluster;
 
-import com.liferay.portal.spring.aop.ChainableMethodAdvice;
+import com.liferay.portal.kernel.resiliency.spi.SPIUtil;
 import com.liferay.portal.spring.aop.ChainableMethodAdviceInjector;
 import com.liferay.portal.util.PropsValues;
 
@@ -24,20 +24,19 @@ import com.liferay.portal.util.PropsValues;
 public class ClusterableChainableMethodAdviceInjector
 	extends ChainableMethodAdviceInjector {
 
-	/**
-	 * @deprecated As of 6.2.0
-	 */
-	public void setServletContextName(String servletContextName) {
-	}
-
 	@Override
-	protected ChainableMethodAdvice getNewChainableMethodAdvice() {
-		return new ClusterableAdvice();
-	}
+	public void inject() {
+		setInjectCondition(PropsValues.CLUSTER_LINK_ENABLED);
+		setNewChainableMethodAdvice(new ClusterableAdvice());
 
-	@Override
-	protected boolean isInjectCondition() {
-		return PropsValues.CLUSTER_LINK_ENABLED;
+		super.inject();
+
+		if (SPIUtil.isSPI()) {
+			setInjectCondition(true);
+			setNewChainableMethodAdvice(new SPIClusterableAdvice());
+
+			super.inject();
+		}
 	}
 
 }

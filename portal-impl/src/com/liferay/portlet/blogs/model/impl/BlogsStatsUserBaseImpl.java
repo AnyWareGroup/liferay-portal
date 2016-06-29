@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,10 @@
 
 package com.liferay.portlet.blogs.model.impl;
 
-import com.liferay.portal.kernel.exception.SystemException;
+import aQute.bnd.annotation.ProviderType;
 
-import com.liferay.portlet.blogs.model.BlogsStatsUser;
-import com.liferay.portlet.blogs.service.BlogsStatsUserLocalServiceUtil;
+import com.liferay.blogs.kernel.model.BlogsStatsUser;
+import com.liferay.blogs.kernel.service.BlogsStatsUserLocalServiceUtil;
 
 /**
  * The extended model base implementation for the BlogsStatsUser service. Represents a row in the &quot;BlogsStatsUser&quot; database table, with each column mapped to a property of this class.
@@ -28,9 +28,10 @@ import com.liferay.portlet.blogs.service.BlogsStatsUserLocalServiceUtil;
  *
  * @author Brian Wing Shun Chan
  * @see BlogsStatsUserImpl
- * @see com.liferay.portlet.blogs.model.BlogsStatsUser
+ * @see BlogsStatsUser
  * @generated
  */
+@ProviderType
 public abstract class BlogsStatsUserBaseImpl extends BlogsStatsUserModelImpl
 	implements BlogsStatsUser {
 	/*
@@ -39,7 +40,7 @@ public abstract class BlogsStatsUserBaseImpl extends BlogsStatsUserModelImpl
 	 * Never modify or reference this class directly. All methods that expect a blogs stats user model instance should use the {@link BlogsStatsUser} interface instead.
 	 */
 	@Override
-	public void persist() throws SystemException {
+	public void persist() {
 		if (this.isNew()) {
 			BlogsStatsUserLocalServiceUtil.addBlogsStatsUser(this);
 		}

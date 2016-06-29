@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -65,6 +65,10 @@ public class CacheTemplateResource implements TemplateResource {
 		return false;
 	}
 
+	public TemplateResource getInnerTemplateResource() {
+		return _templateResource;
+	}
+
 	@Override
 	public long getLastModified() {
 		return _lastModified;
@@ -78,11 +82,7 @@ public class CacheTemplateResource implements TemplateResource {
 			return new UnsyncStringReader(templateContent);
 		}
 
-		Reader reader = null;
-
-		try {
-			reader = _templateResource.getReader();
-
+		try (Reader reader = _templateResource.getReader()) {
 			char[] buffer = new char[1024];
 
 			int result = -1;
@@ -97,11 +97,6 @@ public class CacheTemplateResource implements TemplateResource {
 			templateContent = unsyncCharArrayWriter.toString();
 
 			_templateContent.set(templateContent);
-		}
-		finally {
-			if (reader != null) {
-				reader.close();
-			}
 		}
 
 		return new UnsyncStringReader(templateContent);
@@ -132,8 +127,8 @@ public class CacheTemplateResource implements TemplateResource {
 	}
 
 	private long _lastModified = System.currentTimeMillis();
-	private AtomicReference<String> _templateContent =
-		new AtomicReference<String>();
+	private final AtomicReference<String> _templateContent =
+		new AtomicReference<>();
 	private TemplateResource _templateResource;
 
 }

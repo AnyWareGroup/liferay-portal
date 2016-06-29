@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -15,17 +15,21 @@
 package com.liferay.taglib.aui;
 
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.taglib.aui.base.BaseATag;
 import com.liferay.taglib.util.InlineUtil;
+import com.liferay.taglib.util.TagResourceBundleUtil;
 
 import java.io.IOException;
 
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.portlet.PortletResponse;
 
@@ -40,29 +44,28 @@ import javax.servlet.jsp.JspWriter;
  */
 public class ATag extends BaseATag {
 
-	protected boolean isOpensNewWindow() {
-		String target = getTarget();
-
-		if ((target != null) &&
-			(target.equals("_blank") || target.equals("_new"))) {
-
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
-
 	@Override
 	protected int processEndTag() throws Exception {
 		JspWriter jspWriter = pageContext.getOut();
 
 		if (Validator.isNotNull(getHref())) {
-			if (isOpensNewWindow()) {
-				jspWriter.write("<span class=\"opens-new-window-accessible\">");
+			if (AUIUtil.isOpensNewWindow(getTarget())) {
+				ThemeDisplay themeDisplay = (ThemeDisplay)request.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+				ResourceBundle resourceBundle =
+					TagResourceBundleUtil.getResourceBundle(pageContext);
+
+				jspWriter.write(StringPool.SPACE);
+				jspWriter.write("<svg class=\"lexicon-icon ");
+				jspWriter.write("lexicon-icon-shortcut\" role=\"img\"><use ");
+				jspWriter.write("xlink:href=\"");
+				jspWriter.write(themeDisplay.getPathThemeImages());
+				jspWriter.write("/lexicon/icons.svg#shortcut\" /><span ");
+				jspWriter.write("class=\"sr-only\">");
 				jspWriter.write(
-					LanguageUtil.get(pageContext, "opens-new-window"));
-				jspWriter.write("</span>");
+					LanguageUtil.get(resourceBundle, "opens-new-window"));
+				jspWriter.write("</span></svg>");
 			}
 
 			jspWriter.write("</a>");
@@ -78,22 +81,25 @@ public class ATag extends BaseATag {
 	protected int processStartTag() throws Exception {
 		JspWriter jspWriter = pageContext.getOut();
 
-		String href = getHref();
+		String ariaRole = getAriaRole();
 		String cssClass = getCssClass();
+		Map<String, Object> data = getData();
+		String href = getHref();
 		String id = getId();
-		String namespace = _getNamespace();
+		String iconCssClass = getIconCssClass();
+		String label = getLabel();
 		String lang = getLang();
+		Boolean localizeLabel = getLocalizeLabel();
+		String namespace = _getNamespace();
 		String onClick = getOnClick();
 		String target = getTarget();
 		String title = getTitle();
-		Map<String, Object> data = getData();
-		String label = getLabel();
 
 		if (Validator.isNotNull(href)) {
 			jspWriter.write("<a ");
 
 			jspWriter.write("href=\"");
-			jspWriter.write(HtmlUtil.escape(href));
+			jspWriter.write(HtmlUtil.escapeAttribute(href));
 			jspWriter.write("\" ");
 
 			if (Validator.isNotNull(target)) {
@@ -131,16 +137,27 @@ public class ATag extends BaseATag {
 			jspWriter.write("\" ");
 		}
 
-		if (Validator.isNotNull(title) || isOpensNewWindow()) {
+		if (Validator.isNotNull(ariaRole)) {
+			jspWriter.write("role=\"");
+			jspWriter.write(ariaRole);
+			jspWriter.write("\" ");
+		}
+
+		if (Validator.isNotNull(title) ||
+			AUIUtil.isOpensNewWindow(getTarget())) {
+
+			ResourceBundle resourceBundle =
+				TagResourceBundleUtil.getResourceBundle(pageContext);
+
 			jspWriter.write("title=\"");
 
 			if (Validator.isNotNull(title)) {
-				jspWriter.write(LanguageUtil.get(pageContext, title));
+				jspWriter.write(LanguageUtil.get(resourceBundle, title));
 			}
 
-			if (isOpensNewWindow()) {
+			if (AUIUtil.isOpensNewWindow(getTarget())) {
 				jspWriter.write(
-					LanguageUtil.get(pageContext, "opens-new-window"));
+					LanguageUtil.get(resourceBundle, "opens-new-window"));
 			}
 
 			jspWriter.write("\" ");
@@ -155,7 +172,21 @@ public class ATag extends BaseATag {
 		jspWriter.write(">");
 
 		if (Validator.isNotNull(label)) {
-			jspWriter.write(LanguageUtil.get(pageContext, label));
+			if (localizeLabel) {
+				ResourceBundle resourceBundle =
+					TagResourceBundleUtil.getResourceBundle(pageContext);
+
+				jspWriter.write(LanguageUtil.get(resourceBundle, label));
+			}
+			else {
+				jspWriter.write(label);
+			}
+		}
+
+		if (Validator.isNotNull(iconCssClass)) {
+			jspWriter.write("<span class=\"icon-monospaced ");
+			jspWriter.write(iconCssClass);
+			jspWriter.write("\"></span>");
 		}
 
 		return EVAL_BODY_INCLUDE;

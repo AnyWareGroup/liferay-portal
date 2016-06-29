@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -17,8 +17,8 @@ package com.liferay.portal.deploy.hot;
 import com.liferay.portal.kernel.deploy.hot.BaseHotDeployListener;
 import com.liferay.portal.kernel.deploy.hot.HotDeployEvent;
 import com.liferay.portal.kernel.deploy.hot.HotDeployException;
+import com.liferay.portal.kernel.util.ClassLoaderUtil;
 import com.liferay.portal.spring.context.PortletContextLoaderListener;
-import com.liferay.portal.util.ClassLoaderUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -115,7 +115,7 @@ public class SpringHotDeployListener extends BaseHotDeployListener {
 		}
 	}
 
-	private static Map<String, ContextLoaderListener> _contextLoaderListeners =
-		new HashMap<String, ContextLoaderListener>();
+	private static final Map<String, ContextLoaderListener>
+		_contextLoaderListeners = new HashMap<>();
 
 }

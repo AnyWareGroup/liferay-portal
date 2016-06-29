@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -20,27 +20,24 @@ import java.io.InputStream;
 
 import java.net.URL;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Raymond Augé
  * @author Miguel Pastor
  */
 public interface ModuleFramework {
 
-	public Object addBundle(String location) throws PortalException;
+	public long addBundle(String location) throws PortalException;
 
-	public Object addBundle(String location, InputStream inputStream)
+	public long addBundle(String location, InputStream inputStream)
 		throws PortalException;
 
-	public Map<String, List<URL>> getExtraPackageMap();
-
-	public List<URL> getExtraPackageURLs();
+	public URL getBundleResource(long bundleId, String name);
 
 	public Object getFramework();
 
 	public String getState(long bundleId) throws PortalException;
+
+	public void initFramework() throws Exception;
 
 	public void registerContext(Object context);
 
@@ -59,11 +56,13 @@ public interface ModuleFramework {
 
 	public void stopBundle(long bundleId, int options) throws PortalException;
 
-	public void stopFramework() throws Exception;
+	public void stopFramework(long timeout) throws Exception;
 
 	public void stopRuntime() throws Exception;
 
 	public void uninstallBundle(long bundleId) throws PortalException;
+
+	public void unregisterContext(Object context);
 
 	public void updateBundle(long bundleId) throws PortalException;
 

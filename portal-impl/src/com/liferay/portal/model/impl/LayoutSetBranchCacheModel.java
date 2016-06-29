@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2000-2013 Liferay, Inc. All rights reserved.
+ * Copyright (c) 2000-present Liferay, Inc. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Lesser General Public License as published by the Free
@@ -14,10 +14,14 @@
 
 package com.liferay.portal.model.impl;
 
+import aQute.bnd.annotation.ProviderType;
+
+import com.liferay.portal.kernel.model.CacheModel;
+import com.liferay.portal.kernel.model.LayoutSetBranch;
+import com.liferay.portal.kernel.model.MVCCModel;
+import com.liferay.portal.kernel.util.HashUtil;
 import com.liferay.portal.kernel.util.StringBundler;
 import com.liferay.portal.kernel.util.StringPool;
-import com.liferay.portal.model.CacheModel;
-import com.liferay.portal.model.LayoutSetBranch;
 
 import java.io.Externalizable;
 import java.io.IOException;
@@ -33,13 +37,53 @@ import java.util.Date;
  * @see LayoutSetBranch
  * @generated
  */
+@ProviderType
 public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
-	Externalizable {
+	Externalizable, MVCCModel {
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+
+		if (!(obj instanceof LayoutSetBranchCacheModel)) {
+			return false;
+		}
+
+		LayoutSetBranchCacheModel layoutSetBranchCacheModel = (LayoutSetBranchCacheModel)obj;
+
+		if ((layoutSetBranchId == layoutSetBranchCacheModel.layoutSetBranchId) &&
+				(mvccVersion == layoutSetBranchCacheModel.mvccVersion)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hashCode = HashUtil.hash(0, layoutSetBranchId);
+
+		return HashUtil.hash(hashCode, mvccVersion);
+	}
+
+	@Override
+	public long getMvccVersion() {
+		return mvccVersion;
+	}
+
+	@Override
+	public void setMvccVersion(long mvccVersion) {
+		this.mvccVersion = mvccVersion;
+	}
+
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(43);
+		StringBundler sb = new StringBundler(39);
 
-		sb.append("{layoutSetBranchId=");
+		sb.append("{mvccVersion=");
+		sb.append(mvccVersion);
+		sb.append(", layoutSetBranchId=");
 		sb.append(layoutSetBranchId);
 		sb.append(", groupId=");
 		sb.append(groupId);
@@ -61,18 +105,12 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		sb.append(description);
 		sb.append(", master=");
 		sb.append(master);
-		sb.append(", logo=");
-		sb.append(logo);
 		sb.append(", logoId=");
 		sb.append(logoId);
 		sb.append(", themeId=");
 		sb.append(themeId);
 		sb.append(", colorSchemeId=");
 		sb.append(colorSchemeId);
-		sb.append(", wapThemeId=");
-		sb.append(wapThemeId);
-		sb.append(", wapColorSchemeId=");
-		sb.append(wapColorSchemeId);
 		sb.append(", css=");
 		sb.append(css);
 		sb.append(", settings=");
@@ -90,6 +128,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 	public LayoutSetBranch toEntityModel() {
 		LayoutSetBranchImpl layoutSetBranchImpl = new LayoutSetBranchImpl();
 
+		layoutSetBranchImpl.setMvccVersion(mvccVersion);
 		layoutSetBranchImpl.setLayoutSetBranchId(layoutSetBranchId);
 		layoutSetBranchImpl.setGroupId(groupId);
 		layoutSetBranchImpl.setCompanyId(companyId);
@@ -133,7 +172,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		}
 
 		layoutSetBranchImpl.setMaster(master);
-		layoutSetBranchImpl.setLogo(logo);
 		layoutSetBranchImpl.setLogoId(logoId);
 
 		if (themeId == null) {
@@ -148,20 +186,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		}
 		else {
 			layoutSetBranchImpl.setColorSchemeId(colorSchemeId);
-		}
-
-		if (wapThemeId == null) {
-			layoutSetBranchImpl.setWapThemeId(StringPool.BLANK);
-		}
-		else {
-			layoutSetBranchImpl.setWapThemeId(wapThemeId);
-		}
-
-		if (wapColorSchemeId == null) {
-			layoutSetBranchImpl.setWapColorSchemeId(StringPool.BLANK);
-		}
-		else {
-			layoutSetBranchImpl.setWapColorSchemeId(wapColorSchemeId);
 		}
 
 		if (css == null) {
@@ -194,35 +218,46 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 
 	@Override
 	public void readExternal(ObjectInput objectInput) throws IOException {
+		mvccVersion = objectInput.readLong();
+
 		layoutSetBranchId = objectInput.readLong();
+
 		groupId = objectInput.readLong();
+
 		companyId = objectInput.readLong();
+
 		userId = objectInput.readLong();
 		userName = objectInput.readUTF();
 		createDate = objectInput.readLong();
 		modifiedDate = objectInput.readLong();
+
 		privateLayout = objectInput.readBoolean();
 		name = objectInput.readUTF();
 		description = objectInput.readUTF();
+
 		master = objectInput.readBoolean();
-		logo = objectInput.readBoolean();
+
 		logoId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
-		wapThemeId = objectInput.readUTF();
-		wapColorSchemeId = objectInput.readUTF();
 		css = objectInput.readUTF();
 		settings = objectInput.readUTF();
 		layoutSetPrototypeUuid = objectInput.readUTF();
+
 		layoutSetPrototypeLinkEnabled = objectInput.readBoolean();
 	}
 
 	@Override
 	public void writeExternal(ObjectOutput objectOutput)
 		throws IOException {
+		objectOutput.writeLong(mvccVersion);
+
 		objectOutput.writeLong(layoutSetBranchId);
+
 		objectOutput.writeLong(groupId);
+
 		objectOutput.writeLong(companyId);
+
 		objectOutput.writeLong(userId);
 
 		if (userName == null) {
@@ -234,6 +269,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 
 		objectOutput.writeLong(createDate);
 		objectOutput.writeLong(modifiedDate);
+
 		objectOutput.writeBoolean(privateLayout);
 
 		if (name == null) {
@@ -251,7 +287,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		}
 
 		objectOutput.writeBoolean(master);
-		objectOutput.writeBoolean(logo);
+
 		objectOutput.writeLong(logoId);
 
 		if (themeId == null) {
@@ -266,20 +302,6 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		}
 		else {
 			objectOutput.writeUTF(colorSchemeId);
-		}
-
-		if (wapThemeId == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(wapThemeId);
-		}
-
-		if (wapColorSchemeId == null) {
-			objectOutput.writeUTF(StringPool.BLANK);
-		}
-		else {
-			objectOutput.writeUTF(wapColorSchemeId);
 		}
 
 		if (css == null) {
@@ -306,6 +328,7 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 		objectOutput.writeBoolean(layoutSetPrototypeLinkEnabled);
 	}
 
+	public long mvccVersion;
 	public long layoutSetBranchId;
 	public long groupId;
 	public long companyId;
@@ -317,12 +340,9 @@ public class LayoutSetBranchCacheModel implements CacheModel<LayoutSetBranch>,
 	public String name;
 	public String description;
 	public boolean master;
-	public boolean logo;
 	public long logoId;
 	public String themeId;
 	public String colorSchemeId;
-	public String wapThemeId;
-	public String wapColorSchemeId;
 	public String css;
 	public String settings;
 	public String layoutSetPrototypeUuid;
